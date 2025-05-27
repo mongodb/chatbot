@@ -4,7 +4,6 @@ export * from "./QueryPreprocessorFunc";
 export * from "./filterOnlySystemPrompt";
 export * from "./makeDefaultReferenceLinks";
 export * from "./makeFilterNPreviousMessages";
-export * from "./makeVerifiedAnswerGenerateUserPrompt";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./InputGuardrail";
 export * from "./generateResponseWithSearchTool";

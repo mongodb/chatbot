@@ -1,5 +1,4 @@
 import {
-  EmbeddedContent,
   MakeReferenceLinksFunc,
   makeDefaultReferenceLinks,
 } from "mongodb-chatbot-server";

@@ -25,7 +25,10 @@ import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
-import { makeMongoDbReferences } from "./processors/makeMongoDbReferences";
+import {
+  addReferenceSourceType,
+  makeMongoDbReferences,
+} from "./processors/makeMongoDbReferences";
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
@@ -44,7 +47,7 @@ import {
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { createAzure } from "mongodb-rag-core/aiSdk";
-import { makeSearchTool } from "./tools";
+import { makeSearchTool } from "./tools/search";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,

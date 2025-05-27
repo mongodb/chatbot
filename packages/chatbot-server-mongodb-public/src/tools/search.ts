@@ -5,7 +5,7 @@ import { z } from "zod";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
-} from "./mongoDbMetadata";
+} from "../mongoDbMetadata";
 
 const SearchToolArgsSchema = z.object({
   productName: z

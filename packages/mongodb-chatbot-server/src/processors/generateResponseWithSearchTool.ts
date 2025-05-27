@@ -5,6 +5,7 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  EmbeddedContent,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import { GenerateResponse } from "./GenerateResponse";
@@ -26,15 +27,12 @@ import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
+import { SearchResult } from "./SearchResult";
 
 export const SEARCH_TOOL_NAME = "search_content";
 
 export type SearchToolReturnValue = {
-  content: {
-    url: string;
-    text: string;
-    metadata?: Record<string, unknown>;
-  }[];
+  content: SearchResult[];
 };
 
 export type SearchTool<ARGUMENTS extends z.ZodTypeAny> = Tool<
@@ -81,7 +79,7 @@ export function makeGenerateResponseWithSearchTool<
   systemMessage,
   filterPreviousMessages,
   additionalTools,
-  makeReferenceLinks,
+  makeReferenceLinks = makeDefaultReferenceLinks,
   maxSteps = 2,
   searchTool,
   toolChoice,
@@ -162,19 +160,7 @@ export function makeGenerateResponseWithSearchTool<
                   ) {
                     // Map the search tool results to the References format
                     const searchResults = toolResult.result.content;
-                    references.push(
-                      ...searchResults.map(
-                        (result) =>
-                          ({
-                            url: result.url,
-                            title:
-                              typeof result.metadata?.pageTitle === "string"
-                                ? result.metadata.pageTitle
-                                : "",
-                            metadata: result.metadata,
-                          } satisfies References[number])
-                      )
-                    );
+                    references.push(...makeReferenceLinks(searchResults));
                   }
                 }
               );
@@ -204,14 +190,11 @@ export function makeGenerateResponseWithSearchTool<
                 break;
             }
           }
-
           try {
             // Transform filtered references to include the required title property
-            const referencesOut = makeReferenceLinks
-              ? makeReferenceLinks(references)
-              : makeDefaultReferenceLinks(references);
+
             dataStreamer?.streamData({
-              data: referencesOut,
+              data: references,
               type: "references",
             });
             return result;

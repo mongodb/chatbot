@@ -10,3 +10,4 @@ export * from "./generateResponseWithSearchTool";
 export * from "./makeVerifiedAnswerGenerateResponse";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./GenerateResponse";
+export * from "./SearchResult";

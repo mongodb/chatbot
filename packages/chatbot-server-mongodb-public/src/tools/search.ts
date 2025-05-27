@@ -1,4 +1,8 @@
-import { SearchTool, SearchToolReturnValue } from "mongodb-chatbot-server";
+import {
+  SearchResult,
+  SearchTool,
+  SearchToolReturnValue,
+} from "mongodb-chatbot-server";
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
 import { tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
@@ -31,6 +35,23 @@ export function makeSearchTool(
   return tool({
     parameters: SearchToolArgsSchema,
     description: "Search MongoDB content",
+    // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
+    experimental_toToolResultContent(result) {
+      return [
+        {
+          type: "text",
+          text: JSON.stringify({
+            content: result.content.map(
+              (r) =>
+                ({
+                  url: r.url,
+                  text: r.text,
+                } satisfies SearchResult)
+            ),
+          }),
+        },
+      ];
+    },
     async execute(
       args: SearchToolArgs,
       _options: ToolExecutionOptions

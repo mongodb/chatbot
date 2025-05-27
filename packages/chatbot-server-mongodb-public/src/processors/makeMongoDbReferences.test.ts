@@ -150,7 +150,6 @@ describe("addReferenceSourceType", () => {
     };
     const result = addReferenceSourceType(reference);
     expect(result.metadata).toEqual({
-      sourceName: reference.metadata?.sourceName,
       tags: reference.metadata?.tags,
       sourceType: "Docs",
     });

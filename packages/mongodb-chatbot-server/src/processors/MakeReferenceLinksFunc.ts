@@ -1,11 +1,9 @@
-import { EmbeddedContent, References } from "mongodb-rag-core";
-
-export type EmbeddedContentForModel = Pick<
-  EmbeddedContent,
-  "url" | "text" | "metadata"
->;
+import { References } from "mongodb-rag-core";
+import { SearchResult } from "./SearchResult";
 
 /**
   Function that generates the references in the response to user.
  */
-export type MakeReferenceLinksFunc = (references: References) => References;
+export type MakeReferenceLinksFunc = (
+  searchResults: SearchResult[]
+) => References;

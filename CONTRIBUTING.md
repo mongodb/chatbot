@@ -61,7 +61,7 @@ To contribute to the project, you should follow the standard GitHub workflow:
    - If there's no Jira ticket, name the branch after the changes you're making (e.g. `fix_typos`).
 3. Make your changes. Commit them to your branch and push to your fork.
 4. Create a pull request to merge the changes from `<your fork/branch>` into
-   the `mongodb:chatbot/main` branch.
+   the `mongodb:chatbot/main` branch. For MongoDB employees: first, push your branch to the upstream repository. Then, create your pull request to merge the upstream branch (i.e., merge `mongodb:chatbot/<your-branch>` into `mongodb:chatbot/main`.)
 
 ## Network Access
 

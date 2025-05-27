@@ -5,17 +5,17 @@ import {
   Conversation,
   SomeMessage,
   AssistantMessage,
-  FunctionMessage,
+  ToolMessage,
   UserMessage,
   VectorStore,
   FindNearestNeighborsOptions,
   WithScore,
-  ChatLlm,
 } from "mongodb-chatbot-server";
 import { clusterize, DbscanOptions } from "./clusterize";
 import { findCentroid } from "./findCentroid";
+import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 
-export type ResponseMessage = AssistantMessage | FunctionMessage;
+export type ResponseMessage = AssistantMessage | ToolMessage;
 
 export type QuestionAndResponses = {
   embedding: number[];
@@ -152,7 +152,7 @@ export const findFaq = async ({
         }
         break;
       case "assistant":
-      case "function":
+      case "tool":
         {
           currentQuestion?.responses?.push(message);
         }
@@ -298,12 +298,13 @@ export const assignRepresentativeQuestion = async ({
   llm,
 }: {
   faq: FaqEntry[];
-  llm: ChatLlm;
+  llm: LanguageModel;
 }): Promise<FaqEntry[]> => {
   return await Promise.all(
     faq.map(async (q) => {
       try {
-        const representativeQuestion = await llm.answerQuestionAwaited({
+        const { text: representativeQuestion } = await generateText({
+          model: llm,
           messages: [
             {
               role: "user",
@@ -314,12 +315,9 @@ export const assignRepresentativeQuestion = async ({
           ],
         });
         console.log(
-          `Generated representative question: "${q.question}" -> "${representativeQuestion.content}"`
+          `Generated representative question: "${q.question}" -> "${representativeQuestion}"`
         );
-        if (representativeQuestion.content === null) {
-          throw new Error("llm returned null!");
-        }
-        return { ...q, question: representativeQuestion.content };
+        return { ...q, question: representativeQuestion };
       } catch (error) {
         console.warn(
           `Failed to generate representation question for '${q.question}': ${

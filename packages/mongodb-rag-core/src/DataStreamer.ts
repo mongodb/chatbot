@@ -1,11 +1,15 @@
 import { Response } from "express";
-import { OpenAiStreamingResponse } from "./llm";
 import { References } from "./References";
 import { logger } from "./logger";
+import OpenAI from "openai";
 
 export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
 }
+
+export type OpenAiStreamingResponse = AsyncIterable<
+  Omit<OpenAI.ChatCompletionChunk, "model" | "object">
+>;
 
 interface ServerSentEventDispatcher<Data extends object | string> {
   connect(): void;

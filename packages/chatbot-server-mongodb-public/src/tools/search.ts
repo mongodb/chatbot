@@ -1,0 +1,86 @@
+import {
+  SearchResult,
+  SearchTool,
+  SearchToolReturnValue,
+} from "mongodb-chatbot-server";
+import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
+import { tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
+import { z } from "zod";
+import {
+  mongoDbProducts,
+  mongoDbProgrammingLanguageIds,
+} from "../mongoDbMetadata";
+
+const SearchToolArgsSchema = z.object({
+  productName: z
+    .enum(mongoDbProducts.map((product) => product.id) as [string, ...string[]])
+    .nullable()
+    .optional()
+    .describe("Most relevant MongoDB product for query. Leave null if unknown"),
+  programmingLanguage: z
+    .enum(mongoDbProgrammingLanguageIds)
+    .nullable()
+    .optional()
+    .describe(
+      "Most relevant programming language for query. Leave null if unknown"
+    ),
+  query: z.string().describe("Search query"),
+});
+
+export type SearchToolArgs = z.infer<typeof SearchToolArgsSchema>;
+
+export function makeSearchTool(
+  findContent: FindContentFunc
+): SearchTool<typeof SearchToolArgsSchema> {
+  return tool({
+    parameters: SearchToolArgsSchema,
+    description: "Search MongoDB content",
+    // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
+    experimental_toToolResultContent(result) {
+      return [
+        {
+          type: "text",
+          text: JSON.stringify({
+            content: result.content.map(
+              (r) =>
+                ({
+                  url: r.url,
+                  text: r.text,
+                } satisfies SearchResult)
+            ),
+          }),
+        },
+      ];
+    },
+    async execute(
+      args: SearchToolArgs,
+      _options: ToolExecutionOptions
+    ): Promise<SearchToolReturnValue> {
+      const { query, productName, programmingLanguage } = args;
+
+      const nonNullMetadata: Record<string, string> = {};
+      if (productName) {
+        nonNullMetadata.productName = productName;
+      }
+      if (programmingLanguage) {
+        nonNullMetadata.programmingLanguage = programmingLanguage;
+      }
+
+      const queryWithMetadata = updateFrontMatter(query, nonNullMetadata);
+      const content = await findContent({ query: queryWithMetadata });
+
+      const result: SearchToolReturnValue = {
+        content: content.content.map((item) => ({
+          url: item.url,
+          metadata: {
+            pageTitle: item.metadata?.pageTitle,
+            sourceName: item.sourceName,
+          },
+          text: item.text,
+        })),
+      };
+
+      return result;
+    },
+  });
+}

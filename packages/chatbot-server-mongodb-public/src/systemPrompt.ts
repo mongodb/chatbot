@@ -1,4 +1,5 @@
-import { SEARCH_TOOL_NAME, SystemPrompt } from "mongodb-chatbot-server";
+import { SEARCH_TOOL_NAME } from "mongodb-chatbot-server";
+import { SystemMessage } from "mongodb-rag-core";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,
@@ -106,7 +107,7 @@ When you search, include metadata about the relevant MongoDB programming languag
 <important>
 ${makeMarkdownNumberedList(importantNotes)}
 </important>`,
-} satisfies SystemPrompt;
+} satisfies SystemMessage;
 
 function makeMarkdownNumberedList(items: string[]) {
   return items.map((item, i) => `${i + 1}. ${item}`).join("\n");

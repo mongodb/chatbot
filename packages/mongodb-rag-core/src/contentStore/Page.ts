@@ -31,13 +31,21 @@ export type Page = {
     The source type indicates where the page was loaded from. 
     @example "tech-docs" indicates documents from the mongodb.com/docs site. SnootyDataSource has this type
    */
-  sourceType?: string;
+  sourceType?: SourceTypeName;
 
   /**
     Arbitrary metadata for page.
    */
   metadata?: PageMetadata;
 };
+
+export type SourceTypeName =
+  | "tech-docs"
+  | "devcenter"
+  | "marketing"
+  | "university-content"
+  | "tech-docs-external"
+  | "book-external";
 
 interface VersionInfo {
   isCurrent: boolean;

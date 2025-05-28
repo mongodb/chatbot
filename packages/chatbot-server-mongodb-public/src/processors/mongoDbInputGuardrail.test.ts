@@ -1,6 +1,6 @@
 import { MockLanguageModelV1 } from "mongodb-rag-core/aiSdk";
 import {
-  makeUserMessageMongoDbGuardrail,
+  makeMongoDbInputGuardrail,
   UserMessageMongoDbGuardrailFunction,
 } from "./mongoDbInputGuardrail";
 import {
@@ -24,7 +24,7 @@ describe("mongoDbInputGuardrail", () => {
     }),
   });
 
-  const userMessageMongoDbGuardrail = makeUserMessageMongoDbGuardrail({
+  const userMessageMongoDbGuardrail = makeMongoDbInputGuardrail({
     model: mockModel,
   });
 

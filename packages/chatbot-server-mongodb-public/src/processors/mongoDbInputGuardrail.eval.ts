@@ -1,17 +1,11 @@
 import "dotenv/config";
-import {
-  makeUserMessageMongoDbGuardrail,
-  UserMessageMongoDbGuardrailFunction,
-} from "./mongoDbInputGuardrail";
+import { makeMongoDbInputGuardrail } from "./mongoDbInputGuardrail";
 import { Eval, wrapAISDKModel } from "braintrust";
-import { Scorer, LLMClassifierFromTemplate } from "autoevals";
+import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
-  JUDGE_LLM,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_KEY,
-  OPENAI_API_VERSION,
-  OPENAI_ENDPOINT,
   OPENAI_RESOURCE_NAME,
 } from "../eval/evalHelpers";
 import { InputGuardrailResult } from "mongodb-chatbot-server";
@@ -554,7 +548,7 @@ const model = wrapAISDKModel(
   })(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT)
 );
 
-const userMessageMongoDbGuardrail = makeUserMessageMongoDbGuardrail({
+const userMessageMongoDbGuardrail = makeMongoDbInputGuardrail({
   model,
 });
 

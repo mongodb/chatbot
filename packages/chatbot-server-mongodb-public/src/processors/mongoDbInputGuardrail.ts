@@ -204,7 +204,7 @@ ${JSON.stringify(examplePair.output, null, 2)}
 export interface MakeUserMessageMongoDbGuardrailParams {
   model: LanguageModelV1;
 }
-export const makeUserMessageMongoDbGuardrail = ({
+export const makeMongoDbInputGuardrail = ({
   model,
 }: MakeUserMessageMongoDbGuardrailParams) => {
   const userMessageMongoDbGuardrail: InputGuardrail = async ({

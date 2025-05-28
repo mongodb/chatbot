@@ -23,6 +23,7 @@ export const mongooseSourceConstructor = async () => {
     },
     testFileLoaderOptions,
     acquitCodeBlockLanguageReplacement: "javascript",
+    sourceType: "tech-docs-external",
     metadata: {
       productName: "Mongoose ODM",
       tags: ["node.js", "community library", "mongoose", "odm"],

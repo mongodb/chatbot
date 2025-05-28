@@ -1,4 +1,4 @@
-import { Page, PageMetadata } from "../contentStore";
+import { Page, PageMetadata, SourceTypeName } from "../contentStore";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
@@ -20,6 +20,11 @@ export type MakeMdOnGithubDataSourceParams = Omit<
   ) => string;
 
   filter?: MakeGitHubDataSourceArgs["filter"];
+
+  /**  
+    Source type to be included in all pages.
+   */
+  sourceType?: SourceTypeName;
 
   /**
     Metadata to include with all Pages in DB.
@@ -76,6 +81,7 @@ export const makeMdOnGithubDataSource = async ({
   repoLoaderOptions,
   pathToPageUrl,
   filter,
+  sourceType,
   metadata,
   frontMatter = { process: true, separator: "---", format: "yaml" },
   extractMetadata,
@@ -127,6 +133,7 @@ export const makeMdOnGithubDataSource = async ({
         format: "md",
         sourceName: name,
         url,
+        sourceType,
         metadata: { ...(metadata ?? {}), ...(extractedMetadata ?? {}) },
       };
       const title = extractTitle(document.pageContent, frontMatterMetadata);

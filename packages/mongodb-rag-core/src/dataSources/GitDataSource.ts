@@ -6,7 +6,7 @@ import { rimrafSync } from "rimraf";
 import { DataSource } from "./DataSource";
 import { filterDefined, filterFulfilled } from "../arrayFilters";
 import { logger } from "../logger";
-import { Page, PageMetadata } from "../contentStore";
+import { Page, PageMetadata, SourceTypeName } from "../contentStore";
 
 /**
   Function to convert a file in the repo into a `Page` or `Page[]`.
@@ -44,6 +44,11 @@ export interface MakeGitDataSourceParams {
   filter: FilterFunc;
 
   /**
+    Source type to be included in pages
+   */
+  sourceType?: SourceTypeName;
+
+  /**
     Metadata to be included in all pages.
    */
   metadata?: PageMetadata;
@@ -58,6 +63,7 @@ export function makeGitDataSource({
   name,
   handlePage,
   filter,
+  sourceType,
   metadata,
   repoUri,
   repoOptions,
@@ -99,6 +105,7 @@ export function makeGitDataSource({
             (page): Page => ({
               ...page,
               sourceName: name,
+              sourceType,
               metadata:
                 metadata || page.metadata
                   ? { ...(metadata ?? {}), ...(page.metadata ?? {}) }

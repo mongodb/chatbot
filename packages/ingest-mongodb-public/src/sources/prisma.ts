@@ -35,6 +35,7 @@ export const prismaSourceConstructor = async () => {
     name: "prisma",
     repoUrl,
     repoLoaderOptions,
+    sourceType: "tech-docs-external",
     filter: (path: string) => path.includes("mongodb") && path.endsWith(".mdx"),
     pathToPageUrl(path, frontMatter) {
       console.log("path:", path);

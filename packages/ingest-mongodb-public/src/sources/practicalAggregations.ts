@@ -16,6 +16,7 @@ export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
       pathInRepo.replace(/^\/src\//, "/").replace(/\.md$/, "")
     );
   },
+  sourceType: "book-external",
   metadata: {
     bookName: "Practical MongoDB Aggregations",
     tags: ["docs", "aggregations", "book"],

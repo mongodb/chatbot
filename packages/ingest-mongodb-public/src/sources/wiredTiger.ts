@@ -39,6 +39,7 @@ export const wiredTigerSourceConstructor = async () => {
       "--depth": 1,
       "--branch": "master",
     },
+    sourceType: "tech-docs-external",
     metadata: {
       productName: "WiredTiger",
       tags: ["docs", "storage-engine"],

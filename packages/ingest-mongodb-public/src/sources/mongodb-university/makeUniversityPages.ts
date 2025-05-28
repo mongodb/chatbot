@@ -64,6 +64,7 @@ function makeCatalogItemPages({
         body: generateContentDescriptionMarkdown({
           tiCatalogItem: catalogItem,
         }),
+        sourceType: "university-content",
         metadata: {
           ...(metadata ?? {}),
           tags: [...(metadata?.tags ?? []), "landing page"],
@@ -104,6 +105,7 @@ function makeCatalogItemPages({
           }),
           format: "txt",
           body,
+          sourceType: "university-content",
           metadata: {
             ...(metadata ?? {}),
             // We choose to not include tags returned by the API (i.e.

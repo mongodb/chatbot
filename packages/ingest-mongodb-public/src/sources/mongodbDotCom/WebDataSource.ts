@@ -38,7 +38,7 @@ export function makeWebDataSource({
               url,
               format: "md",
               sourceName: name,
-              sourceType: sourceType,
+              sourceType,
               ...content,
               metadata: { ...content.metadata, ...staticMetadata },
             });

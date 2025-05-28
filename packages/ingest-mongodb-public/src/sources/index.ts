@@ -117,6 +117,7 @@ export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams 
       return frontMatterCopy;
     },
     extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+    sourceType: "university-content",
     metadata: {
       siteTitle: "MongoDB University",
     },
@@ -152,6 +153,7 @@ export const terraformProviderSourceConstructor = async () => {
         format: "md",
         url: url,
         title: metadata?.page_title,
+        sourceType: "tech-docs-external",
       };
       return page;
     },

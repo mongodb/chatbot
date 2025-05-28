@@ -18,6 +18,11 @@ export type InitialWebSource = {
   directoryUrls?: string[];
 
   /**
+   Source type indicating the type of content the web page contains.
+   */
+  sourceType?: string
+
+  /**
    Optional additional metadata determined by the web source.
    */
   staticMetadata?: Record<string, string | string[]>;
@@ -48,6 +53,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/services/consulting/relational-migration-methodology",
       "https://www.mongodb.com/services/training",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Services",
     },
@@ -84,6 +90,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/products/tools/vs-code",
       "https://www.mongodb.com/products/updates/version-release",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Products",
     },
@@ -112,6 +119,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/solutions/use-cases/payments",
       "https://www.mongodb.com/solutions/use-cases/serverless",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Solutions",
     },
@@ -180,6 +188,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/solutions/use-cases/generative-ai-predictive-maintenance-applications",
       "https://www.mongodb.com/resources/solutions/use-cases/mysql-to-mongodb",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Resources",
     },
@@ -194,6 +203,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/compare/mongodb-oracle",
       "https://www.mongodb.com/resources/compare/mongodb-postgresql",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Comparisons",
     }
@@ -382,6 +392,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/blog/post/workload-isolation-more-scalability-availability-search-nodes-now-on-gcp",
       "https://www.mongodb.com/blog/post/zee5-masterclass-in-migrating-microservices-atlas",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Blog",
     }
@@ -414,6 +425,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://learn.mongodb.com/courses/schema-design-optimization",
       
     ],
+    sourceType: "university-content",
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
     }
@@ -430,7 +442,7 @@ export async function getUrlsFromSitemap(
   return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
 }
 
-export type WebSource = Pick<InitialWebSource, "name" | "staticMetadata" | "urls">;
+export type WebSource = Pick<InitialWebSource, "name" | "sourceType" | "staticMetadata" | "urls" >;
 
 type PrepareWebSourcesParams = {
   initialWebSources: InitialWebSource[];

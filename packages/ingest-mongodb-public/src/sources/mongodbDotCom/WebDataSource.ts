@@ -16,6 +16,7 @@ interface WebSourceParams extends WebSource {
 export function makeWebDataSource({
   name,
   urls,
+  sourceType,
   staticMetadata,
   makeBrowser,
 }: WebSourceParams): DataSource {
@@ -37,6 +38,7 @@ export function makeWebDataSource({
               url,
               format: "md",
               sourceName: name,
+              sourceType: sourceType,
               ...content,
               metadata: { ...content.metadata, ...staticMetadata },
             });

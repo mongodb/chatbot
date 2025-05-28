@@ -97,10 +97,10 @@ export function makeGenerateResponseWithSearchTool<
     if (shouldStream) {
       assert(dataStreamer, "dataStreamer is required for streaming");
     }
-    const userMessage = {
+    const userMessage: UserMessage = {
       role: "user",
       content: latestMessageText,
-    } satisfies UserMessage;
+    };
     try {
       // Get preceding messages to include in the LLM prompt
       const filteredPreviousMessages = filterPreviousMessages
@@ -168,6 +168,9 @@ export function makeGenerateResponseWithSearchTool<
           });
 
           for await (const chunk of result.fullStream) {
+            if (controller.signal.aborted) {
+              break;
+            }
             switch (chunk.type) {
               case "text-delta":
                 if (shouldStream) {
@@ -192,11 +195,12 @@ export function makeGenerateResponseWithSearchTool<
           }
           try {
             // Transform filtered references to include the required title property
-
-            dataStreamer?.streamData({
-              data: references,
-              type: "references",
-            });
+            if (references.length > 0) {
+              dataStreamer?.streamData({
+                data: references,
+                type: "references",
+              });
+            }
             return result;
           } catch (error: unknown) {
             throw new Error(typeof error === "string" ? error : String(error));
@@ -204,6 +208,31 @@ export function makeGenerateResponseWithSearchTool<
         },
         inputGuardrailPromise
       );
+
+      // If the guardrail rejected the query,
+      // return the LLM not working message
+      if (guardrailResult?.rejected) {
+        userMessage.rejectQuery = guardrailResult.rejected;
+        userMessage.customData = {
+          ...userMessage.customData,
+          ...guardrailResult,
+        };
+        dataStreamer?.streamData({
+          data: llmNotWorkingMessage,
+          type: "delta",
+        });
+        return {
+          messages: [
+            userMessage,
+            {
+              role: "assistant",
+              content: llmNotWorkingMessage,
+            } satisfies AssistantMessage,
+          ] satisfies SomeMessage[],
+        };
+      }
+
+      // Otherwise, return the generated response
       const text = await result?.text;
       assert(text, "text is required");
       const messages = (await result?.response)?.messages;
@@ -221,6 +250,7 @@ export function makeGenerateResponseWithSearchTool<
         data: llmNotWorkingMessage,
         type: "delta",
       });
+
       // Handle other errors
       return {
         messages: [
@@ -259,6 +289,7 @@ function handleReturnGeneration({
     ...userMessage.customData,
     ...guardrailResult,
   };
+
   return {
     messages: [
       userMessage,

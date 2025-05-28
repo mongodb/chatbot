@@ -1,4 +1,4 @@
-import { Page, PageMetadata, pageFormat } from "../contentStore";
+import { Page, PageMetadata, pageFormat, SourceTypeName } from "../contentStore";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
@@ -8,6 +8,11 @@ import path from "path";
 export type MakeCodeOnGithubTextDataSourceParams =
   // MakeGitHubDataSourceArgs & {
   Omit<MakeGitHubDataSourceArgs, "handleDocumentInRepo"> & {
+    /**
+      Source type to include in all pages.
+     */
+    sourceType: SourceTypeName;
+
     /**
     Metadata to include with all Pages in DB.
    */
@@ -22,6 +27,7 @@ export const makeCodeOnGithubTextDataSource = async ({
   repoUrl,
   repoLoaderOptions,
   filter,
+  sourceType,
   metadata,
 }: MakeCodeOnGithubTextDataSourceParams) => {
   return makeGitHubDataSource({
@@ -47,6 +53,7 @@ export const makeCodeOnGithubTextDataSource = async ({
         body: document.pageContent,
         format,
         sourceName: name,
+        sourceType,
         url: pageBlobUrl({
           repoUrl,
           branch: repoLoaderOptions?.branch ?? "master",

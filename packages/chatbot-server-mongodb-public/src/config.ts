@@ -199,6 +199,7 @@ export const generateResponse = wrapTraced(
         systemMessage: systemPrompt,
         makeReferenceLinks: makeMongoDbReferences,
         inputGuardrail,
+        // TODO: add logic for guardrail rejection. should be something better than current llmNotWorkingMessage
         filterPreviousMessages: async (conversation) => {
           return conversation.messages.filter((message) => {
             return (

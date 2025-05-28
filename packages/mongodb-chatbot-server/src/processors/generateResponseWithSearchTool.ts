@@ -23,7 +23,11 @@ import {
   CoreToolMessage,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
-import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
+import {
+  InputGuardrail,
+  InputGuardrailResult,
+  withAbortControllerGuardrail,
+} from "./InputGuardrail";
 import { strict as assert } from "assert";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
@@ -277,9 +281,7 @@ function handleReturnGeneration({
   references,
 }: {
   userMessage: UserMessage;
-  guardrailResult:
-    | { rejected: boolean; message: string; metadata?: Record<string, unknown> }
-    | undefined;
+  guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
   customData?: Record<string, unknown>;

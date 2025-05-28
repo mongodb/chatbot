@@ -5,21 +5,19 @@ export interface InputGuardrailResult<
 > {
   rejected: boolean;
   reason?: string;
-  message: string;
   metadata: Metadata;
 }
 
 export const guardrailFailedResult: InputGuardrailResult = {
   rejected: true,
   reason: "Guardrail failed",
-  message: "Guardrail failed",
   metadata: {},
 };
 
 export type InputGuardrail<
   Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
 > = (
-  generateResponseParams: Omit<GenerateResponseParams, "llm">
+  generateResponseParams: GenerateResponseParams
 ) => Promise<InputGuardrailResult<Metadata>>;
 
 export function withAbortControllerGuardrail<T>(

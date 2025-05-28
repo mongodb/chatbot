@@ -22,13 +22,13 @@ describe("withAbortControllerGuardrail", () => {
 
   const mockGuardrailRejectedResult: InputGuardrailResult = {
     rejected: true,
-    message: "Input rejected",
+    reason: "Input rejected",
     metadata: { source: "test" },
   };
 
   const mockGuardrailApprovedResult: InputGuardrailResult = {
     rejected: false,
-    message: "Input approved",
+    reason: "Input approved",
     metadata: { source: "test" },
   };
 
@@ -82,8 +82,7 @@ describe("withAbortControllerGuardrail", () => {
     // Create a guardrail result that rejects
     const mockGuardrailResult: InputGuardrailResult = {
       rejected: true,
-      reason: "Unsafe input",
-      message: "Input rejected",
+      reason: "Input rejected",
       metadata: { source: "test" },
     };
     const guardrailPromise = Promise.resolve(mockGuardrailResult);

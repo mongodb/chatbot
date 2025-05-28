@@ -1,4 +1,4 @@
-import { pageIdentity, PersistedPage } from ".";
+import { pageIdentity, PersistedPage, SourceTypeName } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
   EmbeddedContent,
@@ -297,7 +297,7 @@ type MongoDbAtlasVectorSearchFilter = {
   sourceName?: string;
   "metadata.version.label"?: string;
   "metadata.version.isCurrent"?: boolean | { $ne: boolean };
-  sourceType?: string;
+  sourceType?: SourceTypeName;
 };
 
 const handleFilters = (

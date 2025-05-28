@@ -153,11 +153,11 @@ Relevant topics include (this list is NOT exhaustive):
 
 <rejection-criteria>
 
-## Rejection Criteria (APPLY THESE EXTREMELY SPARINGLY)
+Rejection Criteria (APPLY THESE EXTREMELY SPARINGLY)
 
 <inappropriate>
 
-### 'inappropriate' classification criteria
+## 'inappropriate' classification criteria
 
 - ONLY classify as 'inappropriate' if the content is EXPLICITLY requesting illegal or unethical activities
 - DO NOT classify as 'inappropriate' for negative opinions or criticism about MongoDB.
@@ -166,7 +166,7 @@ Relevant topics include (this list is NOT exhaustive):
 
 <irrelevant>
 
-### 'irrelevant' classification criteria
+## 'irrelevant' classification criteria
 - ONLY classify as 'irrelevant' if the query is COMPLETELY and UNAMBIGUOUSLY unrelated to technology, software, databases, business, or education.
 - Examples of irrelevant queries include personal health advice, cooking recipes, or sports scores.
 
@@ -176,7 +176,7 @@ Relevant topics include (this list is NOT exhaustive):
 
 <unknown>
 
-### 'unknown' classification criteria
+## 'unknown' classification criteria
 
 - When in doubt about a query, ALWAYS classify it as 'unknown'.
 - It is MUCH better to classify a 'valid' query as 'unknown' than to incorrectly reject a valid one.

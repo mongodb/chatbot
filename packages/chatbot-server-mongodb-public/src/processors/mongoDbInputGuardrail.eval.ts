@@ -530,7 +530,6 @@ const evalCases: MongoDbGuardrailEvalCase[] = [
   },
 ];
 
-// Simple string based matcher
 const CorrectResponse: Scorer<InputGuardrailResult, unknown> = (args) => {
   return {
     name: "CorrectResponse",
@@ -542,40 +541,9 @@ const CorrectValidity: Scorer<
   Awaited<ReturnType<typeof userMessageMongoDbGuardrail>>,
   unknown
 > = (args) => {
-  if (
-    args.output.metadata.type === "unknown" &&
-    (args.expected?.metadata.type === "unknown" ||
-      args.expected?.metadata.type === "valid")
-  ) {
-    return {
-      name: "CorrectValidity",
-      score: 1,
-    };
-  }
-
-  if (
-    args.output.metadata.type !== "valid" &&
-    args.output.metadata.type !== "unknown" &&
-    args.expected?.metadata.type !== "valid" &&
-    args.expected?.metadata.type !== "unknown"
-  ) {
-    return {
-      name: "CorrectValidity",
-      score: 1,
-    };
-  }
-  if (
-    args.output.metadata.type === "valid" &&
-    args.expected?.metadata.type === "valid"
-  ) {
-    return {
-      name: "CorrectValidity",
-      score: 1,
-    };
-  }
   return {
     name: "CorrectValidity",
-    score: 0,
+    score: args.output.metadata.type === args.expected?.metadata.type ? 1 : 0,
   };
 };
 

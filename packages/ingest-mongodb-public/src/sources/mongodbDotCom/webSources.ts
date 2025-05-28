@@ -39,6 +39,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/company/our-story",
       "https://www.mongodb.com/company/values",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Company",
     },
@@ -461,7 +462,7 @@ export const prepareWebSources = async ({
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
   for (const initialWebSource of initialWebSources) {
-    const { name, staticMetadata } = initialWebSource;
+    const { name, staticMetadata, sourceType } = initialWebSource;
     let urls = initialWebSource.urls || [];
     if (initialWebSource.directoryUrls?.length) {
       for (const directoryUrl of initialWebSource.directoryUrls) {
@@ -475,6 +476,7 @@ export const prepareWebSources = async ({
       name,
       staticMetadata,
       urls,
+      sourceType,
     });
   }
   return webSources;

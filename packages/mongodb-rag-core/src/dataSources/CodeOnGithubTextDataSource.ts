@@ -11,7 +11,7 @@ export type MakeCodeOnGithubTextDataSourceParams =
     /**
       Source type to include in all pages.
      */
-    sourceType: SourceTypeName;
+    sourceType?: SourceTypeName;
 
     /**
     Metadata to include with all Pages in DB.

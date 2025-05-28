@@ -136,6 +136,7 @@ export const terraformProviderSourceConstructor = async () => {
       "--depth": 1,
       "--branch": "master",
     },
+    sourceType: "tech-docs-external",
     metadata: {
       productName: "mongodbatlas Terraform Provider",
       tags: ["docs", "terraform", "atlas", "hcl"],
@@ -153,7 +154,6 @@ export const terraformProviderSourceConstructor = async () => {
         format: "md",
         url: url,
         title: metadata?.page_title,
-        sourceType: "tech-docs-external",
       };
       return page;
     },

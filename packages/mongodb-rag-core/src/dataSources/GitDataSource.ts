@@ -44,7 +44,8 @@ export interface MakeGitDataSourceParams {
   filter: FilterFunc;
 
   /**
-    Source type to be included in pages
+    Source type to be included in pages. 
+    Takes precendence over the sourceType set in handlePage's Page constructor.
    */
   sourceType?: SourceTypeName;
 
@@ -105,7 +106,7 @@ export function makeGitDataSource({
             (page): Page => ({
               ...page,
               sourceName: name,
-              sourceType,
+              sourceType: sourceType ?? page.sourceType,
               metadata:
                 metadata || page.metadata
                   ? { ...(metadata ?? {}), ...(page.metadata ?? {}) }

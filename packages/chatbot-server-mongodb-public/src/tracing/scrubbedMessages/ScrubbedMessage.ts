@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { DbMessage, SomeMessage } from "mongodb-rag-core";
 import { Pii } from "./redactPii";
+import { OriginCode } from "mongodb-chatbot-server";
 
 export type ScrubbedMessage<
   Analysis extends Record<string, unknown> | undefined = undefined
@@ -73,4 +74,27 @@ export type ScrubbedMessage<
    Any PII redacted from the original user comment.
    */
   userCommentPii?: Pii[];
+
+  /**
+   For 'user' role messages, track information about the subsequent assistant 
+   response to the user message.
+   */
+  response?: {
+    isVerifiedAnswer?: boolean;
+    userCommented?: boolean;
+    userComment?: string;
+    responseRating?: boolean;
+    [key: string]: unknown;
+  };
+
+  /**
+   For 'assistant' role messages, track information about the user request preceding 
+   this assistant response.
+   */
+  request?: {
+    userTopics?: string[] | null;
+    origin?: string;
+    originCode?: OriginCode;
+    [key: string]: unknown;
+  };
 };

@@ -60,10 +60,16 @@ type ConversationEvalScorer = EvalScorer<
 
 // -- Evaluation metrics --
 const RetrievedContext: ConversationEvalScorer = async (args) => {
-  args.output.context;
+  const name = "RetrievedContext";
+  if (!args.output.context) {
+    return {
+      name,
+      score: null,
+    };
+  }
   return {
-    name: "RetrievedContext",
-    score: args.output.context?.length ? 1 : 0,
+    name,
+    score: args.output.context.length ? 1 : 0,
   };
 };
 

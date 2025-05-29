@@ -13,6 +13,7 @@ import {
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
 import { truncateEmbeddings } from "./truncateEmbeddings";
+import { SourceTypeName } from  "../index";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -355,7 +356,7 @@ export const handlePage = async (
     };
     links?: RenderLinks;
   }
-): Promise<Page | undefined> => {
+): Promise<Page<SourceTypeName> | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always
   // be ${property}/docsworker-xlarge/${branch}
   const pagePath = page.page_id

@@ -3,7 +3,7 @@ import { PageFormat } from "./PageFormat";
 /**
   Represents a page from a data source.
  */
-export type Page = {
+export type Page<SourceType extends string = string> = {
   url: string;
 
   /**
@@ -31,7 +31,7 @@ export type Page = {
     The source type describes the contents of the page. 
     @example "tech-docs" indicates documents from the mongodb.com/docs site. SnootyDataSource has this type
    */
-  sourceType?: string;
+  sourceType?: SourceType;
 
   /**
     Arbitrary metadata for page.

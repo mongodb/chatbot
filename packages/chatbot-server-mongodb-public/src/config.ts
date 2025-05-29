@@ -201,7 +201,6 @@ export const generateResponse = wrapTraced(
         inputGuardrail,
         llmRefusalMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        // TODO: add logic for guardrail rejection. should be something better than current llmNotWorkingMessage
         filterPreviousMessages: async (conversation) => {
           return conversation.messages.filter((message) => {
             return (

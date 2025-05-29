@@ -6,7 +6,7 @@ import { rimrafSync } from "rimraf";
 import { DataSource } from "./DataSource";
 import { filterDefined, filterFulfilled } from "../arrayFilters";
 import { logger } from "../logger";
-import { Page, PageMetadata, SourceTypeName } from "../contentStore";
+import { Page, PageMetadata } from "../contentStore";
 
 /**
   Function to convert a file in the repo into a `Page` or `Page[]`.
@@ -47,7 +47,7 @@ export interface MakeGitDataSourceParams {
     Source type to be included in pages. 
     Takes precendence over the sourceType set in handlePage's Page constructor.
    */
-  sourceType?: SourceTypeName;
+  sourceType?: string;
 
   /**
     Metadata to be included in all pages.

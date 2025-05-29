@@ -8,7 +8,7 @@ import acquit from "acquit";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 import { logger } from "../logger";
-import { PageMetadata, Page, SourceTypeName } from "../contentStore";
+import { PageMetadata, Page } from "../contentStore";
 
 /**
   Loads an MD/Acquit docs site from a GitHub repo.
@@ -40,7 +40,7 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
   /**
     Source type to be included in all pages.
    */
-  sourceType?: SourceTypeName;
+  sourceType?: string;
   /**
     Arbitrary metadata to include in each Page object.
    */

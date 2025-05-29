@@ -1,5 +1,4 @@
 import xml2js from "xml2js";
-import { SourceTypeName } from "mongodb-rag-core";
 
 export type InitialWebSource = {
   /**
@@ -21,7 +20,7 @@ export type InitialWebSource = {
   /**
    Source type indicating the type of content the web page contains.
    */
-  sourceType?: SourceTypeName;
+  sourceType?: string;
 
   /**
    Optional additional metadata determined by the web source.

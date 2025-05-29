@@ -7,29 +7,19 @@ import {
 } from "mongodb-rag-core/braintrust";
 import {
   Conversation,
-  generateResponse,
-  GenerateResponseParams,
+  GenerateResponse,
   logger,
   Message,
 } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
-import {
-  AnswerRelevancy,
-  ContextRelevancy,
-  Faithfulness,
-  Factuality,
-} from "autoevals";
+import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
 import { MongoDbTag } from "../mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
 import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";
-import {
-  getLastUserMessageFromMessages,
-  getLastAssistantMessageFromMessages,
-  getContextsFromUserMessage,
-} from "./evalHelpers";
+import { extractTracingData } from "../tracing/extractTracingData";
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
@@ -40,6 +30,7 @@ type ConversationEvalCaseExpected = {
   links?: string[];
   reference?: string;
   expectation?: string;
+  reject?: boolean;
 };
 
 interface ConversationEvalCase
@@ -80,6 +71,22 @@ const AllowedQuery: ConversationEvalScorer = async (args) => {
   return {
     name: "AllowedQuery",
     score: args.output.allowedQuery ? 1 : 0,
+  };
+};
+
+const InputGuardrailExpected: ConversationEvalScorer = async (args) => {
+  const name = "InputGuardrail";
+  // Skip running eval if no expected reject
+  if (!args.expected.reject) {
+    return {
+      name,
+      score: null,
+    };
+  }
+  const match = args.expected.reject === !args.output.allowedQuery;
+  return {
+    name,
+    score: match ? 1 : 0,
   };
 };
 
@@ -141,12 +148,13 @@ type ConversationEvalScorerConstructor = (
 
 const makeConversationFaithfulness: ConversationEvalScorerConstructor =
   (judgeModelConfig) => async (args) => {
+    if (args.output.context?.length === 0) {
+      return {
+        name: "Faithfulness",
+        score: null,
+      };
+    }
     return Faithfulness(getConversationRagasConfig(args, judgeModelConfig));
-  };
-
-const makeConversationAnswerRelevancy: ConversationEvalScorerConstructor =
-  (judgeModelConfig) => async (args) => {
-    return AnswerRelevancy(getConversationRagasConfig(args, judgeModelConfig));
   };
 
 const makeConversationContextRelevancy: ConversationEvalScorerConstructor =
@@ -176,32 +184,19 @@ export interface MakeConversationEvalParams {
   experimentName: string;
   metadata?: Record<string, unknown>;
   maxConcurrency?: number;
-  generate: Pick<
-    GenerateResponseParams,
-    | "filterPreviousMessages"
-    | "generateUserPrompt"
-    | "llmNotWorkingMessage"
-    | "llm"
-    | "noRelevantContentMessage"
-  > & {
-    systemPrompt: {
-      content: string;
-      role: "system";
-    };
-  };
+  generateResponse: GenerateResponse;
 }
-export function makeConversationEval({
+export async function makeConversationEval({
   conversationEvalCases,
   judgeModelConfig,
   projectName,
   experimentName,
   metadata,
   maxConcurrency,
-  generate,
+  generateResponse,
 }: MakeConversationEvalParams) {
   const Factuality = makeFactuality(judgeModelConfig);
   const Faithfullness = makeConversationFaithfulness(judgeModelConfig);
-  const AnswerRelevancy = makeConversationAnswerRelevancy(judgeModelConfig);
   const ContextRelevancy = makeConversationContextRelevancy(judgeModelConfig);
 
   return Eval(projectName, {
@@ -216,11 +211,6 @@ export function makeConversationEval({
               createdAt: new Date(),
             } satisfies Message)
         );
-        prevConversationMessages.unshift({
-          ...generate.systemPrompt,
-          id: new ObjectId(),
-          createdAt: new Date(),
-        } satisfies Message);
         const latestMessageText = evalCase.messages.at(-1)?.content;
         assert(latestMessageText, "No latest message text found");
         return {
@@ -238,6 +228,7 @@ export function makeConversationEval({
             expectation: evalCase.expectation,
             reference: evalCase.reference,
             links: evalCase.expectedLinks,
+            reject: evalCase.reject,
           },
           metadata: null,
         } satisfies ConversationEvalCase;
@@ -248,33 +239,34 @@ export function makeConversationEval({
     maxConcurrency,
     async task(input): Promise<ConversationTaskOutput> {
       try {
-        const generated = await traced(
+        const id = new ObjectId();
+        const { messages } = await traced(
           async () =>
             generateResponse({
               conversation: input.previousConversation,
               latestMessageText: input.latestMessageText,
-              llm: generate.llm,
-              llmNotWorkingMessage: generate.llmNotWorkingMessage,
-              noRelevantContentMessage: generate.noRelevantContentMessage,
-              reqId: input.latestMessageText,
+              reqId: id.toHexString(),
               shouldStream: false,
-              generateUserPrompt: generate.generateUserPrompt,
-              filterPreviousMessages: generate.filterPreviousMessages,
             }),
           {
             name: "generateResponse",
           }
         );
-        const userMessage = getLastUserMessageFromMessages(generated.messages);
-        const finalAssistantMessage = getLastAssistantMessageFromMessages(
-          generated.messages
-        );
-        const contextInfo = getContextsFromUserMessage(userMessage);
+        const mockDbMessages = messages.map((m, i) => {
+          const msgId = i === messages.length - 1 ? id : new ObjectId();
+          return { ...m, id: msgId, createdAt: new Date() };
+        });
+
+        const { rejectQuery, userMessage, contextContent, assistantMessage } =
+          extractTracingData(mockDbMessages, id);
+        assert(assistantMessage, "No assistant message found");
+        assert(contextContent, "No context content found");
+        assert(userMessage, "No user message found");
         return {
-          assistantMessageContent: finalAssistantMessage.content,
-          context: contextInfo?.contexts,
-          urls: contextInfo?.urls,
-          allowedQuery: !userMessage.rejectQuery,
+          assistantMessageContent: assistantMessage.content,
+          context: contextContent.map((c) => c.text),
+          urls: contextContent.map((c) => c.url),
+          allowedQuery: !rejectQuery,
         };
       } catch (error) {
         logger.error(`Error evaluating input: ${input.latestMessageText}`);
@@ -288,7 +280,7 @@ export function makeConversationEval({
       BinaryNdcgAt5,
       Factuality,
       Faithfullness,
-      AnswerRelevancy,
+      InputGuardrailExpected,
       ContextRelevancy,
     ],
   });

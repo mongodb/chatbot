@@ -8,6 +8,7 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
 } from "mongodb-chatbot-server";
+import { config, closeDbConnections } from "./config";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -20,7 +21,6 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
-import { config, mongodb, embeddedContentStore } from "./config";
 
 const PORT = process.env.PORT || 3000;
 
@@ -33,8 +33,7 @@ const startServer = async () => {
 
   process.on("SIGINT", async () => {
     logger.info("SIGINT signal received");
-    await mongodb.close();
-    await embeddedContentStore.close();
+    await closeDbConnections();
     await new Promise<void>((resolve, reject) => {
       server.close((error: unknown) => {
         error ? reject(error) : resolve();

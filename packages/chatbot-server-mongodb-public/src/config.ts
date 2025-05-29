@@ -256,6 +256,12 @@ const segmentConfig = SEGMENT_WRITE_KEY
     }
   : undefined;
 
+export async function closeDbConnections() {
+  await mongodb.close();
+  await verifiedAnswerStore.close();
+  await embeddedContentStore.close();
+}
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     middleware: [

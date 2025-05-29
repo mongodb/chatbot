@@ -17,6 +17,7 @@ export const {
   OPENAI_ENDPOINT,
   OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
 } = assertEnvVars({
   ...EVAL_ENV_VARS,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
@@ -24,6 +25,7 @@ export const {
   OPENAI_API_KEY: "",
   OPENAI_ENDPOINT: "",
   OPENAI_API_VERSION: "",
+  OPENAI_RESOURCE_NAME: "",
 });
 
 export const openAiClient = new AzureOpenAI({

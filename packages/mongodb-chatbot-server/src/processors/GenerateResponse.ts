@@ -3,6 +3,8 @@ import {
   DataStreamer,
   Conversation,
   SomeMessage,
+  AssistantMessage,
+  UserMessage,
 } from "mongodb-rag-core";
 import { Request as ExpressRequest } from "express";
 
@@ -20,7 +22,10 @@ export interface GenerateResponseParams {
 }
 
 export interface GenerateResponseReturnValue {
-  messages: SomeMessage[];
+  /**
+    Input user message, ...any tool calls, output assistant message
+   */
+  messages: [UserMessage, ...SomeMessage[], AssistantMessage];
 }
 
 export type GenerateResponse = (

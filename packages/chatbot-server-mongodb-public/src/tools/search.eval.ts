@@ -21,11 +21,7 @@ import { f1AtK } from "../eval/scorers/f1AtK";
 import { precisionAtK } from "../eval/scorers/precisionAtK";
 import { recallAtK } from "../eval/scorers/recallAtK";
 import { MongoDbTag } from "../mongoDbMetadata";
-import {
-  extractMongoDbMetadataFromUserMessage,
-  ExtractMongoDbMetadataFunction,
-} from "./extractMongoDbMetadataFromUserMessage";
-import { retrieveRelevantContent } from "./retrieveRelevantContent";
+import { SearchToolArgs } from "./search";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -49,7 +45,7 @@ interface RetrievalResult {
 }
 interface RetrievalTaskOutput {
   results: RetrievalResult[];
-  extractedMetadata?: ExtractMongoDbMetadataFunction;
+  extractedMetadata?: SearchToolArgs;
   rewrittenQuery?: string;
   searchString?: string;
 }
@@ -69,30 +65,21 @@ const { k } = retrievalConfig.findNearestNeighborsOptions;
 
 const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
-  RetrievalTaskOutput
+  RetrievalTaskOutput,
+  RetrievalEvalCaseExpected
 > = async function (data) {
-  const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
-    openAiClient: preprocessorOpenAiClient,
-    model: retrievalConfig.preprocessorLlm,
-    userMessageText: data.query,
-  });
-  const results = await retrieveRelevantContent({
-    userMessageText: data.query,
-    model: retrievalConfig.preprocessorLlm,
-    openAiClient: preprocessorOpenAiClient,
-    findContent,
-    metadataForQuery,
-  });
+  // TODO: (EAI-991) implement retrieval task for evaluation
+  const extractedMetadata: SearchToolArgs = {
+    productName: null,
+    programmingLanguage: null,
+    query: data.query,
+  };
 
   return {
-    results: results.content.map((c) => ({
-      url: c.url,
-      content: c.text,
-      score: c.score,
-    })),
-    extractedMetadata: metadataForQuery,
-    rewrittenQuery: results.transformedUserQuery,
-    searchString: results.searchQuery,
+    results: [],
+    extractedMetadata,
+    rewrittenQuery: undefined,
+    searchString: undefined,
   };
 };
 

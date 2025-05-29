@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import {
+  GenerateResponseWithSearchToolParams,
   makeGenerateResponseWithSearchTool,
   SEARCH_TOOL_NAME,
   SearchToolReturnValue,
@@ -163,6 +164,8 @@ const mockSystemMessage: SystemMessage = {
 const mockLlmNotWorkingMessage =
   "Sorry, I am having trouble with the language model.";
 
+const mockLlmRefusalMessage = "Sorry, I cannot answer that.";
+
 const mockGuardrailRejectResult = {
   rejected: true,
   message: "Content policy violation",
@@ -186,12 +189,16 @@ const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
   },
 });
 
-const makeMakeGenerateResponseWithSearchToolArgs = () => ({
-  languageModel: makeMockLanguageModel(),
-  llmNotWorkingMessage: mockLlmNotWorkingMessage,
-  systemMessage: mockSystemMessage,
-  searchTool: mockSearchTool,
-});
+const makeMakeGenerateResponseWithSearchToolArgs = () =>
+  ({
+    languageModel: makeMockLanguageModel(),
+    llmNotWorkingMessage: mockLlmNotWorkingMessage,
+    llmRefusalMessage: mockLlmRefusalMessage,
+    systemMessage: mockSystemMessage,
+    searchTool: mockSearchTool,
+  } satisfies Partial<
+    GenerateResponseWithSearchToolParams<typeof SearchToolArgsSchema>
+  >);
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -385,7 +392,7 @@ describe("generateResponseWithSearchTool", () => {
         expectGuardrailRejectResult(result);
         expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
         expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          data: mockLlmNotWorkingMessage,
+          data: mockLlmRefusalMessage,
           type: "delta",
         });
       });
@@ -429,7 +436,7 @@ function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
 
   expect(result.messages[1]).toMatchObject({
     role: "assistant",
-    content: mockLlmNotWorkingMessage,
+    content: mockLlmRefusalMessage,
   } satisfies AssistantMessage);
 }
 

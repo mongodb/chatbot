@@ -5,10 +5,12 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
-  EmbeddedContent,
 } from "mongodb-rag-core";
 import { z } from "zod";
-import { GenerateResponse } from "./GenerateResponse";
+import {
+  GenerateResponse,
+  GenerateResponseReturnValue,
+} from "./GenerateResponse";
 import {
   CoreAssistantMessage,
   CoreMessage,
@@ -58,6 +60,7 @@ export interface GenerateResponseWithSearchToolParams<
 > {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
+  llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
   systemMessage: SystemMessage;
   filterPreviousMessages?: FilterPreviousMessages;
@@ -79,6 +82,7 @@ export function makeGenerateResponseWithSearchTool<
 >({
   languageModel,
   llmNotWorkingMessage,
+  llmRefusalMessage,
   inputGuardrail,
   systemMessage,
   filterPreviousMessages,
@@ -130,9 +134,6 @@ export function makeGenerateResponseWithSearchTool<
         maxSteps,
       };
 
-      // TODO: EAI-995: validate that this works as part of guardrail changes
-      // Guardrail used to validate the input
-      // while the LLM is generating the response
       const inputGuardrailPromise = inputGuardrail
         ? inputGuardrail({
             conversation,
@@ -214,7 +215,7 @@ export function makeGenerateResponseWithSearchTool<
       );
 
       // If the guardrail rejected the query,
-      // return the LLM not working message
+      // return the LLM refusal message
       if (guardrailResult?.rejected) {
         userMessage.rejectQuery = guardrailResult.rejected;
         userMessage.customData = {
@@ -222,7 +223,7 @@ export function makeGenerateResponseWithSearchTool<
           ...guardrailResult,
         };
         dataStreamer?.streamData({
-          data: llmNotWorkingMessage,
+          data: llmRefusalMessage,
           type: "delta",
         });
         return {
@@ -230,10 +231,10 @@ export function makeGenerateResponseWithSearchTool<
             userMessage,
             {
               role: "assistant",
-              content: llmNotWorkingMessage,
+              content: llmRefusalMessage,
             } satisfies AssistantMessage,
-          ] satisfies SomeMessage[],
-        };
+          ],
+        } satisfies GenerateResponseReturnValue;
       }
 
       // Otherwise, return the generated response
@@ -264,7 +265,7 @@ export function makeGenerateResponseWithSearchTool<
             content: llmNotWorkingMessage,
           },
         ],
-      };
+      } satisfies GenerateResponseReturnValue;
     }
   };
 }
@@ -285,7 +286,7 @@ function handleReturnGeneration({
   messages: ResponseMessage[];
   references?: References;
   customData?: Record<string, unknown>;
-}): { messages: SomeMessage[] } {
+}): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
   userMessage.customData = {
     ...userMessage.customData,
@@ -296,14 +297,14 @@ function handleReturnGeneration({
     messages: [
       userMessage,
       ...formatMessageForGeneration(messages, references ?? []),
-    ] satisfies SomeMessage[],
-  };
+    ],
+  } satisfies GenerateResponseReturnValue;
 }
 
 function formatMessageForGeneration(
   messages: ResponseMessage[],
   references: References
-): SomeMessage[] {
+): [...SomeMessage[], AssistantMessage] {
   const messagesOut = messages
     .map((m) => {
       if (m.role === "assistant") {
@@ -357,10 +358,12 @@ function formatMessageForGeneration(
     })
     .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
   const latestMessage = messagesOut.at(-1);
-  if (latestMessage?.role === "assistant") {
-    latestMessage.references = references;
-  }
-  return messagesOut;
+  assert(
+    latestMessage?.role === "assistant",
+    "last message must be assistant message"
+  );
+  latestMessage.references = references;
+  return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
 function formatMessageForAiSdk(message: SomeMessage): CoreMessage {

@@ -72,19 +72,20 @@ export const makeVerifiedAnswerGenerateResponse = ({
       });
     }
 
-    const messages = [
-      {
-        role: "user",
-        embedding: queryEmbedding,
-        content: latestMessageText,
-      },
-      {
-        role: "assistant",
-        content: answer,
-        references,
-        metadata,
-      },
-    ] satisfies SomeMessage[];
-    return { messages } satisfies GenerateResponseReturnValue;
+    return {
+      messages: [
+        {
+          role: "user",
+          embedding: queryEmbedding,
+          content: latestMessageText,
+        },
+        {
+          role: "assistant",
+          content: answer,
+          references,
+          metadata,
+        },
+      ],
+    } satisfies GenerateResponseReturnValue;
   };
 };

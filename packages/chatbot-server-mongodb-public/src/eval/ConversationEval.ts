@@ -265,7 +265,7 @@ export async function makeConversationEval({
         return {
           assistantMessageContent: assistantMessage.content,
           context: contextContent.map((c) => c.text),
-          urls: contextContent.map((c) => c.url),
+          urls: assistantMessage.references?.map((r) => r.url),
           allowedQuery: !rejectQuery,
         };
       } catch (error) {

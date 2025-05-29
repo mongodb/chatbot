@@ -142,7 +142,7 @@ export const terraformProviderSourceConstructor = async () => {
       tags: ["docs", "terraform", "atlas", "hcl"],
     },
     filter: (path: string) =>
-      path.includes("website/docs") && path.endsWith(".markdown"),
+      path.includes("docs") && path.endsWith(".md"),
     handlePage: async function (path, content) {
       const { metadata, body } = extractFrontMatter<{ page_title: string }>(
         content

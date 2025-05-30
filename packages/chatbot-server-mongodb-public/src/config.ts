@@ -18,7 +18,6 @@ import {
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
-  makeGenerateResponseWithSearchTool,
   makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
@@ -49,6 +48,7 @@ import { useSegmentIds } from "./middleware/useSegmentIds";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
+import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,

@@ -6,58 +6,37 @@ import {
   AssistantMessage,
   ToolMessage,
 } from "mongodb-rag-core";
-import { z } from "zod";
-import {
-  GenerateResponse,
-  GenerateResponseReturnValue,
-} from "./GenerateResponse";
+
 import {
   CoreAssistantMessage,
   CoreMessage,
   LanguageModel,
   streamText,
-  Tool,
   ToolCallPart,
   ToolChoice,
-  ToolExecutionOptions,
-  ToolResultUnion,
   ToolSet,
   CoreToolMessage,
+  ToolResultPart,
+  TextPart,
 } from "mongodb-rag-core/aiSdk";
-import { FilterPreviousMessages } from "./FilterPreviousMessages";
+import { strict as assert } from "assert";
 import {
   InputGuardrail,
-  InputGuardrailResult,
+  FilterPreviousMessages,
+  MakeReferenceLinksFunc,
+  makeDefaultReferenceLinks,
+  GenerateResponse,
   withAbortControllerGuardrail,
-} from "./InputGuardrail";
-import { strict as assert } from "assert";
-import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
-import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
-import { SearchResult } from "./SearchResult";
+  GenerateResponseReturnValue,
+  InputGuardrailResult,
+} from "mongodb-chatbot-server";
+import {
+  MongoDbSearchToolArgs,
+  SEARCH_TOOL_NAME,
+  SearchTool,
+} from "../tools/search";
 
-export const SEARCH_TOOL_NAME = "search_content";
-
-export type SearchToolReturnValue = {
-  content: SearchResult[];
-};
-
-export type SearchTool<ARGUMENTS extends z.ZodTypeAny> = Tool<
-  ARGUMENTS,
-  SearchToolReturnValue
-> & {
-  execute: (
-    args: z.infer<ARGUMENTS>,
-    options: ToolExecutionOptions
-  ) => PromiseLike<SearchToolReturnValue>;
-};
-
-type SearchToolResult<ARGUMENTS extends z.ZodTypeAny> = ToolResultUnion<{
-  [SEARCH_TOOL_NAME]: SearchTool<ARGUMENTS>;
-}>;
-
-export interface GenerateResponseWithSearchToolParams<
-  ARGUMENTS extends z.ZodTypeAny
-> {
+export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
@@ -70,16 +49,16 @@ export interface GenerateResponseWithSearchToolParams<
   additionalTools?: ToolSet;
   makeReferenceLinks?: MakeReferenceLinksFunc;
   maxSteps?: number;
-  toolChoice?: ToolChoice<{ search_content: SearchTool<ARGUMENTS> }>;
-  searchTool: SearchTool<ARGUMENTS>;
+  toolChoice?: ToolChoice<{
+    search_content: SearchTool;
+  }>;
+  searchTool: SearchTool;
 }
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool<
-  ARGUMENTS extends z.ZodTypeAny
->({
+export function makeGenerateResponseWithSearchTool({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,
@@ -91,7 +70,7 @@ export function makeGenerateResponseWithSearchTool<
   maxSteps = 2,
   searchTool,
   toolChoice,
-}: GenerateResponseWithSearchToolParams<ARGUMENTS>): GenerateResponse {
+}: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
     latestMessageText,
@@ -148,6 +127,7 @@ export function makeGenerateResponseWithSearchTool<
         : undefined;
 
       const references: References = [];
+      let userMessageCustomData: Partial<MongoDbSearchToolArgs> = {};
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
           // Pass the tools as a separate parameter
@@ -156,19 +136,26 @@ export function makeGenerateResponseWithSearchTool<
             // Abort the stream if the guardrail AbortController is triggered
             abortSignal: controller.signal,
             // Add the search tool results to the references
-            onStepFinish: async ({ toolResults }) => {
-              toolResults?.forEach(
-                (toolResult: SearchToolResult<ARGUMENTS>) => {
-                  if (
-                    toolResult.toolName === SEARCH_TOOL_NAME &&
-                    toolResult.result.content
-                  ) {
-                    // Map the search tool results to the References format
-                    const searchResults = toolResult.result.content;
+            onStepFinish: async ({ toolResults, toolCalls }) => {
+              toolCalls?.forEach((toolCall) => {
+                if (toolCall.toolName === SEARCH_TOOL_NAME) {
+                  userMessageCustomData = {
+                    ...userMessageCustomData,
+                    ...toolCall.args,
+                  };
+                }
+              });
+              toolResults?.forEach((toolResult) => {
+                if (
+                  toolResult.type === "tool-result" &&
+                  toolResult.toolName === SEARCH_TOOL_NAME
+                ) {
+                  const searchResults = toolResult.result.results;
+                  if (searchResults && Array.isArray(searchResults)) {
                     references.push(...makeReferenceLinks(searchResults));
                   }
                 }
-              );
+              });
             },
           });
 
@@ -218,54 +205,81 @@ export function makeGenerateResponseWithSearchTool<
       // return the LLM refusal message
       if (guardrailResult?.rejected) {
         userMessage.rejectQuery = guardrailResult.rejected;
+        userMessage.metadata = {
+          ...userMessage.metadata,
+        };
         userMessage.customData = {
           ...userMessage.customData,
+          ...userMessageCustomData,
           ...guardrailResult,
         };
         dataStreamer?.streamData({
-          data: llmRefusalMessage,
           type: "delta",
+          data: llmRefusalMessage,
         });
-        return {
+        return handleReturnGeneration({
+          userMessage,
+          guardrailResult,
           messages: [
-            userMessage,
             {
               role: "assistant",
               content: llmRefusalMessage,
-            } satisfies AssistantMessage,
+            },
           ],
-        } satisfies GenerateResponseReturnValue;
+          userMessageCustomData,
+        });
       }
 
       // Otherwise, return the generated response
-      const text = await result?.text;
-      assert(text, "text is required");
-      const messages = (await result?.response)?.messages;
-      assert(messages, "messages is required");
+      assert(result, "result is required");
+      const llmResponse = await result?.response;
+      const messages = llmResponse?.messages || [];
 
-      return handleReturnGeneration({
-        userMessage,
-        guardrailResult,
-        messages,
-        customData,
-        references,
-      });
+      // Add metadata to user message
+      userMessage.metadata = {
+        ...userMessage.metadata,
+        ...userMessageCustomData,
+      };
+
+      // If we received messages from the LLM, use them, otherwise handle error case
+      if (messages && messages.length > 0) {
+        return handleReturnGeneration({
+          userMessage,
+          guardrailResult,
+          messages,
+          references,
+          userMessageCustomData,
+        });
+      } else {
+        // Fallback in case no messages were returned
+        return handleReturnGeneration({
+          userMessage,
+          guardrailResult,
+          messages: [
+            {
+              role: "assistant",
+              content: llmNotWorkingMessage,
+            },
+          ],
+          references,
+          userMessageCustomData,
+        });
+      }
     } catch (error: unknown) {
       dataStreamer?.streamData({
-        data: llmNotWorkingMessage,
         type: "delta",
+        data: llmNotWorkingMessage,
       });
 
-      // Handle other errors
+      // Create error message with references attached
+      const errorMessage: AssistantMessage = {
+        role: "assistant",
+        content: llmNotWorkingMessage,
+      };
+
       return {
-        messages: [
-          userMessage,
-          {
-            role: "assistant",
-            content: llmNotWorkingMessage,
-          },
-        ],
-      } satisfies GenerateResponseReturnValue;
+        messages: [userMessage, errorMessage],
+      };
     }
   };
 }
@@ -280,28 +294,32 @@ function handleReturnGeneration({
   guardrailResult,
   messages,
   references,
+  userMessageCustomData,
 }: {
   userMessage: UserMessage;
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
-  customData?: Record<string, unknown>;
+  userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
   userMessage.customData = {
     ...userMessage.customData,
+    ...userMessageCustomData,
     ...guardrailResult,
   };
 
+  const formattedMessages = formatMessageForReturnGeneration(
+    messages,
+    references ?? []
+  );
+
   return {
-    messages: [
-      userMessage,
-      ...formatMessageForGeneration(messages, references ?? []),
-    ],
+    messages: [userMessage, ...formattedMessages],
   } satisfies GenerateResponseReturnValue;
 }
 
-function formatMessageForGeneration(
+function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   references: References
 ): [...SomeMessage[], AssistantMessage] {
@@ -345,7 +363,13 @@ function formatMessageForGeneration(
           m.content.forEach((c) => {
             if (c.type === "tool-result") {
               baseMessage.name = c.toolName;
-              baseMessage.content = JSON.stringify(c.result);
+              const result = (c.result as Array<ToolResultPart | TextPart>)[0];
+              if (result.type === "text") {
+                baseMessage.content = result.text;
+              }
+              if (result.type === "tool-result") {
+                baseMessage.content = JSON.stringify(result.result);
+              }
             }
           });
         }
@@ -357,17 +381,21 @@ function formatMessageForGeneration(
       }
     })
     .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
-  const latestMessage = messagesOut.at(-1);
-  assert(
-    latestMessage?.role === "assistant",
-    "last message must be assistant message"
-  );
+
+  // Make sure we have at least one assistant message
+  if (messagesOut.length === 0 || messagesOut.at(-1)?.role !== "assistant") {
+    messagesOut.push({
+      role: "assistant",
+      content: "",
+    } as AssistantMessage);
+  }
+  const latestMessage = messagesOut.at(-1) as AssistantMessage;
   latestMessage.references = references;
   return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
 function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
-  if (message.role === "assistant" && typeof message.content === "object") {
+  if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
     if (message.toolCall) {
       // This is a tool call message
@@ -386,18 +414,22 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
       // Fallback for other object content
       return {
         role: "assistant",
-        content: JSON.stringify(message.content),
+        content: message.content,
       } satisfies CoreAssistantMessage;
     }
   } else if (message.role === "tool") {
     // Convert tool messages to the format expected by the AI SDK
     return {
-      role: "assistant", // Use assistant role instead of function
-      content:
-        typeof message.content === "string"
-          ? message.content
-          : JSON.stringify(message.content),
-    } satisfies CoreMessage;
+      role: "tool",
+      content: [
+        {
+          toolName: message.name,
+          type: "tool-result",
+          result: message.content,
+          toolCallId: "",
+        } satisfies ToolResultPart,
+      ],
+    } satisfies CoreToolMessage;
   } else {
     // User and system messages can pass through
     return message satisfies CoreMessage;

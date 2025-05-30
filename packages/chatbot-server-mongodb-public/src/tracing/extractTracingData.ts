@@ -8,7 +8,7 @@ import {
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
-import { SEARCH_TOOL_NAME } from "mongodb-chatbot-server";
+import { SEARCH_TOOL_NAME } from "../tools/search";
 import { logRequest } from "../utils";
 
 export function extractTracingData(

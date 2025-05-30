@@ -13,12 +13,16 @@ import { Page, PageMetadata } from "../contentStore";
   @param path - Path to file in repo
   @param content - Contents of file in repo
   */
-export type HandlePageFunc = (
+export type HandlePageFunc<SourceType extends string = string> = (
   path: string,
   content: string
-) => Promise<undefined | Omit<Page, "sourceName"> | Omit<Page, "sourceName">[]>;
+) => Promise<
+  | undefined
+  | Omit<Page<SourceType>, "sourceName">
+  | Omit<Page<SourceType>, "sourceName">[]
+>;
 
-export interface MakeGitDataSourceParams {
+export interface MakeGitDataSourceParams<SourceType extends string = string> {
   /** Name of project */
   name: string;
 
@@ -44,24 +48,31 @@ export interface MakeGitDataSourceParams {
   filter: FilterFunc;
 
   /**
+    Source type to be included in pages. 
+    Takes precendence over the sourceType set in handlePage's Page constructor.
+   */
+  sourceType?: SourceType;
+
+  /**
     Metadata to be included in all pages.
    */
   metadata?: PageMetadata;
 
-  handlePage: HandlePageFunc;
+  handlePage: HandlePageFunc<SourceType>;
 }
 
 /**
   Loads and processes files from a Git repo (can be hosted anywhere).
  */
-export function makeGitDataSource({
+export function makeGitDataSource<SourceType extends string = string>({
   name,
   handlePage,
   filter,
+  sourceType,
   metadata,
   repoUri,
   repoOptions,
-}: MakeGitDataSourceParams): DataSource {
+}: MakeGitDataSourceParams<SourceType>): DataSource {
   return {
     name,
     fetchPages: async () => {
@@ -96,9 +107,10 @@ export function makeGitDataSource({
         )
           .flat(1)
           .map(
-            (page): Page => ({
+            (page): Page<SourceType> => ({
               ...page,
               sourceName: name,
+              sourceType: sourceType ?? page.sourceType,
               metadata:
                 metadata || page.metadata
                   ? { ...(metadata ?? {}), ...(page.metadata ?? {}) }

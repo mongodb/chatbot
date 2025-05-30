@@ -19,15 +19,18 @@ import { PageMetadata, Page } from "../contentStore";
   Acquit is used in the [Mongoose ODM](https://mongoosejs.com/docs) documentation.
   This data source assumes that the test files are in the same repo as the docs.
  */
-export const makeAcquitRequireMdOnGithubDataSource = async ({
+export const makeAcquitRequireMdOnGithubDataSource = async <
+  SourceType extends string = string
+>({
   name,
   repoUrl,
   repoLoaderOptions,
   pathToPageUrl,
   testFileLoaderOptions,
+  sourceType,
   metadata,
   acquitCodeBlockLanguageReplacement = "",
-}: Omit<MakeGitHubDataSourceArgs, "handleDocumentInRepo"> & {
+}: Omit<MakeGitHubDataSourceArgs<SourceType>, "handleDocumentInRepo"> & {
   /**
     Transform a filepath in the repo to a full URL for the corresponding Page object.
    */
@@ -36,6 +39,10 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
     Options for the acquit test file loader.
    */
   testFileLoaderOptions: Partial<GithubRepoLoaderParams>;
+  /**
+    sourceType field value to be included in all pages.
+   */
+  sourceType?: SourceType;
   /**
     Arbitrary metadata to include in each Page object.
    */
@@ -78,11 +85,12 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
         "```acquit\n",
         `\`\`\`${acquitCodeBlockLanguageReplacement ?? ""}\n`
       );
-      const page: Page = {
+      const page: Page<SourceType> = {
         body: body,
         format: "md",
         url,
         metadata,
+        sourceType,
         sourceName: name,
       };
       const h1 = extractMarkdownH1(page.body);

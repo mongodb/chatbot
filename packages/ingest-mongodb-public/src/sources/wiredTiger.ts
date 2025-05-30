@@ -3,6 +3,7 @@ import {
   handleHtmlDocument,
   makeGitDataSource,
 } from "mongodb-rag-core/dataSources";
+import { SourceTypeName } from ".";
 
 const removeElements = (domDoc: Document) => [
   ...Array.from(domDoc.querySelectorAll("head")),
@@ -32,13 +33,14 @@ const htmlParserOptions: Omit<HandleHtmlPageFuncOptions, "sourceName"> = {
 };
 
 export const wiredTigerSourceConstructor = async () => {
-  return await makeGitDataSource({
+  return await makeGitDataSource<SourceTypeName>({
     name: "wired-tiger",
     repoUri: "https://github.com/wiredtiger/wiredtiger.github.com.git",
     repoOptions: {
       "--depth": 1,
       "--branch": "master",
     },
+    sourceType: "tech-docs-external",
     metadata: {
       productName: "WiredTiger",
       tags: ["docs", "storage-engine"],
@@ -50,6 +52,10 @@ export const wiredTigerSourceConstructor = async () => {
       !path.includes("develop/search") &&
       !path.includes("struct_w_t___"),
     handlePage: async (path, content) =>
-      await handleHtmlDocument(path, content, htmlParserOptions),
+      await handleHtmlDocument<SourceTypeName>(
+        path,
+        content,
+        htmlParserOptions
+      ),
   });
 };

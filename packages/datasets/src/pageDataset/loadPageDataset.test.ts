@@ -46,7 +46,7 @@ describe("loadPagesDataset", () => {
       action: "deleted",
       sourceType: "tech-docs",
     },
-    // This page does not match sourceType (even though it is active)
+    // This page does not match sourceType = "tech-docs" (even though it is active)
     {
       url: "https://example.com/page4",
       body: "Page 4 body",
@@ -56,7 +56,7 @@ describe("loadPagesDataset", () => {
       updated: new Date(),
       format: "html",
       action: "created",
-      sourceType: "blog",
+      sourceType: "marketing",
     },
     {
       url: "https://example.com/page5",

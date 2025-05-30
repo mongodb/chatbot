@@ -1,4 +1,4 @@
-import { pageIdentity, PersistedPage } from ".";
+import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
   EmbeddedContent,

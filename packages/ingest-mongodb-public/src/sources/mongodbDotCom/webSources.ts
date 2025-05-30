@@ -18,6 +18,11 @@ export type InitialWebSource = {
   directoryUrls?: string[];
 
   /**
+   Source type indicating the type of content the web page contains.
+   */
+  sourceType?: string;
+
+  /**
    Optional additional metadata determined by the web source.
    */
   staticMetadata?: Record<string, string | string[]>;
@@ -32,7 +37,9 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/company/leadership-principles",
       "https://www.mongodb.com/company/our-story",
       "https://www.mongodb.com/company/values",
+      "https://www.mongodb.com/leadership",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Company",
     },
@@ -40,6 +47,7 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "services",
     urls: [
+      "https://support.mongodb.com",
       "https://www.mongodb.com/services/consulting",
       "https://www.mongodb.com/services/consulting/ai-accelerator",
       "https://www.mongodb.com/services/consulting/ai-applications-program",
@@ -48,6 +56,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/services/consulting/relational-migration-methodology",
       "https://www.mongodb.com/services/training",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Services",
     },
@@ -83,7 +92,11 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/products/tools/relational-migrator",
       "https://www.mongodb.com/products/tools/vs-code",
       "https://www.mongodb.com/products/updates/version-release",
+      "https://www.mongodb.com/atlas",
+      "https://www.mongodb.com/try/download/community",
+      "https://www.mongodb.com/try/download/compass",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Products",
     },
@@ -112,6 +125,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/solutions/use-cases/payments",
       "https://www.mongodb.com/solutions/use-cases/serverless",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Solutions",
     },
@@ -119,6 +133,7 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "resources",
     urls: [
+      "https://www.mongodb.com/why-use-mongodb",
       "https://www.mongodb.com/resources/basics/ai-hallucinations",
       "https://www.mongodb.com/resources/basics/ai-in-finance",
       "https://www.mongodb.com/resources/basics/ai-stack",
@@ -180,6 +195,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/solutions/use-cases/generative-ai-predictive-maintenance-applications",
       "https://www.mongodb.com/resources/solutions/use-cases/mysql-to-mongodb",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Resources",
     },
@@ -194,6 +210,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/compare/mongodb-oracle",
       "https://www.mongodb.com/resources/compare/mongodb-postgresql",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Comparisons",
     },
@@ -393,6 +410,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/blog/post/why-vector-quantization-matters-for-ai-workloads",
       "https://www.mongodb.com/blog/post/zee5-masterclass-in-migrating-microservices-atlas",
     ],
+    sourceType: "marketing",
     staticMetadata: {
       type: "Blog",
     },
@@ -400,20 +418,35 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "web-misc",
     urls: [
-      "https://learn.mongodb.com",
-      "https://support.mongodb.com",
       "https://www.mongodb.com",
-      "https://www.mongodb.com/atlas",
-      "https://www.mongodb.com/leadership",
+      "https://www.mongodb.com/pricing",
+    ],
+    sourceType: "marketing-misc",
+    staticMetadata: {
+      type: "Web",
+    },
+  },
+  {
+    name: "web-legal",
+    urls: [
       "https://www.mongodb.com/legal/acceptable-use-policy",
       "https://www.mongodb.com/legal/licensing/server-side-public-license",
       "https://www.mongodb.com/legal/privacy-policy",
       "https://www.mongodb.com/legal/terms-of-use",
-      "https://www.mongodb.com/pricing",
-      "https://www.mongodb.com/try/download/community",
-      "https://www.mongodb.com/try/download/compass",
-      "https://www.mongodb.com/why-use-mongodb",
     ],
+    staticMetadata: {
+      type: "Legal",
+    },
+  },
+  {
+    name: "mongodb-university-web",
+    urls: [
+      "https://learn.mongodb.com",
+    ],
+    sourceType: "university-content",
+    staticMetadata: {
+      tags: ["MongoDB University" ],
+    },
   },
   {
     name: "university-skills",
@@ -424,6 +457,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns",
       "https://learn.mongodb.com/courses/schema-design-optimization",
     ],
+    sourceType: "university-content",
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
     },
@@ -442,7 +476,7 @@ export async function getUrlsFromSitemap(
 
 export type WebSource = Pick<
   InitialWebSource,
-  "name" | "staticMetadata" | "urls"
+  "name" | "sourceType" | "staticMetadata" | "urls"
 >;
 
 type PrepareWebSourcesParams = {
@@ -461,7 +495,7 @@ export const prepareWebSources = async ({
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
   for (const initialWebSource of initialWebSources) {
-    const { name, staticMetadata } = initialWebSource;
+    const { name, staticMetadata, sourceType } = initialWebSource;
     let urls = initialWebSource.urls || [];
     if (initialWebSource.directoryUrls?.length) {
       for (const directoryUrl of initialWebSource.directoryUrls) {
@@ -475,6 +509,7 @@ export const prepareWebSources = async ({
       name,
       staticMetadata,
       urls,
+      sourceType,
     });
   }
   return webSources;

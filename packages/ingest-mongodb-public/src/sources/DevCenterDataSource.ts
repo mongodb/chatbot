@@ -7,6 +7,7 @@ import {
   ProjectBase,
   removeMarkdownImagesAndLinks,
 } from "mongodb-rag-core/dataSources";
+import { SourceTypeName } from "./index";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";
@@ -47,7 +48,7 @@ export const makeDevCenterDataSource = async ({
         const collection = db.collection<DevCenterEntry>(collectionName);
         const documents = collection.find();
 
-        const pages: Page[] = [];
+        const pages: Page<SourceTypeName>[] = [];
         for await (const document of documents) {
           if (!document.content) {
             logger.warn(
@@ -69,7 +70,7 @@ export function makeDevCenterPage(
   document: DevCenterEntry,
   name: string,
   baseUrl: string
-): Page {
+): Page<SourceTypeName> {
   assert(document.content, "document.content must be defined");
   return {
     title: document.name,

@@ -12,7 +12,8 @@ export type NlPromptResponseEvalCaseInput = {
 
 export type NlPromptResponseTag = string;
 
-export type NlPromptResponseMetadata = Record<string, unknown>;
+export type NlPromptResponseMetadata = Record<string, unknown> &
+  Partial<Omit<LlmOptions, "openAiClient">>;
 
 export interface NlPromptResponseEvalCase
   extends EvalCase<

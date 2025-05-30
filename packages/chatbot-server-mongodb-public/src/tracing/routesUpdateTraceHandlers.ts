@@ -17,6 +17,7 @@ import {
 import { logRequest } from "../utils";
 import { Logger } from "mongodb-rag-core/braintrust";
 import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
+import { ScrubbedMessage } from "./scrubbedMessages/ScrubbedMessage";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
 import { redactPii } from "./scrubbedMessages/redactPii";
@@ -79,6 +80,7 @@ export function makeAddMessageToConversationUpdateTrace({
           model: analyzerModel,
         },
         embeddingModelName,
+        reqId,
       });
       await scrubbedMessageStore.insertScrubbedMessages({
         messages: scrubbedMessages,
@@ -86,7 +88,7 @@ export function makeAddMessageToConversationUpdateTrace({
     } catch (error) {
       logRequest({
         reqId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages while adding message ${error}`,
         type: "error",
       });
     }
@@ -149,14 +151,25 @@ export function makeAddMessageToConversationUpdateTrace({
     }
 
     try {
+      const judgeScores = shouldJudge
+        ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData).catch(
+            (error) => {
+              logRequest({
+                reqId,
+                message: `Error getting LLM as a judge scores in addMessageToConversationUpdateTrace: ${error}`,
+                type: "error",
+              });
+              return undefined;
+            }
+          )
+        : undefined;
+
       braintrustLogger.updateSpan({
         id: traceId,
         tags: tracingData.tags,
         scores: {
           ...getTracingScores(tracingData, k),
-          ...(shouldJudge
-            ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData)
-            : undefined),
+          ...(judgeScores ?? {}),
         },
         metadata: {
           authUser: maybeAuthUser ?? null,
@@ -237,10 +250,18 @@ export function makeRateMessageUpdateTrace({
           responseRating: rating,
         },
       });
+
+      assert(userMessage?.id, "Missing user message for rating");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: {
+          "response.responseRating": rating,
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
+      });
     } catch (error) {
       logRequest({
         reqId: traceId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages during rating ${error}`,
         type: "error",
       });
     }
@@ -345,7 +366,7 @@ export function makeCommentMessageUpdateTrace({
     try {
       const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
       assert(assistantMessage?.id, "Missing assistant message for comment");
-      const fieldsToUpdate: Record<string, unknown> = {
+      const assistantMessageFieldsToUpdate: Record<string, unknown> = {
         userComment,
         userCommented: true,
         userCommentPii: piiFound,
@@ -353,16 +374,25 @@ export function makeCommentMessageUpdateTrace({
       // Update PII only if true.
       // This way it doesn't override it previously having been set.
       if (piiFound?.length) {
-        fieldsToUpdate.pii = true;
+        assistantMessageFieldsToUpdate.pii = true;
       }
       await scrubbedMessageStore.updateScrubbedMessage({
         id: assistantMessage.id,
-        message: fieldsToUpdate,
+        message: assistantMessageFieldsToUpdate,
+      });
+
+      assert(userMessage?.id, "Missing user message for comment");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: { 
+          "response.userCommented": true,
+          "response.userComment": userComment
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
       });
     } catch (error) {
       logRequest({
         reqId: traceId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages during comment ${error}`,
         type: "error",
       });
     }

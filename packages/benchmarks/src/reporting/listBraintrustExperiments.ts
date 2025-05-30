@@ -15,7 +15,7 @@ interface ListBraintrustExperimentsParams {
 export async function listBraintrustExperiments({
   apiKey,
   queryParams,
-}: ListBraintrustExperimentsParams): Promise<unknown> {
+}: ListBraintrustExperimentsParams): Promise<Experiment[]> {
   const url = new URL(`https://api.braintrust.dev/v1/experiment/`);
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -35,7 +35,7 @@ export async function listBraintrustExperiments({
     throw new Error(`Failed to list experiments: ${res.status}`);
   }
   const json = await res.json();
-  return json as ListBraintrustExperimentsResponse;
+  return (json as ListBraintrustExperimentsResponse).objects;
 }
 
 /**

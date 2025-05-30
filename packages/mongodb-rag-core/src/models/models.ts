@@ -231,6 +231,22 @@ const allModels = [
     generation: "claude-3",
   },
   {
+    label: "claude-sonnet-4",
+    deployment: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 10,
+    authorized: true,
+  },
+  {
+    label: "claude-opus-4",
+    deployment: "us.anthropic.claude-opus-4-20250514-v1:0",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 10,
+    authorized: true,
+  },
+  {
     label: "llama-3-70b",
     deployment: "meta.llama3-70b-instruct-v1:0",
     developer: "Meta",

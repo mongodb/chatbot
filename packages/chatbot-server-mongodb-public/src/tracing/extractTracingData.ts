@@ -3,16 +3,18 @@ import {
   UserMessage,
   AssistantMessage,
   DbMessage,
+  ToolMessage,
 } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
+import { SEARCH_TOOL_NAME } from "mongodb-chatbot-server";
+import { logRequest } from "../utils";
 
 export function extractTracingData(
   messages: Message[],
   assistantMessageId: ObjectId
 ) {
-  // FIXME: this is throwing after the generation is complete. don't forget to fix before merge of EAI-990
   const evalAssistantMessageIdx = messages.findLastIndex(
     (message) =>
       message.role === "assistant" && message.id.equals(assistantMessageId)
@@ -22,9 +24,12 @@ export function extractTracingData(
     | DbMessage<AssistantMessage>
     | undefined;
 
-  const previousUserMessage = messages
+  const previousUserMessageIdx = messages
     .slice(0, evalAssistantMessageIdx)
-    .findLast((m): m is DbMessage<UserMessage> => m.role === "user");
+    .findLastIndex((m): m is DbMessage<UserMessage> => m.role === "user");
+  const previousUserMessage = messages[previousUserMessageIdx] as
+    | DbMessage<UserMessage>
+    | undefined;
 
   const tags = [];
 
@@ -44,7 +49,11 @@ export function extractTracingData(
     tags.push(tagify(mongoDbProduct));
   }
 
-  const numRetrievedChunks = previousUserMessage?.contextContent?.length ?? 0;
+  const contextContent = getContextsFromMessages(
+    messages.slice(previousUserMessageIdx + 1, evalAssistantMessageIdx),
+    assistantMessageId.toHexString()
+  );
+  const numRetrievedChunks = contextContent.length;
   if (numRetrievedChunks === 0) {
     tags.push("no_retrieved_content");
   }
@@ -56,7 +65,6 @@ export function extractTracingData(
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
-  // TODO: this is throwing errs now. figure out and fix.
   const llmDoesNotKnow = evalAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );
@@ -70,6 +78,7 @@ export function extractTracingData(
     isVerifiedAnswer,
     llmDoesNotKnow,
     numRetrievedChunks,
+    contextContent,
     userMessage: previousUserMessage,
     assistantMessage: evalAssistantMessage,
   };
@@ -77,4 +86,32 @@ export function extractTracingData(
 
 function tagify(s: string) {
   return s.replaceAll(/ /g, "_").toLowerCase();
+}
+
+export function getContextsFromMessages(
+  messages: Message[],
+  reqId: string
+): { text: string; url: string }[] {
+  const toolCallMessage: DbMessage<ToolMessage> | undefined = messages.find(
+    (m): m is DbMessage<ToolMessage> =>
+      m.role === "tool" && m.name === SEARCH_TOOL_NAME
+  );
+  if (!toolCallMessage) {
+    return [];
+  }
+  try {
+    const { content } = JSON.parse(JSON.parse(toolCallMessage.content)[0].text);
+    const toolCallResult = content.map((cc: any) => ({
+      text: cc.text,
+      url: cc.url,
+    }));
+    return toolCallResult;
+  } catch (e) {
+    logRequest({
+      reqId,
+      message: `Error getting context from messages: ${e}`,
+      type: "error",
+    });
+    return [];
+  }
 }

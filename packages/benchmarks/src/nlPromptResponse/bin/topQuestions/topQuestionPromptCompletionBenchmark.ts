@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { techSupportConfig } from "./config";
+import { topQuestionsConfig } from "./config";
 import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
 import {
   models,
@@ -11,7 +11,7 @@ import {
 } from "../globalConfig";
 
 runNlPromptResponseBenchmark({
-  ...techSupportConfig,
+  ...topQuestionsConfig,
   models,
   judgeModelsConfig,
   experimentType: EXPERIMENT_TYPE,

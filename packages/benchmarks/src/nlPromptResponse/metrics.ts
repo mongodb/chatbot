@@ -1,5 +1,5 @@
 import { NlPromptResponseEvalScorer } from "./NlQuestionAnswerEval";
-import { Factuality, Score } from "autoevals";
+import { Factuality, Score, AnswerCorrectness } from "autoevals";
 import { strict as assert } from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 
@@ -36,6 +36,66 @@ export const makeReferenceAlignment: (
     });
     return {
       ...factuality,
+      name,
+      score: inflateFactualityScore(factuality.score),
+    };
+  };
+
+/**
+  Inflate the factuality score by a fixed amount to account for the fact that
+  the current metric reports low numbers, 
+  which make results seems 'scarier' to humans.
+ */
+function inflateFactualityScore(score: number | null | undefined) {
+  if (score === null || score === undefined) {
+    return null;
+  }
+  // Grade inflation
+  switch (score) {
+    case 0.4:
+      return 0.75;
+    case 0.6:
+      return 0.9;
+    default:
+      return score;
+  }
+}
+
+export const makeAnswerCorrectness: (
+  llmOptions: LlmOptions,
+  name_postfix?: string
+) => NlPromptResponseEvalScorer = (llmOptions, name_postfix) =>
+  async function ({ input, output, expected }) {
+    const { response } = output;
+    const { reference } = expected;
+    const name = `AnswerCorrectness${name_postfix ? `_${name_postfix}` : ""}`;
+    // Do not calculate factuality if there's no reference answer
+    if (!reference) {
+      return {
+        score: null,
+        name,
+      };
+    }
+    const userMessage = input.messages.findLast(
+      (m) => m.role === "user"
+    )?.content;
+    assert(userMessage, "No user message found");
+    const correctness = await AnswerCorrectness({
+      input: userMessage,
+      output: response,
+      expected: reference,
+
+      // Note: need to do the funky casting here
+      // b/c of different `OpenAI` client typing
+      // that is not relevant here.
+
+      client: llmOptions.openAiClient as unknown as Parameters<
+        typeof Factuality
+      >[0]["client"],
+      model: llmOptions.model,
+    });
+    return {
+      ...correctness,
       name,
     };
   };

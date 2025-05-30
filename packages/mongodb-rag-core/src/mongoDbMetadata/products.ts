@@ -169,6 +169,29 @@ export const mongoDbProducts = [
     parentProductId: "server",
   },
   {
+    id: "driver",
+    name: "Drivers",
+    description: "Client libraries for querying MongoDB",
+    parentProductId: "server",
+  },
+  {
+    id: "change_streams",
+    name: "Change Streams",
+    description: "Listen to changes in MongoDB data",
+    parentProductId: "server",
+  },
+  {
+    id: "compass",
+    name: "MongoDB Compass",
+    description: "GUI tool for MongoDB",
+  },
+  {
+    id: "gridfs",
+    name: "GridFS",
+    description: "Store large files across multiple MongoDB documents",
+    parentProductId: "server",
+  },
+  {
     id: "atlas",
     name: "MongoDB Atlas",
     description: "Cloud database platform-as-a-service",
@@ -193,9 +216,10 @@ export const mongoDbProducts = [
   },
   {
     id: "data_federation",
-    name: "Data Federation",
+    name: "Atlas Data Federation",
     description:
       "Query data across multiple MongoDB databases and cloud object stores",
+    parentProductId: "atlas",
   },
   {
     id: "atlas_cli",
@@ -204,33 +228,10 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
   },
   {
-    id: "driver",
-    name: "Drivers",
-    description: "Client libraries for querying MongoDB",
-    parentProductId: "server",
-  },
-  {
-    id: "change_streams",
-    name: "Change Streams",
-    description: "Listen to changes in MongoDB data",
-    parentProductId: "server",
-  },
-  {
-    id: "compass",
-    name: "MongoDB Compass",
-    description: "GUI tool for MongoDB",
-  },
-  {
-    id: "gridfs",
-    name: "GridFS",
-    description: "Store large files across multiple MongoDB documents",
-    parentProductId: "server",
-  },
-  {
-    id: "bi_connector",
-    name: "MongoDB Connector for BI",
-    description:
-      "Query MongoDB data with SQL using business intelligence tools.",
+    id: "atlas-online-archive",
+    name: "Atlas Online Archive",
+    description: "Archive infrequently accessed data in MongoDB Atlas.",
+    parentProductId: "atlas",
   },
   {
     id: "atlas_stream_processing",
@@ -244,6 +245,25 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
     description:
       "Managed service that runs actions in response to events on MongoDB Atlas",
+  },
+  {
+    id: "atlas-kubernetes-operator",
+    name: "Atlas Kubernetes Operator",
+    parentProductId: "atlas",
+    description:
+      "Manage resources in MongoDB Atlas from an external Kubernetes cluster",
+  },
+  {
+    id: "atlas_gov",
+    name: "MongoDB Atlas for Government",
+    description: "MongoDB Atlas for Government",
+    parentProductId: "atlas",
+  },
+  {
+    id: "bi_connector",
+    name: "MongoDB Connector for BI",
+    description:
+      "Query MongoDB data with SQL using business intelligence tools.",
   },
   {
     id: "mongodb_ops_manager",
@@ -267,11 +287,6 @@ export const mongoDbProducts = [
       "JavaScript and Node.js REPL for interacting with MongoDB deployments",
   },
   {
-    id: "atlas_gov",
-    name: "MongoDB Atlas for Government",
-    description: "MongoDB Atlas for Government",
-  },
-  {
     id: "vs_code_extension",
     name: "VS Code Extension",
     description: "Visual Studio Cod extension for MongoDB",
@@ -282,9 +297,20 @@ export const mongoDbProducts = [
     description: "CLI for interacting with MongoDB deployments",
   },
   {
-    id: "visual_studio_extension",
+    id: "database-tools",
+    name: "Database Tools",
+    description:
+      "Command-line utilities for MongoDB data migration, backups, and restores",
+  },
+  {
+    id: "mongodb-analyzer",
     name: "C# Analyzer",
     description: "C# Roslyn Analyzer for MongoDB",
+  },
+  {
+    id: "intellij",
+    name: "IntelliJ Plugin",
+    description: "IntelliJ plugin for MongoDB",
   },
   {
     id: "kafka_connector",
@@ -292,15 +318,26 @@ export const mongoDbProducts = [
     description: "MongoDB Kafka Connector",
   },
   {
+    id: "django",
+    name: "Django MongoDB Backend",
+    description: "Interact with a MongoDB deployment from Django",
+  },
+  {
     id: "cluster_sync",
     name: "Cluster-to-Cluster Sync",
     description: "Sync data between MongoDB clusters",
   },
   {
-    id: "k8s_operator",
-    name: "Kubernetes Operator",
+    id: "community-kubernetes-operator",
+    name: "Community Kubernetes Operator",
     description:
-      "Manage the typical lifecycle events for a MongoDB cluster deployed to Kubernetes",
+      "Manage the typical lifecycle events for a Community tier MongoDB cluster deployed to Kubernetes",
+  },
+  {
+    id: "enterprise-kubernetes-operator",
+    name: "Enterprise Kubernetes Operator",
+    description:
+      "Manage the typical lifecycle events for a Enterprise Advanced MongoDB cluster deployed to Kubernetes",
   },
   {
     id: "relational_migrator",

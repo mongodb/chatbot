@@ -1,4 +1,4 @@
-import { Page, PageMetadata, pageFormat, SourceTypeName } from "../contentStore";
+import { Page, PageMetadata, pageFormat } from "../contentStore";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
@@ -11,7 +11,7 @@ export type MakeCodeOnGithubTextDataSourceParams =
     /**
       Source type to include in all pages.
      */
-    sourceType?: SourceTypeName;
+    sourceType?: string;
 
     /**
     Metadata to include with all Pages in DB.

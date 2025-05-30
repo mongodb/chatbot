@@ -4,7 +4,7 @@ import { Page } from "../contentStore";
 import { DataSource } from "./DataSource";
 import { MakeGitDataSourceParams, makeGitDataSource } from "./GitDataSource";
 
-export type MakeGitHubDataSourceArgs = {
+export type MakeGitHubDataSourceArgs<SourceType extends string = string> = {
   /**
     The data source name.
    */
@@ -41,7 +41,11 @@ export type MakeGitHubDataSourceArgs = {
    */
   handleDocumentInRepo(
     document: Document<{ source: string }>
-  ): Promise<undefined | Omit<Page, "sourceName"> | Omit<Page, "sourceName">[]>;
+  ): Promise<
+    | undefined
+    | Omit<Page<SourceType>, "sourceName">
+    | Omit<Page<SourceType>, "sourceName">[]
+  >;
 };
 
 /**

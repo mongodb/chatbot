@@ -3,6 +3,7 @@ import {
   TiCatalogItem,
   UniversityVideo,
 } from "./MongoDbUniversityDataApiClient";
+import { SourceTypeName } from "../index";
 
 export const UNI_BASE_URL = "https://learn.mongodb.com";
 
@@ -20,7 +21,7 @@ export function makeUniversityPages({
   tiCatalogItems: TiCatalogItem[];
   videos: UniversityVideo[];
   metadata?: PageMetadata;
-}): Page[] {
+}): Page<SourceTypeName>[] {
   // Create a dictionary of videos keyed by their hashed ID.
   // This is used to efficiently look up the video for a lesson.
   const videoDict = makeVideosDictionary(videos);
@@ -44,8 +45,8 @@ function makeCatalogItemPages({
   tiCatalogItems: TiCatalogItem[];
   videoDict: VideosDict;
   metadata?: PageMetadata;
-}): Page[] {
-  const pages: Page[] = [];
+}): Page<SourceTypeName>[] {
+  const pages: Page<SourceTypeName>[] = [];
   for (const catalogItem of tiCatalogItems) {
     /* Create page for higher level courses.
      * Higher level courses are Leanring Paths and Courses that have nested content.
@@ -56,7 +57,7 @@ function makeCatalogItemPages({
       catalogItem.learning_format === "Learning Path" ||
       catalogItem.learning_format === "Course"
     ) {
-      const page: Page = {
+      const page: Page<SourceTypeName> = {
         sourceName,
         url: `${UNI_BASE_URL}/learning-paths/${catalogItem.slug}`,
         title: catalogItem.name,
@@ -91,7 +92,7 @@ function makeCatalogItemPages({
         if (body.length === 0) {
           continue;
         }
-        const page: Page = {
+        const page: Page<SourceTypeName> = {
           sourceName,
           url: makeUniversityPageUrl({
             catalogItemSlug: catalogItem.slug,

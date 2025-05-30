@@ -1,4 +1,5 @@
 import { makeAcquitRequireMdOnGithubDataSource } from "mongodb-rag-core/dataSources";
+import { SourceTypeName } from ".";
 
 export const mongooseSourceConstructor = async () => {
   const repoUrl = "https://github.com/Automattic/mongoose";
@@ -12,7 +13,7 @@ export const mongooseSourceConstructor = async () => {
     recursive: true,
     ignoreFiles: [/^(?!^\/docs\/).+$/],
   };
-  return await makeAcquitRequireMdOnGithubDataSource({
+  return await makeAcquitRequireMdOnGithubDataSource<SourceTypeName>({
     repoUrl,
     repoLoaderOptions,
     name: "mongoose",

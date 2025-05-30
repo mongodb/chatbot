@@ -6,7 +6,6 @@ import {
   makeMongoDbPageStore,
   makeMongoDbTransformedContentStore,
   PersistedPage,
-  SourceTypeName,
   updateTransformedContent,
 } from "mongodb-rag-core";
 import {
@@ -121,7 +120,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
 uploadCodeExampleDatasetToHuggingFace();
 
 function makeLoadPagesFilter(
-  publicDatasetSourceTypes: SourceTypeName[],
+  publicDatasetSourceTypes: string[],
   forbiddenUrls: string[]
 ): Filter<PersistedPage> {
   return {

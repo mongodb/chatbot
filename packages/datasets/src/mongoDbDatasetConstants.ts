@@ -1,5 +1,3 @@
-import { SourceTypeName } from "mongodb-rag-core";
-
 /**  URLs that we are forbidden from exporting for training */
 export const forbiddenUrls = new Set([
   "https://mongodb.com/docs/manual/reference/mongodb-wire-protocol/",
@@ -21,4 +19,4 @@ export const forbiddenUrls = new Set([
 /**
   The {@link PersistedPage.sourceType} for public datasets should be either `tech-docs` (Docs) or `devcenter` (Developer Center).
  */
-export const publicDatasetSourceTypes: SourceTypeName[] = ["tech-docs", "devcenter"];
+export const publicDatasetSourceTypes = ["tech-docs", "devcenter"];

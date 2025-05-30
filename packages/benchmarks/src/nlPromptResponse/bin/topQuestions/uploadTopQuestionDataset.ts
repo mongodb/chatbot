@@ -36,17 +36,25 @@ async function main() {
   }
 
   // Filter out non-top 100 tech support questions
-  const filteredDatasetOut = datasetOut.filter((de) => {
-    // Only return top 100 tech support questions
-    if (de.tags.includes("tech_support")) {
-      if (de.tags.includes("ts_top_100")) {
-        return true;
+  const filteredDatasetOut = datasetOut
+    .filter((de) => {
+      // Only return top 100 tech support questions
+      if (de.tags.includes("tech_support")) {
+        if (de.tags.includes("ts_top_100")) {
+          return true;
+        }
+        return false;
       }
-      return false;
-    }
-    // Otherwise return all
-    return true;
-  });
+      // Otherwise return all
+      return true;
+    })
+    // Add verified_response tag
+    .map((de) => {
+      return {
+        ...de,
+        tags: [...de.tags, "verified_response"],
+      };
+    });
 
   // Load data into new dataset
   const res = await uploadDatasetToBraintrust({

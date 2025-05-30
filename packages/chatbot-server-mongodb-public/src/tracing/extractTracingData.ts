@@ -100,8 +100,8 @@ export function getContextsFromMessages(
     return [];
   }
   try {
-    const { content } = JSON.parse(JSON.parse(toolCallMessage.content)[0].text);
-    const toolCallResult = content.map((cc: any) => ({
+    const { results } = JSON.parse(toolCallMessage.content);
+    const toolCallResult = results.map((cc: any) => ({
       text: cc.text,
       url: cc.url,
     }));

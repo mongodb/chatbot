@@ -34,6 +34,36 @@ export const mongoDbTopics = [
   {
     id: "iam",
   },
+  {
+    id: "monitoring",
+  },
+  {
+    id: "queries",
+  },
+  {
+    id: "search",
+  },
+  {
+    id: "troubleshoot_debug",
+  },
+  {
+    id: "mongodb_university",
+  },
+  {
+    id: "certificate_exam",
+  },
+  {
+    id: "backup",
+  },
+  {
+    id: "migration",
+  },
+  {
+    id: "schema_design",
+  },
+  {
+    id: "maintenance",
+  },
 ] as const satisfies MongoDbTopic[];
 
 export type MongoDbTopicId = (typeof mongoDbTopics)[number]["id"];

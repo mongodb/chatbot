@@ -419,13 +419,15 @@ export const initialWebSources: InitialWebSource[] = [
     name: "university-skills",
     urls: [
       "https://learn.mongodb.com/skills",
-      "https://learn.mongodb.com/courses/relational-to-document-model",
-      "https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns",
-      "https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns",
-      "https://learn.mongodb.com/courses/schema-design-optimization",
+      "https://learn.mongodb.com/skills?openTab=gen%20ai",
+      "https://learn.mongodb.com/skills?openTab=query",
+      "https://learn.mongodb.com/skills?openTab=aggregation",
+      "https://learn.mongodb.com/skills?openTab=security",
     ],
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
+      description:
+        "MongoDB Skill Badges are free, focused credentials designed to help you quickly learn and validate specific MongoDB skills. They are designed to be completed in 1-2 hours and can be earned by completing a short quiz or hands-on lab.",
     },
   },
 ];

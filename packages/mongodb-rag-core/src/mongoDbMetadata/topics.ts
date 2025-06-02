@@ -65,7 +65,7 @@ export const mongoDbTopics = [
     id: "migration",
   },
   {
-    id: "schema_design",
+    id: "data_modeling",
   },
   {
     id: "maintenance",

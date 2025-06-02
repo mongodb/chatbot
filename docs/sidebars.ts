@@ -21,6 +21,8 @@ const sidebars: SidebarsConfig = {
     },
     "ui",
     "data-sources",
+    "datasets",
+    "contact",
     {
       type: "doc",
       label: "Framework (deprecated)",

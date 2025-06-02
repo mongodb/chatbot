@@ -249,6 +249,13 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
   },
   {
+    id: "atlas_performance_advisor",
+    name: "Performance Advisor",
+    description:
+      "Monitors slow queries and makes suggestions on how to improve query performance",
+    parentProductId: "atlas",
+  },
+  {
     id: "bi_connector",
     name: "MongoDB Connector for BI",
     description:

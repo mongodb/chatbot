@@ -28,11 +28,11 @@ export type HandleHtmlPageFuncOptions = {
   postProcessMarkdown?: (markdown: string) => Promise<string>;
 };
 
-export async function handleHtmlDocument(
+export async function handleHtmlDocument<SourceType extends string = string>(
   path: string,
   content: string,
   options: HandleHtmlPageFuncOptions
-) {
+): Promise<Omit<Page<SourceType>, "sourceName">> {
   const {
     extractTitle = extractHtmlH1,
     extractMetadata,
@@ -80,7 +80,7 @@ export async function handleHtmlDocument(
 
   let body = turndownService.turndown(domDocument.body);
   body = postProcessMarkdown ? await postProcessMarkdown(body) : body;
-  const page: Omit<Page, "sourceName"> = {
+  const page: Omit<Page<SourceType>, "sourceName"> = {
     format: "md",
     title,
     body,

@@ -169,6 +169,12 @@ export const mongoDbProducts = [
     parentProductId: "server",
   },
   {
+    id: "change_streams",
+    name: "Change Streams",
+    description: "Listen to changes in MongoDB data",
+    parentProductId: "server",
+  },
+  {
     id: "driver",
     name: "Drivers",
     description: "Client libraries for querying MongoDB",

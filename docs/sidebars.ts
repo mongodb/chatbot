@@ -20,6 +20,7 @@ const sidebars: SidebarsConfig = {
       href: "/server/openapi",
     },
     "ui",
+    "data-sources",
     {
       type: "doc",
       label: "Framework (deprecated)",

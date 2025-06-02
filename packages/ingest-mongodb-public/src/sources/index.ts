@@ -1,11 +1,8 @@
 import { strict as assert } from "assert";
-import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeGitDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-  removeMarkdownImagesAndLinks,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -142,7 +139,7 @@ const mongoDbUniMetadataSource = async () => {
   );
 };
 
-export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> = 
+export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> =
   {
     name: "atlas-terraform-provider",
     repoUrl: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
@@ -150,7 +147,8 @@ export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<Sourc
       branch: "master",
     },
     pathToPageUrl(pathInRepo, _) {
-      const siteBaseUrl = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
+      const siteBaseUrl =
+        "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
       return siteBaseUrl + pathInRepo.replace("docs/", "").replace(".md", "");
     },
     filter: (path: string) => path.includes("docs") && path.endsWith(".md"),
@@ -161,7 +159,9 @@ export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<Sourc
     },
   };
 const terraformProviderDataSource = async () => {
-  return await makeMdOnGithubDataSource<SourceTypeName>(terraformProviderSourceConfig);
+  return await makeMdOnGithubDataSource<SourceTypeName>(
+    terraformProviderSourceConfig
+  );
 };
 
 const webDataSourceConstructor = async (): Promise<DataSource[]> => {

@@ -44,6 +44,8 @@ export interface TechSupportQARow {
   Source_3_SCORE: string;
   /** Original question number */
   "Original Number": string;
+  "Initial Submit": "Y" | "";
+  Labels: string; // Comma-separated list of labels
 }
 
 export function filterTechSupportQARow(row: TechSupportQARow): boolean {
@@ -58,12 +60,27 @@ export async function parseTechSupportQARow(
   model: LanguageModel
 ): Promise<NlPromptResponseEvalCase> {
   const tags = ["tech_support"];
-  const conversation = `
-  Question: ${row.Question}
-  Answer: ${row.Answer}`;
+  const conversation = `<Question>
+${row.Question}
+</Question>
+<Answer>
+${row.Answer}
+</Answer>
+<Labels>
+${row.Labels}
+</Labels>`;
   tags.push(
     ...tagifyMetadata(await classifyMongoDbMetadata(model, conversation))
   );
+  // If it was in the top 100, add that tag
+  if (row["Initial Submit"] === "Y") {
+    tags.push("ts_top_100");
+  }
+
+  const labels = row.Labels.split(",")
+    .map((l) => l.trim())
+    .filter((l) => !!l);
+
   return {
     input: {
       messages: [
@@ -82,6 +99,8 @@ export async function parseTechSupportQARow(
     metadata: {
       reviewer: row["Reviewer Name"],
       teamReviewer: row["Name of Team Reviewer"],
+      originalNumber: row["Original Number"],
+      labels,
     },
     tags,
   };

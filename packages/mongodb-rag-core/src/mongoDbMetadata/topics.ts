@@ -35,6 +35,12 @@ export const mongoDbTopics = [
     id: "iam",
   },
   {
+    id: "change_streams",
+  },
+  {
+    id: "time_series",
+  },
+  {
     id: "monitoring",
   },
   {

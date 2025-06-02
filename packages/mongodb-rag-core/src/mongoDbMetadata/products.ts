@@ -175,17 +175,6 @@ export const mongoDbProducts = [
     parentProductId: "server",
   },
   {
-    id: "change_streams",
-    name: "Change Streams",
-    description: "Listen to changes in MongoDB data",
-    parentProductId: "server",
-  },
-  {
-    id: "compass",
-    name: "MongoDB Compass",
-    description: "GUI tool for MongoDB",
-  },
-  {
     id: "gridfs",
     name: "GridFS",
     description: "Store large files across multiple MongoDB documents",
@@ -228,7 +217,7 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
   },
   {
-    id: "atlas-online-archive",
+    id: "atlas_online_archive",
     name: "Atlas Online Archive",
     description: "Archive infrequently accessed data in MongoDB Atlas.",
     parentProductId: "atlas",
@@ -247,7 +236,7 @@ export const mongoDbProducts = [
       "Managed service that runs actions in response to events on MongoDB Atlas",
   },
   {
-    id: "atlas-kubernetes-operator",
+    id: "atlas_kubernetes_operator",
     name: "Atlas Kubernetes Operator",
     parentProductId: "atlas",
     description:
@@ -264,6 +253,11 @@ export const mongoDbProducts = [
     name: "MongoDB Connector for BI",
     description:
       "Query MongoDB data with SQL using business intelligence tools.",
+  },
+  {
+    id: "compass",
+    name: "MongoDB Compass",
+    description: "GUI tool for MongoDB",
   },
   {
     id: "mongodb_ops_manager",
@@ -297,13 +291,13 @@ export const mongoDbProducts = [
     description: "CLI for interacting with MongoDB deployments",
   },
   {
-    id: "database-tools",
+    id: "database_tools",
     name: "Database Tools",
     description:
       "Command-line utilities for MongoDB data migration, backups, and restores",
   },
   {
-    id: "mongodb-analyzer",
+    id: "mongodb_analyzer",
     name: "C# Analyzer",
     description: "C# Roslyn Analyzer for MongoDB",
   },
@@ -328,13 +322,13 @@ export const mongoDbProducts = [
     description: "Sync data between MongoDB clusters",
   },
   {
-    id: "community-kubernetes-operator",
+    id: "community_kubernetes_operator",
     name: "Community Kubernetes Operator",
     description:
       "Manage the typical lifecycle events for a Community tier MongoDB cluster deployed to Kubernetes",
   },
   {
-    id: "enterprise-kubernetes-operator",
+    id: "enterprise_kubernetes_operator",
     name: "Enterprise Kubernetes Operator",
     description:
       "Manage the typical lifecycle events for a Enterprise Advanced MongoDB cluster deployed to Kubernetes",

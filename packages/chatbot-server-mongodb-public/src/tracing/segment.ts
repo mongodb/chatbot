@@ -1,20 +1,25 @@
 import { Analytics } from "@segment/analytics-node";
 import { DbMessage, logger, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export type TraceSegmentEventParams = {
   writeKey: string;
   flushAt?: number;
 };
 
-export const AnyEventPropertiesBaseSchema = z
-  .object({
-    ai_chat_conversation_id: z.string(),
-    path: z.string(),
-    url: z.string(),
-  })
-  .passthrough();
+export const AnyEventPropertiesBaseSchema = z.looseObject({
+  ai_chat_conversation_id: z.string(),
+  path: z.string(),
+  url: z.string(),
+});
+
+const AnyEventPropertiesParamsSchema = AnyEventPropertiesBaseSchema.extend({
+  userId: z.string().optional(),
+  anonymousId: z.string().optional(),
+});
+
+type AnyEventPropertiesParams = z.infer<typeof AnyEventPropertiesParamsSchema>;
 
 export const AnyEventPropertiesSchema = z.union([
   AnyEventPropertiesBaseSchema.extend({
@@ -44,6 +49,24 @@ export const SegmentTrackParamsSchema = z.union([
   }),
 ]);
 
+function parseSegmentTrackParams(args: {
+  params: unknown;
+  functionName: string;
+}) {
+  const parsedTrackParams = SegmentTrackParamsSchema.safeParse(args.params);
+  if (!parsedTrackParams.success) {
+    throw new Error(
+      `Unable to create track event params for ${
+        args.functionName
+      }: ${JSON.stringify({
+        params: args.params,
+        error: parsedTrackParams.error,
+      })}`
+    );
+  }
+  return parsedTrackParams.data;
+}
+
 export type SegmentTrackParams = z.infer<typeof SegmentTrackParamsSchema>;
 
 export type AnyEventProperties = z.infer<typeof AnyEventPropertiesSchema>;
@@ -60,6 +83,25 @@ const BaseTrackEventParamsSchema = z.object({
 });
 
 export type BaseTrackEventParams = z.infer<typeof BaseTrackEventParamsSchema>;
+
+function parseInternalTrackEventParams<
+  Schema extends typeof BaseTrackEventParamsSchema
+>(args: {
+  params: unknown;
+  schema: Schema;
+  functionName: string;
+}): z.infer<Schema> {
+  const parsedParams = args.schema.safeParse(args.params);
+  if (!parsedParams.success) {
+    throw new Error(
+      `Invalid params passed to ${args.functionName}: ${JSON.stringify({
+        params: args.params,
+        error: parsedParams.error,
+      })}`
+    );
+  }
+  return parsedParams.data;
+}
 
 export function getSegmentIds(message: DbMessage<UserMessage> | undefined) {
   return {
@@ -90,22 +132,18 @@ function parseOriginUrl(origin: string | undefined): ParsedOrigin | null {
 
 function createBaseProperties(
   params: BaseTrackEventParams
-): AnyEventProperties | null {
+): AnyEventPropertiesParams | null {
   const parsedOrigin = parseOriginUrl(params.origin);
   if (!parsedOrigin) {
     return null;
   }
-  const result = AnyEventPropertiesSchema.safeParse({
+  return AnyEventPropertiesParamsSchema.parse({
     userId: params.userId,
     anonymousId: params.anonymousId,
     path: parsedOrigin.path,
     url: parsedOrigin.url,
     ai_chat_conversation_id: params.conversationId.toString(),
   });
-  if (!result.success) {
-    return null;
-  }
-  return result.data;
 }
 
 export const TrackUserSentMessageParamsSchema =
@@ -129,26 +167,25 @@ export function makeTrackUserSentMessage({
   return async function trackUserSentMessage(
     params: TrackUserSentMessageParams
   ) {
-    const parsedParams = TrackUserSentMessageParamsSchema.safeParse(params);
-    if (!parsedParams.success) {
-      return;
-    }
-
-    const trackParams = SegmentTrackParamsSchema.safeParse({
-      event: "AI Chat User Sent Message",
-      userId: parsedParams.data.userId,
-      anonymousId: parsedParams.data.anonymousId,
-      timestamp: parsedParams.data.createdAt?.toISOString(),
-      properties: {
-        ...createBaseProperties(parsedParams.data),
-        ai_chat_tags: parsedParams.data.tags.join(","),
+    const parsedParams = parseInternalTrackEventParams({
+      params,
+      schema: TrackUserSentMessageParamsSchema,
+      functionName: "trackUserSentMessage",
+    });
+    const segmentTrackParams = parseSegmentTrackParams({
+      functionName: "trackUserSentMessage",
+      params: {
+        event: "AI Chat User Sent Message",
+        userId: parsedParams.userId,
+        anonymousId: parsedParams.anonymousId,
+        timestamp: parsedParams.createdAt?.toISOString(),
+        properties: {
+          ...createBaseProperties(parsedParams),
+          ai_chat_tags: parsedParams.tags.join(","),
+        },
       },
     });
-    if (!trackParams.success) {
-      return;
-    }
-
-    await analytics.track(trackParams.data);
+    await analytics.track(segmentTrackParams);
   };
 }
 
@@ -175,29 +212,30 @@ export function makeTrackAssistantResponded({
   return async function trackAssistantResponded(
     params: TrackAssistantRespondedParams
   ) {
-    const parsedParams = TrackAssistantRespondedParamsSchema.safeParse(params);
-    if (!parsedParams.success) {
-      return;
-    }
+    const parsedParams = parseInternalTrackEventParams({
+      params,
+      schema: TrackAssistantRespondedParamsSchema,
+      functionName: "trackAssistantResponded",
+    });
 
-    const trackParams = SegmentTrackParamsSchema.safeParse({
-      event: "AI Chat Assistant Responded",
-      userId: parsedParams.data.userId,
-      anonymousId: parsedParams.data.anonymousId,
-      timestamp: parsedParams.data.createdAt?.toISOString(),
-      properties: {
-        ...createBaseProperties(parsedParams.data),
-        ai_chat_verified_answer: parsedParams.data.isVerifiedAnswer
-          ? "true"
-          : "false",
-        ai_chat_rejected_reason: parsedParams.data.rejectionReason,
+    const segmentTrackParams = parseSegmentTrackParams({
+      functionName: "trackAssistantResponded",
+      params: {
+        event: "AI Chat Assistant Responded",
+        userId: parsedParams.userId,
+        anonymousId: parsedParams.anonymousId,
+        timestamp: parsedParams.createdAt?.toISOString(),
+        properties: {
+          ...createBaseProperties(parsedParams),
+          ai_chat_verified_answer: parsedParams.isVerifiedAnswer
+            ? "true"
+            : "false",
+          ai_chat_rejected_reason: parsedParams.rejectionReason,
+        },
       },
     });
-    if (!trackParams.success) {
-      return;
-    }
 
-    await analytics.track(trackParams.data);
+    await analytics.track(segmentTrackParams);
   };
 }
 
@@ -218,26 +256,27 @@ export function makeTrackUserRatedMessage({
   return async function trackUserRatedMessage(
     params: TrackUserRatedMessageParams
   ) {
-    const parsedParams = TrackUserRatedMessageParamsSchema.safeParse(params);
-    if (!parsedParams.success) {
-      return;
-    }
+    const parsedParams = parseInternalTrackEventParams({
+      params,
+      schema: TrackUserRatedMessageParamsSchema,
+      functionName: "trackUserRatedMessage",
+    });
 
-    const trackParams = SegmentTrackParamsSchema.safeParse({
-      event: "AI Chat User Rated Message",
-      userId: parsedParams.data.userId,
-      anonymousId: parsedParams.data.anonymousId,
-      timestamp: parsedParams.data.createdAt?.toISOString(),
-      properties: {
-        ...createBaseProperties(parsedParams.data),
-        ai_chat_rating: parsedParams.data.rating ? "positive" : "negative",
+    const segmentTrackParams = parseSegmentTrackParams({
+      functionName: "trackUserRatedMessage",
+      params: {
+        event: "AI Chat User Rated Message",
+        userId: parsedParams.userId,
+        anonymousId: parsedParams.anonymousId,
+        timestamp: parsedParams.createdAt?.toISOString(),
+        properties: {
+          ...createBaseProperties(parsedParams),
+          ai_chat_rating: parsedParams.rating ? "positive" : "negative",
+        },
       },
     });
-    if (!trackParams.success) {
-      return;
-    }
 
-    await analytics.track(trackParams.data);
+    await analytics.track(segmentTrackParams);
   };
 }
 
@@ -259,27 +298,27 @@ export function makeTrackUserCommentedMessage({
   return async function trackUserCommentedMessage(
     params: TrackUserCommentedMessageParams
   ) {
-    const parsedParams =
-      TrackUserCommentedMessageParamsSchema.safeParse(params);
-    if (!parsedParams.success) {
-      return;
-    }
+    const parsedParams = parseInternalTrackEventParams({
+      params,
+      schema: TrackUserCommentedMessageParamsSchema,
+      functionName: "trackUserCommentedMessage",
+    });
 
-    const trackParams = SegmentTrackParamsSchema.safeParse({
-      event: "AI Chat User Commented Message",
-      userId: parsedParams.data.userId,
-      anonymousId: parsedParams.data.anonymousId,
-      timestamp: parsedParams.data.createdAt?.toISOString(),
-      properties: {
-        ...createBaseProperties(parsedParams.data),
-        ai_chat_user_comment: parsedParams.data.comment,
-        ai_chat_rating: parsedParams.data.rating ? "positive" : "negative",
+    const segmentTrackParams = parseSegmentTrackParams({
+      functionName: "trackUserCommentedMessage",
+      params: {
+        event: "AI Chat User Commented Message",
+        userId: parsedParams.userId,
+        anonymousId: parsedParams.anonymousId,
+        timestamp: parsedParams.createdAt?.toISOString(),
+        properties: {
+          ...createBaseProperties(parsedParams),
+          ai_chat_user_comment: parsedParams.comment,
+          ai_chat_rating: parsedParams.rating ? "positive" : "negative",
+        },
       },
     });
-    if (!trackParams.success) {
-      return;
-    }
 
-    await analytics.track(trackParams.data);
+    await analytics.track(segmentTrackParams);
   };
 }

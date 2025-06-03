@@ -1,11 +1,8 @@
 import { strict as assert } from "assert";
-import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeGitDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-  removeMarkdownImagesAndLinks,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -142,57 +139,30 @@ const mongoDbUniMetadataSource = async () => {
   );
 };
 
-export const terraformProviderSourceConstructor = async () => {
-  const siteBaseUrl =
-    "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
-  return await makeGitDataSource<SourceTypeName>({
+export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> =
+  {
     name: "atlas-terraform-provider",
-    repoUri: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
-    repoOptions: {
-      "--depth": 1,
-      "--branch": "master",
+    repoUrl: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
+    repoLoaderOptions: {
+      branch: "master",
     },
+    pathToPageUrl(pathInRepo, _) {
+      const siteBaseUrl =
+        "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
+      return siteBaseUrl + pathInRepo.replace("docs/", "").replace(".md", "");
+    },
+    filter: (path: string) => path.includes("docs") && path.endsWith(".md"),
     sourceType: "tech-docs-external",
     metadata: {
       productName: "mongodbatlas Terraform Provider",
       tags: ["docs", "terraform", "atlas", "hcl"],
     },
-    filter: (path: string) =>
-      path.includes("website/docs") && path.endsWith(".markdown"),
-    handlePage: async function (path, content) {
-      const { metadata, body } = extractFrontMatter<{ page_title: string }>(
-        content
-      );
-      const url = getTerraformPageUrl(siteBaseUrl, path);
-
-      const page: Omit<Page<SourceTypeName>, "sourceName"> = {
-        body: removeMarkdownImagesAndLinks(body),
-        format: "md",
-        url: url,
-        title: metadata?.page_title,
-      };
-      return page;
-    },
-  });
+  };
+const terraformProviderDataSource = async () => {
+  return await makeMdOnGithubDataSource<SourceTypeName>(
+    terraformProviderSourceConfig
+  );
 };
-
-function getTerraformPageUrl(siteBaseUrl: string, path: string) {
-  if (path.includes("website/docs/d/")) {
-    return (
-      siteBaseUrl +
-      path.replace("website/docs/d", "data-sources").replace(".markdown", "")
-    );
-  } else if (path.includes("website/docs/r/")) {
-    return (
-      siteBaseUrl +
-      path.replace("website/docs/r", "resources").replace(".markdown", "")
-    );
-  } else {
-    return (
-      siteBaseUrl + path.replace("website/docs/", "").replace(".markdown", "")
-    );
-  }
-}
 
 const webDataSourceConstructor = async (): Promise<DataSource[]> => {
   const sitemapUrls = await getUrlsFromSitemap(
@@ -229,6 +199,6 @@ export const sourceConstructors: SourceConstructor[] = [
   mongoDbCorpDataSource,
   mongoDbUniMetadataSource,
   practicalAggregationsDataSource,
-  terraformProviderSourceConstructor,
+  terraformProviderDataSource,
   wiredTigerSourceConstructor,
 ];

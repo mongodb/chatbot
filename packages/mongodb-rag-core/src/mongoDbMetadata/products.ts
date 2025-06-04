@@ -372,6 +372,7 @@ export const mongoDbProducts = [
 ] as const satisfies MongoDbProduct[];
 
 export type MongoDbProductName = (typeof mongoDbProducts)[number]["name"];
+export type MongoDbProductDriverName = MongoDbProductName | (typeof mongodbDrivers)[number]["name"];
 export type MongoDbProductId = (typeof mongoDbProducts)[number]["id"];
 export type MongoDbProductNameEnum = [
   MongoDbProductName,

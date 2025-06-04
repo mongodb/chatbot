@@ -1,8 +1,4 @@
-import {
-  VerifiedAnswer,
-  FindVerifiedAnswerFunc,
-  SomeMessage,
-} from "mongodb-rag-core";
+import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
   GenerateResponse,

@@ -17,9 +17,9 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   const uniqueReferenceChunks = chunks.filter((chunk) => {
     if (!uniqueUrls.has(chunk.url)) {
       uniqueUrls.add(chunk.url);
-      return true; // Keep the referencesas it has a unique URL
+      return true; // Keep the reference as it has a unique URL
     }
-    return false; // Discard the referencesas its URL is not unique
+    return false; // Discard the reference as its URL is not unique
   });
 
   return uniqueReferenceChunks.map((chunk) => {

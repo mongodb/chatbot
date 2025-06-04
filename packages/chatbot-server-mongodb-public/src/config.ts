@@ -174,10 +174,7 @@ export const conversations = makeMongoDbConversationsService(
 );
 const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
-  // baseURL: OPENAI_ENDPOINT,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
-  // apiVersion: OPENAI_API_VERSION,
-  // apiKey: process.env.OPENAI_OPENAI_API_KEY,
 });
 const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
 

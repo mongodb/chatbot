@@ -1,0 +1,390 @@
+import { jest } from "@jest/globals";
+import {
+  makeGenerateResponseWithSearchTool,
+  SEARCH_TOOL_NAME,
+  SearchToolReturnValue,
+} from "./generateResponseWithSearchTool";
+import { FilterPreviousMessages } from "./FilterPreviousMessages";
+import {
+  AssistantMessage,
+  DataStreamer,
+  SystemMessage,
+} from "mongodb-rag-core";
+import { z } from "zod";
+import {
+  ToolExecutionOptions,
+  MockLanguageModelV1,
+  tool,
+  simulateReadableStream,
+  LanguageModelV1StreamPart,
+} from "mongodb-rag-core/aiSdk";
+import { ObjectId } from "mongodb-rag-core/mongodb";
+import { InputGuardrail } from "./InputGuardrail";
+import { GenerateResponseReturnValue } from "./GenerateResponse";
+
+// Define the search tool arguments schema
+const SearchToolArgsSchema = z.object({
+  query: z.string(),
+});
+type SearchToolArgs = z.infer<typeof SearchToolArgsSchema>;
+
+const latestMessageText = "Hello";
+
+const mockReqId = "test";
+
+const mockContent = [
+  {
+    url: "https://example.com/",
+    text: `Content!`,
+    metadata: {
+      pageTitle: "Example Page",
+    },
+  },
+];
+
+const mockReferences = mockContent.map((content) => ({
+  url: content.url,
+  title: content.metadata.pageTitle,
+}));
+
+// Create a mock search tool that matches the SearchTool interface
+const mockSearchTool = tool({
+  parameters: SearchToolArgsSchema,
+  description: "Search MongoDB content",
+  async execute(
+    _args: SearchToolArgs,
+    _options: ToolExecutionOptions
+  ): Promise<SearchToolReturnValue> {
+    return {
+      content: mockContent,
+    };
+  },
+});
+
+// Must have, but details don't matter
+const mockFinishChunk = {
+  type: "finish" as const,
+  finishReason: "stop" as const,
+  usage: {
+    completionTokens: 10,
+    promptTokens: 3,
+  },
+} satisfies LanguageModelV1StreamPart;
+
+const finalAnswer = "Final answer";
+const finalAnswerChunks = finalAnswer.split(" ");
+const finalAnswerStreamChunks = finalAnswerChunks.map((word, i) => {
+  if (i === 0) {
+    return {
+      type: "text-delta" as const,
+      textDelta: word,
+    };
+  }
+  return {
+    type: "text-delta" as const,
+    textDelta: ` ${word}`,
+  };
+});
+
+// Note: have to make this constructor b/c the ReadableStream
+// can only be used once successfully.
+const makeFinalAnswerStream = () =>
+  simulateReadableStream({
+    chunks: [
+      ...finalAnswerStreamChunks,
+      mockFinishChunk,
+    ] satisfies LanguageModelV1StreamPart[],
+    chunkDelayInMs: 100,
+  });
+
+const searchToolMockArgs = {
+  query: "test",
+} satisfies SearchToolArgs;
+
+const makeToolCallStream = () =>
+  simulateReadableStream({
+    chunks: [
+      {
+        type: "tool-call" as const,
+        toolCallId: "abc123",
+        toolName: SEARCH_TOOL_NAME,
+        toolCallType: "function" as const,
+        args: JSON.stringify(searchToolMockArgs),
+      },
+      // ...finalAnswerStreamChunks,
+      mockFinishChunk,
+    ] satisfies LanguageModelV1StreamPart[],
+    chunkDelayInMs: 100,
+  });
+
+jest.setTimeout(5000);
+// Mock language model following the AI SDK testing documentation
+// Create a minimalist mock for the language model
+const makeMockLanguageModel = () => {
+  // On first call, return tool call stream
+  // On second call, return final answer stream
+  // On subsequent calls, return final answer
+  let counter = 0;
+  const doStreamCalls = [
+    async () => {
+      return {
+        stream: makeToolCallStream(),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      };
+    },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    async () => {
+      return {
+        stream: makeFinalAnswerStream(),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      };
+    },
+  ];
+  return new MockLanguageModelV1({
+    doStream: () => {
+      const streamCallPromise = doStreamCalls[counter]();
+      if (counter < doStreamCalls.length) {
+        counter++;
+      }
+      return streamCallPromise;
+    },
+  });
+};
+
+const mockSystemMessage: SystemMessage = {
+  role: "system",
+  content: "You are a helpful assistant.",
+};
+
+const mockLlmNotWorkingMessage =
+  "Sorry, I am having trouble with the language model.";
+
+const mockGuardrail: InputGuardrail = async () => ({
+  rejected: true,
+  message: "Content policy violation",
+  metadata: { reason: "inappropriate" },
+});
+
+const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
+  doStream: async () => {
+    throw new Error("LLM error");
+  },
+});
+
+const makeMakeGenerateResponseWithSearchToolArgs = () => ({
+  languageModel: makeMockLanguageModel(),
+  llmNotWorkingMessage: mockLlmNotWorkingMessage,
+  systemMessage: mockSystemMessage,
+  searchTool: mockSearchTool,
+});
+
+const generateResponseBaseArgs = {
+  conversation: {
+    _id: new ObjectId(),
+    createdAt: new Date(),
+    messages: [],
+  },
+  latestMessageText,
+  shouldStream: false,
+  reqId: mockReqId,
+};
+describe("generateResponseWithSearchTool", () => {
+  // Reset mocks before each test
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe("makeGenerateResponseWithSearchTool", () => {
+    const generateResponse = makeGenerateResponseWithSearchTool(
+      makeMakeGenerateResponseWithSearchToolArgs()
+    );
+    it("should return a function", () => {
+      expect(typeof generateResponse).toBe("function");
+    });
+    it("should filter previous messages", async () => {
+      // Properly type the mock function to match FilterPreviousMessages
+      const mockFilterPreviousMessages = jest
+        .fn()
+        .mockImplementation((_conversation) =>
+          Promise.resolve([])
+        ) as FilterPreviousMessages;
+      const generateResponse = makeGenerateResponseWithSearchTool({
+        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        filterPreviousMessages: mockFilterPreviousMessages,
+      });
+
+      // We don't care about the output so not getting the return value
+      await generateResponse(generateResponseBaseArgs);
+
+      expect(mockFilterPreviousMessages).toHaveBeenCalledWith({
+        _id: expect.any(ObjectId),
+        createdAt: expect.any(Date),
+        messages: [],
+      });
+    });
+
+    it("should make reference links", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool(
+        makeMakeGenerateResponseWithSearchToolArgs()
+      );
+
+      const result = await generateResponse(generateResponseBaseArgs);
+
+      const references = (result.messages.at(-1) as AssistantMessage)
+        .references;
+      expect(references).toMatchObject(mockReferences);
+    });
+
+    describe("non-streaming", () => {
+      test("should handle successful generation non-streaming", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool(
+          makeMakeGenerateResponseWithSearchToolArgs()
+        );
+
+        const result = await generateResponse(generateResponseBaseArgs);
+
+        expectSuccessfulResult(result);
+      });
+
+      // TODO: (EAI-995): make work as part of guardrail changes
+      test.skip("should handle guardrail rejection", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          inputGuardrail: mockGuardrail,
+        });
+
+        const result = await generateResponse(generateResponseBaseArgs);
+
+        expect(result.messages[1].role).toBe("assistant");
+        expect(result.messages[1].content).toBe("Content policy violation");
+        expect(result.messages[1].metadata).toEqual({
+          reason: "inappropriate",
+        });
+      });
+
+      test("should handle error in language model", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          languageModel: mockThrowingLanguageModel,
+        });
+
+        const result = await generateResponse(generateResponseBaseArgs);
+
+        expect(result.messages[0].role).toBe("user");
+        expect(result.messages[0].content).toBe(latestMessageText);
+        expect(result.messages.at(-1)?.role).toBe("assistant");
+        expect(result.messages.at(-1)?.content).toBe(mockLlmNotWorkingMessage);
+      });
+    });
+
+    describe("streaming mode", () => {
+      // Create a mock DataStreamer implementation
+      const makeMockDataStreamer = () => {
+        const mockStreamData = jest.fn();
+        const mockConnect = jest.fn();
+        const mockDisconnect = jest.fn();
+        const mockStream = jest.fn().mockImplementation(async () => {
+          // Process the stream and return a string result
+          return "Hello";
+        });
+        const dataStreamer = {
+          connected: false,
+          connect: mockConnect,
+          disconnect: mockDisconnect,
+          streamData: mockStreamData,
+          stream: mockStream,
+        } as DataStreamer;
+
+        return dataStreamer;
+      };
+      test("should handle successful streaming", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
+        const generateResponse = makeGenerateResponseWithSearchTool(
+          makeMakeGenerateResponseWithSearchToolArgs()
+        );
+
+        const result = await generateResponse({
+          ...generateResponseBaseArgs,
+          shouldStream: true,
+          dataStreamer: mockDataStreamer,
+        });
+
+        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(3);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          data: "Final",
+          type: "delta",
+        });
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          type: "references",
+          data: expect.any(Array),
+        });
+        expectSuccessfulResult(result);
+      });
+
+      // TODO: (EAI-995): make work as part of guardrail changes
+      test.skip("should handle successful generation with guardrail", async () => {
+        // TODO: add
+      });
+      // TODO: (EAI-995): make work as part of guardrail changes
+      test.skip("should handle streaming with guardrail rejection", async () => {
+        // TODO: add
+      });
+
+      test("should handle error in language model", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          languageModel: mockThrowingLanguageModel,
+        });
+
+        const mockDataStreamer = makeMockDataStreamer();
+        const result = await generateResponse({
+          ...generateResponseBaseArgs,
+          shouldStream: true,
+          dataStreamer: mockDataStreamer,
+        });
+
+        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          data: mockLlmNotWorkingMessage,
+          type: "delta",
+        });
+
+        expect(result.messages[0].role).toBe("user");
+        expect(result.messages[0].content).toBe(latestMessageText);
+        expect(result.messages.at(-1)?.role).toBe("assistant");
+        expect(result.messages.at(-1)?.content).toBe(mockLlmNotWorkingMessage);
+      });
+    });
+  });
+});
+
+function expectSuccessfulResult(result: GenerateResponseReturnValue) {
+  expect(result).toHaveProperty("messages");
+  expect(result.messages).toHaveLength(4); // User + assistant (tool call) + tool result + assistant
+  expect(result.messages[0]).toMatchObject({
+    role: "user",
+    content: latestMessageText,
+  });
+  expect(result.messages[1]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "abc123",
+      function: { name: "search_content", arguments: '{"query":"test"}' },
+      type: "function",
+    },
+    content: "",
+  });
+
+  expect(result.messages[2]).toMatchObject({
+    role: "tool",
+    name: "search_content",
+    content: JSON.stringify({
+      content: mockContent,
+    }),
+  });
+  expect(result.messages[3]).toMatchObject({
+    role: "assistant",
+    content: finalAnswer,
+  });
+}

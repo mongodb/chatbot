@@ -5,7 +5,7 @@ import {
   Conversation,
   SomeMessage,
   AssistantMessage,
-  FunctionMessage,
+  ToolMessage,
   UserMessage,
   VectorStore,
   FindNearestNeighborsOptions,
@@ -15,7 +15,7 @@ import {
 import { clusterize, DbscanOptions } from "./clusterize";
 import { findCentroid } from "./findCentroid";
 
-export type ResponseMessage = AssistantMessage | FunctionMessage;
+export type ResponseMessage = AssistantMessage | ToolMessage;
 
 export type QuestionAndResponses = {
   embedding: number[];
@@ -152,7 +152,7 @@ export const findFaq = async ({
         }
         break;
       case "assistant":
-      case "function":
+      case "tool":
         {
           currentQuestion?.responses?.push(message);
         }

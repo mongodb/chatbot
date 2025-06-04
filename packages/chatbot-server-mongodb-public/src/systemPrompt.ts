@@ -1,5 +1,4 @@
-import { SEARCH_TOOL_NAME } from "mongodb-chatbot-server";
-import { SystemMessage } from "mongodb-rag-core";
+import { SEARCH_TOOL_NAME, SystemMessage } from "mongodb-chatbot-server";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,

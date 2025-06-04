@@ -337,14 +337,18 @@ describe("generateResponseWithSearchTool", () => {
           languageModel: mockThrowingLanguageModel,
         });
 
-        const dataStreamer = makeMockDataStreamer();
+        const mockDataStreamer = makeMockDataStreamer();
         const result = await generateResponse({
           ...generateResponseBaseArgs,
           shouldStream: true,
-          dataStreamer,
+          dataStreamer: mockDataStreamer,
         });
 
-        // TODO: verify dataStreamer was called
+        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          data: mockLlmNotWorkingMessage,
+          type: "delta",
+        });
 
         expect(result.messages[0].role).toBe("user");
         expect(result.messages[0].content).toBe(latestMessageText);

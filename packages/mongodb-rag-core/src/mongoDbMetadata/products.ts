@@ -40,7 +40,7 @@ export const mongodbDrivers = [
   },
   {
     id: "entity_framework_core",
-    name: "Entity Framework Core Provider",
+    name: "MongoDB Entity Framework Provider",
     description: "MongoDB Entity Framework Core Provider",
     parentProductId: "driver",
     programmingLanguage: "csharp",
@@ -103,7 +103,7 @@ export const mongodbDrivers = [
   },
   {
     id: "pymongo_driver",
-    name: "PyMongo Driver",
+    name: "PyMongo",
     description: "MongoDB PyMongo Driver",
     parentProductId: "driver",
     programmingLanguage: "python",
@@ -176,7 +176,7 @@ export const mongoDbProducts = [
   },
   {
     id: "driver",
-    name: "Drivers",
+    name: "MongoDB Drivers",
     description: "Client libraries for querying MongoDB",
     parentProductId: "server",
   },
@@ -242,8 +242,8 @@ export const mongoDbProducts = [
       "Managed service that runs actions in response to events on MongoDB Atlas",
   },
   {
-    id: "atlas_kubernetes_operator",
-    name: "Atlas Kubernetes Operator",
+    id: "atlas_operator",
+    name: "MongoDB Atlas Kubernetes Operator",
     parentProductId: "atlas",
     description:
       "Manage resources in MongoDB Atlas from an external Kubernetes cluster",
@@ -284,19 +284,20 @@ export const mongoDbProducts = [
   },
   {
     id: "spark_connector",
-    name: "Spark Connector",
+    name: "MongoDB Spark Connector",
     description: "MongoDB Connector for Apache Spark",
   },
   {
     id: "shell",
-    name: "MongoDB Shell (mongosh)",
+    name: "MongoDB Shell",
     description:
-      "JavaScript and Node.js REPL for interacting with MongoDB deployments",
+      "JavaScript and Node.js REPL for interacting with MongoDB deployments. Also called mongosh",
   },
   {
-    id: "vs_code_extension",
-    name: "VS Code Extension",
-    description: "Visual Studio Cod extension for MongoDB",
+    id: "mongodb_vscode",
+    name: "MongoDB for VS Code",
+    description:
+      "VS Code extension for working with MongoDB data directly in your IDE",
   },
   {
     id: "mongodb_cli",
@@ -305,23 +306,23 @@ export const mongoDbProducts = [
   },
   {
     id: "database_tools",
-    name: "Database Tools",
+    name: "MongoDB Database Tools",
     description:
       "Command-line utilities for MongoDB data migration, backups, and restores",
   },
   {
     id: "mongodb_analyzer",
     name: "C# Analyzer",
-    description: "C# Roslyn Analyzer for MongoDB",
+    description: "VS Code extension for analysing MongoDB .NET/C# driver code",
   },
   {
     id: "intellij",
-    name: "IntelliJ Plugin",
-    description: "IntelliJ plugin for MongoDB",
+    name: "MongoDB IntelliJ Plugin",
+    description: "IntelliJ plugin for MongoDB development in Java",
   },
   {
     id: "kafka_connector",
-    name: "Kafka Connector",
+    name: "MongoDB Kafka Connector",
     description: "MongoDB Kafka Connector",
   },
   {
@@ -342,13 +343,18 @@ export const mongoDbProducts = [
   },
   {
     id: "enterprise_kubernetes_operator",
-    name: "Enterprise Kubernetes Operator",
+    name: "Kubernetes Operator",
     description:
       "Manage the typical lifecycle events for a Enterprise Advanced MongoDB cluster deployed to Kubernetes",
   },
   {
+    id: "mck",
+    name: "MongoDB Controllers for Kubernetes",
+    description: "Deploy and manage a MongoDB cluster on Kubernetes",
+  },
+  {
     id: "relational_migrator",
-    name: "Relational Migrator",
+    name: "MongoDB Relational Migrator",
     description: "Migrates data from relational databases to MongoDB",
   },
   {

@@ -22,7 +22,7 @@ export const ExtractMongoDbMetadataFunctionSchema = z.object({
     .enum(mongoDbProductNames)
     .describe(
       `Most important MongoDB products present in the content.
-Include "Driver" if the user is asking about a programming language with a MongoDB driver.
+Include "MongoDB Drivers" if the user is asking about a programming language with a MongoDB driver.
 If the product is ambiguous, say "MongoDB Server".`
     )
     .default("MongoDB Server")
@@ -60,13 +60,13 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   makeUserMessage("pymongo insert data"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "python",
-    mongoDbProduct: "Drivers",
+    mongoDbProduct: "MongoDB Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 5
   makeUserMessage("How do I create an index in MongoDB using the Java driver?"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "java",
-    mongoDbProduct: "Drivers",
+    mongoDbProduct: "MongoDB Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 6
   makeUserMessage("$lookup"),

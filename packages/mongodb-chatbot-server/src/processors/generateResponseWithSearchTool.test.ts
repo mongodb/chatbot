@@ -9,7 +9,6 @@ import {
   AssistantMessage,
   DataStreamer,
   SystemMessage,
-  UserMessage,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import {

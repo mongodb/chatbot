@@ -59,8 +59,8 @@ describe("makeDefaultReferenceLinks()", () => {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
     ];
@@ -74,8 +74,8 @@ describe("makeDefaultReferenceLinks()", () => {
         title: "title",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
     ];
@@ -89,8 +89,8 @@ describe("makeDefaultReferenceLinks()", () => {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
     ];
@@ -106,16 +106,16 @@ describe("makeDefaultReferenceLinks()", () => {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
       {
         title: "https://mongodb.com/docs/realm/sdk/node/xyz",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
     ];
@@ -131,16 +131,16 @@ describe("makeDefaultReferenceLinks()", () => {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
       {
         title: "https://mongodb.com/docs/realm/sdk/node/xyz",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
         metadata: {
-          tags: [],
           sourceName: "realm",
+          tags: [],
         },
       },
     ];

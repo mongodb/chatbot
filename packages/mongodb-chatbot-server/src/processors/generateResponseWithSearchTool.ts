@@ -255,7 +255,6 @@ export function makeGenerateResponseWithSearchTool<
         data: llmNotWorkingMessage,
         type: "delta",
       });
-
       // Handle other errors
       return {
         messages: [
@@ -292,7 +291,6 @@ function handleReturnGeneration({
     ...userMessage.customData,
     ...guardrailResult,
   };
-
   return {
     messages: [
       userMessage,

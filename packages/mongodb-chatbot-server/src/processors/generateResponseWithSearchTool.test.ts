@@ -182,7 +182,6 @@ const makeMockGuardrail =
   (pass: boolean): InputGuardrail =>
   async () =>
     pass ? mockGuardrailPassResult : mockGuardrailRejectResult;
-
 const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
   doStream: async () => {
     throw new Error("LLM error");
@@ -325,7 +324,6 @@ describe("generateResponseWithSearchTool", () => {
 
         return dataStreamer;
       };
-
       test("should handle successful streaming", async () => {
         const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithSearchTool(

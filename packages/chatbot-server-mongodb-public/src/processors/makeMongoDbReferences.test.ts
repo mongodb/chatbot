@@ -66,12 +66,7 @@ describe("makeMongoDbReferences", () => {
         chunkIndex: 0,
       },
     ] satisfies EmbeddedContent[];
-    const result = makeMongoDbReferences(
-      chunks.map((c) => ({
-        ...c,
-        title: c.metadata?.pageTitle,
-      }))
-    );
+    const result = makeMongoDbReferences(chunks);
     expect(result).toEqual([
       {
         url: "https://www.example.com/blog",
@@ -119,12 +114,7 @@ describe("makeMongoDbReferences", () => {
         chunkIndex: 0,
       },
     ];
-    const result = makeMongoDbReferences(
-      chunks.map((c) => ({
-        ...c,
-        title: c.metadata?.pageTitle,
-      }))
-    );
+    const result = makeMongoDbReferences(chunks);
     expect(result).toEqual([
       {
         url: "https://www.example.com/somepage",
@@ -150,6 +140,7 @@ describe("addReferenceSourceType", () => {
     };
     const result = addReferenceSourceType(reference);
     expect(result.metadata).toEqual({
+      sourceName: reference.metadata?.sourceName,
       tags: reference.metadata?.tags,
       sourceType: "Docs",
     });

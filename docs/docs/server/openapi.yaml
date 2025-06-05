@@ -192,10 +192,12 @@ components:
       in: header
       name: ORIGIN
       description: |
-        Custom header required for authentication with one of the pre-configured values:
-        - "https://mongodb.com"
-        - "https://www.mongodb.com"
-        - "https://learn.mongodb.com"
+        Can provide any value. Used to track where requests to the server
+        are coming from.
+        Alternatively, can provide `X-Request-Origin` header.
+
+        The server's firewall has additional rules based on the `User-Agent` header.
+        If you would like to get access to the server, please [contact the Education AI team](../contact).
   responses:
     BadRequest:
       description: Bad Request

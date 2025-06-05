@@ -126,18 +126,15 @@ export type SnootyMetadata = {
   title?: string;
 };
 
-export type SnootyProjectConfig<ProductName extends string = string> =
-  ProjectBase<ProductName> & {
-    type: "snooty";
-    branches?: Branch[];
-  };
+export type SnootyProjectConfig = ProjectBase & {
+  type: "snooty";
+  branches?: Branch[];
+};
 
 /**
   Specifies a locally-overrideable Snooty project configuration.
  */
-export type LocallySpecifiedSnootyProjectConfig<
-  ProductName extends string = string
-> = SnootyProjectConfig<ProductName> & {
+export type LocallySpecifiedSnootyProjectConfig = SnootyProjectConfig & {
   /**
     Can be set to a branch label to override the current version of the
     project. Available branche labels can be found in the Snooty Data API

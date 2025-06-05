@@ -1,14 +1,8 @@
 import { RenderLinks } from "./snooty/snootyAstToMd";
 import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
-import {
-  MongoDbProductName,
-  MongoDbDriverName,
-} from "mongodb-rag-core/mongoDbMetadata";
 
-export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig<
-  MongoDbDriverName | MongoDbProductName
->[] = [
+export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "cloud-docs",
@@ -271,7 +265,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig<
     type: "snooty",
     name: "atlas-architecture",
     tags: ["docs", "atlas", "architecture"],
-    productName: "MongoDB Atlas Architecture Center" as MongoDbProductName,
+    productName: "MongoDB Atlas Architecture Center",
   },
 ];
 
@@ -279,9 +273,7 @@ export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
 export const makeSnootyDataSources = (
   snootyDataApiBaseUrl: string,
-  projects: LocallySpecifiedSnootyProjectConfig<
-    MongoDbDriverName | MongoDbProductName
-  >[],
+  projects: LocallySpecifiedSnootyProjectConfig[],
   links?: Omit<RenderLinks, "baseUrl">
 ) =>
   prepareSnootySources({

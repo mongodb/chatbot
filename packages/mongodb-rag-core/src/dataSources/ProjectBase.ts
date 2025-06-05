@@ -1,7 +1,7 @@
 /**
   Base project type used in all project data sources (snooty sites, devcenter, etc.)
  */
-export interface ProjectBase<ProductName extends string = string> {
+export interface ProjectBase {
   /**
     Type of project
     @example "snooty" | "devcenter"
@@ -22,7 +22,7 @@ export interface ProjectBase<ProductName extends string = string> {
     Name of the product.
     @example "MongoDB Atlas"
   */
-  productName?: ProductName;
+  productName?: string;
 
   /**
     The version of the project.

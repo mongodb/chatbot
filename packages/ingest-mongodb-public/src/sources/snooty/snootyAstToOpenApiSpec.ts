@@ -16,9 +16,16 @@ export const snootyAstToOpenApiSpec = async (
       // Have to hard code how the Atlas OpenAPI spec is loaded for now.
       // There is no programmatic way to get the spec resource from the Snooty AST.
     } else if (node?.options?.source_type === "atlas") {
-      const version = node?.options?.["api-version"] || "2.0";
+      const versions: Record<string, string> = {
+        "2.0": "v2",
+        "1.0": "v1",
+      };
+      const snootyVersion = node?.options?.["api-version"] as
+        | string
+        | undefined;
+      const version = versions[snootyVersion ?? "2.0"];
       const data = await fetch(
-        "https://cloud.mongodb.com/api/openapi/spec/" + version
+        `https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/${version}.json`
       );
       const json = await data.json();
       const text = yaml.stringify(json);

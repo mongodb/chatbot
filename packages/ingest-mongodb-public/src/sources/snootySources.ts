@@ -1,6 +1,7 @@
 import { RenderLinks } from "./snooty/snootyAstToMd";
 import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
+import { MongoDbProductName } from "mongodb-rag-core/mongoDbMetadata";
 
 export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
@@ -265,7 +266,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "atlas-architecture",
     tags: ["docs", "atlas", "architecture"],
-    productName: "MongoDB Atlas Architecture Center",
+    productName: "MongoDB Atlas Architecture Center" as MongoDbProductName,
   },
 ];
 

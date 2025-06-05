@@ -28,6 +28,7 @@ export function Chatbot({
   isExperimental,
   onOpen,
   onClose,
+  onSuggestedPromptClick,
   sortMessageReferences,
   getClientContext,
   ...props
@@ -61,6 +62,7 @@ export function Chatbot({
               serverBaseUrl={serverBaseUrl}
               shouldStream={shouldStream}
               sortMessageReferences={sortMessageReferences}
+              onSuggestedPromptClick={onSuggestedPromptClick}
             >
               {children}
             </InnerChatbot>
@@ -82,6 +84,7 @@ type InnerChatbotProps = Pick<
   | "name"
   | "onOpen"
   | "onClose"
+  | "onSuggestedPromptClick"
   | "serverBaseUrl"
   | "shouldStream"
   | "sortMessageReferences"

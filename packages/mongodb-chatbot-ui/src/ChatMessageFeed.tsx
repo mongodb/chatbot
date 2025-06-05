@@ -38,8 +38,13 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { className, disclaimer, disclaimerHeading, initialMessage } = props;
 
-  const { awaitingReply, canSubmit, conversation, handleSubmit } =
-    useChatbotContext();
+  const {
+    awaitingReply,
+    canSubmit,
+    conversation,
+    handleSubmit,
+    onSuggestedPromptClick,
+  } = useChatbotContext();
 
   const messages = initialMessage
     ? [initialMessage, ...conversation.messages]
@@ -87,7 +92,10 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
               // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
               isInitialMessage && conversation.messages.length === 0
             }
-            onSuggestedPromptClick={handleSubmit}
+            onSuggestedPromptClick={(prompt) => {
+              onSuggestedPromptClick?.(prompt);
+              handleSubmit(prompt);
+            }}
             canSubmitSuggestedPrompt={canSubmit}
           />
         );

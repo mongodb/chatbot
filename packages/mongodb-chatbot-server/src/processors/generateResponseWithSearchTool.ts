@@ -199,7 +199,6 @@ export function makeGenerateResponseWithSearchTool<
             }
           }
           try {
-            // Transform filtered references to include the required title property
             if (references.length > 0) {
               dataStreamer?.streamData({
                 data: references,

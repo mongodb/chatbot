@@ -39,7 +39,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "pymongo insert data",
     expected: {
       programmingLanguage: "python",
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "python"],
   },
@@ -72,7 +72,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input:
       "how to open a change stream watch on a database and filter the stream",
     expected: {
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
       programmingLanguage: "javascript",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["change_streams"],
@@ -82,7 +82,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input:
       "how to open a change stream watch on a database and filter the stream pymongo",
     expected: {
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
       programmingLanguage: "python",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["change_streams"],
@@ -134,7 +134,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I connect to MongoDB using the Java driver?",
     expected: {
       programmingLanguage: "java",
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "java"],
   },
@@ -143,7 +143,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I query a collection using LINQ in C#?",
     expected: {
       programmingLanguage: "csharp",
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "csharp"],
   },
@@ -161,7 +161,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I handle MongoDB connections in Node.js?",
     expected: {
       programmingLanguage: "javascript",
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "javascript"],
   },
@@ -170,7 +170,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I insert multiple documents with the MongoDB Go driver?",
     expected: {
       programmingLanguage: "go",
-      mongoDbProduct: "Drivers",
+      mongoDbProduct: "MongoDB Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "go"],
   },

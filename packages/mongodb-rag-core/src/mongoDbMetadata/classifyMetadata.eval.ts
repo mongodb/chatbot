@@ -22,6 +22,8 @@ async function main() {
     tags?: MongoDbTag[];
   }
 
+  const k8sAsTag = "kubernetes" as MongoDbTag;
+
   const evalCases: ClassifyMongoDbMetadataEvalCase[] = [
     {
       name: "should identify MongoDB Atlas Search",
@@ -162,7 +164,7 @@ async function main() {
       expected: {
         programmingLanguage: "java",
         product: "driver",
-        topic: "queries",
+        topic: null,
       },
       tags: ["driver", "java"],
     },
@@ -192,7 +194,7 @@ async function main() {
       expected: {
         programmingLanguage: "javascript",
         product: "driver",
-        topic: "queries",
+        topic: null,
       },
       tags: ["driver", "javascript"],
     },
@@ -225,17 +227,17 @@ async function main() {
         programmingLanguage: null,
         topic: "sharding",
       },
-      tags: [],
+      tags: [k8sAsTag],
     },
     {
       name: "should identify community k8s without exact reference",
-      input: "deploy mongodb with kubernetes on local machine",
+      input: "run mongodb on kubernetes on local machine",
       expected: {
         product: "community_kubernetes_operator",
         programmingLanguage: null,
         topic: null,
       },
-      tags: [],
+      tags: [k8sAsTag],
     },
     {
       name: "should identify k8s enterprise",
@@ -246,7 +248,7 @@ async function main() {
         programmingLanguage: null,
         topic: null,
       },
-      tags: [],
+      tags: [k8sAsTag],
     },
     {
       name: "should identify atlas k8s",
@@ -256,7 +258,7 @@ async function main() {
         programmingLanguage: null,
         topic: "iam",
       },
-      tags: [],
+      tags: [k8sAsTag, "atlas"],
     },
     {
       name: "should identify k8s controllers",
@@ -266,7 +268,7 @@ async function main() {
         programmingLanguage: null,
         topic: "performance",
       },
-      tags: [],
+      tags: [k8sAsTag],
     },
     {
       name: "should classify mongosh as mongodb shell",
@@ -274,9 +276,9 @@ async function main() {
       expected: {
         product: "shell",
         programmingLanguage: "shell",
-        topic: "queries",
+        topic: null,
       },
-      tags: [],
+      tags: ["shell"],
     },
     {
       name: "should classify mongodb shell",
@@ -286,7 +288,7 @@ async function main() {
         programmingLanguage: "shell",
         topic: null,
       },
-      tags: [],
+      tags: ["shell"],
     },
     {
       name: "should identify maintenance topic",
@@ -316,7 +318,7 @@ async function main() {
         programmingLanguage: null,
         topic: "mongodb_university",
       },
-      tags: [],
+      tags: ["mongodb_university"],
     },
     {
       name: "should identify skills",
@@ -326,7 +328,7 @@ async function main() {
         programmingLanguage: null,
         topic: "mongodb_university",
       },
-      tags: [],
+      tags: ["mongodb_university"],
     },
     {
       name: "should identify certificate exam",
@@ -336,7 +338,7 @@ async function main() {
         programmingLanguage: null,
         topic: "certificate_exam",
       },
-      tags: [],
+      tags: ["mongodb_university"],
     },
     {
       name: "should identify backup",
@@ -346,7 +348,7 @@ async function main() {
         programmingLanguage: null,
         topic: "backup",
       },
-      tags: [],
+      tags: ["atlas"],
     },
     {
       name: "should identify data modeling",
@@ -366,7 +368,7 @@ async function main() {
         programmingLanguage: null,
         topic: "monitoring",
       },
-      tags: [],
+      tags: ["atlas"],
     },
     {
       name: "should identify troubleshooting",
@@ -376,7 +378,7 @@ async function main() {
         programmingLanguage: null,
         topic: "troubleshoot_debug",
       },
-      tags: [],
+      tags: ["troubleshoot_debug"],
     },
     {
       name: "should identify troubleshooting",
@@ -387,7 +389,7 @@ async function main() {
         programmingLanguage: "javascript",
         topic: "troubleshoot_debug",
       },
-      tags: [],
+      tags: ["troubleshoot_debug"],
     },
     {
       name: "should identify security",
@@ -397,7 +399,37 @@ async function main() {
         programmingLanguage: null,
         topic: "security",
       },
-      tags: ["security"],
+      tags: [],
+    },
+    {
+      name: "should identify kotlin from framework name",
+      input: "i want to add mongodb to my ktor app",
+      expected: {
+        product: "driver",
+        programmingLanguage: "kotlin",
+        topic: null,
+      },
+      tags: ["kotlin", "driver"],
+    },
+    {
+      name: "should identify java from framework name",
+      input: "spring boot sample application code with mongodb",
+      expected: {
+        product: "driver",
+        programmingLanguage: "java",
+        topic: null,
+      },
+      tags: ["java", "driver"],
+    },
+    {
+      name: "should identify javascript from framework name",
+      input: "Hono sample application code with mongodb",
+      expected: {
+        product: "driver",
+        programmingLanguage: "javascript",
+        topic: null,
+      },
+      tags: ["javascript", "driver"],
     },
   ];
 

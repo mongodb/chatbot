@@ -1,8 +1,4 @@
-import {
-  VerifiedAnswer,
-  FindVerifiedAnswerFunc,
-  SomeMessage,
-} from "mongodb-rag-core";
+import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
   GenerateResponse,
@@ -72,19 +68,20 @@ export const makeVerifiedAnswerGenerateResponse = ({
       });
     }
 
-    const messages = [
-      {
-        role: "user",
-        embedding: queryEmbedding,
-        content: latestMessageText,
-      },
-      {
-        role: "assistant",
-        content: answer,
-        references,
-        metadata,
-      },
-    ] satisfies SomeMessage[];
-    return { messages } satisfies GenerateResponseReturnValue;
+    return {
+      messages: [
+        {
+          role: "user",
+          embedding: queryEmbedding,
+          content: latestMessageText,
+        },
+        {
+          role: "assistant",
+          content: answer,
+          references,
+          metadata,
+        },
+      ],
+    } satisfies GenerateResponseReturnValue;
   };
 };

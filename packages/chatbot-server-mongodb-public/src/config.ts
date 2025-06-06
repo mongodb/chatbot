@@ -48,6 +48,7 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeSearchTool } from "./tools/search";
+import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -178,6 +179,11 @@ const azureOpenAi = createAzure({
 });
 const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
 
+const guardrailLanguageModel = wrapAISDKModel(azureOpenAi("gpt-4.1-mini"));
+const inputGuardrail = makeMongoDbInputGuardrail({
+  model: guardrailLanguageModel,
+});
+
 export const generateResponse = wrapTraced(
   makeVerifiedAnswerGenerateResponse({
     findVerifiedAnswer,
@@ -192,6 +198,9 @@ export const generateResponse = wrapTraced(
         languageModel,
         systemMessage: systemPrompt,
         makeReferenceLinks: makeMongoDbReferences,
+        inputGuardrail,
+        llmRefusalMessage:
+          conversations.conversationConstants.NO_RELEVANT_CONTENT,
         filterPreviousMessages: async (conversation) => {
           return conversation.messages.filter((message) => {
             return (

@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import {
+  GenerateResponseWithSearchToolParams,
   makeGenerateResponseWithSearchTool,
   SEARCH_TOOL_NAME,
   SearchToolReturnValue,
@@ -9,6 +10,7 @@ import {
   AssistantMessage,
   DataStreamer,
   SystemMessage,
+  UserMessage,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import {
@@ -95,6 +97,7 @@ const makeFinalAnswerStream = () =>
       mockFinishChunk,
     ] satisfies LanguageModelV1StreamPart[],
     chunkDelayInMs: 100,
+    initialDelayInMs: 100,
   });
 
 const searchToolMockArgs = {
@@ -115,6 +118,7 @@ const makeToolCallStream = () =>
       mockFinishChunk,
     ] satisfies LanguageModelV1StreamPart[],
     chunkDelayInMs: 100,
+    initialDelayInMs: 100,
   });
 
 jest.setTimeout(5000);
@@ -160,24 +164,40 @@ const mockSystemMessage: SystemMessage = {
 const mockLlmNotWorkingMessage =
   "Sorry, I am having trouble with the language model.";
 
-const mockGuardrail: InputGuardrail = async () => ({
+const mockLlmRefusalMessage = "Sorry, I cannot answer that.";
+
+const mockGuardrailRejectResult = {
   rejected: true,
   message: "Content policy violation",
   metadata: { reason: "inappropriate" },
-});
+};
 
+const mockGuardrailPassResult = {
+  rejected: false,
+  message: "All good 👍",
+  metadata: { reason: "appropriate" },
+};
+
+const makeMockGuardrail =
+  (pass: boolean): InputGuardrail =>
+  async () =>
+    pass ? mockGuardrailPassResult : mockGuardrailRejectResult;
 const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
   doStream: async () => {
     throw new Error("LLM error");
   },
 });
 
-const makeMakeGenerateResponseWithSearchToolArgs = () => ({
-  languageModel: makeMockLanguageModel(),
-  llmNotWorkingMessage: mockLlmNotWorkingMessage,
-  systemMessage: mockSystemMessage,
-  searchTool: mockSearchTool,
-});
+const makeMakeGenerateResponseWithSearchToolArgs = () =>
+  ({
+    languageModel: makeMockLanguageModel(),
+    llmNotWorkingMessage: mockLlmNotWorkingMessage,
+    llmRefusalMessage: mockLlmRefusalMessage,
+    systemMessage: mockSystemMessage,
+    searchTool: mockSearchTool,
+  } satisfies Partial<
+    GenerateResponseWithSearchToolParams<typeof SearchToolArgsSchema>
+  >);
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -247,20 +267,26 @@ describe("generateResponseWithSearchTool", () => {
         expectSuccessfulResult(result);
       });
 
-      // TODO: (EAI-995): make work as part of guardrail changes
-      test.skip("should handle guardrail rejection", async () => {
+      test("should handle guardrail rejection", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
           ...makeMakeGenerateResponseWithSearchToolArgs(),
-          inputGuardrail: mockGuardrail,
+          inputGuardrail: makeMockGuardrail(false),
         });
 
         const result = await generateResponse(generateResponseBaseArgs);
 
-        expect(result.messages[1].role).toBe("assistant");
-        expect(result.messages[1].content).toBe("Content policy violation");
-        expect(result.messages[1].metadata).toEqual({
-          reason: "inappropriate",
+        expectGuardrailRejectResult(result);
+      });
+
+      test("should handle guardrail pass", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          inputGuardrail: makeMockGuardrail(true),
         });
+
+        const result = await generateResponse(generateResponseBaseArgs);
+
+        expectSuccessfulResult(result);
       });
 
       test("should handle error in language model", async () => {
@@ -322,13 +348,51 @@ describe("generateResponseWithSearchTool", () => {
         expectSuccessfulResult(result);
       });
 
-      // TODO: (EAI-995): make work as part of guardrail changes
-      test.skip("should handle successful generation with guardrail", async () => {
-        // TODO: add
+      test("should handle successful generation with guardrail", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          inputGuardrail: makeMockGuardrail(true),
+        });
+        const mockDataStreamer = makeMockDataStreamer();
+
+        const result = await generateResponse({
+          ...generateResponseBaseArgs,
+          shouldStream: true,
+          dataStreamer: mockDataStreamer,
+        });
+
+        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(3);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          data: "Final",
+          type: "delta",
+        });
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          type: "references",
+          data: expect.any(Array),
+        });
+
+        expectSuccessfulResult(result);
       });
-      // TODO: (EAI-995): make work as part of guardrail changes
-      test.skip("should handle streaming with guardrail rejection", async () => {
-        // TODO: add
+
+      test("should handle streaming with guardrail rejection", async () => {
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          inputGuardrail: makeMockGuardrail(false),
+        });
+        const mockDataStreamer = makeMockDataStreamer();
+
+        const result = await generateResponse({
+          ...generateResponseBaseArgs,
+          shouldStream: true,
+          dataStreamer: mockDataStreamer,
+        });
+
+        expectGuardrailRejectResult(result);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
+        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+          data: mockLlmRefusalMessage,
+          type: "delta",
+        });
       });
 
       test("should handle error in language model", async () => {
@@ -337,15 +401,15 @@ describe("generateResponseWithSearchTool", () => {
           languageModel: mockThrowingLanguageModel,
         });
 
-        const mockDataStreamer = makeMockDataStreamer();
+        const dataStreamer = makeMockDataStreamer();
         const result = await generateResponse({
           ...generateResponseBaseArgs,
           shouldStream: true,
-          dataStreamer: mockDataStreamer,
+          dataStreamer,
         });
 
-        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
+        expect(dataStreamer.streamData).toHaveBeenCalledTimes(1);
+        expect(dataStreamer.streamData).toHaveBeenCalledWith({
           data: mockLlmNotWorkingMessage,
           type: "delta",
         });
@@ -358,6 +422,21 @@ describe("generateResponseWithSearchTool", () => {
     });
   });
 });
+
+function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
+  expect(result.messages).toHaveLength(2);
+  expect(result.messages[0]).toMatchObject({
+    role: "user",
+    content: latestMessageText,
+    rejectQuery: true,
+    customData: mockGuardrailRejectResult,
+  } satisfies UserMessage);
+
+  expect(result.messages[1]).toMatchObject({
+    role: "assistant",
+    content: mockLlmRefusalMessage,
+  } satisfies AssistantMessage);
+}
 
 function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect(result).toHaveProperty("messages");

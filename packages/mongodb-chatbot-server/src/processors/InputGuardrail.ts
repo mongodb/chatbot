@@ -1,31 +1,49 @@
 import { GenerateResponseParams } from "./GenerateResponse";
 
-export type InputGuardrail<
+export interface InputGuardrailResult<
   Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
-> = (generateResponseParams: Omit<GenerateResponseParams, "llm">) => Promise<{
+> {
   rejected: boolean;
   reason?: string;
-  message: string;
   metadata: Metadata;
-}>;
+}
 
-export function withAbortControllerGuardrail<T, G>(
+export const guardrailFailedResult: InputGuardrailResult = {
+  rejected: true,
+  reason: "Guardrail failed",
+  metadata: {},
+};
+
+export type InputGuardrail<
+  Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
+> = (
+  generateResponseParams: GenerateResponseParams
+) => Promise<InputGuardrailResult<Metadata>>;
+
+export function withAbortControllerGuardrail<T>(
   fn: (abortController: AbortController) => Promise<T>,
-  guardrailPromise?: Promise<G>
-): Promise<{ result: T | null; guardrailResult: Awaited<G> | undefined }> {
+  guardrailPromise?: Promise<InputGuardrailResult>
+): Promise<{
+  result: T | null;
+  guardrailResult: InputGuardrailResult | undefined;
+}> {
   const abortController = new AbortController();
   return (async () => {
     try {
       // Run both the main function and guardrail function in parallel
       const [result, guardrailResult] = await Promise.all([
-        fn(abortController).catch((error) => {
-          // If the main function was aborted by the guardrail, return null
-          if (error.name === "AbortError") {
-            return null as T | null;
-          }
-          throw error;
-        }),
-        guardrailPromise,
+        fn(abortController),
+        guardrailPromise
+          ?.then((guardrailResult) => {
+            if (guardrailResult.rejected) {
+              abortController.abort();
+            }
+            return guardrailResult;
+          })
+          .catch((error) => {
+            abortController.abort();
+            return { ...guardrailFailedResult, metadata: { error } };
+          }),
       ]);
 
       return { result, guardrailResult };

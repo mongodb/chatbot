@@ -11,6 +11,7 @@ export type UseChatbotProps = OpenCloseHandlers &
     chatbotName?: string;
     maxInputCharacters?: number;
     maxCommentCharacters?: number;
+    onSuggestedPromptClick?: (prompt: string) => void;
   };
 
 export type ChatbotData = {
@@ -28,6 +29,7 @@ export type ChatbotData = {
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
+  onSuggestedPromptClick?: (prompt: string) => void;
 };
 
 export function useChatbot({
@@ -36,6 +38,7 @@ export function useChatbot({
   chatbotName,
   maxInputCharacters,
   maxCommentCharacters,
+  onSuggestedPromptClick,
   ...useConversationArgs
 }: UseChatbotProps): ChatbotData {
   const conversation = useConversation(useConversationArgs);
@@ -128,5 +131,6 @@ export function useChatbot({
     open,
     openChat,
     setInputText,
+    onSuggestedPromptClick,
   };
 }

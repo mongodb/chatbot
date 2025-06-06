@@ -68,6 +68,7 @@ export function InputBarTrigger({
     handleSubmit,
     hasError,
     showError,
+    onSuggestedPromptClick,
   } = useTextInputTrigger({
     fatalErrorMessage,
     placeholder,
@@ -132,6 +133,7 @@ export function InputBarTrigger({
                 <SuggestedPrompt
                   key={suggestedPrompt}
                   onClick={async () => {
+                    onSuggestedPromptClick?.(suggestedPrompt);
                     await handleSubmit(suggestedPrompt);
                   }}
                 >

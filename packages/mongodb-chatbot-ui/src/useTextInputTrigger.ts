@@ -40,8 +40,13 @@ export function useTextInputTrigger({
   placeholder = MongoDbInputBarPlaceholder(),
   fatalErrorMessage = defaultChatbotFatalErrorMessage,
 }: UseTextInputTriggerArgs) {
-  const { openChat, awaitingReply, handleSubmit, conversation } =
-    useChatbotContext();
+  const {
+    openChat,
+    awaitingReply,
+    handleSubmit,
+    conversation,
+    onSuggestedPromptClick,
+  } = useChatbotContext();
 
   const [focused, setFocused] = useState(false);
   const [inputText, setInputText] = useState("");
@@ -67,5 +72,6 @@ export function useTextInputTrigger({
     handleSubmit,
     hasError,
     showError,
+    onSuggestedPromptClick,
   };
 }

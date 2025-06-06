@@ -216,6 +216,88 @@ async function main() {
       },
       tags: ["atlas", "atlas_vector_search"],
     },
+    {
+      name: "should identify community k8s with exact reference",
+      input:
+        "help in deploying sharded replica set using mongodb community kubernetes operator",
+      expected: {
+        product: "community_kubernetes_operator",
+        programmingLanguage: null,
+        topic: "sharding",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify community k8s without exact reference",
+      input: "deploy mongodb with kubernetes on local machine",
+      expected: {
+        product: "community_kubernetes_operator",
+        programmingLanguage: null,
+        topic: null,
+      },
+      tags: [],
+    },
+    {
+      name: "should identify k8s enterprise",
+      input:
+        "I would like to run a MongoDB Enterprise docker image inside a Kubernetes cluster, but there is no official MongoDB Enterprise docker image. Is there any other way?",
+      expected: {
+        product: "enterprise_kubernetes_operator",
+        programmingLanguage: null,
+        topic: "troubleshoot_debug",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify atlas k8s",
+      input: "manage atlas mongodb cluster users from kubernetes",
+      expected: {
+        product: "atlas_operator",
+        programmingLanguage: null,
+        topic: "iam",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify k8s controllers",
+      input: "deploy mongodb as multi-cluster k8s",
+      expected: {
+        product: "mck",
+        programmingLanguage: null,
+        topic: "performance",
+      },
+      tags: [],
+    },
+    {
+      name: "should classify mongosh as mongodb shell",
+      input: "How to connect to database mongosh",
+      expected: {
+        product: "shell",
+        programmingLanguage: null,
+        topic: "troubleshoot_debug",
+      },
+      tags: [],
+    },
+    {
+      name: "should classify mongodb shell",
+      input: "download shell",
+      expected: {
+        product: "shell",
+        programmingLanguage: null,
+        topic: null,
+      },
+      tags: [],
+    },
+    {
+      name: "should identify maintenance topic",
+      input: "upgrade mongodb 5 to 7",
+      expected: {
+        product: "server",
+        programmingLanguage: null,
+        topic: "maintenance",
+      },
+      tags: [],
+    },
   ];
 
   const ProductNameCorrect: Scorer<

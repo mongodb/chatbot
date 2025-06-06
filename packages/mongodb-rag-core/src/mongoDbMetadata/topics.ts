@@ -78,8 +78,7 @@ export const mongoDbTopics = [
   {
     id: "search",
     name: "Search",
-    description:
-      "Search capabilities and tools: Full-text, semantic (vector), and hybrid",
+    description: "MongoDB search capabilities and tools",
   },
   {
     id: "troubleshoot_debug",

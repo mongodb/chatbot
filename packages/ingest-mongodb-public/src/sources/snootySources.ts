@@ -1,6 +1,7 @@
 import { RenderLinks } from "./snooty/snootyAstToMd";
 import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
+import { MongoDbProductName } from "mongodb-rag-core/mongoDbMetadata";
 
 export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
@@ -86,13 +87,13 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "java",
     tags: ["docs", "driver", "java", "java-sync"],
-    productName: "Java Driver",
+    productName: "Java Sync Driver",
   },
   {
     type: "snooty",
     name: "docs-k8s-operator",
     tags: ["docs", "kubernetes-operator", "kubernetes", "k8s"],
-    productName: "MongoDB Kubernetes Operator",
+    productName: "Kubernetes Operator",
   },
   {
     type: "snooty",
@@ -104,7 +105,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "mck",
     tags: ["docs", "kubernetes", "k8s", "kubernetes-controllers", "kubernetes-operator"],
-    productName: "MongoDB Controllers for Kubernetes"
+    productName: "MongoDB Controllers for Kubernetes",
   },
   {
     type: "snooty",
@@ -192,8 +193,8 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "visual-studio-extension",
-    tags: ["docs", "visual-studio-extension", "visual-studio", "gui"],
-    productName: "MongoDB Visual Studio Extension",
+    tags: ["docs", "visual-studio-extension", "visual-studio", "gui", "csharp"],
+    productName: "C# Analyzer",
   },
   {
     type: "snooty",
@@ -235,7 +236,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "pymongo-arrow",
     tags: ["docs", "driver", "python", "pymongo-arrow"],
-    productName: "PyMongo Arrow",
+    productName: "PyMongo Arrow Driver",
   },
   {
     type: "snooty",
@@ -265,7 +266,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "atlas-architecture",
     tags: ["docs", "atlas", "architecture"],
-    productName: "MongoDB Atlas Architecture Center",
+    productName: "MongoDB Atlas Architecture Center" as MongoDbProductName,
   },
 ];
 

@@ -2,6 +2,7 @@ import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
 import { DataSource, ProjectBase } from "mongodb-rag-core/dataSources";
+import { MongoDbDriverName, MongoDbProductName } from "mongodb-rag-core/mongoDbMetadata";
 import {
   snootyAstToMd,
   getTitleFromSnootyAst,
@@ -148,6 +149,7 @@ export type SnootyMetadata = {
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
   branches?: Branch[];
+  productName?: MongoDbDriverName | MongoDbProductName;
 };
 
 /**

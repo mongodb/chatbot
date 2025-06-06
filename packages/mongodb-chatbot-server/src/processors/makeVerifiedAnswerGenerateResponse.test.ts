@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeVerifiedAnswerGenerateResponse } from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
+import { GenerateResponseReturnValue } from "./GenerateResponse";
 
 describe("makeVerifiedAnswerGenerateResponse", () => {
   const MAGIC_VERIFIABLE = "VERIFIABLE";
@@ -11,6 +12,17 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
   const testDate = new Date();
   const queryEmbedding = [1, 2, 3];
   const mockObjectId = new ObjectId();
+
+  const noVerifiedAnswerFoundMessages = [
+    {
+      role: "user",
+      content: "returned from onNoVerifiedAnswerFound",
+    },
+    {
+      role: "assistant",
+      content: "Not verified!",
+    },
+  ] satisfies GenerateResponseReturnValue["messages"];
 
   // Create a mock verified answer
   const createMockVerifiedAnswer = (): WithScore<VerifiedAnswer> => ({
@@ -65,12 +77,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
         query === MAGIC_VERIFIABLE ? createMockVerifiedAnswer() : undefined,
     }),
     onNoVerifiedAnswerFound: async () => ({
-      messages: [
-        {
-          role: "user",
-          content: "returned from onNoVerifiedAnswerFound",
-        },
-      ],
+      messages: noVerifiedAnswerFoundMessages,
     }),
   });
 
@@ -79,10 +86,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       createBaseRequestParams("not verified")
     );
 
-    expect(answer.messages).toHaveLength(1);
-    expect(answer.messages[0].content).toBe(
-      "returned from onNoVerifiedAnswerFound"
-    );
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
   });
 
   it("uses verified answer if available", async () => {

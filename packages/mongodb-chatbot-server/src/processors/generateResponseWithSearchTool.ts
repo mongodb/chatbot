@@ -199,7 +199,6 @@ export function makeGenerateResponseWithSearchTool<
             }
           }
           try {
-            // Transform filtered references to include the required title property
             if (references.length > 0) {
               dataStreamer?.streamData({
                 data: references,
@@ -255,7 +254,6 @@ export function makeGenerateResponseWithSearchTool<
         data: llmNotWorkingMessage,
         type: "delta",
       });
-
       // Handle other errors
       return {
         messages: [
@@ -292,7 +290,6 @@ function handleReturnGeneration({
     ...userMessage.customData,
     ...guardrailResult,
   };
-
   return {
     messages: [
       userMessage,

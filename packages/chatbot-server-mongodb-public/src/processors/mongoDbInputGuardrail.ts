@@ -15,8 +15,10 @@ export type UserMessageMongoDbGuardrailFunction = z.infer<
   typeof UserMessageMongoDbGuardrailFunctionSchema
 >;
 
-const name = "extract_mongodb_metadata";
-const description = "Extract MongoDB-related metadata from a user message";
+const inputGuardrailMetadata = {
+  name: "extract_mongodb_metadata",
+  description: "Extract MongoDB-related metadata from a user message",
+};
 
 const fewShotExamples: {
   input: string;
@@ -215,8 +217,8 @@ export const makeMongoDbInputGuardrail = ({
     } = await generateObject({
       model,
       schema: UserMessageMongoDbGuardrailFunctionSchema,
-      schemaDescription: description,
-      schemaName: name,
+      schemaDescription: inputGuardrailMetadata.description,
+      schemaName: inputGuardrailMetadata.name,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user" as const, content: latestMessageText },

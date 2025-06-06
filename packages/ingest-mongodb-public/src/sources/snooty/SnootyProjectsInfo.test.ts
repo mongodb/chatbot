@@ -6,6 +6,7 @@ import {
   prepareSnootySources,
 } from "./SnootyProjectsInfo";
 import { PageMetadata } from "mongodb-rag-core";
+import { LocallySpecifiedSnootyProjectConfig } from "./SnootyDataSource";
 
 const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
@@ -88,7 +89,7 @@ describe("SnootyProjectsInfo", () => {
 
   describe("prepareSnootySources", () => {
     it("returns a list of Snooty data sources", async () => {
-      const projects = [
+      const projects: LocallySpecifiedSnootyProjectConfig[] = [
         {
           type: "snooty" as const,
           name: "spark-connector",
@@ -116,7 +117,7 @@ describe("SnootyProjectsInfo", () => {
       expect(page.metadata?.version).toBeDefined();
     });
     it("allows current version override", async () => {
-      const project = {
+      const project: LocallySpecifiedSnootyProjectConfig = {
         type: "snooty" as const,
         name: "spark-connector",
         tags: ["docs", "spark-connector", "spark", "apache-spark"],

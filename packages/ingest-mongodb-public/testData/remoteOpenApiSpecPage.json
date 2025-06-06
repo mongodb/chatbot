@@ -1,21 +1,35 @@
 {
   "type": "page",
   "data": {
-    "_id": "648b646e259a8493e5ac023b",
+    "_id": "68261afb764f757313ea00a0",
     "page_id": "cloud-docs/docsworker-xlarge/master/reference/api-resources-spec/v2",
     "ast": {
       "type": "root",
-      "position": { "start": { "line": 0 } },
+      "position": {
+        "start": {
+          "line": 0
+        }
+      },
       "children": [
         {
           "type": "target",
-          "position": { "start": { "line": 0 } },
+          "position": {
+            "start": {
+              "line": 0
+            }
+          },
           "children": [
             {
               "type": "target_identifier",
-              "position": { "start": { "line": 0 } },
+              "position": {
+                "start": {
+                  "line": 0
+                }
+              },
               "children": [],
-              "ids": ["api-resources-spec"]
+              "ids": [
+                "api-resources-spec"
+              ]
             }
           ],
           "domain": "std",
@@ -24,28 +38,59 @@
         },
         {
           "type": "directive",
-          "position": { "start": { "line": 5 } },
+          "position": {
+            "start": {
+              "line": 5
+            }
+          },
           "children": [],
           "domain": "",
           "name": "default-domain",
           "argument": [
             {
               "type": "text",
-              "position": { "start": { "line": 5 } },
+              "position": {
+                "start": {
+                  "line": 5
+                }
+              },
               "value": "mongodb"
             }
           ]
         },
         {
           "type": "directive",
-          "position": { "start": { "line": 7 } },
+          "position": {
+            "start": {
+              "line": 11
+            }
+          },
+          "children": [],
+          "domain": "",
+          "name": "meta",
+          "argument": [],
+          "options": {
+            "keywords": "code example"
+          }
+        },
+        {
+          "type": "directive",
+          "position": {
+            "start": {
+              "line": 14
+            }
+          },
           "children": [],
           "domain": "mongodb",
           "name": "openapi",
           "argument": [
             {
               "type": "text",
-              "position": { "start": { "line": 7 } },
+              "position": {
+                "start": {
+                  "line": 14
+                }
+              },
               "value": "cloud"
             }
           ],
@@ -62,10 +107,38 @@
         "title": "MongoDB Atlas Administration API Specification"
       }
     },
-    "created_at": "2023-06-15T19:20:13.276Z",
+    "build_id": "68261af48cc93f2aff512d74",
+    "created_at": "2025-05-15T16:48:56.475Z",
     "deleted": false,
+    "facets": [
+      {
+        "category": "programming_language",
+        "value": "json",
+        "sub_facets": null,
+        "display_name": "JSON"
+      },
+      {
+        "category": "genre",
+        "value": "reference",
+        "sub_facets": null,
+        "display_name": "Reference"
+      },
+      {
+        "category": "target_product",
+        "value": "atlas",
+        "sub_facets": [
+          {
+            "category": "sub_product",
+            "value": "online-archive",
+            "sub_facets": null,
+            "display_name": "Online Archive"
+          }
+        ],
+        "display_name": "Atlas"
+      }
+    ],
     "filename": "reference/api-resources-spec/v2.txt",
     "static_assets": [],
-    "updated_at": "2023-07-12T17:59:55.205Z"
+    "updated_at": "2025-05-15T16:48:56.475Z"
   }
 }

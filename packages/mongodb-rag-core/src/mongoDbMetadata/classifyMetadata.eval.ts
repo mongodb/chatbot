@@ -298,6 +298,107 @@ async function main() {
       },
       tags: [],
     },
+    {
+      name: "should identify relational migrator",
+      input: "migrate from postgres to mongodb",
+      expected: {
+        product: "relational_migrator",
+        programmingLanguage: null,
+        topic: "migration",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify mongodb university",
+      input: "dba courses on mongodb university",
+      expected: {
+        product: "mongodb_university",
+        programmingLanguage: null,
+        topic: "mongodb_university",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify skills",
+      input: "what skills badge is right for me as a beginner",
+      expected: {
+        product: "skills",
+        programmingLanguage: null,
+        topic: "mongodb_university",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify certificate exam",
+      input: "mock exams for associate developer certificate",
+      expected: {
+        product: "mongodb_university",
+        programmingLanguage: null,
+        topic: "certificate_exam",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify backup",
+      input: "How do I backup mongodb atlas cluster data to s3",
+      expected: {
+        product: "atlas",
+        programmingLanguage: null,
+        topic: "backup",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify data modeling",
+      input: "when should i use nested documents vs creating a new collection",
+      expected: {
+        product: "server",
+        programmingLanguage: null,
+        topic: "data_modeling",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify monitoring",
+      input: "Mongodb monitoring best practices for atlas cluster",
+      expected: {
+        product: "atlas",
+        programmingLanguage: null,
+        topic: "monitoring",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify troubleshooting",
+      input: 'Detected unknown BSON type 23 for fieldname "Unit"',
+      expected: {
+        product: "server",
+        programmingLanguage: null,
+        topic: "troubleshoot_debug",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify troubleshooting",
+      input:
+        "how do i fix: \n{ MongoNetworkError: connection 3 to cluster0-shard-00-02-z0urk.mongodb.net:27017 closed at TLSSocket. (/home/fahad/Personal Work/Nodejs/Node js start/node_modules/mongoose/node_modules/mongodb-core/lib/connection/connection.js:352:9) at Object.onceWrapper (events.js:276:13) at TLSSocket.emit (events.js:188:13) at _handle.close (net.js:610:12) at TCP.done (_tls_wrap.js:386:7) name: 'MongoNetworkError', errorLabels: [ 'TransientTransactionError' ],\n[Symbol(mongoErrorContextSymbol)]: {} }",
+      expected: {
+        product: "driver",
+        programmingLanguage: "javascript",
+        topic: "troubleshoot_debug",
+      },
+      tags: [],
+    },
+    {
+      name: "should identify security",
+      input: "how to whitelist ips on atlas cluster",
+      expected: {
+        product: "server",
+        programmingLanguage: null,
+        topic: "security",
+      },
+      tags: ["security"],
+    },
   ];
 
   const ProductNameCorrect: Scorer<
@@ -331,7 +432,6 @@ async function main() {
       score: args.expected?.topic === args.output.topic ? 1 : 0,
     };
   };
-
 
   Eval("classify-mongodb-metadata", {
     data: evalCases,

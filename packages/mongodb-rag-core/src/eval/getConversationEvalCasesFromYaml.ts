@@ -19,6 +19,10 @@ export const ConversationEvalCaseSchema = z.object({
     .min(1),
   tags: z.array(z.string()).optional(),
   skip: z.boolean().optional(),
+  reject: z
+    .boolean()
+    .optional()
+    .describe("The system should reject this message"),
   expectedLinks: z
     .array(z.string())
     .optional()

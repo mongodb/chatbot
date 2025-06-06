@@ -25,7 +25,6 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
-  isExperimental,
   onOpen,
   onClose,
   onSuggestedPromptClick,
@@ -53,7 +52,6 @@ export function Chatbot({
             <InnerChatbot
               fetchOptions={fetchOptions}
               getClientContext={getClientContext}
-              isExperimental={isExperimental}
               maxCommentCharacters={maxCommentCharacters}
               maxInputCharacters={maxInputCharacters}
               name={name}
@@ -78,7 +76,6 @@ type InnerChatbotProps = Pick<
   | "children"
   | "fetchOptions"
   | "getClientContext"
-  | "isExperimental"
   | "maxCommentCharacters"
   | "maxInputCharacters"
   | "name"
@@ -90,8 +87,9 @@ type InnerChatbotProps = Pick<
   | "sortMessageReferences"
 >;
 
-function InnerChatbot({ children, ...props }: InnerChatbotProps) {
+function InnerChatbot({ children, name, ...props }: InnerChatbotProps) {
   const chatbotData = useChatbot({
+    chatbotName: name,
     ...props,
   });
 

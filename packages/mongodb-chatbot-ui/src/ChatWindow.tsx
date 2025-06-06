@@ -36,7 +36,7 @@ export function ChatWindow(props: ChatWindowProps) {
     windowTitle,
   } = props;
 
-  const { chatbotName, isExperimental } = useChatbotContext();
+  const { chatbotName } = useChatbotContext();
 
   const initialMessage: MessageData | null = useMemo(() => {
     if (!initialMessageText) {
@@ -61,7 +61,6 @@ export function ChatWindow(props: ChatWindowProps) {
     <LeafyGreenChatProvider>
       <LGChatWindow
         className={cx(css`border-radius: 24px;`, className)}
-        badgeText={isExperimental ? "Experimental" : undefined}
         title={windowTitle ?? chatbotName ?? ""}
         darkMode={darkMode}
       >

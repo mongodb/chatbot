@@ -9,7 +9,6 @@ export type OpenCloseHandlers = {
 export type UseChatbotProps = OpenCloseHandlers &
   UseConversationParams & {
     chatbotName?: string;
-    isExperimental?: boolean;
     maxInputCharacters?: number;
     maxCommentCharacters?: number;
   };
@@ -24,7 +23,6 @@ export type ChatbotData = {
   inputText: string;
   inputTextError: string;
   chatbotName?: string;
-  isExperimental: boolean;
   maxInputCharacters?: number;
   maxCommentCharacters?: number;
   open: boolean;
@@ -36,7 +34,6 @@ export function useChatbot({
   onOpen,
   onClose,
   chatbotName,
-  isExperimental = true,
   maxInputCharacters,
   maxCommentCharacters,
   ...useConversationArgs
@@ -126,7 +123,6 @@ export function useChatbot({
     inputBarRef,
     inputText,
     inputTextError,
-    isExperimental,
     maxInputCharacters,
     maxCommentCharacters,
     open,

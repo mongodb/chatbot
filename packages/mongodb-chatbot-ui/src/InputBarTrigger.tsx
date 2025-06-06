@@ -57,7 +57,6 @@ export function InputBarTrigger({
 
   const {
     conversation,
-    isExperimental,
     inputText,
     inputPlaceholder,
     setInputText,
@@ -65,7 +64,6 @@ export function InputBarTrigger({
     canSubmit,
     awaitingReply,
     openChat,
-    focused,
     setFocused,
     handleSubmit,
     hasError,
@@ -92,11 +90,6 @@ export function InputBarTrigger({
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={
-            !focused && inputText.length === 0 && isExperimental
-              ? "Experimental"
-              : undefined
-          }
           dropdownProps={{
             usePortal: false,
           }}

@@ -84,7 +84,7 @@ function App() {
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
         <Chatbot
-          name="MongoDB AI (Dev Center)"
+          name="MongoDB AI"
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}

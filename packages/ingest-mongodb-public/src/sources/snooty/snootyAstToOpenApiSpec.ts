@@ -18,7 +18,6 @@ export const snootyAstToOpenApiSpec = async (
     } else if (node?.options?.source_type === "atlas") {
       const versions: Record<string, string> = {
         "2.0": "v2",
-        "1.0": "v1",
       };
       const snootyVersion = node?.options?.["api-version"] as
         | string

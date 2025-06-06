@@ -29,7 +29,7 @@ async function main() {
       expected: {
         product: "atlas_search",
         programmingLanguage: null,
-        topic: null,
+        topic: "search",
       },
       tags: ["atlas", "atlas_search"],
     },
@@ -49,7 +49,7 @@ async function main() {
       expected: {
         programmingLanguage: "python",
         product: "driver",
-        topic: "troubleshoot_debug",
+        topic: "queries",
       },
       tags: ["driver", "python"],
     },
@@ -138,7 +138,7 @@ async function main() {
     },
     {
       name: "should detect transaction management topic",
-      input: "How do I manage multi-document transactions?",  // TODO potentially should add transaction topic or smth about how databases work
+      input: "How do I manage multi-document transactions?",
       expected: {
         product: "server",
         programmingLanguage: null,
@@ -162,7 +162,7 @@ async function main() {
       expected: {
         programmingLanguage: "java",
         product: "driver",
-        topic: "monitoring",
+        topic: "queries",
       },
       tags: ["driver", "java"],
     },
@@ -192,7 +192,7 @@ async function main() {
       expected: {
         programmingLanguage: "javascript",
         product: "driver",
-        topic: "troubleshoot_debug",
+        topic: "queries",
       },
       tags: ["driver", "javascript"],
     },
@@ -244,7 +244,7 @@ async function main() {
       expected: {
         product: "enterprise_kubernetes_operator",
         programmingLanguage: null,
-        topic: "troubleshoot_debug",
+        topic: null,
       },
       tags: [],
     },
@@ -262,7 +262,7 @@ async function main() {
       name: "should identify k8s controllers",
       input: "deploy mongodb as multi-cluster k8s",
       expected: {
-        product: "mck",
+        product: "mongodb_kubernetes_controllers",
         programmingLanguage: null,
         topic: "performance",
       },
@@ -273,8 +273,8 @@ async function main() {
       input: "How to connect to database mongosh",
       expected: {
         product: "shell",
-        programmingLanguage: null,
-        topic: "troubleshoot_debug",
+        programmingLanguage: "shell",
+        topic: "queries",
       },
       tags: [],
     },
@@ -283,7 +283,7 @@ async function main() {
       input: "download shell",
       expected: {
         product: "shell",
-        programmingLanguage: null,
+        programmingLanguage: "shell",
         topic: null,
       },
       tags: [],

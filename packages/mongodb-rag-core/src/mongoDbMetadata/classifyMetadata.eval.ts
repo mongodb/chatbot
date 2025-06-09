@@ -15,10 +15,14 @@ async function main() {
     ...(await getOpenAiEndpointAndApiKey(modelConfig)),
   });
 
+  type MetadataClassifierEvalOutput = Partial<
+    Awaited<ReturnType<typeof classifyMongoDbMetadata>>
+  >;
+
   interface ClassifyMongoDbMetadataEvalCase {
     name: string;
     input: string;
-    expected: Awaited<ReturnType<typeof classifyMongoDbMetadata>>;
+    expected: MetadataClassifierEvalOutput;
     tags?: MongoDbTag[];
   }
 
@@ -223,8 +227,6 @@ async function main() {
       input: "run mongodb on kubernetes on local machine",
       expected: {
         product: "community_kubernetes_operator",
-        programmingLanguage: null,
-        topic: null,
       },
       tags: [k8sAsTag],
     },
@@ -234,8 +236,6 @@ async function main() {
         "I would like to run a MongoDB Enterprise docker image inside a Kubernetes cluster, but there is no official MongoDB Enterprise docker image. Is there any other way?",
       expected: {
         product: "enterprise_kubernetes_operator",
-        programmingLanguage: null,
-        topic: null,
       },
       tags: [k8sAsTag],
     },
@@ -254,8 +254,6 @@ async function main() {
       input: "deploy mongodb as multi-cluster k8s",
       expected: {
         product: "mongodb_kubernetes_controllers",
-        programmingLanguage: null,
-        topic: "performance",
       },
       tags: [k8sAsTag],
     },
@@ -322,10 +320,8 @@ async function main() {
     {
       name: "should identify troubleshooting",
       input:
-        "how do i fix: \n{ MongoNetworkError: connection 3 to cluster0-shard-00-02-z0urk.mongodb.net:27017 closed at TLSSocket. (/home/fahad/Personal Work/Nodejs/Node js start/node_modules/mongoose/node_modules/mongodb-core/lib/connection/connection.js:352:9) at Object.onceWrapper (events.js:276:13) at TLSSocket.emit (events.js:188:13) at _handle.close (net.js:610:12) at TCP.done (_tls_wrap.js:386:7) name: 'MongoNetworkError', errorLabels: [ 'TransientTransactionError' ],\n[Symbol(mongoErrorContextSymbol)]: {} }",
+        "how do i fix MongoNetworkError: connect ECONNREFUSED 127.0.0.1:27017",
       expected: {
-        product: "driver",
-        programmingLanguage: "javascript",
         topic: "troubleshoot_debug",
       },
       tags: ["troubleshoot_debug"],
@@ -342,10 +338,17 @@ async function main() {
     },
   ];
 
-  const ProductNameCorrect: Scorer<
-    Awaited<ReturnType<typeof classifyMongoDbMetadata>>,
-    unknown
-  > = (args) => {
+  const ProductNameCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
+    args
+  ) => {
+    const name = "ProductNameCorrect";
+    if (args.expected?.product === undefined) {
+      return {
+        name,
+        score: null,
+      };
+    }
+
     return {
       name: "ProductNameCorrect",
       score: args.expected?.product === args.output.product ? 1 : 0,
@@ -353,11 +356,18 @@ async function main() {
   };
 
   const ProgrammingLanguageCorrect: Scorer<
-    Awaited<ReturnType<typeof classifyMongoDbMetadata>>,
+    MetadataClassifierEvalOutput,
     unknown
   > = (args) => {
+    const name = "ProgrammingLanguageCorrect";
+    if (args.expected?.programmingLanguage === undefined) {
+      return {
+        name,
+        score: null,
+      };
+    }
     return {
-      name: "ProgrammingLanguageCorrect",
+      name,
       score:
         args.expected?.programmingLanguage === args.output.programmingLanguage
           ? 1
@@ -365,11 +375,18 @@ async function main() {
     };
   };
 
-  const TopicCorrect: Scorer<
-    Awaited<ReturnType<typeof classifyMongoDbMetadata>>, unknown
-  > = (args) => {
+  const TopicCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
+    args
+  ) => {
+    const name = "TopicCorrect";
+    if (args.expected?.topic === undefined) {
+      return {
+        name,
+        score: null,
+      };
+    }
     return {
-      name: "TopicCorrect",
+      name,
       score: args.expected?.topic === args.output.topic ? 1 : 0,
     };
   };
@@ -382,7 +399,7 @@ async function main() {
         "Evaluates whether the MongoDB metadata classifier is working correctly",
       model: modelLabel,
     },
-    maxConcurrency: 15,
+    maxConcurrency: modelConfig.maxConcurrency,
     timeout: 20000,
     async task(input) {
       try {

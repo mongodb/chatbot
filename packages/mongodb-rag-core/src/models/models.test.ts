@@ -33,23 +33,6 @@ describe.skip("Braintrust models", () => {
   );
 });
 
-describe.skip("GCP Vertex AI models", () => {
-  test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
-    "'$label' model should generate data",
-    async (model) => {
-      const { apiKey, baseURL } = await getOpenAiEndpointAndApiKey(model);
-      const openAiClientFactory = makeOpenAiClientFactory({
-        vertexAi: {
-          apiKey,
-          endpoint: baseURL,
-        },
-      });
-      const openAiClient = openAiClientFactory.makeOpenAiClient(model);
-      await expectModelResponse(openAiClient, model.deployment);
-    }
-  );
-});
-
 async function expectModelResponse(client: OpenAI, model: string) {
   const res = await client.chat.completions.create({
     model,

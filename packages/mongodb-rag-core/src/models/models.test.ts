@@ -8,7 +8,6 @@ import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
 import { OpenAI } from "openai";
 import "dotenv/config";
-import { getOpenAiEndpointAndApiKey } from "./getOpenAiEndpointAndApiKey";
 
 jest.setTimeout(60000);
 

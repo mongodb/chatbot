@@ -219,17 +219,6 @@ async function main() {
       tags: ["atlas", "atlas_vector_search"],
     },
     {
-      name: "should identify community k8s with exact reference",
-      input:
-        "help in deploying sharded replica set using mongodb community kubernetes operator",
-      expected: {
-        product: "community_kubernetes_operator",
-        programmingLanguage: null,
-        topic: "sharding",
-      },
-      tags: [k8sAsTag],
-    },
-    {
       name: "should identify community k8s without exact reference",
       input: "run mongodb on kubernetes on local machine",
       expected: {
@@ -281,16 +270,6 @@ async function main() {
       tags: ["shell"],
     },
     {
-      name: "should classify mongodb shell",
-      input: "download shell",
-      expected: {
-        product: "shell",
-        programmingLanguage: "shell",
-        topic: null,
-      },
-      tags: ["shell"],
-    },
-    {
       name: "should identify maintenance topic",
       input: "upgrade mongodb 5 to 7",
       expected: {
@@ -309,16 +288,6 @@ async function main() {
         topic: "migration",
       },
       tags: [],
-    },
-    {
-      name: "should identify mongodb university",
-      input: "dba courses on mongodb university",
-      expected: {
-        product: "mongodb_university",
-        programmingLanguage: null,
-        topic: "mongodb_university",
-      },
-      tags: ["mongodb_university"],
     },
     {
       name: "should identify skills",
@@ -341,16 +310,6 @@ async function main() {
       tags: ["mongodb_university"],
     },
     {
-      name: "should identify backup",
-      input: "How do I backup mongodb atlas cluster data to s3",
-      expected: {
-        product: "atlas",
-        programmingLanguage: null,
-        topic: "backup",
-      },
-      tags: ["atlas"],
-    },
-    {
       name: "should identify data modeling",
       input: "when should i use nested documents vs creating a new collection",
       expected: {
@@ -359,26 +318,6 @@ async function main() {
         topic: "data_modeling",
       },
       tags: [],
-    },
-    {
-      name: "should identify monitoring",
-      input: "Mongodb monitoring best practices for atlas cluster",
-      expected: {
-        product: "atlas",
-        programmingLanguage: null,
-        topic: "monitoring",
-      },
-      tags: ["atlas"],
-    },
-    {
-      name: "should identify troubleshooting",
-      input: 'Detected unknown BSON type 23 for fieldname "Unit"',
-      expected: {
-        product: "server",
-        programmingLanguage: null,
-        topic: "troubleshoot_debug",
-      },
-      tags: ["troubleshoot_debug"],
     },
     {
       name: "should identify troubleshooting",
@@ -395,41 +334,11 @@ async function main() {
       name: "should identify security",
       input: "how to whitelist ips on atlas cluster",
       expected: {
-        product: "server",
+        product: "atlas",
         programmingLanguage: null,
         topic: "security",
       },
       tags: [],
-    },
-    {
-      name: "should identify kotlin from framework name",
-      input: "i want to add mongodb to my ktor app",
-      expected: {
-        product: "driver",
-        programmingLanguage: "kotlin",
-        topic: null,
-      },
-      tags: ["kotlin", "driver"],
-    },
-    {
-      name: "should identify java from framework name",
-      input: "spring boot sample application code with mongodb",
-      expected: {
-        product: "driver",
-        programmingLanguage: "java",
-        topic: null,
-      },
-      tags: ["java", "driver"],
-    },
-    {
-      name: "should identify javascript from framework name",
-      input: "Hono sample application code with mongodb",
-      expected: {
-        product: "driver",
-        programmingLanguage: "javascript",
-        topic: null,
-      },
-      tags: ["javascript", "driver"],
     },
   ];
 

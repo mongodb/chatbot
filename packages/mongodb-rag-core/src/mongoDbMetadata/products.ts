@@ -339,13 +339,13 @@ export const mongoDbProducts = [
     id: "community_kubernetes_operator",
     name: "Community Kubernetes Operator",
     description:
-      "[End-of-Life] Deploy applications on replica sets of MongoDB Community.",
+      "[Deprecated] Deploy basic MongoDB ReplicaSets on Kubernetes, open-source and free.",
   },
   {
     id: "enterprise_kubernetes_operator",
     name: "Kubernetes Operator",
     description:
-      "[End-of-Life] Deploy and manage an Enterprise Advanced MongoDB cluster on Kubernetes",
+      "[Deprecated] Deploy production MongoDB clusters with greater features, requires commercial license.",
   },
   {
     id: "mongodb_kubernetes_controllers",

@@ -73,13 +73,12 @@ export const mongoDbTopics = [
   {
     id: "queries",
     name: "Queries",
-    description: "Write and edit MongoDB queries",
+    description: "Write and edit MongoDB CRUD queries and aggregations",
   },
   {
     id: "search",
     name: "Search",
-    description:
-      "Search capabilities and tools: Full-text, semantic (vector), and hybrid",
+    description: "MongoDB search capabilities and tools",
   },
   {
     id: "troubleshoot_debug",
@@ -95,7 +94,8 @@ export const mongoDbTopics = [
   {
     id: "certificate_exam",
     name: "Certificate Exams",
-    description: "Earn MongoDB certifications by taking skill-assessment exams",
+    description:
+      "Earn formal certificates by taking exams that prove mastery over core MongoDB topics.",
   },
   {
     id: "backup",

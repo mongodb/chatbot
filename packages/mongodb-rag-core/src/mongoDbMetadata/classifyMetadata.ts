@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { generateObject, LanguageModel } from "ai";
-import { MongoDbProduct, MongoDbProductId, mongoDbProducts } from "./products";
+import { MongoDbProductId, mongoDbProducts } from "./products";
 import {
   MongoDbProgrammingLanguageId,
   mongoDbProgrammingLanguageIds,
   mongoDbProgrammingLanguages,
 } from "./programmingLanguages";
-import { MongoDbTopic, MongoDbTopicId, mongoDbTopics } from "./topics";
+import { MongoDbTopicId, mongoDbTopics } from "./topics";
 import { MongoDbTag } from "./tags";
 
 const baseSystemPrompt = `You are an expert data labeler employed by MongoDB.
@@ -108,7 +108,9 @@ export const classifyMongoDbTopic = async (
           role: "system",
           content: `${baseSystemPrompt}
 
-${mongoDbTopics.map((t) => ` - ${t.id}`).join("\n")}`,
+${mongoDbTopics
+  .map((t) => ` - ${t.id}: **${t.name}**. ${t.description}`)
+  .join("\n")}`,
         },
         {
           role: "user",

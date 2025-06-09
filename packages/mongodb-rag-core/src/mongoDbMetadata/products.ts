@@ -246,7 +246,7 @@ export const mongoDbProducts = [
     name: "MongoDB Atlas Kubernetes Operator",
     parentProductId: "atlas",
     description:
-      "Manage resources in MongoDB Atlas from an external Kubernetes cluster",
+      "Manage Atlas resources (clusters, projects, database users) directly within a Kubernetes cluster.",
   },
   {
     id: "atlas_gov",
@@ -291,7 +291,7 @@ export const mongoDbProducts = [
     id: "shell",
     name: "MongoDB Shell",
     description:
-      "JavaScript and Node.js REPL for interacting with MongoDB deployments. Also called mongosh",
+      "The MongoDB Shell, mongosh, is a JavaScript and Node.js REPL for interacting with MongoDB databases.",
   },
   {
     id: "mongodb_vscode",
@@ -339,18 +339,19 @@ export const mongoDbProducts = [
     id: "community_kubernetes_operator",
     name: "Community Kubernetes Operator",
     description:
-      "Manage the typical lifecycle events for a Community tier MongoDB cluster deployed to Kubernetes",
+      "[Deprecated] Deploy basic MongoDB ReplicaSets on Kubernetes, open-source and free.",
   },
   {
     id: "enterprise_kubernetes_operator",
     name: "Kubernetes Operator",
     description:
-      "Manage the typical lifecycle events for a Enterprise Advanced MongoDB cluster deployed to Kubernetes",
+      "[Deprecated] Deploy production MongoDB clusters with greater features, requires commercial license.",
   },
   {
-    id: "mck",
+    id: "mongodb_kubernetes_controllers",
     name: "MongoDB Controllers for Kubernetes",
-    description: "Deploy and manage a MongoDB cluster on Kubernetes",
+    description:
+      "MongoDB Kubernetes Operator provisions storage, networking, and users and integrates with Cloud/Ops Manager.",
   },
   {
     id: "relational_migrator",
@@ -367,7 +368,7 @@ export const mongoDbProducts = [
     id: "skills",
     name: "MongoDB University Skills",
     description:
-      "An educational program that allows users to earn a skill badge after taking a short course and completing an assessment",
+      "Earn a skill badge after taking a short course and completing an assessment",
   },
 ] as const satisfies MongoDbProduct[];
 

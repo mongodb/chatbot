@@ -1,8 +1,4 @@
-import {
-  assertEnvVars,
-  BRAINTRUST_ENV_VARS,
-  GCP_VERTEX_AI_ENV_VARS,
-} from "mongodb-rag-core";
+import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { makeOpenAiClientFactory } from "mongodb-rag-core/models";
 import { ModelConfig, models } from "mongodb-rag-core/models";
 import { strict as assert } from "assert";
@@ -31,23 +27,13 @@ export function makeLlmOptions(
   };
 }
 
-const {
-  BRAINTRUST_API_KEY,
-  BRAINTRUST_ENDPOINT,
-  GCP_API_KEY,
-  GCP_OPENAI_ENDPOINT,
-} = assertEnvVars({
+const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
   ...BRAINTRUST_ENV_VARS,
-  ...GCP_VERTEX_AI_ENV_VARS,
 });
 
 export const openAiClientFactory = makeOpenAiClientFactory({
   braintrust: {
     apiKey: BRAINTRUST_API_KEY,
     endpoint: BRAINTRUST_ENDPOINT,
-  },
-  vertexAi: {
-    apiKey: GCP_API_KEY,
-    endpoint: GCP_OPENAI_ENDPOINT,
   },
 });

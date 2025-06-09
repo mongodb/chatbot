@@ -41,8 +41,3 @@ export const BRAINTRUST_ENV_VARS = {
   BRAINTRUST_API_KEY: "",
   BRAINTRUST_ENDPOINT: "",
 };
-
-export const GCP_VERTEX_AI_ENV_VARS = {
-  GCP_OPENAI_ENDPOINT: "",
-  GCP_API_KEY: "",
-};

@@ -264,6 +264,14 @@ const allModels = [
     authorized: true,
   },
   {
+    label: "pixtral-large-25-02",
+    deployment: "us.mistral.pixtral-large-2502-v1:0",
+    developer: "Mistral",
+    maxConcurrency: 3,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
     label: "llama-3.1-70b",
     deployment: "us.meta.llama3-1-70b-instruct-v1:0",
     developer: "Meta",
@@ -294,6 +302,22 @@ const allModels = [
     generation: "llama-3",
   },
   {
+    label: "llama-4-scout-17b",
+    deployment: "us.meta.llama4-scout-17b-instruct-v1:0",
+    developer: "Meta",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
+    label: "llama-4-maverick-17b",
+    deployment: "us.meta.llama4-maverick-17b-instruct-v1:0",
+    developer: "Meta",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
     label: "nova-lite-v1:0",
     deployment: "amazon.nova-lite-v1:0",
     developer: "Amazon",
@@ -319,6 +343,14 @@ const allModels = [
     authorized: true,
     maxConcurrency: 30,
     generation: "nova-1",
+  },
+  {
+    label: "nova-premier-v1:0",
+    deployment: "us.amazon.nova-premier-v1:0",
+    developer: "Amazon",
+    provider: "braintrust",
+    maxConcurrency: 10,
+    authorized: true,
   },
   {
     label: "gemini-1.5-flash-002",

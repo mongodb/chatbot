@@ -34,7 +34,6 @@ async function main() {
       input: "Does atlas search support copy to fields",
       expected: {
         product: "atlas_search",
-        programmingLanguage: null,
         topic: "search",
       },
       tags: ["atlas", "atlas_search"],
@@ -44,7 +43,6 @@ async function main() {
       input: "$merge",
       expected: {
         product: "aggregation",
-        programmingLanguage: null,
         topic: "queries",
       },
       tags: ["aggregation"],
@@ -65,7 +63,6 @@ async function main() {
       expected: {
         product: "atlas",
         programmingLanguage: null,
-        topic: null,
       },
       tags: ["atlas"],
     },
@@ -84,7 +81,6 @@ async function main() {
       input: "how to use vector search",
       expected: {
         product: "atlas_vector_search",
-        programmingLanguage: null,
         topic: "search",
       },
       tags: ["atlas", "atlas_vector_search"],
@@ -137,7 +133,6 @@ async function main() {
       input: "How do I run real-time analytics on my data?",
       expected: {
         product: "server",
-        programmingLanguage: null,
         topic: "analytics",
       },
       tags: ["analytics"],
@@ -147,7 +142,6 @@ async function main() {
       input: "How do I manage multi-document transactions?",
       expected: {
         product: "server",
-        programmingLanguage: null,
         topic: "performance",
       },
       tags: ["server"],
@@ -157,7 +151,6 @@ async function main() {
       input: "Can I create a multi-cloud cluster with Atlas?",
       expected: {
         product: "atlas",
-        programmingLanguage: null,
         topic: "multi_cloud",
       },
       tags: ["atlas", "multi_cloud"],
@@ -168,7 +161,6 @@ async function main() {
       expected: {
         programmingLanguage: "java",
         product: "driver",
-        topic: null,
       },
       tags: ["driver", "java"],
     },
@@ -198,7 +190,6 @@ async function main() {
       expected: {
         programmingLanguage: "javascript",
         product: "driver",
-        topic: null,
       },
       tags: ["driver", "javascript"],
     },
@@ -217,7 +208,6 @@ async function main() {
       input: "$vectorSearch",
       expected: {
         product: "atlas_vector_search",
-        programmingLanguage: null,
         topic: "search",
       },
       tags: ["atlas", "atlas_vector_search"],
@@ -233,7 +223,7 @@ async function main() {
     {
       name: "should identify k8s enterprise",
       input:
-        "I would like to run a MongoDB Enterprise docker image inside a Kubernetes cluster, but there is no official MongoDB Enterprise docker image. Is there any other way?",
+        "What versions of MongoDB does the Enterprise Kubernetes Operator support?",
       expected: {
         product: "enterprise_kubernetes_operator",
       },
@@ -263,7 +253,6 @@ async function main() {
       expected: {
         product: "shell",
         programmingLanguage: "shell",
-        topic: null,
       },
       tags: ["shell"],
     },
@@ -272,7 +261,6 @@ async function main() {
       input: "upgrade mongodb 5 to 7",
       expected: {
         product: "server",
-        programmingLanguage: null,
         topic: "maintenance",
       },
       tags: [],

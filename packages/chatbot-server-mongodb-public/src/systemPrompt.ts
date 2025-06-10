@@ -2,7 +2,7 @@ import { SEARCH_TOOL_NAME, SystemMessage } from "mongodb-chatbot-server";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,
-} from "./mongoDbMetadata";
+} from "mongodb-rag-core/mongoDbMetadata";
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";

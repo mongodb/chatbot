@@ -52,6 +52,16 @@ export interface ModelConfig {
     Whether the model is officially authorized by MongoDB.
    */
   authorized?: boolean;
+
+  /**
+    Parent model of the model. Used for reporting/analysis.
+   */
+  parent?: string;
+
+  /**
+    Generation of the model. Used for reporting/analysis.
+   */
+  generation?: string;
 }
 
 /**
@@ -75,6 +85,7 @@ const allModels = [
       rateLimitTpm: 110000,
     },
     authorized: true,
+    generation: "gpt-4o",
   },
   {
     label: "gpt-4o-mini",
@@ -87,6 +98,7 @@ const allModels = [
       rateLimitTpm: 4070000,
     },
     authorized: true,
+    generation: "gpt-4o",
   },
   {
     label: "o3-mini",
@@ -95,6 +107,8 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 10,
+    parent: "o1-mini",
+    generation: "o3",
   },
   {
     label: "o3",
@@ -103,6 +117,8 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 15,
+    parent: "o1",
+    generation: "o3",
   },
   {
     label: "o4-mini",
@@ -111,6 +127,8 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 15,
+    parent: "o3-mini",
+    generation: "o4",
   },
   {
     label: "gpt-4.1",
@@ -119,6 +137,8 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 20,
+    parent: "gpt-4o",
+    generation: "gpt-4.1",
   },
   {
     label: "gpt-4.1-mini",
@@ -127,6 +147,8 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 30,
+    parent: "gpt-4o-mini",
+    generation: "gpt-4.1",
   },
   {
     label: "gpt-4.1-nano",
@@ -135,6 +157,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 30,
+    generation: "gpt-4.1",
   },
   {
     label: "gpt-35-turbo-16k",
@@ -156,6 +179,7 @@ const allModels = [
     maxConcurrency: 1,
     provider: "braintrust",
     authorized: true,
+    generation: "claude-3",
   },
   {
     label: "claude-3-haiku",
@@ -164,6 +188,7 @@ const allModels = [
     maxConcurrency: 3,
     provider: "braintrust",
     authorized: true,
+    generation: "claude-3",
   },
   {
     label: "claude-35-sonnet",
@@ -172,6 +197,8 @@ const allModels = [
     maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
+    parent: "claude-3-sonnet",
+    generation: "claude-3",
   },
   {
     label: "claude-35-sonnet-v2",
@@ -180,6 +207,8 @@ const allModels = [
     maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
+    parent: "claude-35-sonnet",
+    generation: "claude-3",
   },
   {
     label: "claude-37-sonnet",
@@ -188,6 +217,8 @@ const allModels = [
     maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
+    parent: "claude-35-sonnet-v2",
+    generation: "claude-3",
   },
   {
     label: "claude-35-haiku",
@@ -195,6 +226,24 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 10,
     provider: "braintrust",
+    authorized: true,
+    parent: "claude-3-haiku",
+    generation: "claude-3",
+  },
+  {
+    label: "claude-sonnet-4",
+    deployment: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 10,
+    authorized: true,
+  },
+  {
+    label: "claude-opus-4",
+    deployment: "us.anthropic.claude-opus-4-20250514-v1:0",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 10,
     authorized: true,
   },
   {
@@ -204,6 +253,7 @@ const allModels = [
     maxConcurrency: 3,
     provider: "braintrust",
     authorized: true,
+    generation: "llama-3",
   },
   {
     label: "mistral-large-2",
@@ -220,6 +270,8 @@ const allModels = [
     maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
+    parent: "llama-3-70b",
+    generation: "llama-3",
   },
   {
     label: "llama-3.2-90b",
@@ -228,6 +280,8 @@ const allModels = [
     maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
+    parent: "llama-3.1-70b",
+    generation: "llama-3",
   },
   {
     label: "llama-3.3-70b",
@@ -236,6 +290,8 @@ const allModels = [
     maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
+    parent: "llama-3.2-90b",
+    generation: "llama-3",
   },
   {
     label: "nova-lite-v1:0",
@@ -244,6 +300,7 @@ const allModels = [
     provider: "braintrust",
     maxConcurrency: 5,
     authorized: true,
+    generation: "nova-1",
   },
   {
     label: "nova-micro-v1:0",
@@ -252,6 +309,7 @@ const allModels = [
     provider: "braintrust",
     maxConcurrency: 20,
     authorized: true,
+    generation: "nova-1",
   },
   {
     label: "nova-pro-v1:0",
@@ -260,6 +318,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 30,
+    generation: "nova-1",
   },
   {
     label: "gemini-1.5-flash-002",
@@ -268,6 +327,7 @@ const allModels = [
     maxConcurrency: 3,
     provider: "gcp_vertex_ai",
     authorized: true,
+    generation: "gemini-1",
   },
   {
     label: "gemini-2-flash",
@@ -276,6 +336,8 @@ const allModels = [
     maxConcurrency: 10,
     provider: "gcp_vertex_ai",
     authorized: true,
+    parent: "gemini-1.5-flash-002",
+    generation: "gemini-2",
   },
   {
     label: "gemini-2.5-flash",
@@ -284,6 +346,8 @@ const allModels = [
     maxConcurrency: 10,
     provider: "gcp_vertex_ai",
     authorized: true,
+    parent: "gemini-2-flash",
+    generation: "gemini-2",
   },
   {
     label: "gemini-2.0-flash-lite",
@@ -292,6 +356,7 @@ const allModels = [
     maxConcurrency: 10,
     provider: "gcp_vertex_ai",
     authorized: true,
+    generation: "gemini-2",
   },
   {
     label: "gemini-2.5-pro-preview-03-25",
@@ -300,6 +365,8 @@ const allModels = [
     maxConcurrency: 5,
     provider: "gcp_vertex_ai",
     authorized: true,
+    parent: "gemini-1.5-pro-002",
+    generation: "gemini-2",
   },
   {
     label: "gemini-1.0-pro-002",
@@ -308,6 +375,7 @@ const allModels = [
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
     authorized: true,
+    generation: "gemini-1",
   },
   {
     label: "gemini-1.5-pro-002",
@@ -316,6 +384,8 @@ const allModels = [
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
     authorized: true,
+    parent: "gemini-1.0-pro-002",
+    generation: "gemini-1",
   },
   {
     label: "deepseek-r1",

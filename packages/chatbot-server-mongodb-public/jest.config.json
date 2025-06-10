@@ -1,9 +1,12 @@
 {
   "preset": "ts-jest",
-  "setupFiles": ["<rootDir>/src/jestEnvSetUp.ts"],
-  "setupFilesAfterEnv": ["<rootDir>/src/jestSetUp.ts"],
+  "testEnvironment": "node",
+  "setupFiles": [
+    "<rootDir>/src/test/jestSetUp.ts"
+  ],
   "testPathIgnorePatterns": [
-    "<rootDir>/build",
-    "<rootDir>/src/llmQualitativeTests"
-  ]
+    "<rootDir>/build"
+  ],
+  "globalSetup": "<rootDir>/src/test/globalSetup.ts",
+  "globalTeardown": "<rootDir>/src/test/globalTeardown.ts"
 }

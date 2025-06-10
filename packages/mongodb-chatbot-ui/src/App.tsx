@@ -69,26 +69,32 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
           onOpen={() => {
             console.log("Docs Chatbot opened");
           }}
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
+          }}
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
         <Chatbot
-          name="MongoDB AI (Dev Center)"
+          name="MongoDB AI"
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{
+          fetchOptions={() => ({
             credentials: "include",
             headers: getSegmentIdHeaders(),
-          }}
+          })}
           getClientContext={() => ({
             user: "test-user-pls-ignore",
           })}
@@ -97,6 +103,9 @@ function App() {
           }}
           onClose={() => {
             console.log("Dev Center Chatbot closed");
+          }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
           }}
           sortMessageReferences={makePrioritizeReferenceDomain([
             "https://mongodb.com/developer",

@@ -1,4 +1,5 @@
 import { makeMdOnGithubDataSource } from "mongodb-rag-core/dataSources";
+import { SourceTypeName } from ".";
 
 /**
   This is necessary for the Prisma source because the Prisma docs
@@ -31,10 +32,11 @@ export const prismaSourceConstructor = async () => {
     branch: "main",
     recursive: true,
   };
-  return await makeMdOnGithubDataSource({
+  return await makeMdOnGithubDataSource<SourceTypeName>({
     name: "prisma",
     repoUrl,
     repoLoaderOptions,
+    sourceType: "tech-docs-external",
     filter: (path: string) => path.includes("mongodb") && path.endsWith(".mdx"),
     pathToPageUrl(path, frontMatter) {
       console.log("path:", path);

@@ -1,6 +1,6 @@
 {
   "name": "scripts",
-  "version": "0.3.4",
+  "version": "0.4.1",
   "description": "",
   "main": "index.js",
   "private": true,
@@ -30,7 +30,6 @@
     "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
-    "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",
     "release": "release-it",
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
@@ -48,7 +47,7 @@
     "dotenv": "^16.3.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
-    "typechat": "^0.1.1",
+    "chatbot-server-mongodb-public": "*",
     "yaml": "^2.3.4",
     "yargs": "^17.7.2"
   },

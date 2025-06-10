@@ -49,6 +49,11 @@ describe("getLlmAsAJudgeScores", () => {
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
     rejectQuery: false,
+    rating: undefined,
+    comment: undefined,
+    conversationId: new ObjectId(),
+    userMessageIndex: 0,
+    assistantMessageIndex: 1,
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {
@@ -69,20 +74,6 @@ describe("getLlmAsAJudgeScores", () => {
     const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
       ...willJudge,
       rejectQuery: true,
-    });
-    expect(scores).toEqual(undefined);
-  });
-  it("shouldn't judge if no user message", async () => {
-    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
-      ...willJudge,
-      userMessage: undefined,
-    });
-    expect(scores).toEqual(undefined);
-  });
-  it("shouldn't judge if no assistant message", async () => {
-    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
-      ...willJudge,
-      assistantMessage: undefined,
     });
     expect(scores).toEqual(undefined);
   });

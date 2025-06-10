@@ -31,7 +31,12 @@ export type UseConversationParams = {
   serverBaseUrl: string;
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
-  fetchOptions?: ConversationFetchOptions;
+  /**
+   * Optional fetch options for the ConversationService. Can be either a static
+   * `ConversationFetchOptions` object for all request or a function that
+   * dynamically returns a new `ConversationFetchOptions` object for each request.
+   */
+  fetchOptions?: ConversationFetchOptions | (() => ConversationFetchOptions);
   getClientContext?: () => Record<string, unknown>;
 };
 

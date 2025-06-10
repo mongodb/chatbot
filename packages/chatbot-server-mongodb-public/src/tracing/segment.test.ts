@@ -113,10 +113,16 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserSentMessage({
-        ...commonParams,
-        tags: ["tag1"],
-      });
+      await expect(
+        trackUserSentMessage({
+          ...commonParams,
+          tags: ["tag1"],
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserSentMessage/
+      );
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
 
     it("should not track when origin URL is invalid", async () => {
@@ -124,11 +130,15 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserSentMessage({
-        ...commonParams,
-        origin: "invalid-url",
-        tags: ["tag1"],
-      });
+      await expect(
+        trackUserSentMessage({
+          ...commonParams,
+          origin: "invalid-url",
+          tags: ["tag1"],
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserSentMessage/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -280,10 +290,14 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackAssistantResponded({
-        ...commonParams,
-        isVerifiedAnswer: false,
-      });
+      await expect(
+        trackAssistantResponded({
+          ...commonParams,
+          isVerifiedAnswer: false,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackAssistantResponded/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -293,11 +307,15 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackAssistantResponded({
-        ...commonParams,
-        origin: "invalid-url",
-        isVerifiedAnswer: true,
-      });
+      await expect(
+        trackAssistantResponded({
+          ...commonParams,
+          origin: "invalid-url",
+          isVerifiedAnswer: true,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackAssistantResponded/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -359,19 +377,6 @@ describe("Segment Tracking", () => {
         },
       });
     });
-
-    // it("should not track when userId or anonymousId is missing", async () => {
-    //   const trackUserRatedMessage = makeTrackUserRatedMessage({
-    //     writeKey: "test-key",
-    //   });
-
-    //   await trackUserRatedMessage({
-    //     ...commonParams,
-    //     rating: true,
-    //   });
-
-    //   expect(mockAnalytics.track).not.toHaveBeenCalled();
-    // });
 
     it("should track assistant response with both user IDs", async () => {
       const trackUserRatedMessage = makeTrackUserRatedMessage({
@@ -460,10 +465,14 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserRatedMessage({
-        ...commonParams,
-        rating: true,
-      });
+      await expect(
+        trackUserRatedMessage({
+          ...commonParams,
+          rating: true,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserRatedMessage/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -473,11 +482,15 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserRatedMessage({
-        ...commonParams,
-        origin: "invalid-url",
-        rating: true,
-      });
+      await expect(
+        trackUserRatedMessage({
+          ...commonParams,
+          origin: "invalid-url",
+          rating: true,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserRatedMessage/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -543,21 +556,6 @@ describe("Segment Tracking", () => {
         },
       });
     });
-
-    // it("should not track when userId or anonymousId is missing", async () => {
-    //   const trackUserCommentedMessage = makeTrackUserCommentedMessage({
-    //     writeKey: "test-key",
-    //   });
-
-    //   await trackUserCommentedMessage({
-    //     ...commonParams,
-    //     userId: "",
-    //     comment: "Test comment",
-    //     rating: true,
-    //   });
-
-    //   expect(mockAnalytics.track).not.toHaveBeenCalled();
-    // });
 
     it("should track user comment with both user IDs", async () => {
       const trackUserCommentedMessage = makeTrackUserCommentedMessage({
@@ -652,11 +650,15 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserCommentedMessage({
-        ...commonParams,
-        comment: "This was very helpful!",
-        rating: true,
-      });
+      await expect(
+        trackUserCommentedMessage({
+          ...commonParams,
+          comment: "This was very helpful!",
+          rating: true,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserCommentedMessage/
+      );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
@@ -666,13 +668,16 @@ describe("Segment Tracking", () => {
         writeKey: "test-key",
       });
 
-      await trackUserCommentedMessage({
-        ...commonParams,
-        origin: "invalid-url",
-        comment: "Test comment",
-        rating: true,
-      });
-
+      await expect(
+        trackUserCommentedMessage({
+          ...commonParams,
+          origin: "invalid-url",
+          comment: "Test comment",
+          rating: true,
+        })
+      ).rejects.toThrow(
+        /Unable to create track event params for trackUserCommentedMessage/
+      );
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });
   });

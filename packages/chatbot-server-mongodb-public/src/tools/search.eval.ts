@@ -8,11 +8,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { strict as assert } from "assert";
-import {
-  retrievalConfig,
-  findContent,
-  preprocessorOpenAiClient,
-} from "../config";
+import { retrievalConfig } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
@@ -20,7 +16,7 @@ import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
 import { f1AtK } from "../eval/scorers/f1AtK";
 import { precisionAtK } from "../eval/scorers/precisionAtK";
 import { recallAtK } from "../eval/scorers/recallAtK";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { SearchToolArgs } from "./search";
 
 interface RetrievalEvalCaseInput {

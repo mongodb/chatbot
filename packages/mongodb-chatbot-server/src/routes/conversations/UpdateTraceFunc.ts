@@ -1,11 +1,10 @@
 import { Conversation, ConversationsService } from "mongodb-rag-core";
-import { braintrustLogger } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { logRequest } from "../../utils";
 
 export type UpdateTraceFuncParams = {
   reqId: string;
   traceId: string;
-  logger: typeof braintrustLogger;
   conversation: Conversation;
 };
 
@@ -33,8 +32,15 @@ export async function updateTraceIfExists({
       await updateTrace({
         reqId,
         traceId: assistantResponseMessageId.toHexString(),
-        logger: braintrustLogger,
         conversation: updatedConversationForTrace,
+      }).catch((error) => {
+        logRequest({
+          reqId,
+          type: "error",
+          message: `Failed to update trace with Error: ${JSON.stringify(
+            error
+          )}`,
+        });
       });
     }
   }

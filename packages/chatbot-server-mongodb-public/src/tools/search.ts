@@ -9,7 +9,7 @@ import { z } from "zod";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
-} from "../mongoDbMetadata";
+} from "mongodb-rag-core/mongoDbMetadata";
 
 const SearchToolArgsSchema = z.object({
   productName: z

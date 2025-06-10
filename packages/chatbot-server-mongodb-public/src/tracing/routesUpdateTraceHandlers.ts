@@ -15,11 +15,22 @@ import {
   TraceSegmentEventParams,
 } from "./segment";
 import { logRequest } from "../utils";
+import { Logger } from "mongodb-rag-core/braintrust";
+import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
+import { ScrubbedMessage } from "./scrubbedMessages/ScrubbedMessage";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
+import { redactPii } from "./scrubbedMessages/redactPii";
+import { MessageAnalysis } from "./scrubbedMessages/analyzeMessage";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
   llmAsAJudge,
   segment,
+  braintrustLogger,
+  scrubbedMessageStore,
+  analyzerModel,
+  embeddingModelName,
 }: {
   k: number;
   llmAsAJudge?: LlmAsAJudge & {
@@ -29,6 +40,10 @@ export function makeAddMessageToConversationUpdateTrace({
     percentToJudge: number;
   };
   segment?: TraceSegmentEventParams;
+  braintrustLogger: Logger<true>;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
+  analyzerModel: LanguageModel;
+  embeddingModelName: string;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -44,10 +59,11 @@ export function makeAddMessageToConversationUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger, reqId }) {
+  return async function ({ traceId, conversation, reqId }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&
@@ -57,9 +73,34 @@ export function makeAddMessageToConversationUpdateTrace({
     if (maybeAuthUser && typeof maybeAuthUser === "string") {
       tracingData.tags.push(`auth_user`);
     }
+    try {
+      const scrubbedMessages = await makeScrubbedMessagesFromTracingData({
+        tracingData,
+        analysis: {
+          model: analyzerModel,
+        },
+        embeddingModelName,
+        reqId,
+      });
+      await scrubbedMessageStore.insertScrubbedMessages({
+        messages: scrubbedMessages,
+      });
+    } catch (error) {
+      logRequest({
+        reqId,
+        message: `Error scrubbing messages while adding message ${error}`,
+        type: "error",
+      });
+    }
 
     // Send Segment events
     try {
+      if (segmentTrackUserSentMessage) {
+        logRequest({
+          reqId,
+          message: `Sending addMessageToConversation event to Segment for conversation ${conversation._id}`,
+        });
+      }
       const userMessage = tracingData.userMessage;
       const { userId, anonymousId } = getSegmentIds(userMessage);
       if (userMessage) {
@@ -71,6 +112,12 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: userMessage.createdAt,
           tags: tracingData.tags,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+          })}`
+        );
       }
 
       const assistantMessage = tracingData.assistantMessage;
@@ -83,11 +130,17 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: assistantMessage.createdAt,
           isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
           rejectionReason: tracingData.rejectQuery
-            ? (assistantMessage.customData?.rejectionReason as
-                | string
-                | undefined) ?? "Unknown rejection reason"
+            ? (userMessage.customData?.rejectionReason as string | undefined) ??
+              "Unknown rejection reason"
             : undefined,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -98,14 +151,25 @@ export function makeAddMessageToConversationUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      const judgeScores = shouldJudge
+        ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData).catch(
+            (error) => {
+              logRequest({
+                reqId,
+                message: `Error getting LLM as a judge scores in addMessageToConversationUpdateTrace: ${error}`,
+                type: "error",
+              });
+              return undefined;
+            }
+          )
+        : undefined;
+
+      braintrustLogger.updateSpan({
         id: traceId,
         tags: tracingData.tags,
         scores: {
           ...getTracingScores(tracingData, k),
-          ...(shouldJudge
-            ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData)
-            : undefined),
+          ...(judgeScores ?? {}),
         },
         metadata: {
           authUser: maybeAuthUser ?? null,
@@ -126,22 +190,38 @@ function getTracingScores(
   k: number
 ) {
   return {
-    RejectedQuery: tracingData.rejectQuery === true ? 1 : null,
-    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : null,
-    LlmDoesNotKnow: tracingData.llmDoesNotKnow === true ? 1 : null,
-    [`RetrievedChunksOver${k}`]:
-      tracingData.isVerifiedAnswer !== true
-        ? tracingData.numRetrievedChunks / k
-        : null,
+    // These metrics should start at 0,
+    // and are updated in other update trace handlers as needed
+    HasRating: tracingData.rating !== undefined ? 1 : 0,
+    HasComment: tracingData.comment !== undefined ? 1 : 0,
+    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
+    // Only calculate these metrics if the answer is not verified
+    InputGuardrailPass: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.rejectQuery === true
+      ? 0
+      : 1,
+    LlmAnswerAttempted: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.llmDoesNotKnow === true
+      ? 0
+      : 1,
+    [`RetrievedChunksOver${k}`]: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.numRetrievedChunks / k,
   };
 }
 
 export function makeRateMessageUpdateTrace({
   llmAsAJudge,
   segment,
+  scrubbedMessageStore,
+  braintrustLogger,
 }: {
   llmAsAJudge: LlmAsAJudge;
   segment?: TraceSegmentEventParams;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
+  braintrustLogger: Logger<true>;
 }): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
@@ -149,17 +229,50 @@ export function makeRateMessageUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger }) {
+  return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
     const assistantMessage = tracingData.assistantMessage;
     const rating = assistantMessage?.rating;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the rating
     try {
+      assert(assistantMessage?.id, "Missing assistant message for rating");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: assistantMessage.id,
+        message: {
+          responseRating: rating,
+        },
+      });
+
+      assert(userMessage?.id, "Missing user message for rating");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: {
+          "response.responseRating": rating,
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages during rating ${error}`,
+        type: "error",
+      });
+    }
+
+    try {
+      if (segmentTrackUserRatedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending rateMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (userMessage && assistantMessage && rating !== undefined) {
         segmentTrackUserRatedMessage?.({
           userId,
@@ -169,6 +282,14 @@ export function makeRateMessageUpdateTrace({
           createdAt: new Date(),
           rating,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -179,9 +300,12 @@ export function makeRateMessageUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      braintrustLogger.updateSpan({
         id: traceId,
-        scores: await getLlmAsAJudgeScores(llmAsAJudge, tracingData),
+        scores: {
+          ...(await getLlmAsAJudgeScores(llmAsAJudge, tracingData)),
+          HasRating: 1,
+        },
       });
     } catch (error) {
       logRequest({
@@ -198,6 +322,8 @@ export function makeCommentMessageUpdateTrace({
   judgeLlm,
   slack,
   segment,
+  braintrustLogger,
+  scrubbedMessageStore,
 }: {
   openAiClient: OpenAI;
   judgeLlm: string;
@@ -211,6 +337,8 @@ export function makeCommentMessageUpdateTrace({
     };
   };
   segment?: TraceSegmentEventParams;
+  braintrustLogger: Logger<true>;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -221,10 +349,11 @@ export function makeCommentMessageUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger }) {
+  return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
@@ -232,7 +361,49 @@ export function makeCommentMessageUpdateTrace({
     const rating = assistantMessage?.rating;
     const comment = assistantMessage?.userComment;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the comment
     try {
+      const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
+      assert(assistantMessage?.id, "Missing assistant message for comment");
+      const assistantMessageFieldsToUpdate: Record<string, unknown> = {
+        userComment,
+        userCommented: true,
+        userCommentPii: piiFound,
+      };
+      // Update PII only if true.
+      // This way it doesn't override it previously having been set.
+      if (piiFound?.length) {
+        assistantMessageFieldsToUpdate.pii = true;
+      }
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: assistantMessage.id,
+        message: assistantMessageFieldsToUpdate,
+      });
+
+      assert(userMessage?.id, "Missing user message for comment");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: { 
+          "response.userCommented": true,
+          "response.userComment": userComment
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages during comment ${error}`,
+        type: "error",
+      });
+    }
+
+    try {
+      if (segmentTrackUserCommentedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending commentMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (
         userMessage &&
         assistantMessage &&
@@ -248,6 +419,15 @@ export function makeCommentMessageUpdateTrace({
           rating,
           comment,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+            comment,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -258,9 +438,10 @@ export function makeCommentMessageUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      braintrustLogger.updateSpan({
         id: traceId,
         scores: {
+          HasComment: 1,
           CommentSentiment: (
             await judgeMongoDbChatbotCommentSentiment({
               judgeLlm,

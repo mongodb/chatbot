@@ -2,7 +2,7 @@ import "dotenv/config";
 import { makeMongoDbInputGuardrail } from "./mongoDbInputGuardrail";
 import { Eval, wrapAISDKModel } from "braintrust";
 import { Scorer } from "autoevals";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_KEY,

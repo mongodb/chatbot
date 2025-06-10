@@ -110,6 +110,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     expect(userMessageWithCustomData?.customData).toStrictEqual({
       ip: ipAddress,
       origin,
+      originCode: "OTHER",
       userAgent: "test-user-agent",
     });
   });

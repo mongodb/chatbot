@@ -1578,8 +1578,6 @@
       title: "MongoDB Associate Developer Exam"
 - answer: |
     To learn how MongoDB fits into the generative AI space, you can start with the [Building GenAI Applications with MongoDB Learning Badge Path](https://learn.mongodb.com/learning-paths/building-genai-apps-learning-badge-path) on MongoDB University. This includes the [Atlas Vector Search](https://learn.mongodb.com/learn/learning-path/atlas-vector-search) course, which will give you a high level introduction to the GenAI space, then help you get started with MongoDB Atlas Vector Search. You'll learn the differences between semantic search and full text search, and how to combine them into hybrid search. Next, you'll learn how to build a RAG application with Langchain and Python, then explore how to create a sophisticated ingestion pipeline. And, be sure to complete the quiz at the end to earn your MongoDB Learning Badge and receive a Credly badge to demonstrate your learning.
-
-    If you prefer to jump straight into developing your AI application with MongoDB Vector Search, follow the [Atlas Vector Search Quick Start Guide](https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/) to set up vector search on your data in MongoDB Atlas. Then, use your new vector search index to create an AI application using the [Retrieval-Augmented Generation guide] (https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/), where you can read more about RAG with MongoDB and find code examples. 
   author_email: emily.pope@mongodb.com
   questions:
     - How do I learn about AI and vector search on MongoDB University?
@@ -1588,10 +1586,10 @@
       title: "Building GenAI Applications with MongoDB Learning Badge Path"
     - url: https://learn.mongodb.com/learn/learning-path/atlas-vector-search
       title: "Atlas Vector Search Learning Path"
-    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/
-      title: Atlas Vector Search Quick Start
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: "Atlas Vector Search Overview"
     - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/
-      title: Retrieval-Augmented Generation (RAG) with Atlas Vector Search
+      title: "Retrieval-Augmented Generation (RAG) with Atlas Vector Search"
 - answer: |
     Our student benefits, including free certification, are available through the GitHub Student Developer Pack. 
     To be eligible for free certification, students must: 

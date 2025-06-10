@@ -24,18 +24,46 @@ async function main() {
   type Model = "mongodb-latest-search";
 
   const options = {
-    model: "mongodb-latest-search",
-    input: "hello",
+    model: "mongodb-latest",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: "CLIENT_DEFINED",
+      },
+      {
+        type: "function_call",
+        arguments: "{}",
+        call_id: "CLIENT_DEFINED",
+        name: "client_Defined_tool",
+      },
+      {
+        type: "function_call_output",
+        call_id: "CLIENT_DEFINED",
+        output: "CLIENT_DEFINED",
+      },
+      {
+        type: "local_shell_call_output",
+        id: "CLIENT_DEFINED",
+        output: "CLIENT_DEFINED",
+      },
+    ],
     metadata: {
       // if the client wants to store any conversation metadata, they can do so here.
       // This metadata is persisted on the server.
       // For example:
       conversationId: "CLIENT_DEFINED",
     },
+
     tools: [
+      {
+        type: "mcp",
+        server_url: "https://mongodb-latest-search.openai.azure.com",
+        headers: {},
+      },
       // Client-defined tool calls here
       {
-        name: "something_compass_related",
+        name: "client_Defined_tool",
         parameters: {
           // client can specify what they want
         },

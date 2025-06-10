@@ -17,7 +17,7 @@ describe("MongoDbScrubbedMessageStore", () => {
       id?: ObjectId;
       conversationId?: ObjectId;
       index?: number;
-      role?: "user" | "assistant" | "system" | "function";
+      role?: "user" | "assistant" | "system" | "tool";
     } = {}
   ): ScrubbedMessage => {
     return {

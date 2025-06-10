@@ -1586,6 +1586,10 @@
       title: "Building GenAI Applications with MongoDB Learning Badge Path"
     - url: https://learn.mongodb.com/learn/learning-path/atlas-vector-search
       title: "Atlas Vector Search Learning Path"
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: "Atlas Vector Search Overview"
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/
+      title: "Retrieval-Augmented Generation (RAG) with Atlas Vector Search"
 - answer: |
     Our student benefits, including free certification, are available through the GitHub Student Developer Pack. 
     To be eligible for free certification, students must: 

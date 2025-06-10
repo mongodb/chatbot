@@ -8,11 +8,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { strict as assert } from "assert";
-import {
-  retrievalConfig,
-  findContent,
-  preprocessorOpenAiClient,
-} from "../config";
+import { retrievalConfig } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
@@ -21,7 +17,7 @@ import { f1AtK } from "../eval/scorers/f1AtK";
 import { precisionAtK } from "../eval/scorers/precisionAtK";
 import { recallAtK } from "../eval/scorers/recallAtK";
 import { MongoDbTag } from "../mongoDbMetadata";
-import { SearchToolArgs } from "./search";
+import { MongoDbSearchToolArgs } from "./search";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -45,7 +41,7 @@ interface RetrievalResult {
 }
 interface RetrievalTaskOutput {
   results: RetrievalResult[];
-  extractedMetadata?: SearchToolArgs;
+  extractedMetadata?: MongoDbSearchToolArgs;
   rewrittenQuery?: string;
   searchString?: string;
 }
@@ -69,7 +65,7 @@ const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseExpected
 > = async function (data) {
   // TODO: (EAI-991) implement retrieval task for evaluation
-  const extractedMetadata: SearchToolArgs = {
+  const extractedMetadata: MongoDbSearchToolArgs = {
     productName: null,
     programmingLanguage: null,
     query: data.query,

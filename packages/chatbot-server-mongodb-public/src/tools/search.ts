@@ -1,17 +1,19 @@
-import {
-  SearchResult,
-  SearchTool,
-  SearchToolReturnValue,
-} from "mongodb-chatbot-server";
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
-import { tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
+import {
+  Tool,
+  tool,
+  ToolExecutionOptions,
+  ToolResultUnion,
+} from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
+// TODO: before merge to main branch, pull these from mongodb-rag-core
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
+import { EmbeddedContent } from "mongodb-rag-core";
 
-const SearchToolArgsSchema = z.object({
+export const MongoDbSearchToolArgsSchema = z.object({
   productName: z
     .enum(mongoDbProducts.map((product) => product.id) as [string, ...string[]])
     .nullable()
@@ -27,13 +29,37 @@ const SearchToolArgsSchema = z.object({
   query: z.string().describe("Search query"),
 });
 
-export type SearchToolArgs = z.infer<typeof SearchToolArgsSchema>;
+export type MongoDbSearchToolArgs = z.infer<typeof MongoDbSearchToolArgsSchema>;
 
-export function makeSearchTool(
-  findContent: FindContentFunc
-): SearchTool<typeof SearchToolArgsSchema> {
+export type SearchResult = Partial<EmbeddedContent> & {
+  url: string;
+  text: string;
+  metadata?: Record<string, unknown>;
+};
+
+export const SEARCH_TOOL_NAME = "search_content";
+
+export type SearchToolReturnValue = {
+  results: SearchResult[];
+};
+
+export type SearchTool = Tool<
+  typeof MongoDbSearchToolArgsSchema,
+  SearchToolReturnValue
+> & {
+  execute: (
+    args: MongoDbSearchToolArgs,
+    options: ToolExecutionOptions
+  ) => PromiseLike<SearchToolReturnValue>;
+};
+
+export type SearchToolResult = ToolResultUnion<{
+  [SEARCH_TOOL_NAME]: SearchTool;
+}>;
+
+export function makeSearchTool(findContent: FindContentFunc): SearchTool {
   return tool({
-    parameters: SearchToolArgsSchema,
+    parameters: MongoDbSearchToolArgsSchema,
     description: "Search MongoDB content",
     // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
     experimental_toToolResultContent(result) {
@@ -41,19 +67,13 @@ export function makeSearchTool(
         {
           type: "text",
           text: JSON.stringify({
-            content: result.content.map(
-              (r) =>
-                ({
-                  url: r.url,
-                  text: r.text,
-                } satisfies SearchResult)
-            ),
+            results: result.results.map(searchResultToLlmContent),
           }),
         },
       ];
     },
     async execute(
-      args: SearchToolArgs,
+      args: MongoDbSearchToolArgs,
       _options: ToolExecutionOptions
     ): Promise<SearchToolReturnValue> {
       const { query, productName, programmingLanguage } = args;
@@ -70,17 +90,30 @@ export function makeSearchTool(
       const content = await findContent({ query: queryWithMetadata });
 
       const result: SearchToolReturnValue = {
-        content: content.content.map((item) => ({
-          url: item.url,
-          metadata: {
-            pageTitle: item.metadata?.pageTitle,
-            sourceName: item.sourceName,
-          },
-          text: item.text,
-        })),
+        results: content.content.map(embeddedContentToSearchResult),
       };
 
       return result;
     },
   });
+}
+
+export function embeddedContentToSearchResult(
+  content: EmbeddedContent
+): SearchResult {
+  return {
+    url: content.url,
+    metadata: {
+      pageTitle: content.metadata?.pageTitle,
+      sourceName: content.sourceName,
+    },
+    text: content.text,
+  };
+}
+
+export function searchResultToLlmContent(result: SearchResult): SearchResult {
+  return {
+    url: result.url,
+    text: result.text,
+  };
 }

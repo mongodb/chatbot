@@ -8,7 +8,7 @@ import {
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
-import { SEARCH_TOOL_NAME } from "mongodb-chatbot-server";
+import { SEARCH_TOOL_NAME } from "../tools/search";
 import { logRequest } from "../utils";
 
 export function extractTracingData(
@@ -101,8 +101,8 @@ export function getContextsFromMessages(
     return [];
   }
   try {
-    const { content } = JSON.parse(JSON.parse(toolCallMessage.content)[0].text);
-    const toolCallResult = content.map((cc: any) => ({
+    const { results } = JSON.parse(toolCallMessage.content);
+    const toolCallResult = results.map((cc: any) => ({
       text: cc.text,
       url: cc.url,
     }));

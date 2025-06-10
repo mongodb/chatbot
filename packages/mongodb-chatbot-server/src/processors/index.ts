@@ -6,8 +6,6 @@ export * from "./makeDefaultReferenceLinks";
 export * from "./makeFilterNPreviousMessages";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./InputGuardrail";
-export * from "./generateResponseWithSearchTool";
 export * from "./makeVerifiedAnswerGenerateResponse";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./GenerateResponse";
-export * from "./SearchResult";

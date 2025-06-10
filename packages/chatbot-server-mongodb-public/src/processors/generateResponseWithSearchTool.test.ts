@@ -2,66 +2,71 @@ import { jest } from "@jest/globals";
 import {
   GenerateResponseWithSearchToolParams,
   makeGenerateResponseWithSearchTool,
-  SEARCH_TOOL_NAME,
-  SearchToolReturnValue,
 } from "./generateResponseWithSearchTool";
-import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import {
   AssistantMessage,
   DataStreamer,
+  EmbeddedContent,
+  FindContentFunc,
   SystemMessage,
+  ToolMessage,
   UserMessage,
+  WithScore,
 } from "mongodb-rag-core";
-import { z } from "zod";
 import {
-  ToolExecutionOptions,
   MockLanguageModelV1,
-  tool,
   simulateReadableStream,
   LanguageModelV1StreamPart,
 } from "mongodb-rag-core/aiSdk";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { InputGuardrail } from "./InputGuardrail";
-import { GenerateResponseReturnValue } from "./GenerateResponse";
-
-// Define the search tool arguments schema
-const SearchToolArgsSchema = z.object({
-  query: z.string(),
-});
-type SearchToolArgs = z.infer<typeof SearchToolArgsSchema>;
+import {
+  InputGuardrail,
+  FilterPreviousMessages,
+  GenerateResponseReturnValue,
+} from "mongodb-chatbot-server";
+import {
+  makeSearchTool,
+  MongoDbSearchToolArgs,
+  SEARCH_TOOL_NAME,
+  searchResultToLlmContent,
+} from "../tools/search";
+import { strict as assert } from "assert";
 
 const latestMessageText = "Hello";
 
 const mockReqId = "test";
 
-const mockContent = [
+const mockContent: WithScore<EmbeddedContent>[] = [
   {
     url: "https://example.com/",
     text: `Content!`,
     metadata: {
       pageTitle: "Example Page",
     },
+    sourceName: "Example Source",
+    tokenCount: 10,
+    embeddings: {
+      example: [],
+    },
+    updated: new Date(),
+    score: 1,
   },
 ];
 
 const mockReferences = mockContent.map((content) => ({
   url: content.url,
-  title: content.metadata.pageTitle,
+  title: content.metadata?.pageTitle ?? content.url,
 }));
 
+const mockFindContent: FindContentFunc = async () => {
+  return {
+    content: mockContent,
+    queryEmbedding: [],
+  };
+};
+
 // Create a mock search tool that matches the SearchTool interface
-const mockSearchTool = tool({
-  parameters: SearchToolArgsSchema,
-  description: "Search MongoDB content",
-  async execute(
-    _args: SearchToolArgs,
-    _options: ToolExecutionOptions
-  ): Promise<SearchToolReturnValue> {
-    return {
-      content: mockContent,
-    };
-  },
-});
+const mockSearchTool = makeSearchTool(mockFindContent);
 
 // Must have, but details don't matter
 const mockFinishChunk = {
@@ -100,9 +105,11 @@ const makeFinalAnswerStream = () =>
     initialDelayInMs: 100,
   });
 
-const searchToolMockArgs = {
+const searchToolMockArgs: MongoDbSearchToolArgs = {
   query: "test",
-} satisfies SearchToolArgs;
+  productName: "driver",
+  programmingLanguage: "python",
+};
 
 const makeToolCallStream = () =>
   simulateReadableStream({
@@ -114,7 +121,6 @@ const makeToolCallStream = () =>
         toolCallType: "function" as const,
         args: JSON.stringify(searchToolMockArgs),
       },
-      // ...finalAnswerStreamChunks,
       mockFinishChunk,
     ] satisfies LanguageModelV1StreamPart[],
     chunkDelayInMs: 100,
@@ -195,9 +201,7 @@ const makeMakeGenerateResponseWithSearchToolArgs = () =>
     llmRefusalMessage: mockLlmRefusalMessage,
     systemMessage: mockSystemMessage,
     searchTool: mockSearchTool,
-  } satisfies Partial<
-    GenerateResponseWithSearchToolParams<typeof SearchToolArgsSchema>
-  >);
+  } satisfies Partial<GenerateResponseWithSearchToolParams>);
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -254,6 +258,19 @@ describe("generateResponseWithSearchTool", () => {
       const references = (result.messages.at(-1) as AssistantMessage)
         .references;
       expect(references).toMatchObject(mockReferences);
+    });
+
+    it("should add custom data to the user message", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool(
+        makeMakeGenerateResponseWithSearchToolArgs()
+      );
+
+      const result = await generateResponse(generateResponseBaseArgs);
+
+      const userMessage = result.messages.find(
+        (message) => message.role === "user"
+      ) as UserMessage;
+      expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
 
     describe("non-streaming", () => {
@@ -449,19 +466,34 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     role: "assistant",
     toolCall: {
       id: "abc123",
-      function: { name: "search_content", arguments: '{"query":"test"}' },
+      function: {
+        name: "search_content",
+      },
       type: "function",
     },
     content: "",
   });
+  expect(
+    JSON.parse(
+      (result.messages[1] as AssistantMessage)?.toolCall?.function
+        .arguments as string
+    )
+  ).toMatchObject(searchToolMockArgs);
 
-  expect(result.messages[2]).toMatchObject({
+  // The content might be a JSON string containing a content array
+  const toolMessage = result.messages.find(
+    (message) => message.role === "tool"
+  );
+  assert(toolMessage);
+  expect(toolMessage).toMatchObject({
     role: "tool",
     name: "search_content",
-    content: JSON.stringify({
-      content: mockContent,
-    }),
+    content: expect.any(String),
+  } satisfies ToolMessage);
+  expect(JSON.parse(toolMessage.content)).toMatchObject({
+    results: mockContent.map(searchResultToLlmContent),
   });
+
   expect(result.messages[3]).toMatchObject({
     role: "assistant",
     content: finalAnswer,

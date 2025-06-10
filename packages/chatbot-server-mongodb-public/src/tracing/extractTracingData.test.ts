@@ -1,7 +1,8 @@
-import { Message } from "mongodb-rag-core";
+import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { extractTracingData } from "./extractTracingData";
+import { SEARCH_TOOL_NAME, SearchToolReturnValue } from "../tools/search";
 
 describe("extractTracingData", () => {
   const msgId = new ObjectId();
@@ -17,6 +18,27 @@ describe("extractTracingData", () => {
     createdAt: new Date(),
     id: msgId,
   };
+  const toolResults = {
+    results: [
+      {
+        text: "text",
+        url: "url",
+      },
+      {
+        text: "text",
+        url: "url",
+      },
+    ],
+  } satisfies SearchToolReturnValue;
+
+  const baseToolMessage: DbMessage<ToolMessage> = {
+    role: "tool",
+    name: SEARCH_TOOL_NAME,
+    content: JSON.stringify(toolResults),
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
+
   test("should reject query", () => {
     const messages: Message[] = [
       {
@@ -48,8 +70,8 @@ describe("extractTracingData", () => {
     const messagesNoContext: Message[] = [
       {
         ...baseUserMessage,
-        contextContent: [],
       },
+      { ...baseToolMessage, content: JSON.stringify([]) },
       baseAssistantMessage,
     ];
     const tracingData = extractTracingData(messagesNoContext, msgId);
@@ -59,15 +81,8 @@ describe("extractTracingData", () => {
     const messagesWithContext: Message[] = [
       {
         ...baseUserMessage,
-        contextContent: [
-          {
-            text: "",
-          },
-          {
-            text: "",
-          },
-        ],
       },
+      baseToolMessage,
       baseAssistantMessage,
     ];
     const tracingDataWithContext = extractTracingData(

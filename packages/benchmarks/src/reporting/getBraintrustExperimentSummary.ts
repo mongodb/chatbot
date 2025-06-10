@@ -10,7 +10,7 @@ export async function getBraintrustExperimentSummary({
   projectName,
   experimentName,
   apiKey,
-}: GetBraintrustExperimentSummary): Promise<unknown> {
+}: GetBraintrustExperimentSummary) {
   const experiment = await init(projectName, {
     experiment: experimentName,
     apiKey,

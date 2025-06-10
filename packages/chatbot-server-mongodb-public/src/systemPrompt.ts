@@ -2,7 +2,7 @@ import { SystemMessage } from "mongodb-chatbot-server";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,
-} from "./mongoDbMetadata";
+} from "mongodb-rag-core/mongoDbMetadata";
 import { SEARCH_TOOL_NAME } from "./tools/search";
 
 export const llmDoesNotKnowMessage =

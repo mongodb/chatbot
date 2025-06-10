@@ -1,11 +1,8 @@
 import { strict as assert } from "assert";
-import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeGitDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-  removeMarkdownImagesAndLinks,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -52,6 +49,17 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   connectionUri: DEVCENTER_CONNECTION_URI,
 };
 
+/**
+  Predefined values for sourceType that we want to use in our Pages.
+ */
+export type SourceTypeName =
+  | "tech-docs"
+  | "devcenter"
+  | "marketing"
+  | "university-content"
+  | "tech-docs-external"
+  | "book-external";
+
 const mongoDbUniversitySourceConstructor = async () => {
   const universityDataApiKey = UNIVERSITY_DATA_API_KEY;
   assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
@@ -67,34 +75,37 @@ const mongoDbUniversitySourceConstructor = async () => {
   return makeMongoDbUniversityDataSource(universityConfig);
 };
 
-export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
-  name: "mongodb-corp",
-  repoUrl: "https://github.com/mongodb/chatbot/",
-  repoLoaderOptions: {
-    branch: "main",
-    ignoreFiles: [/^(?!^\/mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
-  },
-  pathToPageUrl(_, frontMatter) {
-    if (!frontMatter?.url) {
-      throw new Error("frontMatter.url must be specified");
-    }
-    return frontMatter?.url as string;
-  },
-  extractMetadata(_, frontMatter) {
-    if (!frontMatter) {
-      throw new Error("frontMatter must be specified");
-    }
-    const frontMatterCopy = { ...frontMatter };
-    delete frontMatterCopy.url;
-    return frontMatterCopy;
-  },
-  extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
-};
+export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> =
+  {
+    name: "mongodb-corp",
+    repoUrl: "https://github.com/mongodb/chatbot/",
+    repoLoaderOptions: {
+      branch: "main",
+      ignoreFiles: [/^(?!^\/mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
+    },
+    pathToPageUrl(_, frontMatter) {
+      if (!frontMatter?.url) {
+        throw new Error("frontMatter.url must be specified");
+      }
+      return frontMatter?.url as string;
+    },
+    extractMetadata(_, frontMatter) {
+      if (!frontMatter) {
+        throw new Error("frontMatter must be specified");
+      }
+      const frontMatterCopy = { ...frontMatter };
+      delete frontMatterCopy.url;
+      return frontMatterCopy;
+    },
+    extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+  };
 const mongoDbCorpDataSource = async () => {
-  return await makeMdOnGithubDataSource(mongoDbCorpDataSourceConfig);
+  return await makeMdOnGithubDataSource<SourceTypeName>(
+    mongoDbCorpDataSourceConfig
+  );
 };
 
-export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams =
+export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> =
   {
     name: "university-meta",
     repoUrl: "https://github.com/mongodb/chatbot/",
@@ -117,64 +128,41 @@ export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams 
       return frontMatterCopy;
     },
     extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+    sourceType: "university-content",
     metadata: {
       siteTitle: "MongoDB University",
     },
   };
 const mongoDbUniMetadataSource = async () => {
-  return await makeMdOnGithubDataSource(mongoDbUniMetadataDataSourceConfig);
+  return await makeMdOnGithubDataSource<SourceTypeName>(
+    mongoDbUniMetadataDataSourceConfig
+  );
 };
 
-export const terraformProviderSourceConstructor = async () => {
-  const siteBaseUrl =
-    "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
-  return await makeGitDataSource({
+export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<SourceTypeName> =
+  {
     name: "atlas-terraform-provider",
-    repoUri: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
-    repoOptions: {
-      "--depth": 1,
-      "--branch": "master",
+    repoUrl: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
+    repoLoaderOptions: {
+      branch: "master",
     },
+    pathToPageUrl(pathInRepo, _) {
+      const siteBaseUrl =
+        "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
+      return siteBaseUrl + pathInRepo.replace("docs/", "").replace(".md", "");
+    },
+    filter: (path: string) => path.includes("docs") && path.endsWith(".md"),
+    sourceType: "tech-docs-external",
     metadata: {
       productName: "mongodbatlas Terraform Provider",
       tags: ["docs", "terraform", "atlas", "hcl"],
     },
-    filter: (path: string) =>
-      path.includes("website/docs") && path.endsWith(".markdown"),
-    handlePage: async function (path, content) {
-      const { metadata, body } = extractFrontMatter<{ page_title: string }>(
-        content
-      );
-      const url = getTerraformPageUrl(siteBaseUrl, path);
-
-      const page: Omit<Page, "sourceName"> = {
-        body: removeMarkdownImagesAndLinks(body),
-        format: "md",
-        url: url,
-        title: metadata?.page_title,
-      };
-      return page;
-    },
-  });
+  };
+const terraformProviderDataSource = async () => {
+  return await makeMdOnGithubDataSource<SourceTypeName>(
+    terraformProviderSourceConfig
+  );
 };
-
-function getTerraformPageUrl(siteBaseUrl: string, path: string) {
-  if (path.includes("website/docs/d/")) {
-    return (
-      siteBaseUrl +
-      path.replace("website/docs/d", "data-sources").replace(".markdown", "")
-    );
-  } else if (path.includes("website/docs/r/")) {
-    return (
-      siteBaseUrl +
-      path.replace("website/docs/r", "resources").replace(".markdown", "")
-    );
-  } else {
-    return (
-      siteBaseUrl + path.replace("website/docs/", "").replace(".markdown", "")
-    );
-  }
-}
 
 const webDataSourceConstructor = async (): Promise<DataSource[]> => {
   const sitemapUrls = await getUrlsFromSitemap(
@@ -211,6 +199,6 @@ export const sourceConstructors: SourceConstructor[] = [
   mongoDbCorpDataSource,
   mongoDbUniMetadataSource,
   practicalAggregationsDataSource,
-  terraformProviderSourceConstructor,
+  terraformProviderDataSource,
   wiredTigerSourceConstructor,
 ];

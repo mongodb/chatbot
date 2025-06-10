@@ -15,7 +15,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 
 import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
 import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";

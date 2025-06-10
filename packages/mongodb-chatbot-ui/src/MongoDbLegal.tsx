@@ -34,10 +34,33 @@ export function MongoDbLegalDisclosureText() {
   );
 }
 
+export function MongoDbDataUsagePolicyText() {
+  const { tck } = useLinkData();
+  const DataUsagePolicy = () => (
+    <Link
+      hideExternalIcon
+      href={addQueryParams(
+        "https://www.mongodb.com/docs/ai-chatbot-data-usage/",
+        { tck }
+      )}
+    >
+      Data Usage Policy
+    </Link>
+  );
+  return (
+    <>
+      To learn more about how we use your data, please see our{" "}
+      <DataUsagePolicy />.
+    </>
+  );
+}
+
 export function MongoDbLegalDisclosure() {
   return (
     <Body>
       <MongoDbLegalDisclosureText />
+      <br />
+      <MongoDbDataUsagePolicyText />
     </Body>
   );
 }

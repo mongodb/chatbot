@@ -31,6 +31,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
+import { logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -38,17 +39,26 @@ import {
 } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import {
+  ANALYZER_ENV_VARS,
+  AZURE_OPENAI_ENV_VARS,
+  PREPROCESSOR_ENV_VARS,
+  TRACING_ENV_VARS,
+} from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
-import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
 import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
+import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
+import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
+import { createAzure } from "mongodb-rag-core/aiSdk";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -61,11 +71,14 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...PREPROCESSOR_ENV_VARS,
+  ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
 });
 
@@ -77,6 +90,11 @@ const {
   SEGMENT_WRITE_KEY,
 } = process.env;
 
+export const braintrustLogger = makeBraintrustLogger({
+  apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
+  projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+});
+
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 export const openAiClient = wrapOpenAI(
@@ -86,6 +104,13 @@ export const openAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
+
+// For parts of the application that use the Vercel AI SDK
+export const azure = createAzure({
+  apiKey: OPENAI_API_KEY,
+  resourceName: OPENAI_RESOURCE_NAME,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -238,6 +263,10 @@ export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   };
 export const isProduction = process.env.NODE_ENV === "production";
 
+const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({
+  db: mongodb.db(MONGODB_DATABASE_NAME),
+});
+
 const llmAsAJudgeConfig = {
   judgeModel: JUDGE_LLM,
   judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
@@ -261,6 +290,8 @@ export async function closeDbConnections() {
   await verifiedAnswerStore.close();
   await embeddedContentStore.close();
 }
+
+logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
@@ -295,10 +326,18 @@ export const config: AppConfig = {
           percentToJudge: isProduction ? 0.1 : 1,
         },
         segment: segmentConfig,
+        braintrustLogger,
+        embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        scrubbedMessageStore,
+        analyzerModel: wrapAISDKModel(
+          azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT)
+        ),
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
       segment: segmentConfig,
+      scrubbedMessageStore,
+      braintrustLogger,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
@@ -319,12 +358,15 @@ export const config: AppConfig = {
             }
           : undefined,
       segment: segmentConfig,
+      scrubbedMessageStore,
+      braintrustLogger,
     }),
     generateResponse,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
+    braintrustLogger,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

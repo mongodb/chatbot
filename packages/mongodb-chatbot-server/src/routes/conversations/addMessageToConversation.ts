@@ -25,7 +25,7 @@ import {
   AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 import {
   GenerateResponse,
@@ -86,6 +86,7 @@ export interface AddMessageToConversationRouteParams {
     Can add additional tags, scores, etc.
    */
   updateTrace?: UpdateTraceFunc;
+  braintrustLogger?: Logger<true>;
 }
 
 type MakeTracedResponseParams = Pick<

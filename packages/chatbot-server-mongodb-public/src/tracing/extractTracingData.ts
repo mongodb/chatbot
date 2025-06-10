@@ -10,20 +10,21 @@ import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
 import { SEARCH_TOOL_NAME } from "../tools/search";
 import { logRequest } from "../utils";
+import { OriginCode } from "mongodb-chatbot-server";
 
 export function extractTracingData(
   messages: Message[],
-  assistantMessageId: ObjectId
+  assistantMessageId: ObjectId,
+  conversationId: ObjectId
 ) {
-  // FIXME: this is throwing after the generation is complete. don't forget to fix before merge of EAI-990
   const evalAssistantMessageIdx = messages.findLastIndex(
     (message) =>
       message.role === "assistant" && message.id.equals(assistantMessageId)
   );
   assert(evalAssistantMessageIdx !== -1, "Assistant message not found");
-  const evalAssistantMessage = messages[evalAssistantMessageIdx] as
-    | DbMessage<AssistantMessage>
-    | undefined;
+  const evalAssistantMessage = messages[
+    evalAssistantMessageIdx
+  ] as DbMessage<AssistantMessage>;
 
   const previousUserMessageIdx = messages
     .slice(0, evalAssistantMessageIdx)
@@ -31,6 +32,7 @@ export function extractTracingData(
   const previousUserMessage = messages[previousUserMessageIdx] as
     | DbMessage<UserMessage>
     | undefined;
+  assert(previousUserMessageIdx !== -1, "User message not found");
 
   const tags = [];
 
@@ -43,11 +45,17 @@ export function extractTracingData(
   const mongoDbProduct = previousUserMessage?.customData?.mongoDbProduct as
     | string
     | undefined;
+  const requestOriginCode = previousUserMessage?.customData?.originCode as
+    | OriginCode
+    | undefined;
   if (programmingLanguage) {
     tags.push(tagify(programmingLanguage));
   }
   if (mongoDbProduct) {
     tags.push(tagify(mongoDbProduct));
+  }
+  if (requestOriginCode) {
+    tags.push(tagify(requestOriginCode));
   }
 
   const contextContent = getContextsFromMessages(
@@ -73,7 +81,11 @@ export function extractTracingData(
     tags.push("llm_does_not_know");
   }
 
+  const rating = evalAssistantMessage?.rating;
+  const comment = evalAssistantMessage?.userComment;
+
   return {
+    conversationId: conversationId,
     tags,
     rejectQuery,
     isVerifiedAnswer,
@@ -81,7 +93,11 @@ export function extractTracingData(
     numRetrievedChunks,
     contextContent,
     userMessage: previousUserMessage,
+    userMessageIndex: previousUserMessageIdx,
     assistantMessage: evalAssistantMessage,
+    assistantMessageIndex: evalAssistantMessageIdx,
+    rating,
+    comment,
   };
 }
 

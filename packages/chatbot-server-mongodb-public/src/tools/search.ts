@@ -1,4 +1,8 @@
-import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
+import {
+  EmbeddedContent,
+  FindContentFunc,
+  updateFrontMatter,
+} from "mongodb-rag-core";
 import {
   Tool,
   tool,
@@ -6,12 +10,10 @@ import {
   ToolResultUnion,
 } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
-// TODO: before merge to main branch, pull these from mongodb-rag-core
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
-} from "../mongoDbMetadata";
-import { EmbeddedContent } from "mongodb-rag-core";
+} from "mongodb-rag-core/mongoDbMetadata";
 
 export const MongoDbSearchToolArgsSchema = z.object({
   productName: z

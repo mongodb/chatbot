@@ -3,7 +3,7 @@ import { PageFormat } from "./PageFormat";
 /**
   Represents a page from a data source.
  */
-export type Page = {
+export type Page<SourceType extends string = string> = {
   url: string;
 
   /**
@@ -28,16 +28,32 @@ export type Page = {
   sourceName: string;
 
   /**
+    The source type describes the contents of the page. 
+    @example "tech-docs" indicates documents from the mongodb.com/docs site. SnootyDataSource has this type
+   */
+  sourceType?: SourceType;
+
+  /**
     Arbitrary metadata for page.
    */
   metadata?: PageMetadata;
 };
+
+interface VersionInfo {
+  isCurrent: boolean;
+  label: string;
+}
 
 export type PageMetadata = {
   /**
     Arbitrary tags.
    */
   tags?: string[];
+  /**
+    The version of the page. This is relevant for versioned docs.
+    If the page is not versioned, this field should be undefined.
+   */
+  version?: VersionInfo;
   /**
     Page-level metadata. Should not be chunked.
    */
@@ -103,6 +119,10 @@ export type DeletePagesArgs = {
   inverse?: boolean;
 };
 
+export interface SourceVersions {
+  [sourceName: string]: VersionInfo[];
+}
+
 /**
   Data store for {@link Page} objects.
  */
@@ -127,6 +147,13 @@ export type PageStore = {
     Deletes pages from the store.
    */
   deletePages(args?: DeletePagesArgs): Promise<void>;
+
+  /**
+    Gets a list of versions for dataSources.
+   */
+  getDataSourceVersions(args?: {
+    dataSources: string[];
+  }): Promise<SourceVersions>;
 
   /**
     Close connection to data store.

@@ -25,9 +25,9 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
-  isExperimental,
   onOpen,
   onClose,
+  onSuggestedPromptClick,
   sortMessageReferences,
   getClientContext,
   ...props
@@ -52,7 +52,6 @@ export function Chatbot({
             <InnerChatbot
               fetchOptions={fetchOptions}
               getClientContext={getClientContext}
-              isExperimental={isExperimental}
               maxCommentCharacters={maxCommentCharacters}
               maxInputCharacters={maxInputCharacters}
               name={name}
@@ -61,6 +60,7 @@ export function Chatbot({
               serverBaseUrl={serverBaseUrl}
               shouldStream={shouldStream}
               sortMessageReferences={sortMessageReferences}
+              onSuggestedPromptClick={onSuggestedPromptClick}
             >
               {children}
             </InnerChatbot>
@@ -76,19 +76,20 @@ type InnerChatbotProps = Pick<
   | "children"
   | "fetchOptions"
   | "getClientContext"
-  | "isExperimental"
   | "maxCommentCharacters"
   | "maxInputCharacters"
   | "name"
   | "onOpen"
   | "onClose"
+  | "onSuggestedPromptClick"
   | "serverBaseUrl"
   | "shouldStream"
   | "sortMessageReferences"
 >;
 
-function InnerChatbot({ children, ...props }: InnerChatbotProps) {
+function InnerChatbot({ children, name, ...props }: InnerChatbotProps) {
   const chatbotData = useChatbot({
+    chatbotName: name,
     ...props,
   });
 

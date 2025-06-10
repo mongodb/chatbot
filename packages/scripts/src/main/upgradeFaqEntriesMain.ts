@@ -5,7 +5,7 @@ import {
 } from "mongodb-rag-core/mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import { upgradeFaqEntry, FaqEntry, FaqEntryV0 } from "../upgradeFaqEntries";
-import { ScrubbedMessage } from "../ScrubbedMessage";
+import { ScrubbedMessage } from "chatbot-server-mongodb-public";
 import "dotenv/config";
 
 const {

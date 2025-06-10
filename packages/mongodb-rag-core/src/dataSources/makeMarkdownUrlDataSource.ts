@@ -1,10 +1,9 @@
 /**
   Loads markdown pages from URLs.
 */
-import { DataSource } from "mongodb-rag-core/dataSources";
-import { Page, PageMetadata } from "../contentStore";
+import { DataSource, removeMarkdownImagesAndLinks } from "../dataSources";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
-import { removeMarkdownImagesAndLinks } from ".";
+import { Page, PageMetadata } from "../contentStore";
 
 export function makeMarkdownUrlDataSource<SourceType extends string = string>(
   name: string,

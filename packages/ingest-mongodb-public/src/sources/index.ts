@@ -3,6 +3,7 @@ import {
   DataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
+  makeMarkdownUrlDataSource,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -185,6 +186,23 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     makeWebDataSource({ ...source, makeBrowser })
   );
 };
+
+const voyageDocsDataSourceConstructor = async (): Promise<DataSource[]> => {
+  const sitemapUrls = await getUrlsFromSitemap(
+    "https://docs.voyageai.com/sitemap.xml"
+  );
+  
+
+  return makeMarkdownUrlDataSource<SourceTypeName>(
+    name: "voyageai-docs",
+    markdownUrls: sitemapUrls.map(url => url + ".md"),
+    sourceType: "tech-docs",
+    staticMetadata: {
+      tags: ["docs", "voyageai"],
+
+    },
+  )
+}
 
 /**
   The constructors for the sources used by the docs chatbot.

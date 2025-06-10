@@ -106,7 +106,6 @@ async function main() {
     // Non-streaming
     // Note: consider not supporting this for first pass. Only streaming at first.
     // Also, I don't think will have users any time soon.
-    // There's not a good way to support calling tools and generating the response on the server in non-streaming.
   }
 }
 

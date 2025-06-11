@@ -8,7 +8,6 @@ import {
   makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
   makeMongoDbConversationsService,
-  makeOpenAiChatLlm,
   AppConfig,
   CORE_ENV_VARS,
   assertEnvVars,
@@ -16,17 +15,19 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
+  makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
-import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
-import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import {
+  addReferenceSourceType,
+  makeMongoDbReferences,
+} from "./processors/makeMongoDbReferences";
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
@@ -50,10 +51,14 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
+import { makeSearchTool } from "./tools/search";
+import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
+import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -105,19 +110,6 @@ export const azure = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: OPENAI_RESOURCE_NAME,
   apiVersion: OPENAI_API_VERSION,
-});
-
-export const llm = makeOpenAiChatLlm({
-  openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  openAiLmmConfigOptions: {
-    temperature: 0,
-    max_tokens: 1000,
-  },
-});
-
-llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
-  name: "answerQuestionAwaited",
 });
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
@@ -201,9 +193,24 @@ export const preprocessorOpenAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
+export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
-export const generateUserPrompt = wrapTraced(
-  makeVerifiedAnswerGenerateUserPrompt({
+export const conversations = makeMongoDbConversationsService(
+  mongodb.db(MONGODB_DATABASE_NAME)
+);
+const azureOpenAi = createAzure({
+  apiKey: OPENAI_API_KEY,
+  resourceName: process.env.OPENAI_RESOURCE_NAME,
+});
+const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
+
+const guardrailLanguageModel = wrapAISDKModel(azureOpenAi("gpt-4.1-mini"));
+const inputGuardrail = makeMongoDbInputGuardrail({
+  model: guardrailLanguageModel,
+});
+
+export const generateResponse = wrapTraced(
+  makeVerifiedAnswerGenerateResponse({
     findVerifiedAnswer,
     onVerifiedAnswerFound: (verifiedAnswer) => {
       return {
@@ -212,11 +219,27 @@ export const generateUserPrompt = wrapTraced(
       };
     },
     onNoVerifiedAnswerFound: wrapTraced(
-      makeStepBackRagGenerateUserPrompt({
-        openAiClient: preprocessorOpenAiClient,
-        model: retrievalConfig.preprocessorLlm,
-        findContent,
-        numPrecedingMessagesToInclude: 6,
+      makeGenerateResponseWithSearchTool({
+        languageModel,
+        systemMessage: systemPrompt,
+        makeReferenceLinks: makeMongoDbReferences,
+        inputGuardrail,
+        llmRefusalMessage:
+          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+        filterPreviousMessages: async (conversation) => {
+          return conversation.messages.filter((message) => {
+            return (
+              message.role === "user" ||
+              // Only include assistant messages that are not tool calls
+              (message.role === "assistant" && !message.toolCall)
+            );
+          });
+        },
+        llmNotWorkingMessage:
+          conversations.conversationConstants.LLM_NOT_WORKING,
+        searchTool: makeSearchTool(findContent),
+        toolChoice: "auto",
+        maxSteps: 5,
       }),
       { name: "makeStepBackRagGenerateUserPrompt" }
     ),
@@ -224,12 +247,6 @@ export const generateUserPrompt = wrapTraced(
   {
     name: "generateUserPrompt",
   }
-);
-
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME)
 );
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
@@ -268,18 +285,23 @@ const segmentConfig = SEGMENT_WRITE_KEY
     }
   : undefined;
 
+export async function closeDbConnections() {
+  await mongodb.close();
+  await verifiedAnswerStore.close();
+  await embeddedContentStore.close();
+}
+
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    llm,
     middleware: [
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
       useSegmentIds(),
-      cookieParser(),
       redactConnectionUri(),
+      cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
@@ -339,8 +361,7 @@ export const config: AppConfig = {
       scrubbedMessageStore,
       braintrustLogger,
     }),
-    generateUserPrompt,
-    systemPrompt,
+    generateResponse,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,

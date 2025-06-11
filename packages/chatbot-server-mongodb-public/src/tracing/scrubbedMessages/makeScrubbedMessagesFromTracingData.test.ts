@@ -31,6 +31,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       customData: { someData: "value" },
       metadata: { source: "test" },
     },
+    contextContent: [],
     assistantMessageIndex: 1,
   } as ReturnType<typeof extractTracingData>;
 
@@ -47,16 +48,16 @@ describe("makeScrubbedMessagesFromTracingData", () => {
 
     // Check user message
     expect(result[0]).toMatchObject({
-      _id: mockTracingData.userMessage.id,
+      _id: mockTracingData.userMessage?.id,
       conversationId: mockTracingData.conversationId,
       index: mockTracingData.userMessageIndex,
       role: "user",
       content: "user message content",
-      createdAt: mockTracingData.userMessage.createdAt,
-      customData: mockTracingData.userMessage.customData,
+      createdAt: mockTracingData.userMessage?.createdAt,
+      customData: mockTracingData.userMessage?.customData,
       pii: undefined,
-      metadata: mockTracingData.userMessage.metadata,
-      embedding: mockTracingData.userMessage.embedding,
+      metadata: mockTracingData.userMessage?.metadata,
+      embedding: mockTracingData.userMessage?.embedding,
       embeddingModelName: "test-embedding-model",
       messagePii: undefined,
       userCommentPii: undefined,

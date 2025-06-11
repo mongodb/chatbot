@@ -48,6 +48,7 @@ describe("getLlmAsAJudgeScores", () => {
     isVerifiedAnswer: false,
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
+    contextContent: [],
     rejectQuery: false,
     rating: undefined,
     comment: undefined,

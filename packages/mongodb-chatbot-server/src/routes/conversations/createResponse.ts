@@ -1,10 +1,9 @@
-import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
+import { DbMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -12,25 +11,18 @@ import {
   SomeMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
-import {
-  ApiMessage,
-  RequestError,
-  convertMessageFromDbToApi,
-  makeRequestError,
-} from "./utils";
-import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
-import { object, z } from "zod";
+import { ApiMessage, RequestError, makeRequestError } from "./utils";
+import { getRequestId, sendErrorResponse } from "../../utils";
+import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
   AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
-import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
+import { Logger } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
-import {
-  GenerateResponse,
-  GenerateResponseParams,
-} from "../../processors/GenerateResponse";
+import { GenerateResponse } from "../../processors/GenerateResponse";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -48,6 +40,7 @@ const MessageStatusSchema = z
 
 export const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
+  instructions: z.string().optional(),
   input: z.union([
     z.string(),
 
@@ -170,6 +163,7 @@ export interface CreateResponseRouteParams {
   maxUserMessagesInConversation?: number;
   generateResponse: GenerateResponse;
   addMessageToConversationCustomData?: AddCustomDataFunc;
+  openAi: OpenAI;
   /**
     If present, the route will create a new conversation
     when given the `conversationIdPathParam` in the URL.
@@ -229,6 +223,7 @@ export function makeCreateResponseRoute({
           tools,
           user,
           max_output_tokens,
+          instructions,
         },
         ip,
       } = req;
@@ -262,6 +257,7 @@ export function makeCreateResponseRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
+      // TODO: both these checks same as in addMessageToConversation, make DRY
       const numUserMessages = conversation.messages.reduce(
         (acc, message) => (message.role === "user" ? acc + 1 : acc),
         0
@@ -287,43 +283,62 @@ export function makeCreateResponseRoute({
 
       const assistantResponseMessageId = new ObjectId();
 
-      // Only include the necessary message info for the conversastion.
-      // This sends less data to Braintrust speeding up tracing
-      // and also being more readable in the Braintrust UI.
-      const traceConversation: Conversation = {
-        ...conversation,
-        messages: conversation.messages.map((message) => {
-          const baseFields = {
-            content: message.content,
-            id: message.id,
-            createdAt: message.createdAt,
-            metadata: message.metadata,
-          };
-
-          if (message.role === "tool") {
-            return {
-              role: "tool",
-              name: message.name,
-              ...baseFields,
-            } satisfies DbMessage<ToolMessage>;
-          } else {
-            return { ...baseFields, role: message.role } satisfies Exclude<
-              Message,
-              ToolMessage
-            >;
-          }
-        }),
+      const streamingMetadata = {
+        conversationId: conversation._id.toString(),
       };
+      const baseResponse = {
+        id: assistantResponseMessageId.toHexString(),
+        model: model,
+        object: "response" as const,
+        created_at: Date.now(),
+        temperature: temperature,
+        instructions: instructions ?? null,
+        metadata: {
+          // ...Any other stuff that should be in here? something for verified answers?
+          ...streamingMetadata,
+        },
+        parallel_tool_calls: false,
+        tool_choice: tool_choice === "only" ? "auto" : tool_choice,
+        tools:
+          tools?.map((tool) => {
+            return {
+              name: tool.name,
+              description: tool.description,
+              parameters: tool.parameters,
+              container: null,
+              strict: null,
+              type: "function",
+            };
+          }) ?? [],
+        top_p: null,
+        // TODO: below here, i think these all need additional work...
+        // TODO: 2x check if the following should be different if incomplete
+        incomplete_details: null,
+        // TODO: 2x check if the following should be different if incomplete
+        error: null,
+        // TODO: output
+        output: [],
+        output_text: "",
+      } satisfies OpenAI.Responses.ResponseCreatedEvent["response"];
 
-      const { messages } = await generateResponseTraced({
-        conversation: traceConversation,
+      dataStreamer.streamResponsesApiPart({
+        type: "response.created",
+        // TODO: fix typescript stuff
+        response: {
+          ...baseResponse,
+        },
+      } satisfies Omit<OpenAI.Responses.ResponseCreatedEvent, "sequence_number">);
+
+      // TODO: make a Responses API version of generate response
+      const { messages } = await generateResponse({
         latestMessageText,
         clientContext,
         customData,
         dataStreamer,
         shouldStream,
         reqId,
-        traceId: assistantResponseMessageId.toHexString(),
+        conversation,
+        traceId,
       });
 
       // --- SAVE QUESTION & RESPONSE ---
@@ -336,35 +351,29 @@ export function makeCreateResponseRoute({
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
       assert(dbAssistantMessage !== undefined, "No assistant message found");
-      const apiRes = convertMessageFromDbToApi(
-        dbAssistantMessage,
-        conversation._id
-      );
 
-      if (!shouldStream) {
-        return res.status(200).json(apiRes);
-      } else {
-        dataStreamer.streamData({
-          type: "metadata",
-          data: { conversationId: conversation._id.toString() },
-        });
-        dataStreamer.streamData({
-          type: "finished",
-          data: apiRes.id,
-        });
-        if (dataStreamer.connected) {
-          dataStreamer.disconnect();
-        }
-
-        await updateTraceIfExists({
-          updateTrace,
-          reqId,
-          conversations,
-          conversationId: conversation._id,
-          assistantResponseMessageId: dbAssistantMessage.id,
-        });
+      dataStreamer.streamResponsesApiPart({
+        type: "response.completed",
+        // TODO: better figure out typescripting here...
+        response: {
+          ...baseResponse,
+          output_text: dbAssistantMessage.content,
+          output: dbMessageToResponseOutputItem(dbNewMessages),
+        },
+      } satisfies Omit<OpenAI.Responses.ResponseCompletedEvent, "sequence_number">);
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
       }
+
+      await updateTraceIfExists({
+        updateTrace,
+        reqId,
+        conversations,
+        conversationId: conversation._id,
+        assistantResponseMessageId: dbAssistantMessage.id,
+      });
     } catch (error) {
+      // TODO: better error handling, in line with the Responses API
       const { httpStatus, message } =
         (error as Error).name === "RequestError"
           ? (error as RequestError)
@@ -390,6 +399,15 @@ export function makeCreateResponseRoute({
 
 // --- HELPERS ---
 
+// TODO: implement...
+function dbMessageToResponseOutputItem(
+  dbMessages: DbMessage<SomeMessage>[]
+): OpenAI.Responses.ResponseOutputItem[] {
+  return [];
+}
+
+// TODO: this is same as in addMessageToConversation
+// ...have separate helper imported by both
 async function getCustomData({
   req,
   res,
@@ -411,18 +429,22 @@ async function getCustomData({
   }
 }
 
+// TODO: this is same as in addMessageToConversation
+// ...have separate helper imported by both
 interface AddMessagesToDatabaseParams {
   conversation: Conversation;
   conversations: ConversationsService;
   messages: SomeMessage[];
   assistantResponseMessageId: ObjectId;
+  store: boolean;
 }
-
 async function addMessagesToDatabase({
   conversation,
   conversations,
   messages,
   assistantResponseMessageId,
+  // TODO: handle if store is false, only include metadata, no content.
+  store,
 }: AddMessagesToDatabaseParams) {
   (
     messages as Parameters<

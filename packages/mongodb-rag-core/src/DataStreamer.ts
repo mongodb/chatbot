@@ -15,6 +15,7 @@ interface ServerSentEventDispatcher<Data extends object | string> {
   connect(): void;
   disconnect(): void;
   sendData(data: Data): void;
+  sendResponsesApiStreamData(data: OpenAI.Responses.ResponseStreamEvent): void;
   sendEvent(eventType: string, data: Data): void;
 }
 
@@ -41,6 +42,9 @@ function makeServerSentEventDispatcher<
     },
     sendEvent(eventType, data) {
       res.write(`event: ${eventType}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    },
+    sendResponsesApiStreamData(data) {
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     },
   };
@@ -122,6 +126,9 @@ export interface DataStreamer {
   disconnect(): void;
   streamData(data: SomeStreamEvent): void;
   stream(params: StreamParams): Promise<string>;
+  streamResponsesApiPart(
+    data: Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
+  ): void;
 }
 
 /**
@@ -131,6 +138,7 @@ export function makeDataStreamer(): DataStreamer {
   let connected = false;
   let sse: ServerSentEventDispatcher<SomeStreamEvent> | undefined;
 
+  let responseSequenceNumber = 0;
   return {
     get connected() {
       return connected;
@@ -168,6 +176,22 @@ export function makeDataStreamer(): DataStreamer {
         );
       }
       sse?.sendData(data);
+    },
+
+    streamResponsesApiPart(
+      data: Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
+    ) {
+      if (!this.connected) {
+        throw new Error(
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+        );
+      }
+      sse?.sendResponsesApiStreamData({
+        ...data,
+        sequence_number: responseSequenceNumber,
+        // TODO: see if can remove the cast
+      } as OpenAI.Responses.ResponseStreamEvent);
+      responseSequenceNumber++;
     },
 
     /**

@@ -337,6 +337,7 @@ describe("generateResponseWithSearchTool", () => {
           disconnect: mockDisconnect,
           streamData: mockStreamData,
           stream: mockStream,
+          streamResponsesApiPart: mockStream,
         } as DataStreamer;
 
         return dataStreamer;

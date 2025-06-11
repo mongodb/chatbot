@@ -19,6 +19,7 @@ import {
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
   makeVerifiedAnswerGenerateResponse,
+  addMessageToConversationVerifiedAnswerStream,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -53,7 +54,10 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
-import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import {
+  addMessageToConversationStream,
+  makeGenerateResponseWithSearchTool,
+} from "./processors/generateResponseWithSearchTool";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
@@ -218,6 +222,7 @@ export const generateResponse = wrapTraced(
         references: verifiedAnswer.references.map(addReferenceSourceType),
       };
     },
+    stream: addMessageToConversationVerifiedAnswerStream,
     onNoVerifiedAnswerFound: wrapTraced(
       makeGenerateResponseWithSearchTool({
         languageModel,
@@ -240,6 +245,7 @@ export const generateResponse = wrapTraced(
         searchTool: makeSearchTool(findContent),
         toolChoice: "auto",
         maxSteps: 5,
+        stream: addMessageToConversationStream,
       }),
       { name: "makeStepBackRagGenerateUserPrompt" }
     ),

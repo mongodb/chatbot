@@ -5,6 +5,7 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  DataStreamer,
 } from "mongodb-rag-core";
 
 import {
@@ -53,8 +54,70 @@ export interface GenerateResponseWithSearchToolParams {
     search_content: SearchTool;
   }>;
   searchTool: SearchTool;
+  stream?: {
+    onTextDelta: ({
+      dataStreamer,
+      delta,
+    }: {
+      dataStreamer: DataStreamer;
+      delta: string;
+    }) => void;
+    onReferenceLinks: ({
+      dataStreamer,
+      references,
+    }: {
+      dataStreamer: DataStreamer;
+      references: References;
+    }) => void;
+    onLlmRefusal: ({
+      dataStreamer,
+      refusalMessage,
+    }: {
+      dataStreamer: DataStreamer;
+      refusalMessage: string;
+    }) => void;
+    onLlmNotWorking: ({
+      dataStreamer,
+      notWorkingMessage,
+    }: {
+      dataStreamer: DataStreamer;
+      notWorkingMessage: string;
+    }) => void;
+  };
 }
 
+export const addMessageToConversationStream: GenerateResponseWithSearchToolParams["stream"] =
+  {
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: notWorkingMessage,
+      });
+    },
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: refusalMessage,
+      });
+    },
+    onReferenceLinks({ dataStreamer, references }) {
+      dataStreamer?.streamData({
+        type: "references",
+        data: references,
+      });
+    },
+    onTextDelta({ dataStreamer, delta }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: delta,
+      });
+    },
+  };
+
+export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
+  {
+    // TODO: Add this
+  };
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
@@ -70,6 +133,7 @@ export function makeGenerateResponseWithSearchTool({
   maxSteps = 2,
   searchTool,
   toolChoice,
+  stream,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
@@ -81,9 +145,11 @@ export function makeGenerateResponseWithSearchTool({
     dataStreamer,
     request,
   }) {
-    if (shouldStream) {
-      assert(dataStreamer, "dataStreamer is required for streaming");
-    }
+    const streamingModeActive =
+      shouldStream === true &&
+      dataStreamer !== undefined &&
+      stream !== undefined;
+
     const userMessage: UserMessage = {
       role: "user",
       content: latestMessageText,
@@ -165,10 +231,10 @@ export function makeGenerateResponseWithSearchTool({
             }
             switch (chunk.type) {
               case "text-delta":
-                if (shouldStream) {
-                  dataStreamer?.streamData({
-                    data: chunk.textDelta,
-                    type: "delta",
+                if (streamingModeActive) {
+                  stream.onTextDelta({
+                    dataStreamer,
+                    delta: chunk.textDelta,
                   });
                 }
                 break;
@@ -187,10 +253,12 @@ export function makeGenerateResponseWithSearchTool({
           }
           try {
             if (references.length > 0) {
-              dataStreamer?.streamData({
-                data: references,
-                type: "references",
-              });
+              if (streamingModeActive) {
+                stream.onReferenceLinks({
+                  dataStreamer,
+                  references,
+                });
+              }
             }
             return result;
           } catch (error: unknown) {
@@ -212,10 +280,12 @@ export function makeGenerateResponseWithSearchTool({
           ...userMessageCustomData,
           ...guardrailResult,
         };
-        dataStreamer?.streamData({
-          type: "delta",
-          data: llmRefusalMessage,
-        });
+        if (streamingModeActive) {
+          stream.onLlmRefusal({
+            dataStreamer,
+            refusalMessage: llmRefusalMessage,
+          });
+        }
         return handleReturnGeneration({
           userMessage,
           guardrailResult,
@@ -265,10 +335,12 @@ export function makeGenerateResponseWithSearchTool({
         });
       }
     } catch (error: unknown) {
-      dataStreamer?.streamData({
-        type: "delta",
-        data: llmNotWorkingMessage,
-      });
+      if (streamingModeActive) {
+        stream.onLlmNotWorking({
+          dataStreamer,
+          notWorkingMessage: llmNotWorkingMessage,
+        });
+      }
 
       // Create error message with references attached
       const errorMessage: AssistantMessage = {

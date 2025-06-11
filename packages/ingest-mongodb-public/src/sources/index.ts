@@ -207,7 +207,7 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
 
   return makeMarkdownUrlDataSource<SourceTypeName>(
     voyageAiDocsDataSourceParams
-  )
+  );
 };
 
 /**

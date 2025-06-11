@@ -6,6 +6,6 @@ export * from "./MdOnGithubDataSource";
 export * from "./ProjectBase";
 export * from "./handleHtmlDocument";
 export * from "./removeMarkdownImagesAndLinks";
-export * from "./makeMarkdownUrlDataSource";
+export * from "./MarkdownUrlDataSource";
 export * from "./LangchainDocumentLoaderDataSource";
 export * from "./CodeOnGithubTextDataSource";

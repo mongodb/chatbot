@@ -5,7 +5,7 @@ import {
   makeMdOnGithubDataSource,
   MakeMarkdownUrlDataSourceParams,
   makeMarkdownUrlDataSource,
-  removeDotMdFromUrl,
+  removeMarkdownFileExtension,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -202,7 +202,7 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
       metadata: {
         tags: ["docs", "voyageai"],
       },
-      markdownUrlToPageUrl: removeDotMdFromUrl,
+      markdownUrlToPageUrl: removeMarkdownFileExtension,
     };
 
   return makeMarkdownUrlDataSource<SourceTypeName>(

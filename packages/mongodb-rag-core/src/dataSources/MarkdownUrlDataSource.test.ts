@@ -1,7 +1,7 @@
 import {
   makeMarkdownUrlDataSource,
   MakeMarkdownUrlDataSourceParams,
-  removeDotMdFromUrl,
+  removeMarkdownFileExtension,
 } from "./MarkdownUrlDataSource";
 
 describe("MarkdownUrlDataSource", () => {
@@ -13,7 +13,7 @@ describe("MarkdownUrlDataSource", () => {
       metadata: {
         arbitrary: "data",
       },
-      markdownUrlToPageUrl: removeDotMdFromUrl,
+      markdownUrlToPageUrl: removeMarkdownFileExtension,
     };
     const mdUrlDataSource = makeMarkdownUrlDataSource(params);
 

@@ -1,8 +1,9 @@
-import { SEARCH_TOOL_NAME, SystemMessage } from "mongodb-chatbot-server";
+import { SystemMessage } from "mongodb-chatbot-server";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,
 } from "mongodb-rag-core/mongoDbMetadata";
+import { SEARCH_TOOL_NAME } from "./tools/search";
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";

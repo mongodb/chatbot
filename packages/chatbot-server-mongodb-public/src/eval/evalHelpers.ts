@@ -1,13 +1,7 @@
 import "dotenv/config";
-import {
-  assertEnvVars,
-  AssistantMessage,
-  SomeMessage,
-  UserMessage,
-} from "mongodb-chatbot-server";
+import { assertEnvVars } from "mongodb-chatbot-server";
 import { AZURE_OPENAI_ENV_VARS, EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
-import { strict as assert } from "assert";
 import { wrapOpenAI } from "mongodb-rag-core/braintrust";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 
@@ -44,32 +38,3 @@ export const azureOpenAiProvider = createAzure({
   resourceName: OPENAI_RESOURCE_NAME,
   apiVersion: OPENAI_API_VERSION,
 });
-
-export function getLastUserMessageFromMessages(
-  messages: SomeMessage[]
-): UserMessage {
-  const userMessage = [...messages].reverse().find((m) => m.role === "user");
-  assert(userMessage, "Conversation must have a UserMessage");
-  return userMessage as UserMessage;
-}
-export function getLastAssistantMessageFromMessages(
-  messages: SomeMessage[]
-): AssistantMessage {
-  const assistantMessage = [...messages]
-    .reverse()
-    .find((m) => m.role === "assistant");
-  assert(assistantMessage, "Conversation must have a AssistantMessage");
-  return assistantMessage as AssistantMessage;
-}
-
-export function getContextsFromUserMessage(userMessage: UserMessage) {
-  const contexts =
-    userMessage.contextContent
-      ?.map((cc) => cc.text)
-      .filter((text) => typeof text === "string") ?? [];
-  const urls =
-    userMessage.contextContent
-      ?.map((cc) => cc.url)
-      .filter((text) => typeof text === "string") ?? [];
-  return { contexts, urls };
-}

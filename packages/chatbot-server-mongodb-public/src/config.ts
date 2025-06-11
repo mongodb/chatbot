@@ -18,7 +18,6 @@ import {
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
-  makeGenerateResponseWithSearchTool,
   makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
@@ -54,10 +53,12 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
+import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -283,6 +284,12 @@ const segmentConfig = SEGMENT_WRITE_KEY
       writeKey: SEGMENT_WRITE_KEY,
     }
   : undefined;
+
+export async function closeDbConnections() {
+  await mongodb.close();
+  await verifiedAnswerStore.close();
+  await embeddedContentStore.close();
+}
 
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 

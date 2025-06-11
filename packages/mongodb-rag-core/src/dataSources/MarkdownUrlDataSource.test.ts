@@ -1,8 +1,8 @@
 import {
   makeMarkdownUrlDataSource,
-  MakeMarkdownUrlDataSourceParams,
-  removeMarkdownFileExtension,
+  MakeMarkdownUrlDataSourceParams
 } from "./MarkdownUrlDataSource";
+import { removeMarkdownFileExtension } from "./removeMarkdownFileExtension";
 
 describe("MarkdownUrlDataSource", () => {
   it("should get markdown content as Page from urls", async () => {

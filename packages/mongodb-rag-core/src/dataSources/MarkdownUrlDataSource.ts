@@ -43,7 +43,7 @@ export function makeMarkdownUrlDataSource<SourceType extends string = string>({
 }: MakeMarkdownUrlDataSourceParams<SourceType>): DataSource {
   return {
     name: sourceName,
-    async fetchPages() {
+    async fetchPages(): Promise<Page<SourceType>[]> {
       const settledPages = await Promise.all(
         markdownUrls.map(async (url: string) => {
           if (!url.endsWith(".md") && !url.endsWith(".markdown")) {

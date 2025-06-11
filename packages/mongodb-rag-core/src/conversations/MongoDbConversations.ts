@@ -16,6 +16,7 @@ import {
   SystemMessage,
   CommentMessageParams,
   ToolMessage,
+  FindByMessageIdParams,
 } from "./ConversationsService";
 
 /**
@@ -100,6 +101,13 @@ export function makeMongoDbConversationsService(
 
     async findById({ _id }: FindByIdParams) {
       const conversation = await conversationsCollection.findOne({ _id });
+      return conversation;
+    },
+
+    async findByMessageId({ messageId }: FindByMessageIdParams) {
+      const conversation = await conversationsCollection.findOne({
+        "messages.id": messageId,
+      });
       return conversation;
     },
 

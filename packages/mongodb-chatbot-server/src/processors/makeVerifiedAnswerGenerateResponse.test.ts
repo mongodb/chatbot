@@ -1,5 +1,8 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { makeVerifiedAnswerGenerateResponse } from "./makeVerifiedAnswerGenerateResponse";
+import {
+  addMessageToConversationVerifiedAnswerStream,
+  makeVerifiedAnswerGenerateResponse,
+} from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
 import { GenerateResponseReturnValue } from "./GenerateResponse";
 
@@ -55,6 +58,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     connect: jest.fn(),
     disconnect: jest.fn(),
     stream: jest.fn(),
+    streamResponsesApiPart: jest.fn(),
   });
 
   // Create base request parameters
@@ -79,6 +83,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     onNoVerifiedAnswerFound: async () => ({
       messages: noVerifiedAnswerFoundMessages,
     }),
+    stream: addMessageToConversationVerifiedAnswerStream,
   });
 
   it("uses onNoVerifiedAnswerFound if no verified answer is found", async () => {

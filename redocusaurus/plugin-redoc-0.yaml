@@ -5,19 +5,21 @@ info:
   license:
     name: Apache 2.0
     url: https://github.com/mongodb/chatbot/blob/main/LICENSE
-  description: |
-    The MongoDB RAG Server API is a RESTful API that allows you to
-    create and manage conversations.
+  description: >
+    The Knowledge Service is a RESTful API.
+
+
     The API is designed to be used by the MongoDB RAG UI frontend,
+
     but can also be used by other clients.
 
-    **NOTE:** The default configuration requires capturing user IP address
-    and a header `Origin: some_string`. You can override this.
-    Refer to the server configuration documentation for more information.
+
+    If you have a use case not currently supported by the API, please [reach out
+    to the MongoDB EAI team](../contact).
 servers:
-  - url: http://<Your Server Base URL>/api/v1
+  - url: https://knowledge.mongodb.com/api/v1
 security:
-  - ApiKeyAuth: []
+  - CustomHeaderAuth: []
 paths:
   /conversations:
     post:
@@ -74,6 +76,15 @@ paths:
                   format: markdown
                   description: |
                     Markdown-formatted message from the user.
+                clientContext:
+                  type: object
+                  description: |
+                    Additional context provided by the client. This is useful
+                    for passing information to the chatbot that is not part of
+                    the user's message but may be relevant to the chatbot's
+                    response. For example, the client may pass information about
+                    the user's preferences, location, preferred language, etc.
+                  additionalProperties: true
       responses:
         '200':
           x-summary: OK
@@ -136,25 +147,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /conversations/{conversationId}:
-    get:
-      operationId: getConversation
-      summary: Get a conversation
-      parameters:
-        - $ref: '#/components/parameters/conversationId'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Conversation'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
@@ -208,10 +200,23 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
-    ApiKeyAuth:
+    CustomHeaderAuth:
       type: apiKey
       in: header
-      name: X-API-KEY
+      name: ORIGIN
+      description: >
+        Can provide any value. Used to track where requests to the server
+
+        are coming from.
+
+        Alternatively, can provide `X-Request-Origin` header.
+
+
+        The server's firewall has additional rules based on the `User-Agent`
+        header.
+
+        If you would like to get access to the server, please [contact the
+        Education AI team](../contact).
   responses:
     BadRequest:
       description: Bad Request

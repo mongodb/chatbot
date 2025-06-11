@@ -12,8 +12,7 @@ export interface MakeMarkdownUrlDataSourceParams<
   sourceName: string;
 
   /**
-    List of URLs with markdown content to fetch. These do not need to end in `.md`, 
-    they just need to point to a URL that is a markdown file.
+    List of URLs with markdown content to fetch.
     @example https://docs.voyageai.com/docs/quickstart-tutorial.md
    */
   markdownUrls: string[];

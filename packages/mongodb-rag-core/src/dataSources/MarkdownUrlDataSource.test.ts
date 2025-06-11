@@ -1,6 +1,6 @@
 import {
   makeMarkdownUrlDataSource,
-  MakeMarkdownUrlDataSourceParams
+  MakeMarkdownUrlDataSourceParams,
 } from "./MarkdownUrlDataSource";
 import { removeMarkdownFileExtension } from "./removeMarkdownFileExtension";
 

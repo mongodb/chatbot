@@ -29,7 +29,7 @@ export interface MakeMarkdownUrlDataSourceParams<
   metadata?: PageMetadata;
 
   /**
-    Converts a markdown URL in @param markdownUrls into a Page URL.
+    Converts a markdown URL in markdownUrls into a Page URL.
    */
   markdownUrlToPageUrl?: (markdownUrl: string) => string;
 }
@@ -43,31 +43,31 @@ export function makeMarkdownUrlDataSource<SourceType extends string = string>({
 }: MakeMarkdownUrlDataSourceParams<SourceType>): DataSource {
   return {
     name: sourceName,
-    async fetchPages(): Promise<Page<SourceType>[]> {
+    async fetchPages() {
       const settledPages = await Promise.all(
         markdownUrls.map(async (url: string) => {
+          if (!url.endsWith(".md") && !url.endsWith(".markdown")) {
+            console.warn(`URL must end in .md or .markdown: ${url}`);
+            return;
+          }
           try {
-            if (!url.endsWith(".md") && !url.endsWith(".markdown")) {
-              throw new Error("URL must end in .md or .markdown");
-            }
-
             const response = await fetch(url);
 
             if (!response.ok) {
-              throw new Error(`${response.status} response from ${url}`);
+              console.warn(`${response.status} response from ${url}`);
             } else if (
               !(
                 response.headers.get("content-type")?.includes("text/plain") ||
                 response.headers.get("content-type")?.includes("text/markdown")
               )
             ) {
-              throw new Error(`Content is not markdown: ${url}`);
+              console.warn(`Content is not markdown: ${url}`);
             } else {
               const body = removeMarkdownImagesAndLinks(await response.text());
 
               const page: Page<SourceType> = {
                 url: markdownUrlToPageUrl ? markdownUrlToPageUrl(url) : url,
-                title: extractMarkdownH1(body), // TODO What if the body is empty? Or if there is no H1?
+                title: extractMarkdownH1(body),
                 format: "md",
                 body,
                 sourceName,
@@ -77,7 +77,7 @@ export function makeMarkdownUrlDataSource<SourceType extends string = string>({
               return page;
             }
           } catch (error) {
-            console.error(`Failed to create page from ${url},`, error);
+            console.warn(`Failed to create page from ${url},`, error);
           }
         })
       );

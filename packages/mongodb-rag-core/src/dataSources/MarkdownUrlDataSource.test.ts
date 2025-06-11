@@ -13,6 +13,7 @@ describe("MarkdownUrlDataSource", () => {
       metadata: {
         arbitrary: "data",
       },
+      markdownUrlToPageUrl: removeDotMdFromUrl,
     };
     const mdUrlDataSource = makeMarkdownUrlDataSource(params);
 
@@ -23,18 +24,20 @@ describe("MarkdownUrlDataSource", () => {
 
     // Page attrs are correct
     const page = pages[0];
-    expect(page.url).toBe(params.markdownUrls[0]);
-    expect(page.sourceType).toBe(params.sourceType);
     expect(page.title).toBeTruthy();
-    expect(page.format).toBe("md");
     expect(page.body).toBeTruthy();
+    expect(page.url).toBe("https://docs.voyageai.com/docs/introduction");
+    expect(page.format).toBe("md");
     expect(page.sourceName).toBe(params.sourceName);
+    expect(page.sourceType).toBe(params.sourceType);
+    expect(page.metadata).toBe(params.metadata);
   });
 
   it("should exclude non-markdown pages from result", async () => {
     const urlsWithInvalidUrl: string[] = [
       "https://docs.voyageai.com/docs/introduction.md",
       "https://docs.voyageai.com/discuss.md", // There is no markdown content on this page
+      "https://google.com", // this is not a .md/.markdown url
     ];
 
     const params: MakeMarkdownUrlDataSourceParams = {

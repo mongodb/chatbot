@@ -221,7 +221,6 @@ export function makeAddMessageToConversationRoute({
 
       // --- DETERMINE IF SHOULD STREAM ---
       const shouldStream = Boolean(stream);
-      console.log({ shouldStream, stream });
       if (shouldStream) {
         dataStreamer.connect(res);
       }

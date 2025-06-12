@@ -49,6 +49,22 @@ cronJobs:
         memory: 5Gi
     backoffLimit: 3
 
+  - name: verify-sources-have-pages-staging
+    schedule: "0 8 * * *" # every day at 8am UTC
+    command: "npm run scripts:verifyPagesInSources"
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
 # Alerts
 defaultAlerts:
   enabled: true

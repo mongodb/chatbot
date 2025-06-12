@@ -20,7 +20,7 @@ cronJobs:
     backoffLimit: 2
 
   - name: find-faq
-    schedule: "0 8 * * *" # every day at 8am UTC
+    schedule: "0 0 * * *" # every day at midnight UTC
     command: ["npm", "run", "scripts:findFaq"]
     env:
       FROM_DATABASE_NAME: docs-chatbot-prod

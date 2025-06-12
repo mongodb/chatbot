@@ -187,10 +187,12 @@ export function makeGenerateResponseWithSearchTool({
           }
           try {
             if (references.length > 0) {
-              dataStreamer?.streamData({
-                data: references,
-                type: "references",
-              });
+              if (shouldStream) {
+                dataStreamer?.streamData({
+                  data: references,
+                  type: "references",
+                });
+              }
             }
             return result;
           } catch (error: unknown) {
@@ -212,10 +214,12 @@ export function makeGenerateResponseWithSearchTool({
           ...userMessageCustomData,
           ...guardrailResult,
         };
-        dataStreamer?.streamData({
-          type: "delta",
-          data: llmRefusalMessage,
-        });
+        if (shouldStream) {
+          dataStreamer?.streamData({
+            type: "delta",
+            data: llmRefusalMessage,
+          });
+        }
         return handleReturnGeneration({
           userMessage,
           guardrailResult,
@@ -265,10 +269,12 @@ export function makeGenerateResponseWithSearchTool({
         });
       }
     } catch (error: unknown) {
-      dataStreamer?.streamData({
-        type: "delta",
-        data: llmNotWorkingMessage,
-      });
+      if (shouldStream) {
+        dataStreamer?.streamData({
+          type: "delta",
+          data: llmNotWorkingMessage,
+        });
+      }
 
       // Create error message with references attached
       const errorMessage: AssistantMessage = {

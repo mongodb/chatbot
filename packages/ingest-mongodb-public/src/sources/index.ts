@@ -3,7 +3,6 @@ import {
   DataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-  MakeMarkdownUrlDataSourceParams,
   makeMarkdownUrlDataSource,
   removeMarkdownFileExtension,
 } from "mongodb-rag-core/dataSources";
@@ -194,20 +193,15 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
     "https://docs.voyageai.com/sitemap.xml"
   );
 
-  const voyageAiDocsDataSourceParams: MakeMarkdownUrlDataSourceParams<SourceTypeName> =
-    {
-      sourceName: "voyageai-docs",
-      markdownUrls: sitemapUrls.map((url) => url + ".md"),
-      sourceType: "tech-docs",
-      metadata: {
-        tags: ["docs", "voyageai"],
-      },
-      markdownUrlToPageUrl: removeMarkdownFileExtension,
-    };
-
-  return makeMarkdownUrlDataSource<SourceTypeName>(
-    voyageAiDocsDataSourceParams
-  );
+  return makeMarkdownUrlDataSource<SourceTypeName>({
+    sourceName: "voyageai-docs",
+    markdownUrls: sitemapUrls.map((url) => url + ".md"),
+    sourceType: "tech-docs",
+    metadata: {
+      tags: ["docs", "voyageai"],
+    },
+    markdownUrlToPageUrl: removeMarkdownFileExtension,
+  });
 };
 
 /**

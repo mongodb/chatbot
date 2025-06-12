@@ -10,6 +10,58 @@ const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
   MONGODB_CONNECTION_URI: "",
 });
 
+const excludeSources: Set<string> = new Set([
+  "snooty-guides",
+  "snooty-atlas-cli",
+  "snooty-docs-k8s-operator",
+  "snooty-c",
+  "snooty-mongodb-vscode",
+  "snooty-intellij",
+  "snooty-entity-framework",
+  "snooty-node",
+  "snooty-cpp-driver",
+  "snooty-csharp",
+  "snooty-mongocli",
+  "snooty-pymongo",
+  "snooty-rust",
+  "snooty-mongodb-shell",
+  "snooty-django",
+  "snooty-scala",
+  "snooty-cloud-manager",
+  "snooty-atlas-architecture",
+  "snooty-charts",
+  "snooty-ruby-driver",
+  "snooty-cloud-docs",
+  "snooty-landing",
+  "snooty-golang",
+  "snooty-bi-connector",
+  "snooty-kafka-connector",
+  "snooty-java",
+  "snooty-kotlin-sync",
+  "snooty-drivers",
+  "snooty-mongoid",
+  "snooty-cluster-sync",
+  "snooty-docs-relational-migrator",
+  "snooty-atlas-operator",
+  "snooty-spark-connector",
+  "snooty-compass",
+  "snooty-ops-manager",
+  "snooty-kotlin",
+  "snooty-php-library",
+  "snooty-cloudgov",
+  "snooty-visual-studio-extension",
+  "snooty-laravel",
+  "snooty-database-tools",
+  "snooty-pymongo-arrow",
+  "snooty-java-rs",
+  "mongodb-dot-com",
+  "web-company",
+  "web-customer-case-studies",
+  "web-solutions-library",
+  "web-university",
+  "web-services",
+]);
+
 async function main() {
   const pageStore = await makeMongoDbPageStore({
     connectionUri: MONGODB_CONNECTION_URI,
@@ -17,24 +69,13 @@ async function main() {
     collectionName: "pages",
   });
 
-  pageStore.aggregatePages([{ $group: { _id: "$sourceName" }}]);
-
   /** Query the Pages collection: 
-    Get all unique sourceNames. 
-    Count pages in each sourceName by action type (created/updated/deleted).
-
-    sourceNameCount documents are shaped like:
+    Get all unique sourceNames where the only action type is "deleted". 
+    
+    Documents are shaped like:
     {
       _id: "snooty-cloud-docs"
       actions: [
-        {
-          action: "created", 
-          count: 1068,
-        }, 
-        {
-          action: "updated", 
-          count: 1068,
-        }, 
         {
           action: "deleted", 
           count: 1068,
@@ -42,7 +83,7 @@ async function main() {
       ] 
     }
   */
-  const sourceNameCount = await pageStore.aggregatePages([
+  const sourceNameDeletedCount = await pageStore.aggregatePages([
     {
       $group: {
         _id: {
@@ -63,16 +104,19 @@ async function main() {
         },
       },
     },
+    {
+      $match: {
+        actions: { $size: 1 },
+        "actions.action": "deleted",
+      },
+    },
   ]);
 
   const failedSources: string[] = [];
-  for (let i = 0; i < sourceNameCount.length; i++) {
-    if (
-      sourceNameCount[i].actions.length === 1 &&
-      sourceNameCount[i].actions[0].action === "deleted"
-    ) {
-      failedSources.push(sourceNameCount[i]._id);
-      console.log(`${sourceNameCount[i]._id} has no pages!!`);
+  for (let i = 0; i < sourceNameDeletedCount.length; i++) {
+    if (!excludeSources.has(sourceNameDeletedCount[i]._id)) {
+      failedSources.push(sourceNameDeletedCount[i]._id);
+      console.log(`${sourceNameDeletedCount[i]._id} has no pages!!`);
     }
   }
 

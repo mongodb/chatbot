@@ -28,6 +28,7 @@
     "listSlackMessages": "npm run build && node ./build/main/listSlackMessagesMain.js",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",
+    "verifyPagesInSources": "npm run build && node ./build/verifyPagesInSources.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "clean": "rm -rf ./build",

@@ -192,3 +192,98 @@
   expectedLinks:
     - https://learn.mongodb.com
     - https://learn.mongodb.com/skills 
+- name: What skill badges are available?
+  tags:
+    - promote skills
+  messages:
+    - role: user
+      content: What skill badges are available?
+  reference: MongoDB offers a range of Skill Badges that you can explore on our
+    skills page. Currently this includes several badges on data modeling topics and
+    we're working to add more over time. We recommend starting with the "Relational
+    to Document Model" skill. From there you can explore other topics like "Schema
+    Design Patterns and Antipatterns", "Advanced Schema Patterns and Antipatterns",
+    and "Schema Design Optimization".
+  expectedLinks:
+    - https://learn.mongodb.com/skills 
+- name: What skills can I learn?
+  tags:
+    - promote skills
+  messages:
+    - role: user
+      content: What skills can I learn?
+  reference: MongoDB offers a range of Skill Badges that you can explore on our
+    skills page. Currently this includes several badges on data modeling topics and
+    we're working to add more over time. We recommend starting with the "Relational
+    to Document Model" skill. From there you can explore other topics like "Schema
+    Design Patterns and Antipatterns", "Advanced Schema Patterns and Antipatterns",
+    and "Schema Design Optimization".
+  expectedLinks:
+    - https://learn.mongodb.com/skills 
+- name: What should I take to learn about genAI?
+  tags:
+    - promote skills
+  messages:
+    - role: user
+      content: What should I take to learn about genAI?
+  reference: >-
+    To learn about Generative AI (GenAI) with MongoDB, you can pursue the following
+    learning paths and badges offered by MongoDB University: For a quick introduction
+    to GenAI, you can start with the "Gen AI" skills. There are short courses on
+    Vector Search Fundamentals and RAG with MongoDB that will provides a foundational
+    understanding of GenAI concepts and how they can be applied using MongoDB technologies.
+    For a more comprehensive learning experience, you can follow the two learning paths
+    designed specifically for building and deploying GenAI applications:
+    1. Building GenAI Apps Learning Badge Path: This path will guide you through the
+    foundations of building a GenAI application using MongoDB Atlas Vector Search.
+    You'll learn about semantic search and how to build chatbots with retrieval-augmented
+    generation (RAG) using MongoDB and Langchain.
+    2. Deploying and Evaluating GenAI Apps Learning Badge Path: This path focuses on
+    taking your GenAI application from creation to full deployment, optimizing performance,
+    and evaluating results. It covers chunking strategies, performance evaluation techniques,
+    and deployment options in MongoDB for both prototyping and production stages. 
+  expectedLinks:
+    - https://learn.mongodb.com/skills?openTab=gen%20ai
+    - https://learn.mongodb.com/learning-paths/building-genai-apps-learning-badge-path
+    - https://learn.mongodb.com
+- name: What should I take to on MongoDB University learn about genAI?
+  tags:
+    - promote skills
+  messages:
+    - role: user
+      content: What should I take to on MongoDB University learn about genAI?
+  reference: >-
+    To learn about Generative AI (GenAI) with MongoDB, you can pursue the following
+    learning paths and badges offered by MongoDB University: For a quick introduction
+    to GenAI, you can start with the "Gen AI" skills. There are short courses on
+    Vector Search Fundamentals and RAG with MongoDB that will provides a foundational
+    understanding of GenAI concepts and how they can be applied using MongoDB technologies.
+    For a more comprehensive learning experience, you can follow the two learning paths
+    designed specifically for building and deploying GenAI applications:
+    1. Building GenAI Apps Learning Badge Path: This path will guide you through the
+    foundations of building a GenAI application using MongoDB Atlas Vector Search.
+    You'll learn about semantic search and how to build chatbots with retrieval-augmented
+    generation (RAG) using MongoDB and Langchain.
+    2. Deploying and Evaluating GenAI Apps Learning Badge Path: This path focuses on
+    taking your GenAI application from creation to full deployment, optimizing performance,
+    and evaluating results. It covers chunking strategies, performance evaluation techniques,
+    and deployment options in MongoDB for both prototyping and production stages. 
+  expectedLinks:
+    - https://learn.mongodb.com/skills?openTab=gen%20ai
+    - https://learn.mongodb.com/learning-paths/building-genai-apps-learning-badge-path
+    - https://learn.mongodb.com
+- name: What is the fastest way to learn about genAI?
+  tags:
+    - promote skills
+  messages:
+    - role: user
+      content: What is the fastest way to learn about genAI?
+  reference: >-
+    For a quick introduction to GenAI, you can start with the "Gen AI" skills. 
+    There are short courses on Vector Search Fundamentals and RAG with MongoDB 
+    that will provides a foundational understanding of GenAI concepts and how they 
+    can be applied using MongoDB technologies.
+  expectedLinks:
+    - https://learn.mongodb.com/skills?openTab=gen%20ai
+    - https://learn.mongodb.com/skills
+    - https://learn.mongodb.com

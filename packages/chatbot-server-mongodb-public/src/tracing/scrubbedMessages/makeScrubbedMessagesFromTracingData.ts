@@ -20,6 +20,9 @@ export async function makeScrubbedMessagesFromTracingData({
   reqId: string;
 }): Promise<ScrubbedMessage<MessageAnalysis>[]> {
   const { userMessage, assistantMessage } = tracingData;
+  if (!userMessage) {
+    throw new Error("User message not found");
+  }
 
   const userAnalysis = analysis
     ? await analyzeMessage(userMessage.content, analysis.model).catch(
@@ -61,14 +64,15 @@ export async function makeScrubbedMessagesFromTracingData({
   } satisfies ScrubbedMessage<MessageAnalysis>;
 
   // Assistant message scrubbing
-  const assistantAnalysis = analysis && !tracingData.isVerifiedAnswer
-    ? await analyzeMessage(assistantMessage.content, analysis.model) 
-    : undefined;
+  const assistantAnalysis =
+    analysis && !tracingData.isVerifiedAnswer
+      ? await analyzeMessage(assistantMessage.content, analysis.model)
+      : undefined;
   const {
     redactedText: redactedAssistantContent,
     piiFound: assistantMessagePii,
   } = redactPii(assistantMessage.content);
-  
+
   const scrubbedAssistantMessage = {
     _id: assistantMessage.id,
     conversationId: tracingData.conversationId,

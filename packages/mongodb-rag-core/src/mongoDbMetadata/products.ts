@@ -40,7 +40,7 @@ export const mongodbDrivers = [
   },
   {
     id: "entity_framework_core",
-    name: "Entity Framework Core Provider",
+    name: "MongoDB Entity Framework Provider",
     description: "MongoDB Entity Framework Core Provider",
     parentProductId: "driver",
     programmingLanguage: "csharp",
@@ -103,7 +103,7 @@ export const mongodbDrivers = [
   },
   {
     id: "pymongo_driver",
-    name: "PyMongo Driver",
+    name: "PyMongo",
     description: "MongoDB PyMongo Driver",
     parentProductId: "driver",
     programmingLanguage: "python",
@@ -169,6 +169,24 @@ export const mongoDbProducts = [
     parentProductId: "server",
   },
   {
+    id: "change_streams",
+    name: "Change Streams",
+    description: "Listen to changes in MongoDB data",
+    parentProductId: "server",
+  },
+  {
+    id: "driver",
+    name: "MongoDB Drivers",
+    description: "Client libraries for querying MongoDB",
+    parentProductId: "server",
+  },
+  {
+    id: "gridfs",
+    name: "GridFS",
+    description: "Store large files across multiple MongoDB documents",
+    parentProductId: "server",
+  },
+  {
     id: "atlas",
     name: "MongoDB Atlas",
     description: "Cloud database platform-as-a-service",
@@ -193,9 +211,10 @@ export const mongoDbProducts = [
   },
   {
     id: "data_federation",
-    name: "Data Federation",
+    name: "Atlas Data Federation",
     description:
       "Query data across multiple MongoDB databases and cloud object stores",
+    parentProductId: "atlas",
   },
   {
     id: "atlas_cli",
@@ -204,33 +223,10 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
   },
   {
-    id: "driver",
-    name: "Drivers",
-    description: "Client libraries for querying MongoDB",
-    parentProductId: "server",
-  },
-  {
-    id: "change_streams",
-    name: "Change Streams",
-    description: "Listen to changes in MongoDB data",
-    parentProductId: "server",
-  },
-  {
-    id: "compass",
-    name: "MongoDB Compass",
-    description: "GUI tool for MongoDB",
-  },
-  {
-    id: "gridfs",
-    name: "GridFS",
-    description: "Store large files across multiple MongoDB documents",
-    parentProductId: "server",
-  },
-  {
-    id: "bi_connector",
-    name: "MongoDB Connector for BI",
-    description:
-      "Query MongoDB data with SQL using business intelligence tools.",
+    id: "atlas_online_archive",
+    name: "Atlas Online Archive",
+    description: "Archive infrequently accessed data in MongoDB Atlas.",
+    parentProductId: "atlas",
   },
   {
     id: "atlas_stream_processing",
@@ -246,6 +242,37 @@ export const mongoDbProducts = [
       "Managed service that runs actions in response to events on MongoDB Atlas",
   },
   {
+    id: "atlas_operator",
+    name: "MongoDB Atlas Kubernetes Operator",
+    parentProductId: "atlas",
+    description:
+      "Manage Atlas resources (clusters, projects, database users) directly within a Kubernetes cluster.",
+  },
+  {
+    id: "atlas_gov",
+    name: "MongoDB Atlas for Government",
+    description: "MongoDB Atlas for Government",
+    parentProductId: "atlas",
+  },
+  {
+    id: "atlas_performance_advisor",
+    name: "Performance Advisor",
+    description:
+      "Monitors slow queries and makes suggestions on how to improve query performance",
+    parentProductId: "atlas",
+  },
+  {
+    id: "bi_connector",
+    name: "MongoDB Connector for BI",
+    description:
+      "Query MongoDB data with SQL using business intelligence tools.",
+  },
+  {
+    id: "compass",
+    name: "MongoDB Compass",
+    description: "GUI tool for MongoDB",
+  },
+  {
     id: "mongodb_ops_manager",
     name: "MongoDB Ops Manager",
     description: "On-prem management tool for MongoDB",
@@ -257,24 +284,20 @@ export const mongoDbProducts = [
   },
   {
     id: "spark_connector",
-    name: "Spark Connector",
+    name: "MongoDB Spark Connector",
     description: "MongoDB Connector for Apache Spark",
   },
   {
     id: "shell",
-    name: "MongoDB Shell (mongosh)",
+    name: "MongoDB Shell",
     description:
-      "JavaScript and Node.js REPL for interacting with MongoDB deployments",
+      "The MongoDB Shell, mongosh, is a JavaScript and Node.js REPL for interacting with MongoDB databases.",
   },
   {
-    id: "atlas_gov",
-    name: "MongoDB Atlas for Government",
-    description: "MongoDB Atlas for Government",
-  },
-  {
-    id: "vs_code_extension",
-    name: "VS Code Extension",
-    description: "Visual Studio Cod extension for MongoDB",
+    id: "mongodb_vscode",
+    name: "MongoDB for VS Code",
+    description:
+      "VS Code extension for working with MongoDB data directly in your IDE",
   },
   {
     id: "mongodb_cli",
@@ -282,14 +305,30 @@ export const mongoDbProducts = [
     description: "CLI for interacting with MongoDB deployments",
   },
   {
-    id: "visual_studio_extension",
+    id: "database_tools",
+    name: "MongoDB Database Tools",
+    description:
+      "Command-line utilities for MongoDB data migration, backups, and restores",
+  },
+  {
+    id: "mongodb_analyzer",
     name: "C# Analyzer",
-    description: "C# Roslyn Analyzer for MongoDB",
+    description: "VS Code extension for analysing MongoDB .NET/C# driver code",
+  },
+  {
+    id: "intellij",
+    name: "MongoDB IntelliJ Plugin",
+    description: "IntelliJ plugin for MongoDB development in Java",
   },
   {
     id: "kafka_connector",
-    name: "Kafka Connector",
+    name: "MongoDB Kafka Connector",
     description: "MongoDB Kafka Connector",
+  },
+  {
+    id: "django",
+    name: "Django MongoDB Backend",
+    description: "Interact with a MongoDB deployment from Django",
   },
   {
     id: "cluster_sync",
@@ -297,14 +336,26 @@ export const mongoDbProducts = [
     description: "Sync data between MongoDB clusters",
   },
   {
-    id: "k8s_operator",
+    id: "community_kubernetes_operator",
+    name: "Community Kubernetes Operator",
+    description:
+      "[Deprecated] Deploy basic MongoDB ReplicaSets on Kubernetes, open-source and free.",
+  },
+  {
+    id: "enterprise_kubernetes_operator",
     name: "Kubernetes Operator",
     description:
-      "Manage the typical lifecycle events for a MongoDB cluster deployed to Kubernetes",
+      "[Deprecated] Deploy production MongoDB clusters with greater features, requires commercial license.",
+  },
+  {
+    id: "mongodb_kubernetes_controllers",
+    name: "MongoDB Controllers for Kubernetes",
+    description:
+      "MongoDB Kubernetes Operator provisions storage, networking, and users and integrates with Cloud/Ops Manager.",
   },
   {
     id: "relational_migrator",
-    name: "Relational Migrator",
+    name: "MongoDB Relational Migrator",
     description: "Migrates data from relational databases to MongoDB",
   },
   {
@@ -317,11 +368,12 @@ export const mongoDbProducts = [
     id: "skills",
     name: "MongoDB University Skills",
     description:
-      "An educational program that allows users to earn a skill badge after taking a short course and completing an assessment",
+      "Earn a skill badge after taking a short course and completing an assessment",
   },
 ] as const satisfies MongoDbProduct[];
 
 export type MongoDbProductName = (typeof mongoDbProducts)[number]["name"];
+export type MongoDbDriverName = (typeof mongodbDrivers)[number]["name"];
 export type MongoDbProductId = (typeof mongoDbProducts)[number]["id"];
 export type MongoDbProductNameEnum = [
   MongoDbProductName,

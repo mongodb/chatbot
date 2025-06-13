@@ -1,3 +1,4 @@
+import { References } from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 
 /**
@@ -13,24 +14,28 @@ import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   // Filter chunks with unique URLs
   const uniqueUrls = new Set();
-  const uniqueChunks = chunks.filter((chunk) => {
+  const uniqueReferenceChunks = chunks.filter((chunk) => {
     if (!uniqueUrls.has(chunk.url)) {
       uniqueUrls.add(chunk.url);
-      return true; // Keep the chunk as it has a unique URL
+      return true; // Keep the reference as it has a unique URL
     }
-    return false; // Discard the chunk as its URL is not unique
+    return false; // Discard the reference as its URL is not unique
   });
 
-  return uniqueChunks.map((chunk) => {
+  return uniqueReferenceChunks.map((chunk) => {
     const url = new URL(chunk.url).href;
-    const title = chunk.metadata?.pageTitle ?? url;
+    // Ensure title is always a string by checking its type
+    const pageTitle = chunk.metadata?.pageTitle;
+    const title = typeof pageTitle === "string" ? pageTitle : url;
+    const sourceName = chunk.sourceName;
+
     return {
       title,
       url,
       metadata: {
-        sourceName: chunk.sourceName,
+        sourceName,
         tags: chunk.metadata?.tags ?? [],
       },
     };
-  });
+  }) satisfies References;
 };

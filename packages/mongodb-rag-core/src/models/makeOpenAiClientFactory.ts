@@ -14,7 +14,6 @@ interface MakeOpenAiClientFactoryParams {
 
 export function makeOpenAiClientFactory({
   braintrust,
-  vertexAi,
 }: MakeOpenAiClientFactoryParams) {
   return {
     makeOpenAiClient(modelConfig: ModelConfig) {
@@ -25,14 +24,6 @@ export function makeOpenAiClientFactory({
           new OpenAI({
             apiKey: braintrust.apiKey,
             baseURL: braintrust.endpoint,
-          })
-        );
-      } else if (modelConfig.provider === "gcp_vertex_ai") {
-        assert(vertexAi, "GCP Vertex AI config must be provided");
-        openAiClient = wrapOpenAI(
-          new OpenAI({
-            apiKey: vertexAi.apiKey,
-            baseURL: vertexAi.endpoint,
           })
         );
       } else {

@@ -2,24 +2,12 @@ import { z } from "zod";
 
 export const mongoDbProgrammingLanguages = [
   {
-    id: "shell",
-    name: "Shell",
+    id: "objective-c",
+    name: "Objective-C",
   },
   {
-    id: "javascript",
-    name: "JavaScript",
-  },
-  {
-    id: "typescript",
-    name: "TypeScript",
-  },
-  {
-    id: "python",
-    name: "Python",
-  },
-  {
-    id: "java",
-    name: "Java",
+    id: "c",
+    name: "C",
   },
   {
     id: "csharp",
@@ -30,18 +18,6 @@ export const mongoDbProgrammingLanguages = [
     name: "C++",
   },
   {
-    id: "ruby",
-    name: "Ruby",
-  },
-  {
-    id: "kotlin",
-    name: "Kotlin",
-  },
-  {
-    id: "c",
-    name: "C",
-  },
-  {
     id: "dart",
     name: "Dart",
   },
@@ -50,8 +26,44 @@ export const mongoDbProgrammingLanguages = [
     name: "Go",
   },
   {
+    id: "graphql",
+    name: "GraphQL",
+  },
+  {
+    id: "java",
+    name: "Java",
+  },
+  {
+    id: "javascript",
+    name: "JavaScript",
+  },
+  {
+    id: "json",
+    name: "JSON",
+  },
+  {
+    id: "kotlin",
+    name: "Kotlin",
+  },
+  {
+    id: "typescript",
+    name: "TypeScript",
+  },
+  {
+    id: "perl",
+    name: "Perl",
+  },
+  {
     id: "php",
     name: "PHP",
+  },
+  {
+    id: "python",
+    name: "Python",
+  },
+  {
+    id: "ruby",
+    name: "Ruby",
   },
   {
     id: "rust",
@@ -60,6 +72,10 @@ export const mongoDbProgrammingLanguages = [
   {
     id: "scala",
     name: "Scala",
+  },
+  {
+    id: "shell",
+    name: "Shell",
   },
   {
     id: "swift",

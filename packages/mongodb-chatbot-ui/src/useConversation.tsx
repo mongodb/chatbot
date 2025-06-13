@@ -91,7 +91,7 @@ export function useConversation(params: UseConversationParams) {
     let references: References | null = null;
     let bufferedTokens: string[] = [];
     let streamedTokens: string[] = [];
-    const streamingIntervalMs = 50;
+    const streamingIntervalMs = 1;
     const streamingInterval = setInterval(() => {
       const [nextToken, ...remainingTokens] = bufferedTokens;
 

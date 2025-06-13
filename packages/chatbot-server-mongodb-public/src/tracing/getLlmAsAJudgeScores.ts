@@ -85,9 +85,10 @@ export async function getLlmAsAJudgeScores(
   ) {
     return;
   }
+
   const input = tracingData.userMessage.content;
   const output = tracingData.assistantMessage.content;
-  const context = tracingData.userMessage.contextContent
+  const context = tracingData.contextContent
     ?.map((c) => c.text)
     .filter((value): value is string => typeof value === "string");
 

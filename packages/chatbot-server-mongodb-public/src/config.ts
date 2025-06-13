@@ -241,11 +241,11 @@ export const generateResponse = wrapTraced(
         toolChoice: "auto",
         maxSteps: 5,
       }),
-      { name: "makeStepBackRagGenerateUserPrompt" }
+      { name: "GenerateResponseWithSearchTool" }
     ),
   }),
   {
-    name: "generateUserPrompt",
+    name: "generateResponse",
   }
 );
 

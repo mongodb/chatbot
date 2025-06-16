@@ -5,9 +5,10 @@ import { Scorer } from "autoevals";
 import { classifyMongoDbMetadata, MongoDbTag } from "./";
 import { createOpenAI } from "@ai-sdk/openai";
 import { getOpenAiEndpointAndApiKey, models } from "../models";
+import { wrapAISDKModel } from "../braintrust";
 
 async function main() {
-  const modelLabel = "gpt-4.1";
+  const modelLabel = "gpt-4.1-mini";
   const modelConfig = models.find((m) => m.label === modelLabel);
   assert(modelConfig, `Model ${modelLabel} not found`);
 
@@ -392,7 +393,7 @@ async function main() {
     async task(input) {
       try {
         return await classifyMongoDbMetadata(
-          openai.languageModel(modelLabel),
+          wrapAISDKModel(openai.languageModel(modelLabel)),
           input
         );
       } catch (error) {

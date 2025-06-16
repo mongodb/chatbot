@@ -1,6 +1,7 @@
 import { mongoDbTopics } from "mongodb-rag-core/mongoDbMetadata";
 import { z } from "zod";
 import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const MessageAnalysisSchema = z.object({
   topics: z
@@ -44,23 +45,28 @@ For all nullable fields, set to \`null\` if it is unclear or unknown.`;
 
 export type MessageAnalysis = z.infer<typeof MessageAnalysisSchema>;
 
-export async function analyzeMessage(
-  messageContent: string,
-  model: LanguageModel
-): Promise<MessageAnalysis> {
-  const result = await generateObject({
-    model,
-    schema: MessageAnalysisSchema,
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: messageContent,
-      },
-    ],
-  });
-  return result.object;
-}
+export const analyzeMessage = wrapTraced(
+  async function (
+    messageContent: string,
+    model: LanguageModel
+  ): Promise<MessageAnalysis> {
+    const result = await generateObject({
+      model,
+      schema: MessageAnalysisSchema,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: messageContent,
+        },
+      ],
+    });
+    return result.object;
+  },
+  {
+    name: "analyzeMessage",
+  }
+);

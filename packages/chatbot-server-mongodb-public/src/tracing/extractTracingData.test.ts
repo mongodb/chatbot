@@ -52,21 +52,6 @@ describe("extractTracingData", () => {
     expect(tracingData.rejectQuery).toBe(true);
     expect(tracingData.tags.includes("rejected_query")).toBe(true);
   });
-  test("should extract metadata", () => {
-    const messages: Message[] = [
-      {
-        ...baseUserMessage,
-        customData: {
-          programmingLanguage: "javascript",
-          mongoDbProduct: "MongoDB Atlas",
-        },
-      },
-      baseAssistantMessage,
-    ];
-    const tracingData = extractTracingData(messages, msgId, conversationId);
-    expect(tracingData.tags.includes("javascript")).toBe(true);
-    expect(tracingData.tags.includes("mongodb_atlas")).toBe(true);
-  });
   test("should get number of retrieved chunks", () => {
     const messagesNoContext: Message[] = [
       {

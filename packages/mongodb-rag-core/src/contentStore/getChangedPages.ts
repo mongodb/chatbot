@@ -100,11 +100,13 @@ const comparablePartialPage = ({
   sourceName,
   body,
   format,
+  sourceType,
   metadata,
 }: Page): Partial<Page> => ({
   url,
   sourceName,
   body,
   format,
+  sourceType,
   metadata,
 });

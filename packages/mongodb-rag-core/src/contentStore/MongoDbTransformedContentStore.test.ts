@@ -48,10 +48,8 @@ describe("MongoDbTransformedContentStore", () => {
       collectionName: "test-collection",
     });
   });
-  let content;
   beforeEach(async () => {
     for (const page of pages) {
-      content = await store?.loadContent({ page });
       await store?.updateContent({
         page,
         transformedContent: [

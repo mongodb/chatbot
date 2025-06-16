@@ -1,14 +1,10 @@
 import request from "supertest";
 import "dotenv/config";
 import {
-  assertEnvVars,
-  CORE_ENV_VARS,
-  makeMongoDbConversationsService,
   ConversationsService,
   Conversation,
   defaultConversationConstants,
   Message,
-  makeOpenAiChatLlm,
   SomeMessage,
 } from "mongodb-rag-core";
 import { Express } from "express";
@@ -21,14 +17,11 @@ import { ApiConversation, ApiMessage } from "./utils";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
-import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { strict as assert } from "assert";
-import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { Db, ObjectId } from "mongodb-rag-core/mongodb";
+import { mockAssistantResponse } from "../../test/testConfig";
 
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: Db;
@@ -73,8 +66,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send(requestBody);
       const message: ApiMessage = res.body;
       expect(res.statusCode).toEqual(200);
-      expect(message.role).toBe("assistant");
-      expect(message.content).toContain("Realm");
+      expect(message).toMatchObject(mockAssistantResponse);
       const request2Body: AddMessageRequestBody = {
         message: stripIndent`i'm want to learn more about this Realm thing. a few questions:
             can i use realm with javascript?
@@ -87,14 +79,13 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send(request2Body);
       const message2: ApiMessage = res2.body;
       expect(res2.statusCode).toEqual(200);
-      expect(message2.role).toBe("assistant");
-      expect(message2.content).toContain("Realm");
+      expect(message2).toMatchObject(mockAssistantResponse);
       const conversationInDb = await mongodb
         .collection<Conversation>("conversations")
         .findOne({
           _id: new ObjectId(conversationId),
         });
-      expect(conversationInDb?.messages).toHaveLength(5); // system, user, assistant, user, assistant
+      expect(conversationInDb?.messages).toHaveLength(4); // user, assistant, user, assistant
     });
   });
 
@@ -119,6 +110,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     expect(userMessageWithCustomData?.customData).toStrictEqual({
       ip: ipAddress,
       origin,
+      originCode: "OTHER",
       userAgent: "test-user-agent",
     });
   });
@@ -331,97 +323,16 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
   });
 
-  describe("Edge cases", () => {
-    test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
-      const query = REJECT_QUERY_CONTENT;
-      const res = await request(app)
-        .post(endpointUrl.replace(":conversationId", conversationId))
-        .set("X-FORWARDED-FOR", ipAddress)
-        .set("Origin", origin)
-        .send({ message: query });
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.content).toEqual(
-        defaultConversationConstants.NO_RELEVANT_CONTENT
-      );
-    });
-    test("Should respond with 200 and static response if no vector search content for user message", async () => {
-      const calledEndpoint = endpointUrl.replace(
-        ":conversationId",
-        conversationId
-      );
-      const response = await request(app)
-        .post(calledEndpoint)
-        .set("X-FORWARDED-FOR", ipAddress)
-        .set("Origin", origin)
-        .send({ message: NO_VECTOR_CONTENT });
-      expect(response.statusCode).toBe(200);
-      expect(response.body.references).toStrictEqual([]);
-      expect(response.body.content).toEqual(
-        defaultConversationConstants.NO_RELEVANT_CONTENT
-      );
-    });
-
-    describe("LLM not available but vector search is", () => {
-      const openAiClient = new OpenAI({
-        apiKey: "definitelyNotARealApiKey",
-      });
-      const brokenLlmService = makeOpenAiChatLlm({
-        openAiClient,
-        deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        openAiLmmConfigOptions: {
-          temperature: 0,
-          max_tokens: 500,
-        },
-      });
-
-      let conversationId: ObjectId,
-        conversations: ConversationsService,
-        app: Express;
-      let testMongo: Db;
-      beforeEach(async () => {
-        const { mongodb, appConfig } = await makeTestAppConfig();
-        testMongo = mongodb;
-        ({ app } = await makeTestApp({
-          ...appConfig,
-          conversationsRouterConfig: {
-            ...appConfig.conversationsRouterConfig,
-            llm: brokenLlmService,
-          },
-        }));
-
-        conversations = makeMongoDbConversationsService(testMongo);
-        const { _id } = await conversations.create({
-          initialMessages: [systemPrompt],
-        });
-        conversationId = _id;
-      });
-      test("should respond 200, static message, and vector search results", async () => {
-        const messageThatHasSearchResults = "Why use MongoDB?";
-        const response = await request(app)
-          .post(
-            endpointUrl.replace(":conversationId", conversationId.toString())
-          )
-          .set("X-FORWARDED-FOR", ipAddress)
-          .set("Origin", origin)
-          .send({ message: messageThatHasSearchResults });
-        expect(response.statusCode).toBe(200);
-        expect(response.body.content).toBe(
-          defaultConversationConstants.LLM_NOT_WORKING
-        );
-        expect(response.body.references.length).toBeGreaterThan(0);
-      });
-    });
-  });
-
   describe("create conversation with 'null' conversationId", () => {
     test("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
+      const message = {
+        message: "hello",
+      };
       const res = await request(app)
         .post(DEFAULT_API_PREFIX + `/conversations/null/messages`)
         .set("X-FORWARDED-FOR", ipAddress)
         .set("Origin", origin)
-        .send({
-          message: "hello",
-        });
+        .send(message);
       expect(res.statusCode).toEqual(200);
       expect(res.body).toMatchObject({
         content: expect.any(String),
@@ -437,8 +348,11 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(conversation?._id.toString()).toEqual(
         res.body.metadata.conversationId
       );
-      expect(conversation?.messages).toHaveLength(3);
-      expect(conversation?.messages[0]).toMatchObject(systemPrompt);
+      expect(conversation?.messages).toHaveLength(2);
+      expect(conversation?.messages[0]).toMatchObject({
+        content: message.message,
+        role: "user",
+      });
     });
     test("should not create a new conversation with 'null' value for addMessageToConversation if NOT configured", async () => {
       const { app: appWithoutCustomData } = await makeTestApp({

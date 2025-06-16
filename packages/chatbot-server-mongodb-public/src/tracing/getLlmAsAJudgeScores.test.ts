@@ -8,9 +8,6 @@ jest.mock("autoevals", () => ({
   ContextRelevancy: jest.fn().mockResolvedValue({
     score: 0.8,
   }),
-  AnswerRelevancy: jest.fn().mockResolvedValue({
-    score: 0.8,
-  }),
 }));
 
 afterEach(() => {
@@ -51,7 +48,13 @@ describe("getLlmAsAJudgeScores", () => {
     isVerifiedAnswer: false,
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
+    contextContent: [],
     rejectQuery: false,
+    rating: undefined,
+    comment: undefined,
+    conversationId: new ObjectId(),
+    userMessageIndex: 0,
+    assistantMessageIndex: 1,
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {
@@ -75,20 +78,6 @@ describe("getLlmAsAJudgeScores", () => {
     });
     expect(scores).toEqual(undefined);
   });
-  it("shouldn't judge if no user message", async () => {
-    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
-      ...willJudge,
-      userMessage: undefined,
-    });
-    expect(scores).toEqual(undefined);
-  });
-  it("shouldn't judge if no assistant message", async () => {
-    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
-      ...willJudge,
-      assistantMessage: undefined,
-    });
-    expect(scores).toEqual(undefined);
-  });
   it("shouldn't judge when LLM doesn't know", async () => {
     const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
       ...willJudge,
@@ -100,7 +89,6 @@ describe("getLlmAsAJudgeScores", () => {
     const scores = await getLlmAsAJudgeScores(fakeBaseConfig, willJudge);
     expect(scores).toEqual({
       ContextRelevancy: 0.8,
-      AnswerRelevancy: 0.8,
       Faithfulness: 0.8,
     });
   });

@@ -20,6 +20,7 @@ describe("loadPagesDataset", () => {
       updated: new Date(),
       format: "html",
       action: "updated",
+      sourceType: "tech-docs",
     },
     // This page should be filtered out by forbidden url
     {
@@ -31,6 +32,7 @@ describe("loadPagesDataset", () => {
       updated: new Date(),
       format: "html",
       action: "updated",
+      sourceType: "tech-docs",
     },
     // This page has action deleted, so should not be returned
     {
@@ -42,8 +44,9 @@ describe("loadPagesDataset", () => {
       updated: new Date(),
       format: "html",
       action: "deleted",
+      sourceType: "tech-docs",
     },
-    // This page does not match regex (even though it is active)
+    // This page does not match sourceType = "tech-docs" (even though it is active)
     {
       url: "https://example.com/page4",
       body: "Page 4 body",
@@ -53,6 +56,36 @@ describe("loadPagesDataset", () => {
       updated: new Date(),
       format: "html",
       action: "created",
+      sourceType: "marketing",
+    },
+    {
+      url: "https://example.com/page5",
+      body: "Page 5 body",
+      metadata: {
+        extra: "info1",
+        version: { isCurrent: true, label: "current" },
+      },
+      title: "Page 5",
+      sourceName: "SourceE",
+      updated: new Date(),
+      format: "html",
+      action: "updated",
+      sourceType: "tech-docs",
+    },
+    // This page represents an older version and should not be returned
+    {
+      url: "https://example.com/old-version/page5",
+      body: "Page 5 body",
+      metadata: {
+        extra: "info5",
+        version: { isCurrent: false, label: "old-version" },
+      },
+      title: "Page 5",
+      sourceName: "SourceE",
+      updated: new Date(),
+      format: "html",
+      action: "updated",
+      sourceType: "tech-docs",
     },
   ];
 
@@ -72,21 +105,14 @@ describe("loadPagesDataset", () => {
     await pageStore.close();
   });
 
-  it("should only return pages matching a regex", async () => {
+  it("should only return pages matching a sourceType", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /SourceA/,
       forbiddenUrls: [],
+      dataSourceTypes: ["tech-docs"],
     });
-    // page1 should be returned, page2 as well if not forbidden & not deleted, page3 is deleted.
-    // page4 is filtered out because dataSource doesn't match.
+    // page1 should be returned as it matches the sourceType, page 4 does not match
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
-    expect(dataset.map((p) => p.url)).not.toContain(
-      "https://example.com/page2"
-    );
-    expect(dataset.map((p) => p.url)).not.toContain(
-      "https://example.com/page3"
-    );
     expect(dataset.map((p) => p.url)).not.toContain(
       "https://example.com/page4"
     );
@@ -95,8 +121,8 @@ describe("loadPagesDataset", () => {
   it("should exclude forbidden urls", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /SourceA|SourceB/,
       forbiddenUrls: [samplePages[1].url],
+      dataSourceTypes: ["devcenter", "tech-docs"],
     });
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
     expect(dataset.map((p) => p.url)).not.toContain(
@@ -107,19 +133,32 @@ describe("loadPagesDataset", () => {
   it("should not include pages with action 'deleted'", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /foo/,
       forbiddenUrls: [],
+      dataSourceTypes: ["devcenter", "tech-docs"],
     });
     const urls = dataset.map((p) => p.url);
+    expect(urls.length).toBeGreaterThan(0);
     expect(urls).not.toContain("https://example.com/page3");
+  });
+
+  it("should not include pages representing a non current version", async () => {
+    const dataset = await loadPagesDataset({
+      pageStore,
+      forbiddenUrls: [],
+      dataSourceTypes: ["tech-docs"],
+    });
+    const urls = dataset.map((p) => p.url);
+    expect(urls).toContain("https://example.com/page5");
+    expect(urls).not.toContain("https://example.com/old-version/page5");
   });
 
   it("should only return the projected fields", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /foo/,
       forbiddenUrls: [],
+      dataSourceTypes: ["devcenter", "tech-docs"],
     });
+    expect(dataset.length).toBeGreaterThan(0);
     for (const page of dataset) {
       const pageKeys = Object.keys(page);
 

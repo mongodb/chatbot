@@ -2,6 +2,11 @@ kind: pipeline
 type: kubernetes
 name: test-all
 
+resources:
+  requests:
+    cpu: 2000
+    memory: 8GiB
+
 trigger:
   event:
     - push
@@ -18,7 +23,6 @@ steps:
     image: node:18
     commands:
       - npm ci
-      - npx playwright install chromium --with-deps
       - npm run build
       - npm run lint
       - npm run test
@@ -31,7 +35,9 @@ steps:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+      OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1-mini
       OPENAI_API_VERSION: "2024-06-01"
+      OPENAI_RESOURCE_NAME: "docs-ai-chatbot-useast2resource-sandbox"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
       BRAINTRUST_API_KEY:
         from_secret: braintrust_api_key
@@ -237,8 +243,7 @@ steps:
       namespace: docs
       release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
-      values_files:
-        ["packages/mongodb-chatbot-server/environments/qa.yml"]
+      values_files: ["packages/mongodb-chatbot-server/environments/qa.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -496,98 +501,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-# ingest for coach gtm
----
-depends_on: ["test-all"]
-kind: pipeline
-type: kubernetes
-name: staging-build-ingest-coach-gtm
-
-trigger:
-  branch:
-    - main
-  event:
-    - push
-  paths:
-    include:
-      - packages/mongodb-rag-ingest/**/*
-      - packages/ingest-mongodb-public/**/*
-      - packages/mongodb-rag-core/**/*
-      - package-lock.json
-      - package.json
-
-steps:
-  # Builds and publishes Docker image for staging
-  - name: publish-staging-ingest-coach-gtm
-    image: plugins/kaniko-ecr
-    environment:
-      LG_ARTIFACTORY_TOKEN:
-        from_secret: lg_artifactory_token
-      LG_ARTIFACTORY_EMAIL:
-        from_secret: lg_artifactory_email
-    settings:
-      dockerfile: ingest-service.dockerfile
-      create_repository: true
-      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}-ingest-coach-gtm
-      build_args:
-        - LG_ARTIFACTORY_TOKEN
-        - LG_ARTIFACTORY_EMAIL
-      tags:
-        - git-${DRONE_COMMIT_SHA:0:7}-coach-gtm-staging
-        - latest-coach-gtm-staging
-      access_key:
-        from_secret: ecr_access_key
-      secret_key:
-        from_secret: ecr_secret_key
-
-  # Promotes current drone build to staging environment
-  - name: promote-staging-ingest-coach-gtm
-    image: drone/cli:1.4.0-alpine
-    commands:
-      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
-    environment:
-      DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
-      DRONE_TOKEN:
-        from_secret: drone_token
-
----
-kind: pipeline
-type: kubernetes
-name: staging-deploy-ingest-coach-gtm
-
-trigger:
-  event:
-    - promote
-  target:
-    - staging
-  paths:
-    include:
-      - packages/mongodb-rag-ingest/**/*
-      - packages/ingest-mongodb-public/**/*
-      - packages/mongodb-rag-core/**/*
-      - package-lock.json
-      - package.json
-
-  branch:
-    - main
-
-steps:
-  # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-staging-ingest-coach-gtm
-    image: quay.io/mongodb/drone-helm:v3
-    settings:
-      chart: mongodb/cronjobs
-      chart_version: 1.10.0
-      add_repos: [mongodb=https://10gen.github.io/helm-charts]
-      namespace: docs
-      release: ingest-coach-gtm-staging
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-coach-gtm-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-coach-gtm
-      values_files:
-        - packages/ingest-mongodb-public/environments/coachGtm.staging.yml
-      api_server: https://api.staging.corp.mongodb.com
-      kubernetes_token:
-        from_secret: staging_kubernetes_token
 
 ---
 depends_on: ["test-all"]
@@ -811,8 +724,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -864,8 +779,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
   branch:
     - main

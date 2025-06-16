@@ -4,19 +4,13 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import {
-  DbMessage,
-  FunctionMessage,
-  Message,
-  SystemMessage,
-} from "mongodb-rag-core";
+import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
   Conversation,
   SomeMessage,
   makeDataStreamer,
-  ChatLlm,
 } from "mongodb-rag-core";
 import {
   ApiMessage,
@@ -31,12 +25,12 @@ import {
   AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
-import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
-import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
-import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import { generateResponse, GenerateResponseParams } from "../generateResponse";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
+import {
+  GenerateResponse,
+  GenerateResponseParams,
+} from "../../processors/GenerateResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -44,6 +38,7 @@ export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
   message: z.string(),
+  clientContext: z.object({}).passthrough().optional(),
 });
 
 export const AddMessageRequest = SomeExpressRequest.merge(
@@ -65,11 +60,9 @@ export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 
 export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
-  llm: ChatLlm;
-  generateUserPrompt?: GenerateUserPromptFunc;
-  filterPreviousMessages?: FilterPreviousMessages;
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
+  generateResponse: GenerateResponse;
   addMessageToConversationCustomData?: AddCustomDataFunc;
   /**
     If present, the route will create a new conversation
@@ -85,11 +78,6 @@ export interface AddMessageToConversationRouteParams {
       when it is created.
      */
     addCustomData?: AddCustomDataFunc;
-    /**
-      The system message to add to the new conversation
-      when it is created.
-     */
-    systemMessage?: SystemMessage;
   };
 
   /**
@@ -98,11 +86,13 @@ export interface AddMessageToConversationRouteParams {
     Can add additional tags, scores, etc.
    */
   updateTrace?: UpdateTraceFunc;
+  braintrustLogger?: Logger<true>;
 }
 
 type MakeTracedResponseParams = Pick<
   GenerateResponseParams,
   | "latestMessageText"
+  | "clientContext"
   | "customData"
   | "dataStreamer"
   | "shouldStream"
@@ -112,17 +102,16 @@ type MakeTracedResponseParams = Pick<
 
 export function makeAddMessageToConversationRoute({
   conversations,
-  llm,
-  generateUserPrompt,
+  generateResponse,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
-  filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
   createConversation,
   updateTrace,
 }: AddMessageToConversationRouteParams) {
   const generateResponseTraced = function ({
     latestMessageText,
+    clientContext,
     customData,
     dataStreamer,
     shouldStream,
@@ -133,6 +122,7 @@ export function makeAddMessageToConversationRoute({
     const tracedFunc = wrapTraced(
       ({
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,
@@ -141,18 +131,12 @@ export function makeAddMessageToConversationRoute({
       }: MakeTracedResponseParams) => {
         return generateResponse({
           latestMessageText,
+          clientContext,
           customData,
           dataStreamer,
           shouldStream,
           reqId,
-          llm,
           conversation,
-          generateUserPrompt,
-          filterPreviousMessages,
-          llmNotWorkingMessage:
-            conversations.conversationConstants.LLM_NOT_WORKING,
-          noRelevantContentMessage:
-            conversations.conversationConstants.NO_RELEVANT_CONTENT,
         });
       },
       {
@@ -167,6 +151,7 @@ export function makeAddMessageToConversationRoute({
     );
     return tracedFunc({
       latestMessageText,
+      clientContext,
       customData,
       dataStreamer,
       shouldStream,
@@ -183,7 +168,7 @@ export function makeAddMessageToConversationRoute({
     try {
       const {
         params: { conversationId: conversationIdString },
-        body: { message },
+        body: { message, clientContext },
         query: { stream },
         ip,
       } = req;
@@ -255,16 +240,16 @@ export function makeAddMessageToConversationRoute({
             metadata: message.metadata,
           };
 
-          if (message.role === "function") {
+          if (message.role === "tool") {
             return {
-              role: "function",
+              role: "tool",
               name: message.name,
               ...baseFields,
-            } satisfies DbMessage<FunctionMessage>;
+            } satisfies DbMessage<ToolMessage>;
           } else {
             return { ...baseFields, role: message.role } satisfies Exclude<
               Message,
-              FunctionMessage
+              ToolMessage
             >;
           }
         }),
@@ -273,6 +258,7 @@ export function makeAddMessageToConversationRoute({
       const { messages } = await generateResponseTraced({
         conversation: traceConversation,
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,
@@ -312,6 +298,7 @@ export function makeAddMessageToConversationRoute({
 
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId: conversation._id,
           assistantResponseMessageId: dbAssistantMessage.id,
@@ -417,9 +404,6 @@ const loadConversation = async ({
       message: stripIndents`Creating new conversation`,
     });
     return await conversations.create({
-      initialMessages: createConversation.systemMessage
-        ? [createConversation.systemMessage]
-        : undefined,
       customData: createConversation.addCustomData
         ? await createConversation.addCustomData(req, res)
         : undefined,

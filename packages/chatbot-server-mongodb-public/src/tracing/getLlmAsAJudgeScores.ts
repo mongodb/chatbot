@@ -1,7 +1,6 @@
 import { Faithfulness, AnswerRelevancy, ContextRelevancy } from "autoevals";
 import { traced, wrapTraced } from "mongodb-rag-core/braintrust";
 import { extractTracingData } from "./extractTracingData";
-import { Llm } from "mongodb-rag-core";
 
 export interface LlmAsAJudge {
   judgeModel: string;
@@ -28,53 +27,11 @@ interface ScorerArgs {
   judgeEmbeddingModel: string;
 }
 
-const evaluators = [
-  {
-    name: "Faithfulness",
-    scorer: Faithfulness,
-  },
-  {
-    name: "AnswerRelevancy",
-    scorer: AnswerRelevancy,
-  },
-  {
-    name: "ContextRelevancy",
-    scorer: ContextRelevancy,
-  },
-] as const;
-
-const evaluateScorer = function makeTracedScorer(
-  evaluator: (typeof evaluators)[number],
-  openAiConfig: LlmAsAJudge
-) {
-  wrapTraced(
-    async ({ input, output, context }: ScorerArgs) => {
-      return evaluator.scorer({
-        input,
-        output,
-        context,
-        model: openAiConfig.judgeModel,
-        embeddingModel: openAiConfig.judgeEmbeddingModel,
-        ...openAiConfig,
-      });
-    },
-    {
-      name: evaluator.name,
-    }
-  );
-};
-
 const makeEvaluateWithLlmAsAJudge = (
   openAiConfig: LlmAsAJudge["openAiConfig"]
 ) =>
   wrapTraced(
-    async function ({
-      input,
-      output,
-      context,
-      judgeEmbeddingModel,
-      judgeModel,
-    }: ScorerArgs) {
+    async function ({ input, output, context, judgeModel }: ScorerArgs) {
       return Promise.all([
         traced(
           async () =>
@@ -87,20 +44,6 @@ const makeEvaluateWithLlmAsAJudge = (
             }),
           {
             name: "Faithfulness",
-          }
-        ),
-        traced(
-          async () =>
-            AnswerRelevancy({
-              input,
-              output,
-              context,
-              model: judgeModel,
-              embeddingModel: judgeEmbeddingModel,
-              ...openAiConfig,
-            }),
-          {
-            name: "AnswerRelevancy",
           }
         ),
         traced(
@@ -142,15 +85,16 @@ export async function getLlmAsAJudgeScores(
   ) {
     return;
   }
+
   const input = tracingData.userMessage.content;
   const output = tracingData.assistantMessage.content;
-  const context = tracingData.userMessage.contextContent
+  const context = tracingData.contextContent
     ?.map((c) => c.text)
     .filter((value): value is string => typeof value === "string");
 
   const evaluateWithLlmAsAJudge = makeEvaluateWithLlmAsAJudge(openAiConfig);
 
-  const [faithfulness, answerRelevancy, contextRelevancy] = context
+  const [faithfulness, contextRelevancy] = context
     ? await evaluateWithLlmAsAJudge({
         input,
         output,
@@ -158,11 +102,10 @@ export async function getLlmAsAJudgeScores(
         judgeModel,
         judgeEmbeddingModel,
       })
-    : [nullScore, nullScore, nullScore];
+    : [nullScore, nullScore];
 
   return {
     Faithfulness: faithfulness.score,
-    AnswerRelevancy: answerRelevancy.score,
     ContextRelevancy: contextRelevancy.score,
   };
 }

@@ -1,47 +1,32 @@
-# MongoDB Chatbot Framework
+# MongoDB Knowledge Service
 
-The MongoDB Chatbot Framework is a set of libraries that you can use to build
-full-stack intelligent chatbot applications using MongoDB and [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/).
-The MongoDB Chatbot Framework includes first class support for
-retrieval-augmented generation (RAG).
+This repo contains the work of the MongoDB Education AI team. 
 
-The framework can take your chatbot application from prototype to production.
+## MongoDB Knowledge Service
 
-You can quickly get an AI chatbot enhanced with your data up and running using
-the framework's built-in data ingest process, chatbot server, and web UI. As you
-refine your application and scale to more users, you can modify the chatbot's
-behavior to meet your needs.
+The MongoDB Knowledge Service lets you learn about MongoDB using generative AI. To learn more about it, refer to the [MongoDB Knolwedge Service documentation](https://mongodb.github.io/chatbot)
 
-The framework is flexible and customizable. It supports multiple AI models and
-complex prompting strategies. It also includes tools for programmatic evaluation of your chatbot's AI components.
+## MongoDB Chatbot Framework (deprecated)
 
-## Documentation
+The team building the MongoDB Knowledge Service previous developed the MongoDB Chatbot Framework. This consisted of the npm packages:
 
-To learn how to use the MongoDB Chatbot Framework, refer to the documentation:
-<https://mongodb.github.io/chatbot/>.
+- `mongodb-chatbot-server`
+- `mongodb-chatbot-ui` (still used, refer to [UI](https://mongodb.github.io/chatbot/ui))
+- `mongodb-rag-core`
+- `mongodb-rag-ingest`
 
-You can also check out the following articles and videos about the framework:
+The MongoDB Chatbot Framework in now deprecated. We will no longer be maintaining it.
 
-- [[Video] MongoDB Chatbot Framework Learning Byte](https://learn.mongodb.com/courses/mongodb-chatbot-framework)
-- [[Article] Build a Production-Ready, Intelligent Chatbot With the MongoDB Chatbot Framework](https://dev.to/mongodb/build-a-production-ready-intelligent-chatbot-with-the-mongodb-chatbot-framework-4dd)
-- [[Article] Taking RAG to Production with the MongoDB Documentation AI Chatbot](https://www.mongodb.com/developer/products/atlas/taking-rag-to-production-documentation-ai-chatbot/)
+To learn more about the framework, refer to the the blog post [Build a Production-Ready, Intelligent Chatbot With the MongoDB Chatbot Framework](https://dev.to/mongodb/build-a-production-ready-intelligent-chatbot-with-the-mongodb-chatbot-framework-4dd).
 
-## MongoDB Docs AI Chatbot Implementation
+### Why Deprecate the MongoDB Chatbot Framework?
 
-This repo also contains the implementation of the MongoDB Docs Chatbot,
-which uses the MongoDB Chatbot Framework.
+Since we first launched the framework a year and a half ago, there's been a lot of progress in the TypeScript ecosystem for AI frameworks. We have decided that these frameworks remove the need for the MongoDB Chatbot Framework. Additionally, supporting the framework in addition to the Knowledge Service has been a maintenance burden on our small team.
 
-The MongoDB Docs Chatbot uses the MongoDB [documentation](https://www.mongodb.com/docs/) and [Developer Center](https://www.mongodb.com/developer/) as its sources of truth.
+In particular, we've been very impressed by the [Vercel AI SDK](https://ai-sdk.dev/docs/introduction). It has a great developer experience, is well maintained, and a robust feature set. We've moved most of our LLM call logic to the AI SDK. You can refer to our [mongodb/chatbot repository](https://github.com/mongodb/chatbot) to see how we're using it. For a tutorial on building with MongoDB Atlas and the AI SDK, refer to the blog post [Building a Chat Application That Doesn't Forget!](https://dev.to/mongodb/building-a-chat-application-with-mongodb-memory-provider-for-vercel-ai-sdk-56ap) by MongoDB's own Jesse Hall.
 
-The chatbot builds on the following technologies:
+For building more agentic applications in TypeScript, [Mastra](https://mastra.ai/en/docs) (itself built on the AI SDK), [LangGraph.js](https://langchain-ai.github.io/langgraphjs/), and the [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/) all seem to be solid options. 
 
-- Atlas Vector Search: Indexes and queries content for use in project.
-- MongoDB Atlas: Persists conversations and content.
-- ChatGPT API: LLM to pre-process user queries and summarize responses to user queries.
-- OpenAI Embeddings API: Create vector embeddings for user queries and content. Used by Atlas Vector Search.
-
-To learn more about how we built the chatbot, check out the MongoDB Developer Center blog post
-[Taking RAG to Production with the MongoDB Documentation AI Chatbot](https://www.mongodb.com/developer/products/atlas/taking-rag-to-production-documentation-ai-chatbot/).
 
 ## Contributing
 

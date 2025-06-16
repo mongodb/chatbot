@@ -54,7 +54,7 @@ export type AssistantMessage = MessageBase & {
    */
   references?: References;
 
-  functionCall?: OpenAI.ChatCompletionMessage.FunctionCall;
+  toolCall?: OpenAI.ChatCompletionMessageToolCall;
 
   metadata?: AssistantMessageMetadata;
 };
@@ -74,8 +74,8 @@ export type VerifiedAnswerEventData = Pick<
   "_id" | "created" | "updated"
 >;
 
-export type FunctionMessage = MessageBase & {
-  role: "function";
+export type ToolMessage = MessageBase & {
+  role: "tool";
   name: string;
 };
 
@@ -113,6 +113,12 @@ export type UserMessage = MessageBase & {
     The vector representation of the message content.
    */
   embedding?: number[];
+
+  /**
+    The model used to generate the embedding vector.
+    For example: "text-embedding-ada-002" or "text-embedding-3-small"
+   */
+  embeddingModel?: string;
 };
 
 /**
@@ -122,7 +128,7 @@ export type SomeMessage =
   | UserMessage
   | AssistantMessage
   | SystemMessage
-  | FunctionMessage;
+  | ToolMessage;
 
 export type DbMessage<SomeMessage> = SomeMessage & {
   /**
@@ -183,7 +189,7 @@ export type AddUserMessageParams = AddMessageParams<
 >;
 
 export type AddFunctionMessageParams = AddMessageParams<
-  WithCustomData<FunctionMessage>
+  WithCustomData<ToolMessage>
 >;
 
 export type AddAssistantMessageParams = AddMessageParams<AssistantMessage>;

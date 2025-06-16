@@ -12,6 +12,7 @@ import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
 import { makePrioritizeReferenceDomain } from "./references";
+import { getSegmentIdHeaders } from "./segment";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -68,28 +69,43 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
           onOpen={() => {
             console.log("Docs Chatbot opened");
           }}
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
+          }}
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
         <Chatbot
-          name="MongoDB AI (Dev Center)"
+          name="MongoDB AI"
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
+          getClientContext={() => ({
+            user: "test-user-pls-ignore",
+          })}
           onOpen={() => {
             console.log("Dev Center Chatbot opened");
           }}
           onClose={() => {
             console.log("Dev Center Chatbot closed");
+          }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
           }}
           sortMessageReferences={makePrioritizeReferenceDomain([
             "https://mongodb.com/developer",

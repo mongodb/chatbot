@@ -39,7 +39,15 @@ function MyApp() {
   ];
   return (
     <div>
-      <Chatbot name="MongoDB AI" maxInputCharacters={300}>
+      <Chatbot
+        name="MongoDB AI"
+        maxInputCharacters={300}
+        getClientContext={() => ({
+          // Example: Include user info or app state that might be helpful for the server
+          userId: "user-123",
+          preferredLanguage: "JavaScript"
+        })}
+      >
         <InputBarTrigger
           bottomContent={<MongoDbLegalDisclosure />}
           suggestedPrompts={suggestedPrompts}
@@ -70,7 +78,7 @@ The `<Chatbot />` component is effectively a React context provider that wraps y
 | `children`              | `ReactElement \| ReactElement[]`                | Trigger and View components for the chatbot, e.g. `FloatingActionButtonTrigger` and `ModalView`.                                                                                                                                                                                                        |                                                        |
 | `darkMode`              | `boolean?`                                      | If `true`, the UI renders in dark mode. This overrides any theme `darkMode` setting.                                                                                                                                                                                                                    | The user's OS preference or theme value of `darkMode`. |
 | `fetchOptions`          | `ConversationFetchOptions?`                     | If set, the provided options are included with every fetch request to the server. For more information on the available fetch options, refer to [Supplying request options](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options) in the MDN documentation. |                                                        |
-| `isExperimental`        | `boolean?`                                      | If `true`, the UI includes EXPERIMENTAL badges throughout.                                                                                                                                                                                                                                              | `true`                                                 |
+| `getClientContext`      | `(() => Record<string, unknown>)?`              | A function that returns an object with client-side context data to be sent with each message. This context is included in message requests to help the server understand the client's state.                                                                                                            |                                                        |
 | `maxCommentCharacters`  | `number?`                                       | The maximum number of characters allowed in a user's comment on an assistant message.                                                                                                                                                                                                                   | `500`                                                  |
 | `maxInputCharacters`    | `number?`                                       | The maximum number of characters allowed in a user message.                                                                                                                                                                                                                                             | `300`                                                  |
 | `name`                  | `string?`                                       | The name of the chatbot. Used as the default in text throughout the UI.                                                                                                                                                                                                                                 | If unspecified, the chatbot is anonymous.              |

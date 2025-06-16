@@ -1,5 +1,4 @@
 import {
-  EmbeddedContent,
   MakeReferenceLinksFunc,
   makeDefaultReferenceLinks,
 } from "mongodb-chatbot-server";
@@ -21,9 +20,7 @@ import { type RichLinkVariantName } from "@lg-chat/rich-links";
   }
   ```
  */
-export const makeMongoDbReferences: MakeReferenceLinksFunc = (
-  chunks: EmbeddedContent[]
-) => {
+export const makeMongoDbReferences: MakeReferenceLinksFunc = (chunks) => {
   return makeDefaultReferenceLinks(chunks).map(addReferenceSourceType);
 };
 

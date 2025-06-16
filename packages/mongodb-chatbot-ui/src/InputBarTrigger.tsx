@@ -57,7 +57,6 @@ export function InputBarTrigger({
 
   const {
     conversation,
-    isExperimental,
     inputText,
     inputPlaceholder,
     setInputText,
@@ -65,11 +64,11 @@ export function InputBarTrigger({
     canSubmit,
     awaitingReply,
     openChat,
-    focused,
     setFocused,
     handleSubmit,
     hasError,
     showError,
+    onSuggestedPromptClick,
   } = useTextInputTrigger({
     fatalErrorMessage,
     placeholder,
@@ -92,11 +91,6 @@ export function InputBarTrigger({
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={
-            !focused && inputText.length === 0 && isExperimental
-              ? "Experimental"
-              : undefined
-          }
           dropdownProps={{
             usePortal: false,
           }}
@@ -139,6 +133,7 @@ export function InputBarTrigger({
                 <SuggestedPrompt
                   key={suggestedPrompt}
                   onClick={async () => {
+                    onSuggestedPromptClick?.(suggestedPrompt);
                     await handleSubmit(suggestedPrompt);
                   }}
                 >

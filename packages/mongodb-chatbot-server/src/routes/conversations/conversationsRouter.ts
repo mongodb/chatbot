@@ -3,12 +3,7 @@ import Router from "express-promise-router";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  ChatLlm,
-  SystemPrompt,
-  ConversationCustomData,
-  ConversationsService,
-} from "mongodb-rag-core";
+import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
   CommentMessageRequest,
   makeCommentMessageRoute,
@@ -27,14 +22,12 @@ import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
 import {
-  FilterPreviousMessages,
-  GenerateUserPromptFunc,
-} from "../../processors";
-import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { GenerateResponse } from "../../processors/GenerateResponse";
+import { Logger } from "mongodb-rag-core/braintrust";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -118,30 +111,17 @@ export type ConversationsMiddleware = RequestHandler<
   Configuration for the /conversations/* routes.
  */
 export interface ConversationsRouterParams {
-  llm: ChatLlm;
   conversations: ConversationsService;
-  systemPrompt: SystemPrompt;
-
   /**
-    Function to generate the user prompt sent to the {@link ChatLlm}.
-    You can perform any preprocessing of the user's message
-    including retrieval augmented generation here.
+    Logic to generate the response on the addMessageToConversation route.
    */
-  generateUserPrompt?: GenerateUserPromptFunc;
+  generateResponse: GenerateResponse;
 
   /**
     Maximum number of characters in user input.
     Server returns 400 error if user input is longer than this.
    */
   maxInputLengthCharacters?: number;
-
-  /**
-    Function to filter which previous messages are sent to the {@link ChatLlm}.
-    For example, you may only want to send the system prompt to the LLM
-    with the user message or the system prompt and X prior messages.
-    Defaults to sending only the system prompt.
-   */
-  filterPreviousMessages?: FilterPreviousMessages;
 
   /**
     Maximum number of user-sent messages in a conversation.
@@ -206,6 +186,7 @@ export interface ConversationsRouterParams {
     @default true
    */
   createConversationOnNullMessageId?: boolean;
+  braintrustLogger?: Logger<true>;
 }
 
 export const rateLimitResponse = {
@@ -220,7 +201,7 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 
-const addIpToCustomData: AddCustomDataFunc = async (req, res) =>
+const addIpToCustomData: AddCustomDataFunc = async (req) =>
   req.ip
     ? {
         ip: req.ip,
@@ -234,7 +215,51 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
-const addUserAgentToCustomData: AddCustomDataFunc = async (req, res) =>
+export const originCodes = [
+  "LEARN",
+  "DEVELOPER",
+  "DOCS",
+  "DOTCOM",
+  "GEMINI_CODE_ASSIST",
+  "VSCODE",
+  "OTHER",
+] as const;
+
+export type OriginCode = (typeof originCodes)[number];
+
+interface OriginRule {
+  regex: RegExp;
+  code: OriginCode;
+}
+
+const ORIGIN_RULES: OriginRule[] = [
+  { regex: /learn\.mongodb\.com/, code: "LEARN" },
+  { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
+  { regex: /mongodb\.com\/docs/, code: "DOCS" },
+  { regex: /mongodb\.com\//, code: "DOTCOM" },
+  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
+  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
+];
+
+function getOriginCode(origin: string): OriginCode {
+  for (const rule of ORIGIN_RULES) {
+    if (rule.regex.test(origin)) {
+      return rule.code;
+    }
+  }
+  return "OTHER";
+}
+
+const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {
+  const origin = res.locals.customData.origin;
+  return typeof origin === "string" && origin.length > 0
+    ? {
+        originCode: getOriginCode(origin),
+      }
+    : undefined;
+};
+
+const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
   req.headers["user-agent"]
     ? {
         userAgent: req.headers["user-agent"],
@@ -250,6 +275,7 @@ export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };
@@ -259,6 +285,7 @@ export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };
@@ -267,14 +294,11 @@ export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc
   Constructor function to make the /conversations/* Express.js router.
  */
 export function makeConversationsRouter({
-  llm,
   conversations,
-  systemPrompt,
+  generateResponse,
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
-  filterPreviousMessages,
   rateLimitConfig,
-  generateUserPrompt,
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = defaultCreateConversationCustomData,
   addMessageToConversationCustomData = defaultAddMessageToConversationCustomData,
@@ -283,6 +307,7 @@ export function makeConversationsRouter({
   commentMessageUpdateTrace,
   maxUserCommentLength,
   createConversationOnNullMessageId = true,
+  braintrustLogger,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals
@@ -329,7 +354,6 @@ export function makeConversationsRouter({
     makeCreateConversationRoute({
       conversations,
       createConversationCustomData,
-      systemPrompt,
     })
   );
 
@@ -364,20 +388,18 @@ export function makeConversationsRouter({
    */
   const addMessageToConversationRoute = makeAddMessageToConversationRoute({
     conversations,
-    llm,
     maxInputLengthCharacters,
     maxUserMessagesInConversation,
     addMessageToConversationCustomData,
-    generateUserPrompt,
-    filterPreviousMessages,
     createConversation: createConversationOnNullMessageId
       ? {
           createOnNullConversationId: createConversationOnNullMessageId,
           addCustomData: createConversationCustomData,
-          systemMessage: systemPrompt,
         }
       : undefined,
     updateTrace: addMessageToConversationUpdateTrace,
+    generateResponse,
+    braintrustLogger,
   });
   conversationsRouter.post(
     "/:conversationId/messages",
@@ -398,7 +420,11 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
-    makeRateMessageRoute({ conversations, updateTrace: rateMessageUpdateTrace })
+    makeRateMessageRoute({
+      conversations,
+      updateTrace: rateMessageUpdateTrace,
+      braintrustLogger,
+    })
   );
 
   // Comment on a message.
@@ -409,6 +435,7 @@ export function makeConversationsRouter({
       conversations,
       maxCommentLength: maxUserCommentLength,
       updateTrace: commentMessageUpdateTrace,
+      braintrustLogger,
     })
   );
 

@@ -1,5 +1,6 @@
 import { strict as assert } from "assert";
 import {
+  ApiMessage,
   areEquivalentIpAddresses,
   convertConversationFromDbToApi,
   convertMessageFromDbToApi,
@@ -63,15 +64,19 @@ const exampleConversationInDatabase: Conversation = {
       id: new ObjectId("65ca767e30116ce068e17bb5"),
       role: "assistant",
       content: "",
-      functionCall: {
-        name: "getBookRecommendations",
-        arguments: JSON.stringify({ genre: ["fantasy", "sci-fi"] }),
+      toolCall: {
+        id: "abc123",
+        type: "function",
+        function: {
+          name: "getBookRecommendations",
+          arguments: JSON.stringify({ genre: ["fantasy", "sci-fi"] }),
+        },
       },
       createdAt: new Date("2024-01-01T00:00:45Z"),
     },
     {
       id: new ObjectId("65ca768341f9ea61d048aaa8"),
-      role: "function",
+      role: "tool",
       name: "getBookRecommendations",
       content: JSON.stringify([
         { title: "The Way of Kings", author: "Brandon Sanderson" },
@@ -99,7 +104,6 @@ describe("Data Conversion Functions", () => {
         functionResultMessage,
         assistantMessage,
       ] = exampleConversationInDatabase.messages;
-      const convoId = new ObjectId();
 
       expect(convertMessageFromDbToApi(systemMessage)).toEqual({
         id: "65ca766ab564b694eba8c330",
@@ -126,14 +130,14 @@ describe("Data Conversion Functions", () => {
 
       expect(convertMessageFromDbToApi(functionResultMessage)).toEqual({
         id: "65ca768341f9ea61d048aaa8",
-        role: "function",
+        role: "tool",
         content: JSON.stringify([
           { title: "The Way of Kings", author: "Brandon Sanderson" },
           { title: "Neuromancer", author: "William Gibson" },
           { title: "Snow Crash", author: "Neal Stephenson" },
         ]),
         createdAt: 1704067247000,
-      });
+      } satisfies ApiMessage);
 
       expect(convertMessageFromDbToApi(assistantMessage)).toEqual({
         id: "65ca76874e1df9cf2742bf86",

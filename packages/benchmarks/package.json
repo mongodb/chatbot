@@ -22,7 +22,8 @@
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
     "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
     "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js",
+    "benchmark:TextToMongosh": "npm run build && node ./build/textToDriver/bin/mongoshBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -32,8 +33,8 @@
     "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
-    "csv-parser": "^3.2.0",
     "chatbot-server-mongodb-public": "*",
+    "csv-parser": "^3.2.0",
     "eslint": "^8",
     "eslint-config-prettier": "^8",
     "eslint-plugin-jsdoc": "^46.4.5",
@@ -47,11 +48,16 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.3.6",
     "@supercharge/promise-pool": "^3.2.0",
+    "ai": "^4.2.10",
+    "autoevals": "^0.0.129",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "mongodb-schema": "^12.2.0",
+    "yaml": "^2.7.1",
     "zod": "^3.23.8"
   }
 }

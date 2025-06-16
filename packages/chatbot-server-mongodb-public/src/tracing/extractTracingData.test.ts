@@ -1,7 +1,8 @@
-import { Message } from "mongodb-rag-core";
+import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { extractTracingData } from "./extractTracingData";
+import { SEARCH_TOOL_NAME, SearchToolReturnValue } from "../tools/search";
 
 describe("extractTracingData", () => {
   const msgId = new ObjectId();
@@ -17,6 +18,28 @@ describe("extractTracingData", () => {
     createdAt: new Date(),
     id: msgId,
   };
+  const toolResults = {
+    results: [
+      {
+        text: "text",
+        url: "url",
+      },
+      {
+        text: "text",
+        url: "url",
+      },
+    ],
+  } satisfies SearchToolReturnValue;
+
+  const baseToolMessage: DbMessage<ToolMessage> = {
+    role: "tool",
+    name: SEARCH_TOOL_NAME,
+    content: JSON.stringify(toolResults),
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
+
+  const conversationId = new ObjectId();
   test("should reject query", () => {
     const messages: Message[] = [
       {
@@ -25,7 +48,7 @@ describe("extractTracingData", () => {
       },
       baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messages, msgId);
+    const tracingData = extractTracingData(messages, msgId, conversationId);
     expect(tracingData.rejectQuery).toBe(true);
     expect(tracingData.tags.includes("rejected_query")).toBe(true);
   });
@@ -40,7 +63,7 @@ describe("extractTracingData", () => {
       },
       baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messages, msgId);
+    const tracingData = extractTracingData(messages, msgId, conversationId);
     expect(tracingData.tags.includes("javascript")).toBe(true);
     expect(tracingData.tags.includes("mongodb_atlas")).toBe(true);
   });
@@ -48,31 +71,29 @@ describe("extractTracingData", () => {
     const messagesNoContext: Message[] = [
       {
         ...baseUserMessage,
-        contextContent: [],
       },
+      { ...baseToolMessage, content: JSON.stringify([]) },
       baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messagesNoContext, msgId);
+    const tracingData = extractTracingData(
+      messagesNoContext,
+      msgId,
+      conversationId
+    );
     expect(tracingData.numRetrievedChunks).toBe(0);
     expect(tracingData.tags.includes("no_retrieved_content")).toBe(true);
 
     const messagesWithContext: Message[] = [
       {
         ...baseUserMessage,
-        contextContent: [
-          {
-            text: "",
-          },
-          {
-            text: "",
-          },
-        ],
       },
+      baseToolMessage,
       baseAssistantMessage,
     ];
     const tracingDataWithContext = extractTracingData(
       messagesWithContext,
-      msgId
+      msgId,
+      conversationId
     );
     expect(tracingDataWithContext.numRetrievedChunks).toBe(2);
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
@@ -92,7 +113,11 @@ describe("extractTracingData", () => {
         },
       },
     ];
-    const tracingData = extractTracingData(messagesNoContext, msgId);
+    const tracingData = extractTracingData(
+      messagesNoContext,
+      msgId,
+      conversationId
+    );
     expect(tracingData.isVerifiedAnswer).toBe(true);
     expect(tracingData.tags.includes("verified_answer")).toBe(true);
   });
@@ -104,8 +129,18 @@ describe("extractTracingData", () => {
         content: llmDoesNotKnowMessage,
       },
     ];
-    const tracingData = extractTracingData(messagesNoContext, msgId);
+    const tracingData = extractTracingData(
+      messagesNoContext,
+      msgId,
+      conversationId
+    );
     expect(tracingData.llmDoesNotKnow).toBe(true);
     expect(tracingData.tags.includes("llm_does_not_know")).toBe(true);
+  });
+  test("should capture message indexes", () => {
+    const messages: Message[] = [baseUserMessage, baseAssistantMessage];
+    const tracingData = extractTracingData(messages, msgId, conversationId);
+    expect(tracingData.userMessageIndex).toBe(0);
+    expect(tracingData.assistantMessageIndex).toBe(1);
   });
 });

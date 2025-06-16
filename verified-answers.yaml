@@ -16,7 +16,7 @@
       title: MongoDB Atlas Registration
     - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot
       title: MongoDB Atlas Tutorial
-- answer: >-
+- answer: |
     To get started with MongoDB, you can try the 5-minute interactive tutorial
     that connects you to a MongoDB Atlas cluster and walks you through
     inserting, querying, and deleting data in MongoDB. You do not need to
@@ -38,7 +38,7 @@
       title: Develop Applications
     - url: https://mongodb.com/docs/manual/
       title: MongoDB Manual
-- answer: >-
+- answer: |
     To install MongoDB on Windows, you can follow these steps:
 
     1. Download the MongoDB Community Edition `.msi` installer from the MongoDB
@@ -67,7 +67,7 @@
       title: Install MongoDB Enterprise Edition on Windows
     - url: https://mongodb.com/docs/manual/installation/
       title: Install MongoDB
-- answer: >-
+- answer: |
     To insert data into MongoDB, you can follow these steps:
 
     1. Install the MongoDB driver: Make sure you have the MongoDB driver
@@ -174,7 +174,7 @@
       title: Insert a Document
     - url: https://mongodb.com/docs/mongodb-vscode/databases-collections/
       title: Navigate Your Data
-- answer: >-
+- answer: |
     To create a new collection in MongoDB, you can use the
     `db.createCollection()` method. Here is the syntax for creating a
     collection:
@@ -232,7 +232,7 @@
       title: Why Use MongoDB and When to Use It?
     - url: https://mongodb.com/docs/develop-applications"
       title: Develop Applications - MongoDB Documentation
-- answer: >-
+- answer: |
     To update multiple documents in a MongoDB collection, use the `updateMany`
     method. Using the `updateMany` method, you can search for and edit the
     documents you want to update in one operation.
@@ -267,7 +267,7 @@
       title: Update Documents - MongoDB Manual
     - url: https://mongodb.com/docs/drivers/java/sync/current/usage-examples/updateMany/
       title: Update Multiple Documents - Java Sync Driver
-- answer: >-
+- answer: |
     To count the number of documents in a MongoDB collection that match a
     specified query, use the `countDocuments()` method.
 
@@ -298,7 +298,7 @@
       title: Count Documents - Java Sync Driver
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
       title: db.collection.countDocuments() - MongoDB Manual
-- answer: >-
+- answer: |
     To query data in MongoDB, you can use CRUD operations or an aggregation
     pipeline. You can return all documents in your collection or specify a
     subset of documents.
@@ -346,7 +346,7 @@
       title: Query Documents - MongoDB Manual
     - url: https://mongodb.com/docs/guides/crud/read_queries/
       title: Read Data from MongoDB With Queries - Start with Guides
-- answer: >-
+- answer: |
     To remove documents, use the `deleteOne()` or `deleteMany()` method. If you
     use the `deleteMany()` method, you can search for and remove multiple
     documents in one operation. If you use the `deleteOne()` method and multiple
@@ -384,7 +384,7 @@
       title: Delete Multiple Documents
     - url: https://mongodb.com/docs/mongodb-vscode/delete-document-playground/
       title: Delete Documents - MongoDB for VS Code
-- answer: >-
+- answer: |
     To remove one document, use the `deleteOne()` method. 
 
     Here's an example that uses the `deleteOne()` method in the MongoDB shell: 
@@ -416,7 +416,7 @@
       title: Delete a Document
     - url: https://mongodb.com/docs/mongodb-vscode/delete-document-playground/
       title: Delete Documents
-- answer: >-
+- answer: |
     To backup a MongoDB database, we recommend using one of the following
     methods: 
 
@@ -449,7 +449,7 @@
       title: Back Up and Restore with MongoDB Tools
     - url: https://learn.mongodb.com/learn/course/mongodb-database-administrator-tools/lesson-2-backup-tools/learn
       title: "MongoDB Database Administrator Tools - Lesson 2: Backup Tools - Learn"
-- answer: >-
+- answer: |
     Aggregation in MongoDB refers to the process of performing complex data
     operations on a collection of documents. It involves running all the
     documents in a collection through a series of stages called an aggregation
@@ -477,7 +477,7 @@
       title: Introduction to the MongoDB Aggregation Framework
     - url: https://www.mongodb.com/docs/atlas/device-sdks/sdk/react-native/app-services/query-mongodb/#aggregation-operations
       title: Query MongoDB - React Native SDK
-- answer: >-
+- answer: |
     The MongoDB Shell is an interactive JavaScript interface that allows you to
     interact with your MongoDB database. You can use it to perform CRUD
     operations, run queries, and manage your databases and collections. 
@@ -538,7 +538,7 @@
       title: Massive Number of Collections
     - url: https://www.mongodb.com/developer/products/mongodb/designing-developing-analyzing-new-mongodb-shell
       title: Designing, Developing, and Analyzing with the New MongoDB Shell
-- answer: >-
+- answer: |
     To remove an object from an array in MongoDB, use the `$pull` operator in an
     update operation. The `$pull` operator removes all elements from an array
     that match a specified condition.
@@ -582,7 +582,7 @@
       title: $pop
     - url: https://mongodb.com/docs/manual/reference/operator/update/pull/
       title: $pull
-- answer: >-
+- answer: |
     To create a database in MongoDB, you can use the `use` command in the
     MongoDB shell: 
 
@@ -610,7 +610,7 @@
       title: Create, View, and Drop Databases
     - url: https://www.mongodb.com/docs/compass/current/databases/
       title: Databases
-- answer: >-
+- answer: |
     The `distinct` command in MongoDB is used to find the distinct values for a
     specified field across a single collection. It returns a document that
     contains an array of the distinct values. Here is the syntax for the
@@ -746,7 +746,7 @@
       title: Distinct List Of Values
     - url: https://www.practical-mongodb-aggregations.com/guides/advanced-arrays.html
       title: Advanced Use Of Expressions For Array Processing
-- answer: >-
+- answer: |
     The `maxBsonObjectSize` is a configuration parameter in MongoDB that
     determines the maximum size of a BSON document. However, it is not
     recommended to change this value as it is set to a reasonable default value
@@ -767,7 +767,7 @@
       title: Three Underused MongoDB Features
     - url: https://www.mongodb.com/docs/manual/core/gridfs/
       title: GridFS
-- answer: >-
+- answer: |
     To update a document in MongoDB, you can use the update operators provided
     by MongoDB. The update operators allow you to modify field values in a
     document.
@@ -827,7 +827,7 @@
       title: Modify Documents
     - url: https://www.mongodb.com/developer/languages/javascript/node-crud-tutorial
       title: MongoDB and Node.js Tutorial - CRUD Operations
-- answer: >-
+- answer: |
     To import data into MongoDB, you can use the `mongoimport` command-line tool
     provided by MongoDB. The `mongoimport` tool allows you to import data from
     JSON, CSV, and TSV files into MongoDB collections.
@@ -882,7 +882,7 @@
       title: How to Import Data into MongoDB with mongoimport
     - url: https://mongodb.com/docs/guides/crud/insert/
       title: Insert Data into MongoDB
-- answer: >-
+- answer: |
     MongoDB provides various operators that can be used in update operations,
     query operations, projection operations, and aggregation operations. These
     operators allow you to perform specific actions on your data.
@@ -910,7 +910,7 @@
       title: Release Notes for MongoDB 6.0
     - url: https://mongodb.com/docs/manual/reference/operator/update/
       title: Update Operators
-- answer: >-
+- answer: |
     To find documents with a projection in MongoDB, you can use the `find()`
     method along with the `projection` parameter. The `projection` parameter
     allows you to specify which fields you want to include or exclude in the
@@ -945,7 +945,7 @@
       title: db.collection.findOneAndReplace()
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate/
       title: db.collection.findOneAndUpdate()
-- answer: >-
+- answer: |
     To find a document by ID in MongoDB, you can use a query that matches the
     `_id` field with the specified ID value. MongoDB automatically stores each
     document's ID as an `ObjectId` value in the document's `_id` field.
@@ -998,7 +998,7 @@
       title: Find a Document
     - url: https://mongodb.com/docs/manual/core/csfle/quick-start/
       title: Quick Start
-- answer: >-
+- answer: |
     A connection string in MongoDB describes the host and options for connecting
     to a MongoDB database. It is used to connect to a MongoDB cluster and work
     with the data. MongoDB provides two formats for the connection string: a
@@ -1034,7 +1034,7 @@
       title: Connection Strings
     - url: https://mongodb.com/docs/drivers/csharp/current/fundamentals/connection/connect/
       title: Connection Guide - MongoDB C# Driver
-- answer: >-
+- answer: |
     MongoDB provides the following authentication mechanisms for securing
     connections to the database:
 
@@ -1069,7 +1069,7 @@
       title: Authentication
     - url: https://mongodb.com/docs/drivers/csharp/current/fundamentals/authentication/
       title: Authentication Mechanisms - C# Driver
-- answer: >-
+- answer: |
     To set up a replica set in MongoDB, you can follow these general steps:
 
     1. Install MongoDB on each system that will be part of your replica set. You
@@ -1156,7 +1156,7 @@
         Deployment - Learn"
     - url: https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/
       title: Convert a Standalone mongod to a Replica Set
-- answer: >-
+- answer: |
     Sure! Here's an example of how to use the `$and` operator in MongoDB:
 
     Suppose you have a collection called `inventory` with documents that have the fields `price` and `qty`. You want to find all documents where the `price` is not equal to `1.99` and the `qty` field exists.
@@ -1198,7 +1198,7 @@
       title: $validate - MongoDB Atlas
     - url: https://mongodb.com/docs/manual/tutorial/query-documents/
       title: Query Documents
-- answer: >-
+- answer: |
     Sure! Here's an example of how to use the `$in` operator in MongoDB:
 
     Suppose you have a collection called `inventory` with documents that have the fields `item` and `quantity`. You want to find all documents where the quantity is either 5 or 15.
@@ -1240,7 +1240,7 @@
       title: $in (aggregation)
     - url: https://mongodb.com/docs/atlas/atlas-search/in/
       title: in
-- answer: >-
+- answer: |
     To connect to MongoDB using mongosh, you can follow these steps:
 
     1. Open a terminal window.
@@ -1286,7 +1286,7 @@
       title: Install MongoDB Enterprise with Docker
     - url: https://www.mongodb.com/docs/manual/tutorial/create-users/
       title: Create a User
-- answer: >-
+- answer: |
     Certainly! Here's an example of a MongoDB aggregation pipeline that uses
     `$lookup` and `$match` stages:
 
@@ -1328,7 +1328,7 @@
       title: $graphLookup (aggregation)
     - url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/
       title: $match (aggregation)
-- answer: >-
+- answer: |
     To maximize uptime with MongoDB, you can follow these best practices:
 
     1. Use Replica Sets: MongoDB's replica sets provide high availability by
@@ -1373,7 +1373,7 @@
       title: "Paginations 2.0: Why I Would Choose MongoDB"
     - url: https://learn.mongodb.com/learn/course/self-managed-upgrades-maintenance/conclusion/learn
       title: Self-Managed Upgrades & Maintenance - Conclusion  - Learn
-- answer: >-
+- answer: |
     Yes, you can reset a MongoDB database user's password. To reset your
     password, you need to follow these steps:
 
@@ -1418,7 +1418,7 @@
       title:
         "MongoDB Atlas Backup & Recovery - Lesson 1: Back Up and Recover an Atlas
         Free Tier - Learn"
-- answer: >-
+- answer: |
     MongoDB Atlas Search allows you to quickly build fine-grained search
     functionality into your applications. Consider using Atlas Search for the
     following reasons:
@@ -1462,7 +1462,7 @@
       title: Using Atlas Search from Java
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-search/conclusion/learn
       title: MongoDB Atlas Search - Conclusion - Learn
-- answer: >-
+- answer: |
     MongoDB and Oracle are both popular database management systems, but they
     have some key differences. Here are a few of the main differences between
     MongoDB and Oracle:
@@ -1566,7 +1566,7 @@
         Learn"
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
       title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
-- answer: >-
+- answer: |
     The best place to start learning about MongoDB is the MongoDB University [Introduction to MongoDB course](https://learn.mongodb.com/learning-paths/introduction-to-mongodb). If you are interested in completing a certification, you can take Introduction to MongoDB as part of a developer learning path with the programming language of your choice. This will prepare you for the [MongoDB Associate Developer](https://learn.mongodb.com/pages/mongodb-associate-developer-exam) certification.
   author_email: emily.pope@mongodb.com
   questions:
@@ -1576,7 +1576,7 @@
       title: "Introduction to MongoDB"
     - url: https://learn.mongodb.com/pages/mongodb-associate-developer-exam
       title: "MongoDB Associate Developer Exam"
-- answer: >-
+- answer: |
     To learn how MongoDB fits into the generative AI space, you can start with the [Building GenAI Applications with MongoDB Learning Badge Path](https://learn.mongodb.com/learning-paths/building-genai-apps-learning-badge-path) on MongoDB University. This includes the [Atlas Vector Search](https://learn.mongodb.com/learn/learning-path/atlas-vector-search) course, which will give you a high level introduction to the GenAI space, then help you get started with MongoDB Atlas Vector Search. You'll learn the differences between semantic search and full text search, and how to combine them into hybrid search. Next, you'll learn how to build a RAG application with Langchain and Python, then explore how to create a sophisticated ingestion pipeline. And, be sure to complete the quiz at the end to earn your MongoDB Learning Badge and receive a Credly badge to demonstrate your learning.
   author_email: emily.pope@mongodb.com
   questions:
@@ -1586,7 +1586,11 @@
       title: "Building GenAI Applications with MongoDB Learning Badge Path"
     - url: https://learn.mongodb.com/learn/learning-path/atlas-vector-search
       title: "Atlas Vector Search Learning Path"
-- answer: >-
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: "Atlas Vector Search Overview"
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/
+      title: "Retrieval-Augmented Generation (RAG) with Atlas Vector Search"
+- answer: |
     Our student benefits, including free certification, are available through the GitHub Student Developer Pack. 
     To be eligible for free certification, students must: 
     1. Be enrolled in the [GitHub Student Developer Pack](https://education.github.com/pack)
@@ -1605,7 +1609,7 @@
       title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
     - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
       title: "MongoDB for Students Resource Guide"
-- answer: >-
+- answer: |
     Please allow our team 2-3 business days to process your application. MongoDB operates Monday-Friday 8am-5pm Eastern Standard Time and is not open on weekends or US holidays. 
 
     Our team responds to all free certification voucher applications. If you did not receive an email with your free certification voucher, then you received an email explaining why your application was rejected and what steps you need to take to receive your free voucher. 
@@ -1628,7 +1632,7 @@
       title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
     - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
       title: "MongoDB for Students Resource Guide"
-- answer: >-
+- answer: |
     Our student benefits, including free certification and $50 in Atlas credits, are available through the GitHub Student Developer Pack. If you are already successfully registered for the GitHub Student Developer Pack, you can access MongoDB student benefits by entering your GitHub credentials at mongodb.com/students. 
 
     If you have questions regarding MongoDB student benefits, please review the information in our Student Resource Guide and FAQ section on mongodb.com/students. If you have questions regarding the GitHub Student Developer Pack, please contact GitHub support.
@@ -1644,7 +1648,7 @@
       title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
     - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
       title: "MongoDB for Students Resource Guide"
-- answer: >-
+- answer: |
     MongoDB offers a variety of free resources specifically curated to support educators in equipping students with modern database knowledge. 
 
     Through the [MongoDB for Educators](http://mongodb.com/academia) program, verified professors, teachers and other educators can access a range of valuable materials and benefits at including: 
@@ -1664,7 +1668,7 @@
       title: "MongoDB for Educators"
     - url: https://drive.google.com/file/d/1W_i_DkOeROY9raLesiEbS5PCasLAvlRb/view?usp=sharing
       title: "How to Register for MongoDB for Educators"
-- answer: >-
+- answer: |
     MongoDB Certification Exams cost $150 USD
 
     Students and Educators can get a free exam by completing a Learning Path through the student and educator programs.
@@ -1679,7 +1683,7 @@
       title: "MongoDB Student Pack"
     - url: http://mongodb.com/academia
       title: "MongoDB for Educators"
-- answer: >-
+- answer: |
     To reschedule your exam, simply navigate to your learner dashboard at learn.mongodb.com and select the "Manage" button for the exam you wish to reschedule. You will be taken to our proctoring partner's site where you can reschedule to a date/time that works better for you.
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1687,7 +1691,7 @@
   references:
     - url: https://learn.mongodb.com/
       title: "MongoDB University"
-- answer: >-
+- answer: |
     To prepare for any of the MongoDB Certification Exams, we recommend you navigate to the exam of your choice from our certification landing page. Each exam page contains a exam details, a study guide, and a set of practice questions.  author_email: carol.dibert@mongodb.com
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1695,7 +1699,7 @@
   references:
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
-- answer: >-
+- answer: |
     If you need extra time for your certificaiton due to a learning disability or because English is a second language for you, please purchase and schedule your exam and then send a support ticket to [certification@mongodb.com](mailto:certification@mongodb.com) requesting extra time. 
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1703,7 +1707,7 @@
   references:
     - url: mailto:certification@mongodb.com
       title: "Send an email to the certification team"
-- answer: >-
+- answer: |
     If you require a refund for your MongoDB Certification Exam, please submit your request to [certification@mongodb.com](mailto:certification@mongodb.com) and our support team will do their best to accommodate you.
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1711,7 +1715,7 @@
   references:
     - url: mailto:certification@mongodb.com
       title: "Send an email to the certification team"
-- answer: >-
+- answer: |
     To register for your exam, log into your learner account on [learn.mongodb.com](learn.mongodb.com) and simply select the exam from the certification page, register, complete the transaction process. Note: If you are using a coupon, please enter the code at checkout.
 
     Once you’ve registered and completed the transaction process, you’ll be sent to our online proctoring partner, Examity, to complete your tester profile and schedule your exam. Our exams are offered 24hrs a day, 7days a week.
@@ -1721,7 +1725,7 @@
   references:
     - url: https://learn.mongodb.com/
       title: "MongoDB Certification Program"
-- answer: >-
+- answer: |
     MongoDB Learning Badges are a new type of free credential offered through MongoDB University. Unlike high-stakes certifications, which cover a large breadth and depth of subjects, these badges are focused on specific topics, making them easier and quicker to earn.
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1729,7 +1733,7 @@
   references:
     - url: https://learn.mongodb.com/pages/learner-badges
       title: "MongoDB Learning Badges"
-- answer: >-
+- answer: |
     MongoDB Learning Badges are non-proctored tests that allow you to prove your knowledge on shorter, more targeted topics regardless of your role. MongoDB Certifications are proctored exams that are specific to job roles and cover a large breadth and depth.
   author_email: carol.dibert@mongodb.com
   questions:
@@ -1739,3 +1743,35 @@
       title: "MongoDB Learning Badges"
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
+- answer: |
+    MongoDB Atlas offers several product and pricing options:
+
+    - **Atlas Free Tier**: You can start with the free tier, which provides 512MB of storage and shared resources. This is suitable for learning and initial development.
+    - **Atlas Flex Tier**: This option offers flexible pricing at $0.011/hour, with a $30 monthly limit, suitable for development and testing.
+    - **Atlas Dedicated Tier**: For production applications, dedicated clusters start at $57/month, with options to scale storage, RAM, and CPU based on your needs.
+    
+    Community Edition is available for free if you prefer to self-manage your database locally or in a hybrd/private cloud.
+    
+    Enterprise Advanced is also available with a license for on-premises deployment or the cloud, while providing several capabilities unavailable in Community Edition.
+    
+    For more detailed information on pricing and customizing your deployment, you may want to [contact MongoDB sales](https://www.mongodb.com/company/contact) or [explore the pricing options further](https://www.mongodb.com/pricing).
+  author_email: bill.mitchell@mongodb.com
+  questions:
+    - How much does MongoDB cost?
+    - How much will MongoDB Atlas cost for my data storage needs?
+    - How does MongoDB's pricing model accommodate scaling applications?
+    - What is the price difference between using MongoDB's Enterprise advanced versus Atlas?
+    - How can I optimize my budget when transitioning my company's databases to MongoDB Atlas?
+    - I need to talk to sales regarding enterprise pricing options for Atlas?
+    - Are there additional charges for using MongoDB's advanced features in Atlas?
+    - Help me generate a quote for a MongoDB Atlas deployment tailored for a startup environment?
+    - Help me estimate the monthly cost of using MongoDB Atlas given my anticipated workload and storage requirements?"
+  references:
+    - url: https://www.mongodb.com/company/contact
+      title: Contact Us
+    - url: https://www.mongodb.com/pricing
+      title: Pricing
+    - url: https://www.mongodb.com/cloud/atlas/register
+      title: Atlas Registration
+    - url: https://www.mongodb.com/try/download/community
+      title: Community Edition Download

@@ -31,7 +31,13 @@ export type UseConversationParams = {
   serverBaseUrl: string;
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
-  fetchOptions?: ConversationFetchOptions;
+  /**
+   * Optional fetch options for the ConversationService. Can be either a static
+   * `ConversationFetchOptions` object for all request or a function that
+   * dynamically returns a new `ConversationFetchOptions` object for each request.
+   */
+  fetchOptions?: ConversationFetchOptions | (() => ConversationFetchOptions);
+  getClientContext?: () => Record<string, unknown>;
 };
 
 export function useConversation(params: UseConversationParams) {
@@ -85,7 +91,7 @@ export function useConversation(params: UseConversationParams) {
     let references: References | null = null;
     let bufferedTokens: string[] = [];
     let streamedTokens: string[] = [];
-    const streamingIntervalMs = 50;
+    const streamingIntervalMs = 1;
     const streamingInterval = setInterval(() => {
       const [nextToken, ...remainingTokens] = bufferedTokens;
 
@@ -134,6 +140,7 @@ export function useConversation(params: UseConversationParams) {
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
           maxRetries: 0,
           onResponseDelta: async (data: string) => {
             bufferedTokens = [...bufferedTokens, data];
@@ -168,6 +175,7 @@ export function useConversation(params: UseConversationParams) {
         const response = await conversationService.addMessage({
           conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
         });
         if (response.metadata?.conversationId) {
           state.api.setConversationId(response.metadata.conversationId);

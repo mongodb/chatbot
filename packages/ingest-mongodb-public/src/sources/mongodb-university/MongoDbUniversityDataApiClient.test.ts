@@ -44,7 +44,7 @@ describe("makeMongoDbUniversityDataApiClient()", () => {
         "nested_content"
       ] as TiCatalogItem[];
       expect(nestedContent).toBeDefined();
-      expect(nestedContent!.length).toBeGreaterThan(0);
+      expect(nestedContent.length).toBeGreaterThan(0);
     });
   });
   it("should load all the videos from the MongoDB University Data API", async () => {

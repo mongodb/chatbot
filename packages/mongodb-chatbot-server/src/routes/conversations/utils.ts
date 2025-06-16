@@ -7,7 +7,7 @@ import { z } from "zod";
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({
   id: z.string(),
-  role: z.enum(["system", "assistant", "user", "function"]),
+  role: z.enum(["system", "assistant", "user", "tool"]),
   content: z.string(),
   rating: z.boolean().optional(),
   createdAt: z.number(),
@@ -63,8 +63,8 @@ function isMessageAllowedInApiResponse(message: Message) {
     case "user":
       return true;
     case "assistant":
-      return message.functionCall === undefined;
-    case "function":
+      return message.toolCall === undefined;
+    case "tool":
       return false;
     default:
       // This should never happen - it means we missed a case in the switch.

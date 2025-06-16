@@ -1,8 +1,9 @@
-import { EmbeddedContent } from "../contentStore/EmbeddedContent";
+import { EmbeddedContent, QueryFilters } from "../contentStore/EmbeddedContent";
 import { WithScore } from "../VectorStore";
 
 export type FindContentFuncArgs = {
   query: string;
+  filters?: QueryFilters;
 };
 
 export type FindContentFunc = (
@@ -12,4 +13,5 @@ export type FindContentFunc = (
 export type FindContentResult = {
   queryEmbedding: number[];
   content: WithScore<EmbeddedContent>[];
+  embeddingModelName?: string;
 };

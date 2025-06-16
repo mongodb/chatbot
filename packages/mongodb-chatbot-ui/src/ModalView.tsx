@@ -65,8 +65,6 @@ export function ModalView(props: ModalViewProps) {
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 
-  console.log("chatWindowInputBarId", chatWindowInputBarId);
-
   return (
     <Suspense fallback={null}>
       {open ? (

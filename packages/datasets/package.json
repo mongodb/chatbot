@@ -1,11 +1,12 @@
 {
   "name": "datasets",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "main": "index.js",
   "engines": {
     "node": ">=18",
     "npm": ">=8"
   },
+  "private": true,
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b",
@@ -31,7 +32,9 @@
     "convertCodeExamplePromptYamlToCsvUsefulOnly": "npm run build && node ./build/bin/convertCodeExamplePromptYamlToCsvUsefulOnly.js",
     "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js",
     "uploadContentDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadContentDatasetToHuggingFace.js",
-    "uploadCodeExampleDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadCodeExampleDatasetToHuggingFace.js"
+    "uploadCodeExampleDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadCodeExampleDatasetToHuggingFace.js",
+    "generateDbSchemas": "npm run build && node ./build/bin/generateDbSchemas.js",
+    "generateMongoshDatasets": "npm run build && node ./build/bin/generateMongoshDatasets.js"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",
@@ -50,6 +53,7 @@
     "unist-util-visit": "^5.0.0",
     "unist-util-visit-parents": "^6.0.1",
     "yaml": "^2.4.1",
+    "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.3"
   },
   "keywords": [],

@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ChunkOptions, ChunkFunc, chunkPage } from "../chunk";
-import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { EmbeddedContentStore } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { logger } from "../logger";
 import { PageStore, PersistedPage } from ".";
@@ -18,9 +18,42 @@ export interface EmbedConcurrencyOptions {
   createChunks?: number;
 }
 
+const getHashForFunc = (
+  f: ChunkFunc,
+  o?: Partial<ChunkOptions>
+): string => {
+  const data = JSON.stringify(o ?? {}) + f.toString();
+  const hash = createHash("sha256");
+  hash.update(data);
+  const digest = hash.digest("hex");
+  return digest;
+};
+
 /**
-  (Re-)embeddedContent the pages in the page store that have changed since the given date
-  and stores the embeddedContent in the embeddedContent store.
+ Updates embedded content for pages that have changed since a given date or have different chunking hashes.
+ 
+ @param options - The configuration options for updating embedded content
+ @param options.since - The date from which to check for content changes
+ @param options.embeddedContentStore - The store containing embedded content
+ @param options.pageStore - The store containing pages
+ @param options.sourceNames - Optional array of source names to filter pages by
+ @param options.embedder - The embedder instance used to generate embeddings
+ @param options.chunkOptions - Optional configuration for chunking algorithm
+ @param options.concurrencyOptions - Optional configuration for controlling concurrency during embedding
+ 
+ @remarks
+ The function performs the following steps:
+ 1. Finds pages with content changes since the specified date
+ 2. Identifies pages with different chunking hashes from the current algorithm
+ 3. Processes both sets of pages by either:
+ - Deleting embedded content for deleted pages
+ - Updating embedded content for created/updated pages
+ 
+ Processing is done with configurable concurrency to manage system resources.
+ 
+ @throws Will throw an error if there are issues accessing stores or processing pages
+ 
+ @returns Promise that resolves when all updates are complete
  */
 export const updateEmbeddedContent = async ({
   since,
@@ -39,18 +72,48 @@ export const updateEmbeddedContent = async ({
   sourceNames?: string[];
   concurrencyOptions?: EmbedConcurrencyOptions;
 }): Promise<void> => {
-  const changedPages = await pageStore.loadPages({
+  // find all pages with changed content
+  const pagesWithChangedContent = await pageStore.loadPages({
     updated: since,
     sources: sourceNames,
   });
   logger.info(
-    `Found ${changedPages.length} changed pages since ${since}${
+    `Found ${pagesWithChangedContent.length} changed pages since ${since}${
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
+  // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
+  const chunkAlgoHash = getHashForFunc(
+    chunkPage,
+    chunkOptions
+  );
+  const dataSourcesWithChangedChunking =
+    await embeddedContentStore.getDataSources({
+      chunkAlgoHash: {
+        hashValue: chunkAlgoHash,
+        operation: "notEquals",
+      },
+      sourceNames,
+    });
+  // find all pages with changed chunking, ignoring since date because
+  // we want to re-chunk all pages with the new chunkAlgoHash, even if there were no other changes to the page
+  const pagesWithChangedChunking = await pageStore.loadPages({
+    sources: dataSourcesWithChangedChunking,
+  });
+  logger.info(
+    `Found ${
+      pagesWithChangedChunking.length
+    } pages with changed chunkingHashes ${
+      sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
+    }`
+  );
+  const changedPages = [
+    ...pagesWithChangedContent,
+    ...pagesWithChangedChunking,
+  ];
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
-    .process(async (page, index, pool) => {
+    .process(async (page) => {
       switch (page.action) {
         case "deleted":
           logger.info(
@@ -68,24 +131,10 @@ export const updateEmbeddedContent = async ({
             chunkOptions,
             embedder,
             concurrencyOptions,
+            chunkAlgoHash,
           });
       }
     });
-};
-
-const chunkAlgoHashes = new Map<string, string>();
-
-const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
-  const data = JSON.stringify(o ?? {}) + f.toString();
-  const existingHash = chunkAlgoHashes.get(data);
-  if (existingHash) {
-    return existingHash;
-  }
-  const hash = createHash("sha256");
-  hash.update(data);
-  const digest = hash.digest("hex");
-  chunkAlgoHashes.set(data, digest);
-  return digest;
 };
 
 export const updateEmbeddedContentForPage = async ({
@@ -94,12 +143,14 @@ export const updateEmbeddedContentForPage = async ({
   embedder,
   chunkOptions,
   concurrencyOptions,
+  chunkAlgoHash,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   concurrencyOptions?: EmbedConcurrencyOptions;
+  chunkAlgoHash: string;
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
@@ -122,7 +173,6 @@ export const updateEmbeddedContentForPage = async ({
   const existingContent = await store.loadEmbeddedContent({
     page,
   });
-  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
   if (
     existingContent.length &&
     existingContent[0].updated > page.updated &&
@@ -145,7 +195,7 @@ export const updateEmbeddedContentForPage = async ({
     concurrencyOptions?.createChunks ?? 1
   )
     .for(contentChunks)
-    .process(async (chunk, index, pool) => {
+    .process(async (chunk, index) => {
       logger.info(
         `Vectorizing chunk ${index + 1}/${contentChunks.length} for ${
           page.sourceName
@@ -161,6 +211,7 @@ export const updateEmbeddedContentForPage = async ({
         },
         updated: new Date(),
         chunkAlgoHash,
+        sourceType: page.sourceType,
       };
     });
 

@@ -25,10 +25,11 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
-  isExperimental,
   onOpen,
   onClose,
+  onSuggestedPromptClick,
   sortMessageReferences,
+  getClientContext,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -50,7 +51,7 @@ export function Chatbot({
           <UserProvider user={user}>
             <InnerChatbot
               fetchOptions={fetchOptions}
-              isExperimental={isExperimental}
+              getClientContext={getClientContext}
               maxCommentCharacters={maxCommentCharacters}
               maxInputCharacters={maxInputCharacters}
               name={name}
@@ -59,6 +60,7 @@ export function Chatbot({
               serverBaseUrl={serverBaseUrl}
               shouldStream={shouldStream}
               sortMessageReferences={sortMessageReferences}
+              onSuggestedPromptClick={onSuggestedPromptClick}
             >
               {children}
             </InnerChatbot>
@@ -73,19 +75,21 @@ type InnerChatbotProps = Pick<
   ChatbotProps,
   | "children"
   | "fetchOptions"
-  | "isExperimental"
+  | "getClientContext"
   | "maxCommentCharacters"
   | "maxInputCharacters"
   | "name"
   | "onOpen"
   | "onClose"
+  | "onSuggestedPromptClick"
   | "serverBaseUrl"
   | "shouldStream"
   | "sortMessageReferences"
 >;
 
-function InnerChatbot({ children, ...props }: InnerChatbotProps) {
+function InnerChatbot({ children, name, ...props }: InnerChatbotProps) {
   const chatbotData = useChatbot({
+    chatbotName: name,
     ...props,
   });
 

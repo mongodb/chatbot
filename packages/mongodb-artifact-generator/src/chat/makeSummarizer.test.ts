@@ -81,8 +81,9 @@ describe.skip("makeSummarizer", () => {
     ] satisfies PromptExamplePair[];
 
     for (const [poem, expected] of testCases) {
+      // TODO: Make this a better test
       const summary = await summarizePoem({ input: poem });
-      // expect(summary).toEqual(expected);
+      expect(summary).toEqual(expected);
     }
   });
 });

@@ -16,14 +16,15 @@ interface WebSourceParams extends WebSource {
 export function makeWebDataSource({
   name,
   urls,
+  sourceType,
   staticMetadata,
   makeBrowser,
 }: WebSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
+      const { page: browserPage, browser } = await makeBrowser();
       try {
-        const { page: browserPage, browser } = await makeBrowser();
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
@@ -37,6 +38,7 @@ export function makeWebDataSource({
               url,
               format: "md",
               sourceName: name,
+              sourceType,
               ...content,
               metadata: { ...content.metadata, ...staticMetadata },
             });
@@ -46,11 +48,13 @@ export function makeWebDataSource({
           }
         }
         if (errors.length) logger.error(errors);
-        await browser.close();
         return pages;
       } catch (err) {
         logger.error(`Failed to fetch pages for source: ${name}`, err);
         throw err;
+      } finally {
+        await browserPage.close?.();
+        await browser.close();
       }
     },
   };
@@ -183,7 +187,6 @@ async function getContent(
   const cleanedHtml = removeHtmlElements($body);
 
   const markdown = mongoDbDotcomTurndownService.turndown(cleanedHtml);
-
 
   return {
     body: markdown,

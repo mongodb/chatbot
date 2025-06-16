@@ -14,6 +14,7 @@ import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "mongodb-rag-core/mongoDbMetadata";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const MongoDbSearchToolArgsSchema = z.object({
   productName: z
@@ -74,29 +75,34 @@ export function makeSearchTool(findContent: FindContentFunc): SearchTool {
         },
       ];
     },
-    async execute(
-      args: MongoDbSearchToolArgs,
-      _options: ToolExecutionOptions
-    ): Promise<SearchToolReturnValue> {
-      const { query, productName, programmingLanguage } = args;
+    execute: wrapTraced(
+      async function (
+        args: MongoDbSearchToolArgs,
+        _options: ToolExecutionOptions
+      ): Promise<SearchToolReturnValue> {
+        const { query, productName, programmingLanguage } = args;
 
-      const nonNullMetadata: Record<string, string> = {};
-      if (productName) {
-        nonNullMetadata.productName = productName;
+        const nonNullMetadata: Record<string, string> = {};
+        if (productName) {
+          nonNullMetadata.productName = productName;
+        }
+        if (programmingLanguage) {
+          nonNullMetadata.programmingLanguage = programmingLanguage;
+        }
+
+        const queryWithMetadata = updateFrontMatter(query, nonNullMetadata);
+        const content = await findContent({ query: queryWithMetadata });
+
+        const result: SearchToolReturnValue = {
+          results: content.content.map(embeddedContentToSearchResult),
+        };
+
+        return result;
+      },
+      {
+        name: "searchTool",
       }
-      if (programmingLanguage) {
-        nonNullMetadata.programmingLanguage = programmingLanguage;
-      }
-
-      const queryWithMetadata = updateFrontMatter(query, nonNullMetadata);
-      const content = await findContent({ query: queryWithMetadata });
-
-      const result: SearchToolReturnValue = {
-        results: content.content.map(embeddedContentToSearchResult),
-      };
-
-      return result;
-    },
+    ),
   });
 }
 

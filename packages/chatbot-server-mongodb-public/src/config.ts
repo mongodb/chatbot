@@ -127,7 +127,6 @@ export const verifiedAnswerConfig = {
   },
 };
 export const retrievalConfig = {
-  preprocessorLlm: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   embeddingModel: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     k: 5,
@@ -146,6 +145,11 @@ export const embedder = makeOpenAiEmbedder({
   },
 });
 embedder.embed = wrapTraced(embedder.embed, { name: "embed" });
+
+embeddedContentStore.findNearestNeighbors = wrapTraced(
+  embeddedContentStore.findNearestNeighbors,
+  { name: "findNearestNeighbors" }
+);
 
 export const findContent = wrapTraced(
   makeDefaultFindContent({
@@ -202,12 +206,21 @@ const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
 });
-const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
+const languageModel = wrapAISDKModel(
+  azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT)
+);
 
-const guardrailLanguageModel = wrapAISDKModel(azureOpenAi("gpt-4.1-mini"));
-const inputGuardrail = makeMongoDbInputGuardrail({
-  model: guardrailLanguageModel,
-});
+const guardrailLanguageModel = wrapAISDKModel(
+  azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT)
+);
+const inputGuardrail = wrapTraced(
+  makeMongoDbInputGuardrail({
+    model: guardrailLanguageModel,
+  }),
+  {
+    name: "inputGuardrail",
+  }
+);
 
 export const generateResponse = wrapTraced(
   makeVerifiedAnswerGenerateResponse({
@@ -241,7 +254,7 @@ export const generateResponse = wrapTraced(
         toolChoice: "auto",
         maxSteps: 5,
       }),
-      { name: "GenerateResponseWithSearchTool" }
+      { name: "generateResponseWithSearchTool" }
     ),
   }),
   {

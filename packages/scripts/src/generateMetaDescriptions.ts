@@ -151,69 +151,76 @@ async function main() {
     return;
   }
 
-  for (const { row, idx } of pendingRows) {
-    let statusMsg = "Generated";
-    let generatedDescription = "";
-    let runIdNamespace = "";
-    let timestamp = 0;
+  // Group pending rows by repo
+  const repoGroups: Record<string, { row: any; idx: number }[]> = {};
+  for (const item of pendingRows) {
+    const repo = item.row["Repo"];
+    if (!repoGroups[repo]) repoGroups[repo] = [];
+    repoGroups[repo].push(item);
+  }
+
+  // Process each repo group
+  for (const [repo, group] of Object.entries(repoGroups)) {
+    const runIdNamespace = repo.replace("/", "-");
+    const timestamp = Date.now();
+    const runId = `${runIdNamespace}-${timestamp}`;
+    const urls = group.map(({ row }) => row["URL"]);
+    const urlArgs = urls.map((url) => `--url ${url}`).join(" ");
+    const command = `mongodb-ai generateDocsMetaDescription --llmMaxConcurrency=10 --runId='${runId}' ${urlArgs}`;
+    let metaJson: Record<string, string> = {};
+    const artifactPath = path.resolve(
+      __dirname,
+      `../runlogs/GenerateDocsMetaDescription/${runId}/metaDescriptions.json`
+    );
+    let commandError: string | null = null;
     try {
-      // Validate row
-      const record = metaDescriptionRecordSchema.parse({
-        project: row["Project"],
-        repo: row["Repo"],
-        pathPrefix: row["Path Prefix"],
-        url: row["URL"],
-        metaDescription: row["Description"],
-      });
-      // Build CLI command
-      timestamp = Date.now();
-      runIdNamespace = `${record.repo.replace("/", "-")}`;
-      const runId = `${runIdNamespace}-${timestamp}`;
-      const command = `mongodb-ai generateDocsMetaDescription --llmMaxConcurrency=10 --runId='${runId}' --url ${record.url}`;
-      // Run command
       const { stderr } = await execAsync(command);
-      // Find the generated metaDescriptions.json file
-      const artifactPath = path.resolve(
-        __dirname,
-        `../runlogs/GenerateDocsMetaDescription/${runId}/metaDescriptions.json`
-      );
       if (!fs.existsSync(artifactPath)) {
-        statusMsg = `ERROR: metaDescriptions.json not found at ${artifactPath}`;
+        commandError = `ERROR: metaDescriptions.json not found at ${artifactPath}`;
       } else {
-        const metaJson = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
-        generatedDescription = metaJson[record.url] || "";
+        metaJson = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
+      }
+      if (stderr) {
+        commandError =
+          (commandError ? commandError + "\n" : "") +
+          `[stderr]: ${stderr.trim()}`;
+      }
+    } catch (err: any) {
+      commandError = `ERROR: ${err.message || err}`;
+    }
+    // Update each row in the group
+    for (const { row, idx } of group) {
+      let statusMsg = "Generated";
+      let generatedDescription = "";
+      if (commandError) {
+        statusMsg = commandError;
+      } else {
+        generatedDescription = metaJson[row["URL"]] || "";
         if (!generatedDescription) {
           statusMsg = `ERROR: No description found for URL in metaDescriptions.json`;
         }
       }
-      if (stderr) {
-        statusMsg += `\n[stderr]: ${stderr.trim()}`;
-      }
-    } catch (err: any) {
-      statusMsg = `ERROR: ${err.message || err}`;
-    }
-    // Update the Status and Description columns in the sheet
-    try {
-      await updateStatusInGoogleSheet(
-        SHEETS_ID,
-        SHEETS_TAB,
-        SHEETS_CREDENTIALS,
-        idx,
-        statusMsg
-      );
-      // Also update the Description column if a description was generated
-      if (generatedDescription && !statusMsg.startsWith("ERROR")) {
-        await updateDescriptionInGoogleSheet(
+      try {
+        await updateStatusInGoogleSheet(
           SHEETS_ID,
           SHEETS_TAB,
           SHEETS_CREDENTIALS,
           idx,
-          generatedDescription
+          statusMsg
         );
+        if (generatedDescription && !statusMsg.startsWith("ERROR")) {
+          await updateDescriptionInGoogleSheet(
+            SHEETS_ID,
+            SHEETS_TAB,
+            SHEETS_CREDENTIALS,
+            idx,
+            generatedDescription
+          );
+        }
+        console.log(`Row ${idx + 2} updated: ${statusMsg.substring(0, 80)}...`);
+      } catch (err: any) {
+        console.error(`Failed to update sheet for row ${idx + 2}:`, err);
       }
-      console.log(`Row ${idx + 2} updated: ${statusMsg.substring(0, 80)}...`);
-    } catch (err: any) {
-      console.error(`Failed to update sheet for row ${idx + 2}:`, err);
     }
   }
 }

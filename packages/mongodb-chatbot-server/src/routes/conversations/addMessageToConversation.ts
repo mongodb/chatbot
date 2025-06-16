@@ -255,6 +255,7 @@ export function makeAddMessageToConversationRoute({
         }),
       };
 
+      // TODO: resume refactor here...
       const { messages } = await generateResponseTraced({
         conversation: traceConversation,
         latestMessageText,
@@ -276,6 +277,8 @@ export function makeAddMessageToConversationRoute({
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
       assert(dbAssistantMessage !== undefined, "No assistant message found");
+
+      // TODO: this'll need bunch o refactoring...
       const apiRes = convertMessageFromDbToApi(
         dbAssistantMessage,
         conversation._id

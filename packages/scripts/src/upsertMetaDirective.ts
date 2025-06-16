@@ -41,7 +41,9 @@ import { parse } from "csv/sync";
 import { z } from "zod";
 import { homedir } from "os";
 import { google } from "googleapis";
+import { getEnv } from "mongodb-rag-core";
 import "dotenv/config";
+import { strict as assert } from "assert";
 
 // Example of CSV data
 // Project,Repo,Path Prefix,Status,URL,Description,,
@@ -124,10 +126,19 @@ function resolveFilePath(args: {
 }
 
 // --- Data Source Selection ---
-const SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
-const SHEETS_TAB = process.env.GOOGLE_SHEETS_TAB;
-const SHEETS_CREDENTIALS = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const CSV_FILE_PATH = process.env.CSV_FILE_PATH;
+const {
+  GOOGLE_SHEETS_ID: SHEETS_ID,
+  GOOGLE_SHEETS_TAB: SHEETS_TAB,
+  GOOGLE_APPLICATION_CREDENTIALS: SHEETS_CREDENTIALS,
+  CSV_FILE_PATH,
+} = getEnv({
+  optional: {
+    GOOGLE_SHEETS_ID: undefined,
+    GOOGLE_SHEETS_TAB: undefined,
+    GOOGLE_APPLICATION_CREDENTIALS: undefined,
+    CSV_FILE_PATH: undefined,
+  },
+});
 
 let dataSource: "google-sheets" | "csv" | null = null;
 
@@ -237,11 +248,17 @@ async function main() {
 
   let rawRows: any[] = [];
   if (dataSource === "google-sheets") {
+    assert(SHEETS_ID, "SHEETS_ID is required for Google Sheets");
+    assert(SHEETS_TAB, "SHEETS_TAB is required for Google Sheets");
+    assert(
+      SHEETS_CREDENTIALS,
+      "SHEETS_CREDENTIALS is required for Google Sheets"
+    );
     // Read from Google Sheets
     rawRows = await readRowsFromGoogleSheet(
-      SHEETS_ID!,
-      SHEETS_TAB!,
-      SHEETS_CREDENTIALS!
+      SHEETS_ID,
+      SHEETS_TAB,
+      SHEETS_CREDENTIALS
     );
   } else if (dataSource === "csv") {
     if (!CSV_FILE_PATH) {
@@ -270,95 +287,92 @@ async function main() {
       });
     });
 
-  console.log(metaDescriptionRecords);
-  return;
+  // Transform and group by repo (existing logic)
+  const updatesByRepo = metaDescriptionRecords.reduce((acc, record) => {
+    const [org, repo] = record.repo.split("/");
+    if (!acc[record.repo]) {
+      acc[record.repo] = {
+        org,
+        repo,
+        pathPrefix: record.pathPrefix,
+        updates: [],
+      };
+    }
+    acc[record.repo].updates.push({
+      url: record.url,
+      metaDescription: record.metaDescription,
+    });
+    return acc;
+  }, {} as Record<string, RepoUpdates>);
 
-  // // Transform and group by repo (existing logic)
-  // const updatesByRepo = metaDescriptionRecords.reduce((acc, record) => {
-  //   const [org, repo] = record.repo.split("/");
-  //   if (!acc[record.repo]) {
-  //     acc[record.repo] = {
-  //       org,
-  //       repo,
-  //       pathPrefix: record.pathPrefix,
-  //       updates: [],
-  //     };
-  //   }
-  //   acc[record.repo].updates.push({
-  //     url: record.url,
-  //     metaDescription: record.metaDescription,
-  //   });
-  //   return acc;
-  // }, {} as Record<string, RepoUpdates>);
+  // Write updates to files
+  const missingFileUrls: string[] = [];
+  const baseReposDir = path.resolve(homedir(), "github-repos");
+  console.log("Base repos dir: ", baseReposDir);
 
-  // // Write updates to files
-  // const missingFileUrls: string[] = [];
-  // const baseReposDir = path.resolve(homedir(), "github-repos");
-  // console.log("Base repos dir: ", baseReposDir);
+  // For Google Sheets, we need to keep track of which metaDescriptionRecord maps to which row
+  let processedCount = 0;
+  for (const { org, repo, pathPrefix, updates } of Object.values(
+    updatesByRepo
+  )) {
+    console.log(`\n\nREPO: ${org}/${repo}`);
+    const repoPath = path.join(baseReposDir, org, repo);
+    if (!fs.existsSync(repoPath)) {
+      console.log(`ERROR: Repo does not exist: ${repoPath}`);
+      continue;
+    }
+    for (const update of updates) {
+      console.log(`\nUPDATE: ${update.url}`);
+      const filePath = resolveFilePath({
+        repoPath,
+        pathPrefix,
+        url: update.url,
+      });
 
-  // // For Google Sheets, we need to keep track of which metaDescriptionRecord maps to which row
-  // let processedCount = 0;
-  // for (const { org, repo, pathPrefix, updates } of Object.values(
-  //   updatesByRepo
-  // )) {
-  //   console.log(`\n\nREPO: ${org}/${repo}`);
-  //   const repoPath = path.join(baseReposDir, org, repo);
-  //   if (!fs.existsSync(repoPath)) {
-  //     console.log(`ERROR: Repo does not exist: ${repoPath}`);
-  //     continue;
-  //   }
-  //   for (const update of updates) {
-  //     console.log(`\nUPDATE: ${update.url}`);
-  //     const filePath = resolveFilePath({
-  //       repoPath,
-  //       pathPrefix,
-  //       url: update.url,
-  //     });
-
-  //     let updateStatus: "Page Updated" | "ERROR" = "Page Updated";
-  //     if (!filePath) {
-  //       console.log(`ERROR: File does not exist: ${update.url}`);
-  //       missingFileUrls.push(update.url);
-  //       updateStatus = "ERROR";
-  //     } else {
-  //       try {
-  //         upsertMetaDirectiveInFile(
-  //           filePath,
-  //           {
-  //             description: update.metaDescription,
-  //             keywords: null,
-  //           },
-  //           {
-  //             allowOverwrite: false,
-  //           }
-  //         );
-  //       } catch (e) {
-  //         console.log(
-  //           `ERROR: Failed to upsert meta directive: ${update.url}`,
-  //           e
-  //         );
-  //         updateStatus = "ERROR";
-  //       }
-  //     }
-  //     // If using Google Sheets, update the status column
-  //     if (dataSource === "google-sheets") {
-  //       const rowIndex = sheetRowIndexMap[processedCount];
-  //       updateStatusInGoogleSheet(
-  //         SHEETS_ID!,
-  //         SHEETS_TAB!,
-  //         SHEETS_CREDENTIALS!,
-  //         rowIndex,
-  //         updateStatus
-  //       ).catch((err) => {
-  //         console.error(
-  //           `Failed to update status in Google Sheet for row ${rowIndex + 2}:`,
-  //           err
-  //         );
-  //       });
-  //       processedCount++;
-  //     }
-  //   }
-  // }
+      let updateStatus: "Page Updated" | "ERROR" = "Page Updated";
+      if (!filePath) {
+        console.log(`ERROR: File does not exist: ${update.url}`);
+        missingFileUrls.push(update.url);
+        updateStatus = "ERROR";
+      } else {
+        try {
+          upsertMetaDirectiveInFile(
+            filePath,
+            {
+              description: update.metaDescription,
+              keywords: null,
+            },
+            {
+              allowOverwrite: false,
+            }
+          );
+        } catch (e) {
+          console.log(
+            `ERROR: Failed to upsert meta directive: ${update.url}`,
+            e
+          );
+          updateStatus = "ERROR";
+        }
+      }
+      // If using Google Sheets, update the status column
+      if (dataSource === "google-sheets") {
+        const rowIndex = sheetRowIndexMap[processedCount];
+        updateStatusInGoogleSheet(
+          SHEETS_ID!,
+          SHEETS_TAB!,
+          SHEETS_CREDENTIALS!,
+          rowIndex,
+          updateStatus
+        ).catch((err) => {
+          console.error(
+            `Failed to update status in Google Sheet for row ${rowIndex + 2}:`,
+            err
+          );
+        });
+        processedCount++;
+      }
+    }
+  }
 }
 
 // Run main if this is the entry point

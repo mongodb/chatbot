@@ -116,7 +116,7 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
 
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
-    // TODO: Add this
+    // TODO: Add this...
   };
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.

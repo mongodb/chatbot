@@ -39,7 +39,7 @@ const searchContentToolNotes = [
   ...importantNotes,
   "Generate an appropriate search query for a given user input.",
   "You are doing this for MongoDB, and all queries relate to MongoDB products.",
-  'When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.',
+  'When constructing the query, take a "step back" to generate a more general search query that finds the information relevant to the user query.',
   'If the user query is already a "good" search query, do not modify it.',
   'For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: If the user query is "or", transform it into "what is the $or operator in MongoDB?".',
   "You should also transform the user query into a fully formed question, if relevant.",

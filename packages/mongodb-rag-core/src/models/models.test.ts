@@ -8,7 +8,6 @@ import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
 import { OpenAI } from "openai";
 import "dotenv/config";
-import { getOpenAiEndpointAndApiKey } from "./getOpenAiEndpointAndApiKey";
 
 jest.setTimeout(60000);
 
@@ -25,23 +24,6 @@ describe.skip("Braintrust models", () => {
         braintrust: {
           apiKey: BRAINTRUST_API_KEY,
           endpoint: BRAINTRUST_ENDPOINT,
-        },
-      });
-      const openAiClient = openAiClientFactory.makeOpenAiClient(model);
-      await expectModelResponse(openAiClient, model.deployment);
-    }
-  );
-});
-
-describe.skip("GCP Vertex AI models", () => {
-  test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
-    "'$label' model should generate data",
-    async (model) => {
-      const { apiKey, baseURL } = await getOpenAiEndpointAndApiKey(model);
-      const openAiClientFactory = makeOpenAiClientFactory({
-        vertexAi: {
-          apiKey,
-          endpoint: baseURL,
         },
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);

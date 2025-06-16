@@ -247,11 +247,11 @@ export const generateResponse = wrapTraced(
         maxSteps: 5,
         stream: addMessageToConversationStream,
       }),
-      { name: "makeStepBackRagGenerateUserPrompt" }
+      { name: "GenerateResponseWithSearchTool" }
     ),
   }),
   {
-    name: "generateUserPrompt",
+    name: "generateResponse",
   }
 );
 

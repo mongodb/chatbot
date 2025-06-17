@@ -231,8 +231,8 @@ export const generateResponse = wrapTraced(
         references: verifiedAnswer.references.map(addReferenceSourceType),
       };
     },
-    onNoVerifiedAnswerFound: wrapTraced(
-      makeGenerateResponseWithSearchTool({
+    onNoVerifiedAnswerFound: wrapTraced( 
+      makeGenerateResponseWithSearchTool({ // This must be renamed when we add fetch_page
         languageModel,
         systemMessage: systemPrompt,
         makeReferenceLinks: makeMongoDbReferences,

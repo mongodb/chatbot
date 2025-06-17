@@ -13,8 +13,8 @@ async function main() {
 
   const { RUN_ID } = process.env;
 
-  const temperatures = [0.0];
-  const maxTokensOut = [1000];
+  const temperatures = [0.5];
+  const maxTokensOut = [4000];
   const iterations = 5;
   const projectName = "discovery-benchmark";
   const modelExperiments = MODELS.filter((m) => m.authorized === true).map(
@@ -30,7 +30,8 @@ async function main() {
         }
       }
       return modelExperiments;
-    });
+    }
+  );
   // Process models in parallel
   await PromisePool.for(modelExperiments)
     .withConcurrency(3)

@@ -46,7 +46,8 @@ async function main() {
           }
         }
         return modelExperiments;
-      });
+      }
+    );
     // Process models in parallel
     await PromisePool.for(modelExperiments)
       .withConcurrency(3)

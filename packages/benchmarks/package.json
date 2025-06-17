@@ -22,8 +22,7 @@
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
     "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
     "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js",
-    "benchmark:TextToMongosh": "npm run build && node ./build/textToDriver/bin/mongoshBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

@@ -360,6 +360,16 @@ const allModels = [
     generation: "gemini-2",
   },
   {
+    label: "gemini-2.5-pro-exp-03-25",
+    deployment: "publishers/google/models/gemini-2.5-pro-exp-03-25",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    parent: "gemini-1.5-pro-002",
+    generation: "gemini-2",
+  },
+  {
     label: "gemini-2.5-pro-preview-03-25",
     deployment: "publishers/google/models/gemini-2.5-pro-preview-03-25",
     developer: "Google",
@@ -372,6 +382,16 @@ const allModels = [
   {
     label: "gemini-2.5-pro-preview-05-06",
     deployment: "publishers/google/models/gemini-2.5-pro-preview-05-06",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    parent: "gemini-1.5-pro-002",
+    generation: "gemini-2",
+  },
+  {
+    label: "gemini-2.5-pro-preview-06-05",
+    deployment: "publishers/google/models/gemini-2.5-pro-preview-06-05", // check this
     developer: "Google",
     maxConcurrency: 5,
     provider: "braintrust",

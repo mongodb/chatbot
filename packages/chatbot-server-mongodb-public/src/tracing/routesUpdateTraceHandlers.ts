@@ -22,6 +22,8 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
 import { redactPii } from "./scrubbedMessages/redactPii";
 import { MessageAnalysis } from "./scrubbedMessages/analyzeMessage";
+import { classifyMongoDbMetadata } from "mongodb-rag-core/mongoDbMetadata";
+import { tagify } from "./tagify";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
@@ -89,6 +91,37 @@ export function makeAddMessageToConversationUpdateTrace({
       logRequest({
         reqId,
         message: `Error scrubbing messages while adding message ${error}`,
+        type: "error",
+      });
+    }
+
+    // classify metadata
+    try {
+      const metadata = await classifyMongoDbMetadata(
+        analyzerModel,
+        `The following is a back and forth conversation between a user and an assistant. The user is asking a question about MongoDB. The assistant is trying to answer the user's question. The user's message is in <user_message_content> tags and the assistant's message is in <assistant_message_content> tags.
+<user_message_content>
+${tracingData.userMessage?.content}
+</user_message_content>
+<assistant_message_content>
+${tracingData.assistantMessage?.content}
+</assistant_message_content>`
+      );
+      // update tags
+      for (const tag of Object.values(metadata)) {
+        if (tag !== null) {
+          tracingData.tags.push(tagify(tag));
+        }
+      }
+      // Add metadata to user message
+      tracingData.userMessage.metadata = {
+        ...tracingData.userMessage.metadata,
+        ...metadata,
+      };
+    } catch (error) {
+      logRequest({
+        reqId,
+        message: `Error classifying metadata while adding message ${error}`,
         type: "error",
       });
     }
@@ -384,9 +417,9 @@ export function makeCommentMessageUpdateTrace({
       assert(userMessage?.id, "Missing user message for comment");
       await scrubbedMessageStore.updateScrubbedMessage({
         id: userMessage.id,
-        message: { 
+        message: {
           "response.userCommented": true,
-          "response.userComment": userComment
+          "response.userComment": userComment,
         } as Partial<Omit<ScrubbedMessage, "_id">>,
       });
     } catch (error) {

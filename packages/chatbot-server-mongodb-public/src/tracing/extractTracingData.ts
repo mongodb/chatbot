@@ -11,6 +11,7 @@ import { strict as assert } from "assert";
 import { SEARCH_TOOL_NAME } from "../tools/search";
 import { logRequest } from "../utils";
 import { OriginCode } from "mongodb-chatbot-server";
+import { tagify } from "./tagify";
 
 export function extractTracingData(
   messages: Message[],
@@ -29,31 +30,22 @@ export function extractTracingData(
   const previousUserMessageIdx = messages
     .slice(0, evalAssistantMessageIdx)
     .findLastIndex((m): m is DbMessage<UserMessage> => m.role === "user");
-  const previousUserMessage = messages[previousUserMessageIdx] as
-    | DbMessage<UserMessage>
-    | undefined;
   assert(previousUserMessageIdx !== -1, "User message not found");
+  const previousUserMessage = messages[
+    previousUserMessageIdx
+  ] as DbMessage<UserMessage>;
 
   const tags = [];
 
-  const rejectQuery = previousUserMessage?.rejectQuery;
+  const rejectQuery = previousUserMessage.rejectQuery;
   if (rejectQuery === true) {
     tags.push("rejected_query");
   }
-  const programmingLanguage = previousUserMessage?.customData
-    ?.programmingLanguage as string | undefined;
-  const mongoDbProduct = previousUserMessage?.customData?.mongoDbProduct as
-    | string
-    | undefined;
-  const requestOriginCode = previousUserMessage?.customData?.originCode as
+
+  const requestOriginCode = previousUserMessage.customData?.originCode as
     | OriginCode
     | undefined;
-  if (programmingLanguage) {
-    tags.push(tagify(programmingLanguage));
-  }
-  if (mongoDbProduct) {
-    tags.push(tagify(mongoDbProduct));
-  }
+
   if (requestOriginCode) {
     tags.push(tagify(requestOriginCode));
   }
@@ -68,21 +60,21 @@ export function extractTracingData(
   }
 
   const isVerifiedAnswer =
-    evalAssistantMessage?.metadata?.verifiedAnswer !== undefined
+    evalAssistantMessage.metadata?.verifiedAnswer !== undefined
       ? true
       : undefined;
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
-  const llmDoesNotKnow = evalAssistantMessage?.content.includes(
+  const llmDoesNotKnow = evalAssistantMessage.content.includes(
     llmDoesNotKnowMessage
   );
   if (llmDoesNotKnow) {
     tags.push("llm_does_not_know");
   }
 
-  const rating = evalAssistantMessage?.rating;
-  const comment = evalAssistantMessage?.userComment;
+  const rating = evalAssistantMessage.rating;
+  const comment = evalAssistantMessage.userComment;
 
   return {
     conversationId: conversationId,
@@ -99,10 +91,6 @@ export function extractTracingData(
     rating,
     comment,
   };
-}
-
-function tagify(s: string) {
-  return s.replaceAll(/ /g, "_").toLowerCase();
 }
 
 export function getContextsFromMessages(

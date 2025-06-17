@@ -391,7 +391,7 @@ const allModels = [
   },
   {
     label: "gemini-2.5-pro-preview-06-05",
-    deployment: "publishers/google/models/gemini-2.5-pro-preview-06-05", // check this
+    deployment: "publishers/google/models/gemini-2.5-pro-preview-06-05",
     developer: "Google",
     maxConcurrency: 5,
     provider: "braintrust",

@@ -141,7 +141,7 @@ ${tracingData.assistantMessage?.content}
           userId,
           anonymousId,
           conversationId: conversation._id,
-          origin: userMessage.customData?.origin as string,
+          origin: tracingData.origin,
           createdAt: userMessage.createdAt,
           tags: tracingData.tags,
         });
@@ -159,13 +159,10 @@ ${tracingData.assistantMessage?.content}
           userId,
           anonymousId,
           conversationId: conversation._id,
-          origin: userMessage.customData?.origin as string,
+          origin: tracingData.origin,
           createdAt: assistantMessage.createdAt,
           isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
-          rejectionReason: tracingData.rejectQuery
-            ? (userMessage.customData?.rejectionReason as string | undefined) ??
-              "Unknown rejection reason"
-            : undefined,
+          rejectionReason: tracingData.rejectionReason,
         });
       } else {
         throw new Error(
@@ -311,7 +308,7 @@ export function makeRateMessageUpdateTrace({
           userId,
           anonymousId,
           conversationId: conversation._id,
-          origin: userMessage.customData?.origin as string,
+          origin: tracingData.origin,
           createdAt: new Date(),
           rating,
         });
@@ -447,7 +444,7 @@ export function makeCommentMessageUpdateTrace({
           userId,
           anonymousId,
           conversationId: conversation._id,
-          origin: userMessage.customData?.origin as string,
+          origin: tracingData.origin,
           createdAt: new Date(),
           rating,
           comment,

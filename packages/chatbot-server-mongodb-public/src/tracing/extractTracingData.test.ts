@@ -128,4 +128,110 @@ describe("extractTracingData", () => {
     expect(tracingData.userMessageIndex).toBe(0);
     expect(tracingData.assistantMessageIndex).toBe(1);
   });
+
+  test("should extract origin from customData", () => {
+    const messagesWithOrigin: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          origin: "https://example.com/chat",
+        },
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesWithOrigin,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.origin).toBe("https://example.com/chat");
+  });
+
+  test("should handle missing origin", () => {
+    const messagesNoOrigin: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {},
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesNoOrigin,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.origin).toBeUndefined();
+  });
+
+  test("should handle non-string origin", () => {
+    const messagesInvalidOrigin: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          origin: 123, // non-string value
+        },
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesInvalidOrigin,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.origin).toBeUndefined();
+  });
+
+  test("should extract rejectionReason from customData", () => {
+    const messagesWithRejection: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          rejectionReason: "Query contains inappropriate content",
+        },
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesWithRejection,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.rejectionReason).toBe(
+      "Query contains inappropriate content"
+    );
+  });
+
+  test("should use default rejection reason when missing", () => {
+    const messagesNoRejection: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {},
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesNoRejection,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.rejectionReason).toBe("Unknown rejection reason");
+  });
+
+  test("should use default rejection reason for non-string value", () => {
+    const messagesInvalidRejection: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          rejectionReason: { reason: "complex object" }, // non-string value
+        },
+      },
+      baseAssistantMessage,
+    ];
+    const tracingData = extractTracingData(
+      messagesInvalidRejection,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.rejectionReason).toBe("Unknown rejection reason");
+  });
 });

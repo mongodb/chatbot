@@ -78,7 +78,7 @@ const BaseTrackEventParamsSchema = z.object({
   userId: z.string().optional(),
   anonymousId: z.string().optional(),
   conversationId: z.instanceof(ObjectId),
-  origin: z.string(),
+  origin: z.string().optional(),
   createdAt: z.date(),
 });
 

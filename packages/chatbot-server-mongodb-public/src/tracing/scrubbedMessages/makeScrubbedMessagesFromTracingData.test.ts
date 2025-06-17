@@ -64,8 +64,6 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       messagePii: undefined,
       userCommentPii: undefined,
       rejectQuery: false,
-      rejectionReason: "no rejection",
-      origin: "unknown",
     });
 
     // Check assistant message

@@ -305,29 +305,30 @@ export function makeRateMessageUpdateTrace({
     }
 
     try {
-      if (segmentTrackUserRatedMessage) {
+      const hasSegmentId = !!userId || !!anonymousId;
+      if (segmentTrackUserRatedMessage && hasSegmentId) {
         logRequest({
           reqId: traceId,
           message: `Sending rateMessage event to Segment for conversation ${conversation._id}`,
         });
-      }
-      if (userMessage && assistantMessage && rating !== undefined) {
-        segmentTrackUserRatedMessage?.({
-          userId,
-          anonymousId,
-          conversationId: conversation._id,
-          origin: tracingData.origin,
-          createdAt: new Date(),
-          rating,
-        });
-      } else {
-        throw new Error(
-          `Missing required data ${JSON.stringify({
-            userMessage,
-            assistantMessage,
+        if (userMessage && assistantMessage && rating !== undefined) {
+          segmentTrackUserRatedMessage?.({
+            userId,
+            anonymousId,
+            conversationId: conversation._id,
+            origin: tracingData.origin,
+            createdAt: new Date(),
             rating,
-          })}`
-        );
+          });
+        } else {
+          throw new Error(
+            `Missing required data ${JSON.stringify({
+              userMessage,
+              assistantMessage,
+              rating,
+            })}`
+          );
+        }
       }
     } catch (error) {
       logRequest({
@@ -436,36 +437,38 @@ export function makeCommentMessageUpdateTrace({
     }
 
     try {
-      if (segmentTrackUserCommentedMessage) {
+      const hasSegmentId = !!userId || !!anonymousId;
+      if (segmentTrackUserCommentedMessage && hasSegmentId) {
         logRequest({
           reqId: traceId,
           message: `Sending commentMessage event to Segment for conversation ${conversation._id}`,
         });
-      }
-      if (
-        userMessage &&
-        assistantMessage &&
-        rating !== undefined &&
-        comment !== undefined
-      ) {
-        segmentTrackUserCommentedMessage?.({
-          userId,
-          anonymousId,
-          conversationId: conversation._id,
-          origin: tracingData.origin,
-          createdAt: new Date(),
-          rating,
-          comment,
-        });
-      } else {
-        throw new Error(
-          `Missing required data ${JSON.stringify({
-            userMessage,
-            assistantMessage,
+
+        if (
+          userMessage &&
+          assistantMessage &&
+          rating !== undefined &&
+          comment !== undefined
+        ) {
+          segmentTrackUserCommentedMessage?.({
+            userId,
+            anonymousId,
+            conversationId: conversation._id,
+            origin: tracingData.origin,
+            createdAt: new Date(),
             rating,
             comment,
-          })}`
-        );
+          });
+        } else {
+          throw new Error(
+            `Missing required data ${JSON.stringify({
+              userMessage,
+              assistantMessage,
+              rating,
+              comment,
+            })}`
+          );
+        }
       }
     } catch (error) {
       logRequest({

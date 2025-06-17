@@ -50,19 +50,19 @@ async function readRowsFromGoogleSheet(
   });
 }
 
-// Helper to update the Status column in Google Sheet
-async function updateStatusInGoogleSheet(
+// Helper to batch update Status and Description columns in Google Sheet
+async function batchUpdateSheet(
   sheetId: string,
   tabName: string,
   credentialsPath: string,
-  rowIndex: number,
-  newStatus: string
-): Promise<void> {
+  updates: { rowIndex: number; status: string; description?: string }[]
+) {
   const auth = new google.auth.GoogleAuth({
     keyFile: credentialsPath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
   const sheets = google.sheets({ version: "v4", auth });
+  // Get header row to find column indices
   const headerResp = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: tabName + "!1:1",
@@ -71,47 +71,41 @@ async function updateStatusInGoogleSheet(
   const statusColIdx = headers.findIndex(
     (h) => h.trim().toLowerCase() === "status"
   );
-  if (statusColIdx === -1) throw new Error("Status column not found in sheet");
-  const colLetter = String.fromCharCode("A".charCodeAt(0) + statusColIdx);
-  const targetCell = `${tabName}!${colLetter}${rowIndex + 2}`;
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: sheetId,
-    range: targetCell,
-    valueInputOption: "RAW",
-    requestBody: { values: [[newStatus]] },
-  });
-}
-
-// Helper to update the Description column
-async function updateDescriptionInGoogleSheet(
-  sheetId: string,
-  tabName: string,
-  credentialsPath: string,
-  rowIndex: number,
-  newDescription: string
-): Promise<void> {
-  const auth = new google.auth.GoogleAuth({
-    keyFile: credentialsPath,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  const sheets = google.sheets({ version: "v4", auth });
-  const headerResp = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: tabName + "!1:1",
-  });
-  const headers = headerResp.data.values?.[0] || [];
   const descColIdx = headers.findIndex(
     (h) => h.trim().toLowerCase() === "description"
   );
-  if (descColIdx === -1)
-    throw new Error("Description column not found in sheet");
-  const colLetter = String.fromCharCode("A".charCodeAt(0) + descColIdx);
-  const targetCell = `${tabName}!${colLetter}${rowIndex + 2}`;
-  await sheets.spreadsheets.values.update({
+  if (statusColIdx === -1 || descColIdx === -1)
+    throw new Error("Status or Description column not found in sheet");
+
+  // Prepare batch data
+  const data = [];
+  for (const { rowIndex, status, description } of updates) {
+    // Status
+    const statusColLetter = String.fromCharCode(
+      "A".charCodeAt(0) + statusColIdx
+    );
+    const statusCell = `${tabName}!${statusColLetter}${rowIndex + 2}`;
+    data.push({
+      range: statusCell,
+      values: [[status]],
+    });
+    // Description (if present)
+    if (description) {
+      const descColLetter = String.fromCharCode("A".charCodeAt(0) + descColIdx);
+      const descCell = `${tabName}!${descColLetter}${rowIndex + 2}`;
+      data.push({
+        range: descCell,
+        values: [[description]],
+      });
+    }
+  }
+
+  await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: sheetId,
-    range: targetCell,
-    valueInputOption: "RAW",
-    requestBody: { values: [[newDescription]] },
+    requestBody: {
+      valueInputOption: "RAW",
+      data,
+    },
   });
 }
 
@@ -144,7 +138,7 @@ async function main() {
   const pendingRows = rawRows
     .map((row: any, idx: number) => ({ row, idx }))
     .filter(({ row }) => (row["Status"] ?? "") === "")
-    .slice(0, 30);
+    .slice(0, 500);
 
   if (pendingRows.length === 0) {
     console.log("No rows with empty Status found in the sheet.");
@@ -186,9 +180,14 @@ async function main() {
           `[stderr]: ${stderr.trim()}`;
       }
     } catch (err: any) {
-      commandError = `ERROR: ${err.message || err}`;
+      commandError = `ERROR`;
     }
-    // Update each row in the group
+    // Collect all updates for this group
+    const updates: {
+      rowIndex: number;
+      status: string;
+      description?: string;
+    }[] = [];
     for (const { row, idx } of group) {
       let statusMsg = "Generated";
       let generatedDescription = "";
@@ -200,27 +199,30 @@ async function main() {
           statusMsg = `ERROR: No description found for URL in metaDescriptions.json`;
         }
       }
-      try {
-        await updateStatusInGoogleSheet(
-          SHEETS_ID,
-          SHEETS_TAB,
-          SHEETS_CREDENTIALS,
-          idx,
-          statusMsg
+      updates.push({
+        rowIndex: idx,
+        status: statusMsg,
+        description:
+          generatedDescription && !statusMsg.startsWith("ERROR")
+            ? generatedDescription
+            : undefined,
+      });
+    }
+    // Batch update the sheet for this group
+    try {
+      await batchUpdateSheet(
+        SHEETS_ID,
+        SHEETS_TAB,
+        SHEETS_CREDENTIALS,
+        updates
+      );
+      for (const { rowIndex, status } of updates) {
+        console.log(
+          `Row ${rowIndex + 2} updated: ${status.substring(0, 80)}...`
         );
-        if (generatedDescription && !statusMsg.startsWith("ERROR")) {
-          await updateDescriptionInGoogleSheet(
-            SHEETS_ID,
-            SHEETS_TAB,
-            SHEETS_CREDENTIALS,
-            idx,
-            generatedDescription
-          );
-        }
-        console.log(`Row ${idx + 2} updated: ${statusMsg.substring(0, 80)}...`);
-      } catch (err: any) {
-        console.error(`Failed to update sheet for row ${idx + 2}:`, err);
       }
+    } catch (err: any) {
+      console.error(`Failed to batch update sheet for repo ${repo}:`, err);
     }
   }
 }

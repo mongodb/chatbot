@@ -76,6 +76,15 @@ export function extractTracingData(
   const rating = evalAssistantMessage.rating;
   const comment = evalAssistantMessage.userComment;
 
+  const maybeOrigin = previousUserMessage.customData?.origin;
+  const origin = typeof maybeOrigin === "string" ? maybeOrigin : undefined;
+
+  const maybeRejectionReason = previousUserMessage.customData?.rejectionReason;
+  const rejectionReason =
+    typeof maybeRejectionReason === "string"
+      ? maybeRejectionReason
+      : "Unknown rejection reason";
+
   return {
     conversationId: conversationId,
     tags,

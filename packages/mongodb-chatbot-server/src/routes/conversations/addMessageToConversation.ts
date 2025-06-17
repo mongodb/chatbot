@@ -266,6 +266,11 @@ export function makeAddMessageToConversationRoute({
         traceId: assistantResponseMessageId.toHexString(),
       });
 
+      // Add custom data to user message.
+      // Override with custom data defined in the route.
+      const userMessage = messages[0];
+      userMessage.customData = { ...customData, ...userMessage.customData };
+
       // --- SAVE QUESTION & RESPONSE ---
       const dbNewMessages = await addMessagesToDatabase({
         conversations,

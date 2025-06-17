@@ -324,12 +324,17 @@ export const config: AppConfig = {
         req,
         res
       );
-      return {
+      const customData = {
         ...defaultCustomData,
-        segmentUserId: res.locals.customData.segmentUserId ?? undefined,
-        segmentAnonymousId:
-          res.locals.customData.segmentAnonymousId ?? undefined,
       };
+      if (res.locals.customData.segmentUserId) {
+        customData.segmentUserId = res.locals.customData.segmentUserId;
+      }
+      if (res.locals.customData.segmentAnonymousId) {
+        customData.segmentAnonymousId =
+          res.locals.customData.segmentAnonymousId;
+      }
+      return customData;
     },
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace({

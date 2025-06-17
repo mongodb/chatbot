@@ -128,49 +128,57 @@ ${tracingData.assistantMessage?.content}
 
     // Send Segment events
     try {
-      if (segmentTrackUserSentMessage) {
+      const userMessage = tracingData.userMessage;
+      const { userId, anonymousId } = getSegmentIds(userMessage);
+      const hasSegmentId = !!userId || !!anonymousId;
+      if (segmentTrackUserSentMessage && hasSegmentId) {
         logRequest({
           reqId,
           message: `Sending addMessageToConversation event to Segment for conversation ${conversation._id}`,
         });
-      }
-      const userMessage = tracingData.userMessage;
-      const { userId, anonymousId } = getSegmentIds(userMessage);
-      if (userMessage) {
-        segmentTrackUserSentMessage?.({
-          userId,
-          anonymousId,
-          conversationId: conversation._id,
-          origin: tracingData.origin,
-          createdAt: userMessage.createdAt,
-          tags: tracingData.tags,
-        });
-      } else {
-        throw new Error(
-          `Missing required data ${JSON.stringify({
-            userMessage,
-          })}`
-        );
-      }
 
-      const assistantMessage = tracingData.assistantMessage;
-      if (userMessage && assistantMessage) {
-        segmentTrackAssistantResponded?.({
-          userId,
-          anonymousId,
-          conversationId: conversation._id,
-          origin: tracingData.origin,
-          createdAt: assistantMessage.createdAt,
-          isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
-          rejectionReason: tracingData.rejectionReason,
-        });
+        if (userMessage) {
+          segmentTrackUserSentMessage?.({
+            userId,
+            anonymousId,
+            conversationId: conversation._id,
+            origin: tracingData.origin,
+            createdAt: userMessage.createdAt,
+            tags: tracingData.tags,
+          });
+        } else {
+          throw new Error(
+            `Missing required data ${JSON.stringify({
+              userMessage,
+            })}`
+          );
+        }
+
+        const assistantMessage = tracingData.assistantMessage;
+        if (userMessage && assistantMessage) {
+          segmentTrackAssistantResponded?.({
+            userId,
+            anonymousId,
+            conversationId: conversation._id,
+            origin: tracingData.origin,
+            createdAt: assistantMessage.createdAt,
+            isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
+            rejectionReason: tracingData.rejectionReason,
+          });
+        } else {
+          throw new Error(
+            `Missing required data ${JSON.stringify({
+              userMessage,
+              assistantMessage,
+            })}`
+          );
+        }
       } else {
-        throw new Error(
-          `Missing required data ${JSON.stringify({
-            userMessage,
-            assistantMessage,
-          })}`
-        );
+        logRequest({
+          reqId,
+          message: `Not sending events to Segement because no Segment configuration or ID present.`,
+          type: "info",
+        });
       }
     } catch (error) {
       logRequest({

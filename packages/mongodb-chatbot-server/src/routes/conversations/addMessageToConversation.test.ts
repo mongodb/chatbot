@@ -6,6 +6,8 @@ import {
   defaultConversationConstants,
   Message,
   SomeMessage,
+  DbMessage,
+  UserMessage,
 } from "mongodb-rag-core";
 import { Express } from "express";
 import {
@@ -20,7 +22,10 @@ import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { strict as assert } from "assert";
 import { Db, ObjectId } from "mongodb-rag-core/mongodb";
-import { mockAssistantResponse } from "../../test/testConfig";
+import {
+  generateResponseCustomData,
+  mockAssistantResponse,
+} from "../../test/testConfig";
 
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
@@ -105,13 +110,15 @@ describe("POST /conversations/:conversationId/messages", () => {
       _id: new ObjectId(conversationId),
     });
     assert(conversation);
-    const userMessageWithCustomData =
-      conversation.messages[conversation.messages.length - 2];
+    const userMessageWithCustomData = conversation.messages.findLast(
+      (m): m is DbMessage<UserMessage> => m.role === "user"
+    );
     expect(userMessageWithCustomData?.customData).toStrictEqual({
       ip: ipAddress,
       origin,
       originCode: "OTHER",
       userAgent: "test-user-agent",
+      ...generateResponseCustomData,
     });
   });
   test("uses previous message filter", async () => {

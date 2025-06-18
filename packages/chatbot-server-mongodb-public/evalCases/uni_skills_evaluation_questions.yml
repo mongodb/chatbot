@@ -246,12 +246,12 @@
     - https://learn.mongodb.com/skills?openTab=gen%20ai
     - https://learn.mongodb.com/learning-paths/building-genai-apps-learning-badge-path
     - https://learn.mongodb.com
-- name: What should I take to on MongoDB University learn about genAI?
+- name: What should I take on MongoDB University to learn about genAI?
   tags:
     - promote skills
   messages:
     - role: user
-      content: What should I take to on MongoDB University learn about genAI?
+      content: What should I take on MongoDB University to learn about genAI?
   reference: >-
     To learn about Generative AI (GenAI) with MongoDB, you can pursue the following
     learning paths and badges offered by MongoDB University: For a quick introduction

@@ -418,7 +418,7 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "university-skills",
     urls: [
-      "https://learn.mongodb.com/skills",
+      "https://learn.mongodb.com/skills?openTab=data+modeling",
       "https://learn.mongodb.com/skills?openTab=gen%20ai",
       "https://learn.mongodb.com/skills?openTab=query",
       "https://learn.mongodb.com/skills?openTab=aggregation",

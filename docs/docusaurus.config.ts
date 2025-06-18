@@ -3,8 +3,8 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "MongoDB Chatbot Framework",
-  tagline: "Build RAG applications with MongoDB and Atlas Vector Search",
+  title: "MongoDB Knowledge Service",
+  tagline: "Serving MongoDB knowledge",
   staticDirectories: ["static"],
 
   // Set the production url of your site here
@@ -31,45 +31,6 @@ const config: Config = {
   },
   themes: ["@docusaurus/theme-mermaid"],
   plugins: [
-    [
-      "docusaurus-plugin-typedoc",
-      {
-        id: "server",
-        entryPoints: ["../packages/mongodb-chatbot-server/src/index.ts"],
-        tsconfig: "../packages/mongodb-chatbot-server/tsconfig.build.json",
-        sidebar: {
-          fullNames: true,
-        },
-        out: "reference/server",
-      },
-    ],
-    [
-      "docusaurus-plugin-typedoc",
-      {
-        id: "core",
-        entryPoints: [
-          "../packages/mongodb-rag-core/src/index.ts",
-          "../packages/mongodb-rag-core/src/dataSources/index.ts",
-        ],
-        tsconfig: "../packages/mongodb-rag-core/tsconfig.json",
-        sidebar: {
-          fullNames: true,
-        },
-        out: "reference/core",
-      },
-    ],
-    [
-      "docusaurus-plugin-typedoc",
-      {
-        id: "ingest",
-        entryPoints: ["../packages/mongodb-rag-ingest/src/index.ts"],
-        tsconfig: "../packages/mongodb-rag-ingest/tsconfig.build.json",
-        sidebar: {
-          fullNames: true,
-        },
-        out: "reference/ingest",
-      },
-    ],
     [
       "docusaurus-plugin-typedoc",
       {
@@ -121,7 +82,7 @@ const config: Config = {
 
   themeConfig: {
     navbar: {
-      title: "MongoDB Chatbot Framework",
+      title: "MongoDB Knowledge Service",
       // logo: {
       //   alt: 'My Site Logo',
       //   src: 'img/logo.svg',
@@ -144,10 +105,6 @@ const config: Config = {
             {
               label: "Home",
               to: "/",
-            },
-            {
-              label: "Quick Start",
-              to: "/quick-start",
             },
             {
               label: "Github",

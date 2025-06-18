@@ -1,6 +1,6 @@
 {
   "name": "chatbot-server-mongodb-public",
-  "version": "0.19.1",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "description": "Chatbot server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
@@ -40,7 +40,7 @@
     "pm2": "^5.3.0",
     "slack-block-builder": "^2.8.0",
     "slackify-markdown": "^4.4.0",
-    "zod": "^3.23.8",
+    "zod": "^3.25.48",
     "zod-to-json-schema": "^3.23.2"
   },
   "devDependencies": {

@@ -79,12 +79,15 @@ function App() {
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
+          }}
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
         <Chatbot
-          name="MongoDB AI (Dev Center)"
+          name="MongoDB AI"
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
@@ -100,6 +103,9 @@ function App() {
           }}
           onClose={() => {
             console.log("Dev Center Chatbot closed");
+          }}
+          onSuggestedPromptClick={(prompt) => {
+            console.log("Suggested prompt clicked", prompt);
           }}
           sortMessageReferences={makePrioritizeReferenceDomain([
             "https://mongodb.com/developer",

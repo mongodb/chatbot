@@ -88,23 +88,17 @@ function redactNames(text: string): string {
     }
   }
 
-  console.log("Name matches found:", nameMatches);
-
   // Sort matches by position in reverse order to avoid offset issues when replacing
   nameMatches.sort((a, b) => b.position - a.position);
 
   // Replace each match with the redaction placeholder
   for (const match of nameMatches) {
-    console.log(
-      `Replacing '${match.original}' at position ${match.position} with ${replacements.name}`
-    );
     result =
       result.substring(0, match.position) +
       replacements.name +
       result.substring(match.position + match.length);
   }
 
-  console.log("Final result:", result);
   return result;
 }
 

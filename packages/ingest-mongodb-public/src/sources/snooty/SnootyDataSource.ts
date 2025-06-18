@@ -2,6 +2,7 @@ import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
 import { DataSource, ProjectBase } from "mongodb-rag-core/dataSources";
+import { MongoDbDriverName, MongoDbProductName } from "mongodb-rag-core/mongoDbMetadata";
 import {
   snootyAstToMd,
   getTitleFromSnootyAst,
@@ -13,6 +14,7 @@ import {
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
 import { truncateEmbeddings } from "./truncateEmbeddings";
+import { SourceTypeName } from  "../index";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -28,12 +30,30 @@ export type SnootyPageEntry = SnootyManifestEntry & {
   data: SnootyPageData;
 };
 
+export interface SnootyTocEntry {
+  title: {
+    type: "text";
+    position: {
+      start: {
+        line: number;
+      };
+    };
+    value: string;
+  }[];
+  slug?: string;
+  url?: string;
+  children: SnootyTocEntry[];
+  options?: {
+    drawer?: boolean;
+  };
+}
+
 /**
   Represents metadata in a Snooty manifest file.
  */
 export type SnootyMetadataEntry = SnootyManifestEntry & {
   type: "metadata";
-  data: { title?: string };
+  data: { title?: string; toctree: SnootyTocEntry; toctreeOrder: string[] };
 };
 
 /**
@@ -129,6 +149,7 @@ export type SnootyMetadata = {
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
   branches?: Branch[];
+  productName?: MongoDbDriverName | MongoDbProductName;
 };
 
 /**
@@ -202,6 +223,7 @@ export const makeSnootyDataSource = ({
         const linePromises: Promise<void>[] = [];
         const pages: Page[] = [];
         let siteTitle: string | undefined = undefined;
+        const toc: string[] = [];
         await new Promise<void>((resolve, reject) => {
           stream.on("line", async (line) => {
             const entry = JSON.parse(line) as SnootyManifestEntry;
@@ -227,6 +249,7 @@ export const makeSnootyDataSource = ({
                           ...links,
                           baseUrl: branchUrl,
                         },
+                        toc,
                       });
                       if (page !== undefined) {
                         pages.push(page);
@@ -249,6 +272,18 @@ export const makeSnootyDataSource = ({
               case "metadata": {
                 const { data } = entry as SnootyMetadataEntry;
                 siteTitle = data.title;
+                const visitedUrls = new Set<string>();
+                const tocUrls = data.toctreeOrder
+                  .filter((slug) => {
+                    const url = makeUrl(slug, branchUrl);
+                    if (visitedUrls.has(url)) {
+                      return false;
+                    }
+                    visitedUrls.add(url);
+                    return true;
+                  })
+                  .map((slug) => makeUrl(slug, branchUrl));
+                toc.push(...tocUrls);
                 return;
               }
               case "timestamp":
@@ -344,6 +379,7 @@ export const handlePage = async (
     productName,
     version,
     links,
+    toc,
   }: {
     sourceName: string;
     baseUrl: string;
@@ -354,8 +390,9 @@ export const handlePage = async (
       isCurrent: boolean;
     };
     links?: RenderLinks;
+    toc: string[];
   }
-): Promise<Page | undefined> => {
+): Promise<Page<SourceTypeName> | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always
   // be ${property}/docsworker-xlarge/${branch}
   const pagePath = page.page_id
@@ -373,11 +410,8 @@ export const handlePage = async (
   let body = "";
   let title: string | undefined;
   let format: PageFormat;
-  const baseUrlTrailingSlash = baseUrl.replace(/\/?$/, "/");
-  const url = new URL(pagePath, baseUrlTrailingSlash).href.replace(
-    /\/?$/, // Add trailing slash
-    "/"
-  );
+  const url = makeUrl(pagePath, baseUrl);
+
   if (page.ast.options?.template === "openapi") {
     format = "openapi-yaml";
     body = await snootyAstToOpenApiSpec(page.ast);
@@ -395,6 +429,9 @@ export const handlePage = async (
     return;
   }
 
+  const maybeTocIndex = toc.findIndex((tocUrl) => tocUrl === url);
+  const tocIndex = maybeTocIndex === -1 ? undefined : maybeTocIndex;
+
   return {
     url,
     sourceName,
@@ -403,10 +440,28 @@ export const handlePage = async (
     format,
     sourceType: "tech-docs",
     metadata: {
-      page: pageMetadata,
+      page: { ...pageMetadata, tocIndex },
       tags,
       productName,
       version,
     },
   };
 };
+
+function makeUrl(pagePath: string, baseUrl: string): string {
+  // Ensure trailing slash for baseUrl
+  const baseUrlTrailingSlash = baseUrl.replace(/\/?$/, "/");
+
+  // Handle empty pagePath or root path
+  if (!pagePath || pagePath === "/") {
+    return baseUrlTrailingSlash;
+  }
+
+  // For non-empty paths, remove leading slash and ensure trailing slash
+  const cleanPagePath = pagePath
+    .replace(/^\//, "") // Remove leading slash
+    .replace(/\/?$/, "/"); // Ensure trailing slash
+
+  // Concatenate the base URL with the clean page path
+  return baseUrlTrailingSlash + cleanPagePath;
+}

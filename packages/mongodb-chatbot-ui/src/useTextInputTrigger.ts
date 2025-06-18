@@ -45,7 +45,7 @@ export function useTextInputTrigger({
     awaitingReply,
     handleSubmit,
     conversation,
-    isExperimental,
+    onSuggestedPromptClick,
   } = useChatbotContext();
 
   const [focused, setFocused] = useState(false);
@@ -59,7 +59,6 @@ export function useTextInputTrigger({
 
   return {
     conversation,
-    isExperimental,
     inputText,
     setInputText,
     inputTextError,
@@ -73,5 +72,6 @@ export function useTextInputTrigger({
     handleSubmit,
     hasError,
     showError,
+    onSuggestedPromptClick,
   };
 }

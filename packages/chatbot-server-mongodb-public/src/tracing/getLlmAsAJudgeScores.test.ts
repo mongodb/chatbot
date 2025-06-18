@@ -48,12 +48,15 @@ describe("getLlmAsAJudgeScores", () => {
     isVerifiedAnswer: false,
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
+    contextContent: [],
     rejectQuery: false,
     rating: undefined,
     comment: undefined,
     conversationId: new ObjectId(),
     userMessageIndex: 0,
     assistantMessageIndex: 1,
+    rejectionReason: "no rejection",
+    origin: "unknown",
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {

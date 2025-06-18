@@ -20,9 +20,15 @@ export async function makeScrubbedMessagesFromTracingData({
   reqId: string;
 }): Promise<ScrubbedMessage<MessageAnalysis>[]> {
   const { userMessage, assistantMessage } = tracingData;
+  if (!userMessage) {
+    throw new Error("User message not found");
+  }
+
+  const { redactedText: redactedUserContent, piiFound: userMessagePii } =
+    redactPii(userMessage.content);
 
   const userAnalysis = analysis
-    ? await analyzeMessage(userMessage.content, analysis.model).catch(
+    ? await analyzeMessage(redactedUserContent, analysis.model).catch(
         (error) => {
           logRequest({
             reqId,
@@ -35,9 +41,6 @@ export async function makeScrubbedMessagesFromTracingData({
         }
       )
     : undefined;
-
-  const { redactedText: redactedUserContent, piiFound: userMessagePii } =
-    redactPii(userMessage.content);
 
   const scrubbedUserMessage = {
     _id: userMessage.id,
@@ -61,14 +64,27 @@ export async function makeScrubbedMessagesFromTracingData({
   } satisfies ScrubbedMessage<MessageAnalysis>;
 
   // Assistant message scrubbing
-  const assistantAnalysis = analysis && !tracingData.isVerifiedAnswer
-    ? await analyzeMessage(assistantMessage.content, analysis.model) 
-    : undefined;
   const {
     redactedText: redactedAssistantContent,
     piiFound: assistantMessagePii,
   } = redactPii(assistantMessage.content);
-  
+
+  const assistantAnalysis =
+    analysis && !tracingData.isVerifiedAnswer
+      ? await analyzeMessage(redactedAssistantContent, analysis.model).catch(
+          (error) => {
+            logRequest({
+              reqId,
+              message: `Error analyzing scrubbed assistant message in tracing: ${JSON.stringify(
+                error
+              )}`,
+              type: "error",
+            });
+            return undefined;
+          }
+        )
+      : undefined;
+
   const scrubbedAssistantMessage = {
     _id: assistantMessage.id,
     conversationId: tracingData.conversationId,

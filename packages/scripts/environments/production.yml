@@ -40,6 +40,22 @@ cronJobs:
         memory: 5Gi
     backoffLimit: 3
 
+  - name: verify-sources-have-pages-prod
+    schedule: "0 0 * * *" # every day at midnight UTC
+    command: "npm run scripts:verifyPagesInSources"
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
 # Alerts
 defaultAlerts:
   enabled: true

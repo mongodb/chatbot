@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { generateObject, LanguageModel } from "ai";
-import { MongoDbProduct, MongoDbProductId, mongoDbProducts } from "./products";
+import { MongoDbProductId, mongoDbProducts } from "./products";
 import {
   MongoDbProgrammingLanguageId,
   mongoDbProgrammingLanguageIds,
   mongoDbProgrammingLanguages,
 } from "./programmingLanguages";
-import { MongoDbTopic, MongoDbTopicId, mongoDbTopics } from "./topics";
+import { MongoDbTopicId, mongoDbTopics } from "./topics";
 import { MongoDbTag } from "./tags";
+import { wrapTraced } from "braintrust";
 
 const baseSystemPrompt = `You are an expert data labeler employed by MongoDB.
 You must label metadata based on the provided label categories:`;
@@ -25,28 +26,31 @@ export const ClassifyMongoDbProgrammingLanguageSchema = z.object({
   Classify metadata relevant to the MongoDB docs chatbot
   from a user message in the conversation.
  */
-export const classifyMongoDbProgrammingLanguage = async (
-  model: LanguageModel,
-  data: string
-) =>
-  (
-    await generateObject({
-      messages: [
-        {
-          role: "system",
-          content: `${baseSystemPrompt}
+export const classifyMongoDbProgrammingLanguage = wrapTraced(
+  async (model: LanguageModel, data: string, maxRetries?: number) =>
+    (
+      await generateObject({
+        maxRetries,
+        messages: [
+          {
+            role: "system",
+            content: `${baseSystemPrompt}
 
 ${mongoDbProgrammingLanguages.map((l) => ` - ${l.id}: ${l.name}`).join("\n")}`,
-        },
-        {
-          role: "user",
-          content: data,
-        },
-      ],
-      model,
-      schema: ClassifyMongoDbProgrammingLanguageSchema,
-    })
-  ).object.programmingLanguage as MongoDbProgrammingLanguageId | null;
+          },
+          {
+            role: "user",
+            content: data,
+          },
+        ],
+        model,
+        schema: ClassifyMongoDbProgrammingLanguageSchema,
+      })
+    ).object.programmingLanguage as MongoDbProgrammingLanguageId | null,
+  {
+    name: "classifyMongoDbProgrammingLanguage",
+  }
+);
 
 export const ClassifyMongoDbProductSchema = z.object({
   mongoDbProduct: z
@@ -58,16 +62,15 @@ If it is not clear what the product is, set to \`null\`.`
     ),
 });
 
-export const classifyMongoDbProduct = async (
-  model: LanguageModel,
-  data: string
-) =>
-  (
-    await generateObject({
-      messages: [
-        {
-          role: "system",
-          content: `${baseSystemPrompt}
+export const classifyMongoDbProduct = wrapTraced(
+  async (model: LanguageModel, data: string, maxRetries?: number) =>
+    (
+      await generateObject({
+        maxRetries,
+        messages: [
+          {
+            role: "system",
+            content: `${baseSystemPrompt}
 
 ${mongoDbProducts
   .map((p) => ` - ${p.id}: **${p.name}**. ${p.description}`)
@@ -77,16 +80,20 @@ Keep in mind:
 1. Include "Driver" if the user is asking about a programming language with a MongoDB driver. 
 2. If asking about MongoDB database but not specifying if Atlas/Server/Op Manager, etc, set to "MongoDB Server".
 3. If not clear what product is being asked about, set to \`null\`.`,
-        },
-        {
-          role: "user",
-          content: data,
-        },
-      ],
-      model,
-      schema: ClassifyMongoDbProductSchema,
-    })
-  ).object.mongoDbProduct as MongoDbProductId | null;
+          },
+          {
+            role: "user",
+            content: data,
+          },
+        ],
+        model,
+        schema: ClassifyMongoDbProductSchema,
+      })
+    ).object.mongoDbProduct as MongoDbProductId | null,
+  {
+    name: "classifyMongoDbProduct",
+  }
+);
 
 export const ClassifyMongoDbTopicSchema = z.object({
   topic: z
@@ -97,45 +104,57 @@ export const ClassifyMongoDbTopicSchema = z.object({
     ),
 });
 
-export const classifyMongoDbTopic = async (
-  model: LanguageModel,
-  data: string
-) =>
-  (
-    await generateObject({
-      messages: [
-        {
-          role: "system",
-          content: `${baseSystemPrompt}
+export const classifyMongoDbTopic = wrapTraced(
+  async (model: LanguageModel, data: string, maxRetries?: number) =>
+    (
+      await generateObject({
+        maxRetries,
+        messages: [
+          {
+            role: "system",
+            content: `${baseSystemPrompt}
 
-${mongoDbTopics.map((t) => ` - ${t.id}`).join("\n")}`,
-        },
-        {
-          role: "user",
-          content: data,
-        },
-      ],
-      model,
-      schema: ClassifyMongoDbTopicSchema,
-    })
-  ).object.topic as MongoDbTopicId | null;
+${mongoDbTopics
+  .map((t) => ` - ${t.id}: **${t.name}**. ${t.description}`)
+  .join("\n")}`,
+          },
+          {
+            role: "user",
+            content: data,
+          },
+        ],
+        model,
+        schema: ClassifyMongoDbTopicSchema,
+      })
+    ).object.topic as MongoDbTopicId | null,
+  {
+    name: "classifyMongoDbTopic",
+  }
+);
 
-export const classifyMongoDbMetadata = async (
-  model: LanguageModel,
-  data: string
-) => {
-  const [programmingLanguage, product, topic] = await Promise.all([
-    classifyMongoDbProgrammingLanguage(model, data),
-    classifyMongoDbProduct(model, data),
-    classifyMongoDbTopic(model, data),
-  ]);
+function nullOnErr() {
+  return null;
+}
+export const classifyMongoDbMetadata = wrapTraced(
+  async (model: LanguageModel, data: string, maxRetries?: number) => {
+    const [programmingLanguage, product, topic] = await Promise.all([
+      classifyMongoDbProgrammingLanguage(model, data, maxRetries).catch(
+        nullOnErr
+      ),
+      classifyMongoDbProduct(model, data, maxRetries).catch(nullOnErr),
+      classifyMongoDbTopic(model, data, maxRetries).catch(nullOnErr),
+    ]);
 
-  return {
-    programmingLanguage,
-    product,
-    topic,
-  };
-};
+    return {
+      programmingLanguage,
+      product,
+      topic,
+    };
+  },
+  {
+    name: "classifyMongoDbMetadata",
+  }
+);
 
 // Type guard to check if a value is a non-null MongoDbTag
 function isMongoDbTag(value: string | null): value is MongoDbTag {

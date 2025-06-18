@@ -170,7 +170,9 @@ export const Message = ({
         {showSuggestedPrompts && (
           <MessagePrompts
             prompts={suggestedPrompts}
-            onPromptClick={(prompt) => onSuggestedPromptClick?.(prompt)}
+            onPromptClick={(prompt) => {
+              onSuggestedPromptClick?.(prompt);
+            }}
             canSubmit={canSubmitSuggestedPrompt}
           />
         )}

@@ -100,7 +100,7 @@ function normalizeAnswer(answer: string) {
 
 type QuizQuestionLlmOptions = Pick<
   OpenAI.ChatCompletionCreateParams,
-  "max_tokens"
+  "max_tokens" & "reasoning_budget"
 >;
 
 type QuizQuestionPromptOptions = Omit<
@@ -126,7 +126,7 @@ export function runQuizQuestionEval({
   openaiClient,
   experimentName,
   additionalMetadata,
-  llmOptions = { max_tokens: 100 },
+  llmOptions = { max_tokens: 100, reasoning_budget: 1000 },
   promptOptions,
   model,
   maxConcurrency,

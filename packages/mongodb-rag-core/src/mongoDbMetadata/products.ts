@@ -300,6 +300,12 @@ export const mongoDbProducts = [
       "VS Code extension for working with MongoDB data directly in your IDE",
   },
   {
+    id: "mcp_server",
+    name: "MongoDB MCP Server",
+    description:
+      "The MongoDB MCP Server lets you connect to MongoDB from your agentic AI tools, assistants, and platforms.",
+  },
+  {
     id: "mongodb_cli",
     name: "MongoDB CLI",
     description: "CLI for interacting with MongoDB deployments",

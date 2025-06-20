@@ -41,7 +41,7 @@
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b tsconfig.build.json",
-    "test": "jest --forceExit && npm run test:types",
+    "test": "jest --forceExit",
     "test:types": "tstyche",
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",

@@ -26,7 +26,6 @@ import {
   MakeReferenceLinksFunc,
   makeDefaultReferenceLinks,
   GenerateResponse,
-  withAbortControllerGuardrail,
   GenerateResponseReturnValue,
   InputGuardrailResult,
 } from "mongodb-chatbot-server";
@@ -128,14 +127,26 @@ export function makeGenerateResponseWithSearchTool({
 
       const references: References = [];
       let userMessageCustomData: Partial<MongoDbSearchToolArgs> = {};
-      const { result, guardrailResult } = await withAbortControllerGuardrail(
-        async (controller) => {
-          // Pass the tools as a separate parameter
+
+      // Create an AbortController for the generation
+      const generationController = new AbortController();
+      let guardrailRejected = false;
+
+      // Start guardrail check immediately and monitor it
+      const guardrailMonitor = inputGuardrailPromise?.then((result) => {
+        if (result?.rejected) {
+          guardrailRejected = true;
+          generationController.abort();
+        }
+        return result;
+      });
+
+      // Start generation immediately (in parallel with guardrail)
+      const generationPromise = (async () => {
+        try {
           const result = streamText({
             ...generationArgs,
-            // Abort the stream if the guardrail AbortController is triggered
-            abortSignal: controller.signal,
-            // Add the search tool results to the references
+            abortSignal: generationController.signal,
             onStepFinish: async ({ toolResults, toolCalls }) => {
               toolCalls?.forEach((toolCall) => {
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
@@ -159,10 +170,13 @@ export function makeGenerateResponseWithSearchTool({
             },
           });
 
+          // Process the stream
           for await (const chunk of result.fullStream) {
-            if (controller.signal.aborted) {
+            // Check if we should abort due to guardrail rejection
+            if (generationController.signal.aborted) {
               break;
             }
+
             switch (chunk.type) {
               case "text-delta":
                 if (shouldStream) {
@@ -185,22 +199,32 @@ export function makeGenerateResponseWithSearchTool({
                 break;
             }
           }
-          try {
-            if (references.length > 0) {
-              if (shouldStream) {
-                dataStreamer?.streamData({
-                  data: references,
-                  type: "references",
-                });
-              }
+
+          // Stream references if we have any and weren't aborted
+          if (references.length > 0 && !generationController.signal.aborted) {
+            if (shouldStream) {
+              dataStreamer?.streamData({
+                data: references,
+                type: "references",
+              });
             }
-            return result;
-          } catch (error: unknown) {
-            throw new Error(typeof error === "string" ? error : String(error));
           }
-        },
-        inputGuardrailPromise
-      );
+
+          return result;
+        } catch (error: unknown) {
+          // If aborted due to guardrail, return null
+          if (generationController.signal.aborted && guardrailRejected) {
+            return null;
+          }
+          throw new Error(typeof error === "string" ? error : String(error));
+        }
+      })();
+
+      // Wait for both to complete
+      const [guardrailResult, result] = await Promise.all([
+        guardrailMonitor ?? Promise.resolve(undefined),
+        generationPromise,
+      ]);
 
       // If the guardrail rejected the query,
       // return the LLM refusal message

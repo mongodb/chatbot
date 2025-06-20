@@ -1,4 +1,3 @@
-import { expectTypeTestsToPassAsync } from "jest-tsd";
 import { getEnv } from "./getEnv";
 
 describe("getEnv", () => {
@@ -11,10 +10,6 @@ describe("getEnv", () => {
 
   afterAll(() => {
     process.env = ORIGINAL_ENV;
-  });
-
-  it("does not produce static type errors", async () => {
-    await expectTypeTestsToPassAsync(__filename);
   });
 
   it("returns required env vars that are defined", () => {

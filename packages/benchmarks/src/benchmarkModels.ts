@@ -22,10 +22,10 @@ export const MODELS = (
     // "llama-3.3-70b",
     // "gemini-2-flash",
     // "gemini-2.0-flash-lite-001",
-    "gemini-2.5-flash-preview-04-17",
+    // "gemini-2.5-flash-preview-04-17",
     "gemini-2.5-flash-preview-05-20",
-    "gemini-2.5-pro-exp-03-25",
-    "gemini-2.5-pro-preview-03-25",
+    // "gemini-2.5-pro-exp-03-25",
+    // "gemini-2.5-pro-preview-03-25",
     "gemini-2.5-pro-preview-05-06",
     // "nova-micro-v1:0",
     // "nova-lite-v1:0",
@@ -46,7 +46,7 @@ export type ModelWithLabel<T extends (typeof models)[number]["label"]> =
 export function getModelsFromLabels<
   T extends (typeof models)[number]["label"][]
 >(labels: [...T]) {
-  const configs = MODELS.filter((m): m is ModelWithLabel<T[number]> =>
+  const configs = models.filter((m): m is ModelWithLabel<T[number]> =>
     labels.includes(m.label)
   );
 

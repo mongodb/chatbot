@@ -68,7 +68,12 @@ function makeQuizQuestionTask({
       ...llmOptions,
       temperature: 0,
     });
-    const { content } = res.choices[0].message;
+    const message = res.choices[0].message;
+    let content = message.content;
+    if (typeof content !== "string") {
+      console.warn("Message content was not a string");
+      content = JSON.stringify(content);
+    }
     assert(content, "No content found in response");
     return content;
   };
@@ -127,9 +132,9 @@ export function runQuizQuestionEval({
   experimentName,
   additionalMetadata,
   llmOptions = {
-    max_tokens: 100,
+    // max_tokens: 100,
     reasoning_enabled: true,
-    reasoning_budget: 1000,
+    reasoning_budget: 1024,
   },
   promptOptions,
   model,

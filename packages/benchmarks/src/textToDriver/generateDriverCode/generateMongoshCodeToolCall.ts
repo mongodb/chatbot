@@ -99,12 +99,8 @@ export function makeGenerateMongoshCodeToolCallTask({
           llmOptions.max_completion_tokens ??
           undefined,
         model: openai,
-        toolChoice: {
-          toolName: GENERATE_DB_CODE_TOOL_NAME,
-          type: "tool",
-        },
         tools: {
-          [GENERATE_DB_CODE_TOOL_NAME]: makeDbCodeTool({
+          generate_db_code: makeDbCodeTool({
             databaseName,
             uri,
             output: finalResult,
@@ -146,6 +142,26 @@ Natural language query: ${nlQuery}`,
   return generateMongoshCodeSimple;
 }
 
+import { jsonSchema } from 'ai';
+
+const mySchema = jsonSchema<{
+  query_plan: string;
+  code: string;
+}>({
+  type: "object",
+  properties: {
+    query_plan: {
+      type: "string",
+      description: "Query plan",
+    },
+    code: {
+      type: "string",
+      description: "Executable mongosh code snippet",
+    },
+  },
+  required: ["code"],
+});
+
 function makeDbCodeTool({
   databaseName,
   uri,
@@ -159,20 +175,15 @@ function makeDbCodeTool({
 }) {
   return tool({
     description: "A MongoDB Shell (mongosh) query for the database use case",
-    parameters: z.object({
-      ...(hasQueryPlan
-        ? { [QUERY_PLAN_FIELD]: z.string().describe("Query plan") }
-        : {}),
-      [CODE_FIELD]: z.string().describe("Executable mongosh code snippet"),
-    }),
+    parameters: mySchema,
     execute: async (args) => {
       const execution = await executeMongoshQuery({
         databaseName: databaseName,
-        query: args[CODE_FIELD],
+        query: args.code,
         uri,
       });
       output.execution = execution;
-      output.generatedCode = args[CODE_FIELD];
+      output.generatedCode = args.code;
       return {
         ...execution,
         result: truncateDbOperationOutputForLlm(execution.result),

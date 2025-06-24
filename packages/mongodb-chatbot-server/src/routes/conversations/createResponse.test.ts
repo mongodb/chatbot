@@ -51,6 +51,226 @@ describe("POST /conversations/completion", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({ status: "ok" });
     });
+
+    it("Should return 200 given a valid request with instructions", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          instructions: "You are a helpful chatbot.",
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with valid max_output_tokens", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          max_output_tokens: 1000,
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with valid metadata", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          metadata: { key1: "value1", key2: "value2" },
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with valid temperature", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          temperature: 0,
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with previous_response_id", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          previous_response_id: "some-id",
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with user", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          user: "some-user-id",
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with store=false", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          store: false,
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with tools and tool_choice", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          tools: [
+            {
+              name: "test-tool",
+              description: "A tool for testing.",
+              parameters: {
+                type: "object",
+                properties: {
+                  query: { type: "string" },
+                },
+                required: ["query"],
+              },
+            },
+          ],
+          tool_choice: "auto",
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 with a specific function tool_choice", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          tools: [
+            {
+              name: "test-tool",
+              description: "A tool for testing.",
+              parameters: {
+                type: "object",
+                properties: {
+                  query: { type: "string" },
+                },
+                required: ["query"],
+              },
+            },
+          ],
+          tool_choice: {
+            type: "function",
+            name: "test-tool",
+          },
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 given a message array with function_call", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: [
+            { role: "user", content: "What is MongoDB?" },
+            {
+              type: "function_call",
+              id: "call123",
+              name: "my_function",
+              arguments: `{"query": "value"}`,
+              status: "in_progress",
+            },
+          ],
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 given a message array with function_call_output", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: [
+            { role: "user", content: "What is MongoDB?" },
+            {
+              type: "function_call_output",
+              call_id: "call123",
+              output: `{"result": "success"}`,
+              status: "completed",
+            },
+          ],
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
   });
 
   describe("Invalid requests", () => {
@@ -78,6 +298,74 @@ describe("POST /conversations/completion", () => {
           model: "mongodb-chat-latest",
           stream: false,
           input: "What is MongoDB?",
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
+    });
+
+    it("Should return 400 if max_output_tokens is > 4000", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          max_output_tokens: 4001,
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
+    });
+
+    it("Should return 400 if metadata has too many fields", async () => {
+      const metadata: Record<string, string> = {};
+      for (let i = 0; i < 17; i++) {
+        metadata[`key${i}`] = "value";
+      }
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          metadata,
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
+    });
+
+    it("Should return 400 if metadata value is too long", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          metadata: { key1: "a".repeat(513) },
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
+    });
+
+    it("Should return 400 if temperature is not 0", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          temperature: 0.5,
         });
 
       expect(response.statusCode).toBe(400);

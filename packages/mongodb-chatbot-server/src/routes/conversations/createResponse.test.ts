@@ -164,6 +164,22 @@ describe("POST /conversations/completion", () => {
       expect(response.body).toEqual({ status: "ok" });
     });
 
+    it("Should return 200 with store=true", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+          store: true,
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
     it("Should return 200 with tools and tool_choice", async () => {
       const response = await request(app)
         .post(endpointUrl)

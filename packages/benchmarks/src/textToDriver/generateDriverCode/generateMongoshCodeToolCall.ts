@@ -1,7 +1,6 @@
-import { generateText, LanguageModelV1, tool } from "ai";
+import { generateText, LanguageModelV1, tool, jsonSchema } from "ai";
 import { z } from "zod";
 import {
-  DatabaseExecutionResult,
   DatabaseInfo,
   executeMongoshQuery,
   LlmOptions,
@@ -101,6 +100,7 @@ export function makeGenerateMongoshCodeToolCallTask({
         model: openai,
         tools: {
           generate_db_code: makeDbCodeTool({
+            model: openai,
             databaseName,
             uri,
             output: finalResult,
@@ -142,40 +142,52 @@ Natural language query: ${nlQuery}`,
   return generateMongoshCodeSimple;
 }
 
-import { jsonSchema } from 'ai';
-
-const mySchema = jsonSchema<{
-  query_plan: string;
-  code: string;
-}>({
-  type: "object",
-  properties: {
-    query_plan: {
-      type: "string",
-      description: "Query plan",
-    },
-    code: {
-      type: "string",
-      description: "Executable mongosh code snippet",
-    },
-  },
-  required: ["code"],
-});
-
 function makeDbCodeTool({
+  model,
   databaseName,
   uri,
   output,
   hasQueryPlan,
 }: {
+  model: LanguageModelV1;
   databaseName: string;
   uri: string;
   output: TextToDriverOutput;
   hasQueryPlan: boolean;
 }) {
+  let toolSchema;
+  // Gemini 2.5 models aren't compatible with our zod schema
+  // This defines the schema more directly instead of relying on the ai sdk
+  if (model.modelId.startsWith("publishers/google/models/gemini-2.5-")) {
+    toolSchema = jsonSchema<{
+      query_plan: string;
+      code: string;
+    }>({
+      type: "object",
+      properties: {
+        query_plan: {
+          type: "string",
+          description: "Query plan",
+        },
+        code: {
+          type: "string",
+          description: "Executable mongosh code snippet",
+        },
+      },
+      required: ["code"],
+    });
+  } else {
+    toolSchema = z.object({
+      ...(hasQueryPlan
+        ? { [QUERY_PLAN_FIELD]: z.string().describe("Query plan") }
+        : {}),
+      [CODE_FIELD]: z.string().describe("Executable mongosh code snippet"),
+    });
+  }
+
   return tool({
     description: "A MongoDB Shell (mongosh) query for the database use case",
-    parameters: mySchema,
+    parameters: toolSchema,
     execute: async (args) => {
       const execution = await executeMongoshQuery({
         databaseName: databaseName,

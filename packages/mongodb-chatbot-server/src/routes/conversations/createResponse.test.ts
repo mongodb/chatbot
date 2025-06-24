@@ -318,22 +318,10 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(200);
     });
+  });
 
-    it("Should return 200 with an empty message array", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          model: "mongodb-chat-latest",
-          stream: true,
-          input: [],
-        });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it("Should return 200 with an empty input string", async () => {
+  describe("Invalid requests", () => {
+    it("Should return 400 with an empty input string", async () => {
       const response = await request(app)
         .post(endpointUrl)
         .set("X-Forwarded-For", ipAddress)
@@ -344,11 +332,25 @@ describe("POST /responses", () => {
           input: "",
         });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
     });
-  });
 
-  describe("Invalid requests", () => {
+    it("Should return 400 with an empty message array", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: [],
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid request" });
+    });
+
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
       const response = await request(app)
         .post(endpointUrl)

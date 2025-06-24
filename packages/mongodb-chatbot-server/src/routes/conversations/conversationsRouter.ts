@@ -440,9 +440,9 @@ export function makeConversationsRouter({
     })
   );
 
-  // Chat completion.
+  // stateless chat responses
   conversationsRouter.post(
-    "/completion",
+    "/responses",
     validateRequestSchema(CreateResponseRequest),
     (req, res) => {
       res.status(200).send({ status: "ok" });

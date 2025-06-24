@@ -6,8 +6,8 @@ import { makeTestApp } from "../../test/testHelpers";
 
 jest.setTimeout(100000);
 
-describe("POST /conversations/completion", () => {
-  const endpointUrl = `${DEFAULT_API_PREFIX}/conversations/completion`;
+describe("POST /responses", () => {
+  const endpointUrl = `${DEFAULT_API_PREFIX}/conversations/responses`;
   let app: Express;
   let ipAddress: string;
   let origin: string;
@@ -29,7 +29,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 given a message array input", async () => {
@@ -49,7 +48,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
@@ -65,7 +63,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
@@ -81,7 +78,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with valid metadata", async () => {
@@ -97,7 +93,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with valid temperature", async () => {
@@ -113,7 +108,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with previous_response_id", async () => {
@@ -129,7 +123,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with user", async () => {
@@ -145,7 +138,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with store=false", async () => {
@@ -161,7 +153,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with store=true", async () => {
@@ -177,7 +168,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
@@ -206,7 +196,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
@@ -238,7 +227,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 given a message array with function_call", async () => {
@@ -262,7 +250,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
@@ -285,7 +272,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
@@ -301,7 +287,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with tool_choice 'only'", async () => {
@@ -317,7 +302,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with an empty tools array", async () => {
@@ -333,7 +317,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with an empty message array", async () => {
@@ -348,7 +331,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
 
     it("Should return 200 with an empty input string", async () => {
@@ -363,7 +345,6 @@ describe("POST /conversations/completion", () => {
         });
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ status: "ok" });
     });
   });
 

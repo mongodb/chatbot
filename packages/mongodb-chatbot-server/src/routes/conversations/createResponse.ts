@@ -52,7 +52,7 @@ export const CreateResponseRequestBodySchema = z.object({
       ])
     ),
   ]),
-  max_output_tokens: z.number().max(4000).optional().default(1000),
+  max_output_tokens: z.number().min(0).max(4000).optional().default(1000),
   metadata: z
     .record(z.string(), z.string().max(512))
     .optional()

@@ -25,7 +25,6 @@ import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
-import { CreateResponseRequest } from "./createResponse";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
 import { GenerateResponse } from "../../processors/GenerateResponse";
 import { Logger } from "mongodb-rag-core/braintrust";
@@ -438,15 +437,6 @@ export function makeConversationsRouter({
       updateTrace: commentMessageUpdateTrace,
       braintrustLogger,
     })
-  );
-
-  // stateless chat responses
-  conversationsRouter.post(
-    "/responses",
-    validateRequestSchema(CreateResponseRequest),
-    (req, res) => {
-      res.status(200).send({ status: "ok" });
-    }
   );
 
   return conversationsRouter;

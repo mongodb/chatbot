@@ -16,19 +16,41 @@ describe("POST /conversations/completion", () => {
     ({ app, ipAddress, origin } = await makeTestApp());
   });
 
-  it("Should return 200 for valid request", async () => {
-    const response = await request(app)
-      .post(endpointUrl)
-      .set("X-Forwarded-For", ipAddress)
-      .set("Origin", origin)
-      .send({
-        model: "mongodb-chat-latest",
-        stream: true,
-        input: "What is MongoDB?",
-      });
+  describe("Valid requests", () => {
+    it("Should return 200 given a string input", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: "What is MongoDB?",
+        });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual({ status: "ok" });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
+
+    it("Should return 200 given a message array input", async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .set("X-Forwarded-For", ipAddress)
+        .set("Origin", origin)
+        .send({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: "What is MongoDB?" },
+            { role: "assistant", content: "MongoDB is a document database." },
+            { role: "user", content: "What is a document database?" },
+          ],
+        });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ status: "ok" });
+    });
   });
 
   describe("Invalid requests", () => {

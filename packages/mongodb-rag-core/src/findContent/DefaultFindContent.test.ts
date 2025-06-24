@@ -95,4 +95,7 @@ describe("makeDefaultFindContent()", () => {
     expect(content.length).toBeGreaterThan(0);
     expect(embeddingModelName).toBe(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
   });
+  test("should limit results", async () => {
+    // TODO: test behavior
+  });
 });

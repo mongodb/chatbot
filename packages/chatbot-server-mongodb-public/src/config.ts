@@ -163,6 +163,11 @@ export const findContent = wrapTraced(
   }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -261,7 +266,7 @@ export const generateResponse = wrapTraced(
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool(findContent),
-        fetchPageTool: makeFetchPageTool(loadPage, findContent),
+        fetchPageTool: makeFetchPageTool(pageStore, findContent),
         toolChoice: "auto",
         maxSteps: 5,
       }),

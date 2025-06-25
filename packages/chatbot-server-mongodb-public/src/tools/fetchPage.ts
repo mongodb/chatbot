@@ -1,9 +1,9 @@
-import { z } from "zod";
-import { FindContentFunc, MongoDbPageStore, Reference } from "mongodb-rag-core";
-import { normalizeUrl } from "mongodb-rag-core/dataSources";
+import { FindContentFunc, MongoDbPageStore } from "mongodb-rag-core";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { addReferenceSourceType } from "../processors/makeMongoDbReferences";
+
+export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 
@@ -32,8 +32,15 @@ export type FetchPageTool = Tool<
   ) => PromiseLike<FetchPageToolResult>;
 };
 
+export function normalizeUrl(url: string): string {
+  return url
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/$/, "");
+}
+
 export function makeFetchPageTool(
-  loadPage: MongoDbPageStore["loadPage"],
+  pageStore: MongoDbPageStore,
   findContent: FindContentFunc
 ): FetchPageTool {
   return tool({
@@ -46,10 +53,9 @@ export function makeFetchPageTool(
       async function (
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
-      ): Promise<FetchPageToolResult> {
-        // TODO Comment in once ingestion is normalized too
-        const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
-        const page = await loadPage({
+      ): Promise<string> {
+        const normalizedUrl = normalizeUrl(args.pageUrl);
+        const page = await pageStore.loadPage({
           urls: [normalizedUrl],
           query: {
             action: {
@@ -58,50 +64,25 @@ export function makeFetchPageTool(
           },
         });
 
-        let text: string;
-        let reference: Reference | undefined;
         if (page === null) {
           // Fall back - no page for this URL
-          text = "{fallback_to_search}";
-        } else if (page.body.length < 150000) {
-          // Page content is short enough, return it directly
-          text = page.body;
-          reference = {
-            url: normalizedUrl,
-            title: page.title ?? normalizedUrl,
-            metadata: {
-              ...(page.metadata ?? {}),
-              sourceName: page.sourceName,
-            },
-          };
-        } else {
-          // Page content is too long, do truncate-search
+          return "{fallback_to_search}";
+        }
+        if (page.body.length > 150000) {
+          // Page content is too long, do cutoff-search
           const relevantPageContent = await findContent({
             query: args.query,
             filters: { url: normalizedUrl },
           });
-          reference = {
-            url: normalizedUrl,
-            title: page.title ?? normalizedUrl,
-            metadata: {
-              ...(page.metadata ?? {}),
-              sourceName: page.sourceName,
-            },
-          };
           if (relevantPageContent.content.length > 0) {
             const relevantContentText = relevantPageContent.content
               .map((c) => c.text)
               .join("\n");
-            text = relevantContentText + page.body.slice(0, 150000);
-          } else {
-            text = page.body.slice(0, 150000);
+            return relevantContentText + page.body.slice(0, 150000);
           }
+          return page.body.slice(0, 150000);
         }
-        return {
-          url: normalizedUrl,
-          text,
-          reference: reference ? addReferenceSourceType(reference) : undefined,
-        };
+        return page.body;
       },
       {
         name: "fetchPageTool",

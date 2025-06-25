@@ -9,6 +9,11 @@ jest.setTimeout(60000);
 describe("Responses Router", () => {
   const ipAddress = "127.0.0.1";
   const responsesEndpoint = DEFAULT_API_PREFIX + "/responses";
+  const validRequestBody = {
+    model: "mongodb-chat-latest",
+    stream: true,
+    input: "What is MongoDB?",
+  };
   let appConfig: AppConfig;
 
   beforeAll(async () => {
@@ -29,11 +34,7 @@ describe("Responses Router", () => {
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send({
-        model: "mongodb-chat-latest",
-        stream: true,
-        input: "What is MongoDB?",
-      });
+      .send(validRequestBody);
 
     expect(res.status).toBe(200);
   });

@@ -387,9 +387,9 @@ export const config: AppConfig = {
     braintrustLogger,
   },
   responsesRouterConfig: {
-    responses: {
-      generateResponse: () => null,
-    },
+    responses: { generateResponse: () => null },
+    supportedModels: ["mongodb-chat-latest"],
+    maxOutputTokens: 4000,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

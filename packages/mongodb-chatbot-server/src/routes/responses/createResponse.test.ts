@@ -74,7 +74,7 @@ describe("POST /responses", () => {
           model: "mongodb-chat-latest",
           stream: true,
           input: "What is MongoDB?",
-          max_output_tokens: 1000,
+          max_output_tokens: 4000,
         });
 
       expect(response.statusCode).toBe(200);
@@ -363,7 +363,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual({
+        error: "Model gpt-4o-mini is not supported.",
+      });
     });
 
     it("Should return 400 if stream is not true", async () => {
@@ -394,7 +396,10 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual({
+        error:
+          "Max output tokens 4001 is greater than the maximum allowed 4000.",
+      });
     });
 
     it("Should return 400 if metadata has too many fields", async () => {

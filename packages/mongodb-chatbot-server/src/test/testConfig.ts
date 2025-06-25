@@ -179,9 +179,9 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
       conversations,
     },
     responsesRouterConfig: {
-      responses: {
-        generateResponse: () => null,
-      },
+      responses: { generateResponse: () => null },
+      supportedModels: ["mongodb-chat-latest"],
+      maxOutputTokens: 4000,
     },
     maxRequestTimeoutMs: 30000,
     corsOptions: {

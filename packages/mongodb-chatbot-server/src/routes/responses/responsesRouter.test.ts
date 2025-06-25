@@ -24,9 +24,9 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
-        responses: {
-          generateResponse: () => null,
-        },
+        responses: { generateResponse: () => null },
+        supportedModels: ["mongodb-chat-latest"],
+        maxOutputTokens: 4000,
       },
     });
 

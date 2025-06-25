@@ -1,13 +1,14 @@
 import { z } from "zod";
+import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
+import { RequestError, makeRequestError } from "../conversations/utils";
+import { sendErrorResponse } from "../../utils";
 
 export const CreateResponseRequestBodySchema = z.object({
-  model: z
-    .string()
-    .refine(
-      (model) => model === "mongodb-chat-latest",
-      "Model must be mongodb-chat-latest"
-    ),
+  model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
     z
@@ -57,7 +58,7 @@ export const CreateResponseRequestBodySchema = z.object({
       )
       .refine((input) => input.length > 0, "Input must be a non-empty array"),
   ]),
-  max_output_tokens: z.number().min(0).max(4000).optional().default(1000),
+  max_output_tokens: z.number().min(0).default(1000),
   metadata: z
     .record(z.string(), z.string().max(512))
     .optional()
@@ -128,3 +129,72 @@ export const CreateResponseRequest = SomeExpressRequest.merge(
 );
 
 export type CreateResponseRequest = z.infer<typeof CreateResponseRequest>;
+
+export interface CreateResponseRouteParams {
+  generateResponse: () => void;
+  supportedModels: string[];
+  maxOutputTokens: number;
+}
+
+export function makeCreateResponseRoute({
+  generateResponse,
+  supportedModels,
+  maxOutputTokens,
+}: CreateResponseRouteParams) {
+  return async (
+    req: ExpressRequest<
+      CreateResponseRequest["params"],
+      unknown,
+      CreateResponseRequest["body"]
+    >,
+    res: ExpressResponse<{ status: string }, any>
+  ) => {
+    // TODO: figure this one out...
+    const reqId = "request-id";
+
+    try {
+      const {
+        body: { model, max_output_tokens },
+      } = req;
+
+      // --- MODEL CHECK ---
+      if (!supportedModels.includes(model)) {
+        throw makeRequestError({
+          httpStatus: 400,
+          message: `Model ${model} is not supported.`,
+        });
+      }
+
+      // --- MAX OUTPUT TOKENS CHECK ---
+      if (max_output_tokens > maxOutputTokens) {
+        throw makeRequestError({
+          httpStatus: 400,
+          message: `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`,
+        });
+      }
+
+      // TODO: actually use this call
+      generateResponse();
+      // TODO: do something with maxOutputTokens (validate result length or pass to generateResponse?)
+
+      return res.status(200).send({ status: "ok" });
+    } catch (error) {
+      // TODO: better error handling, in line with the Responses API
+      const { httpStatus, message } =
+        (error as Error).name === "RequestError"
+          ? (error as RequestError)
+          : makeRequestError({
+              message: (error as Error).message,
+              stack: (error as Error).stack,
+              httpStatus: 500,
+            });
+
+      sendErrorResponse({
+        res,
+        reqId,
+        httpStatus,
+        errorMessage: message,
+      });
+    }
+  };
+}

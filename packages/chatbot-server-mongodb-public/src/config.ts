@@ -31,7 +31,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -58,6 +58,7 @@ import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeFetchPageTool } from "./tools/fetchPage";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -162,6 +163,11 @@ export const findContent = wrapTraced(
   }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -251,6 +257,7 @@ export const generateResponse = wrapTraced(
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool(findContent),
+        fetchPageTool: makeFetchPageTool(pageStore, findContent),
         toolChoice: "auto",
         maxSteps: 5,
       }),

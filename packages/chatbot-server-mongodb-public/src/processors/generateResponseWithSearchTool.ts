@@ -35,6 +35,7 @@ import {
   SEARCH_TOOL_NAME,
   SearchTool,
 } from "../tools/search";
+import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
@@ -53,12 +54,13 @@ export interface GenerateResponseWithSearchToolParams {
     search_content: SearchTool;
   }>;
   searchTool: SearchTool;
+  fetchPageTool: FetchPageTool;
 }
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithTools({
+export function makeGenerateResponseWithSearchTool({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,
@@ -69,6 +71,7 @@ export function makeGenerateResponseWithTools({
   makeReferenceLinks = makeDefaultReferenceLinks,
   maxSteps = 2,
   searchTool,
+  fetchPageTool,
   toolChoice,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithTools({
@@ -144,11 +147,6 @@ export function makeGenerateResponseWithTools({
                     ...userMessageCustomData,
                     ...toolCall.args,
                   };
-                } else if (toolCall.toolName === FETCH_PAGE_TOOL_NAME) {
-                  // Add URL if it wasn't given with the tool call AND the user is on docs (add it from customData)
-                  // In other words, keep as null if the user isn't on docs and no url was provided, handle the error later
-                  // ^ this means the system prompt should say smth like
-                  //   "[for fetch page tool] If the user provides a URL, add it to the tool call, otherwise set to null"
                 }
               });
               toolResults?.forEach((toolResult) => {

@@ -22,6 +22,7 @@ export function makeResponsesRouter({ createResponse }: ResponsesRouterParams) {
 
   // TODO: add rate limit config
 
+  // Create Response API
   responsesRouter.post(
     "/",
     validateRequestSchema(CreateResponseRequest),

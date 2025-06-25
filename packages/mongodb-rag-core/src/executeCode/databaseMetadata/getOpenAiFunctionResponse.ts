@@ -9,6 +9,7 @@ interface GetOpenAiFunctionResponseParams<Schema extends ZodSchema> {
   schema: Schema;
   functionName: string;
   functionDescription?: string;
+  openAiClient: OpenAI;
 }
 
 export async function getOpenAiFunctionResponse<Schema extends ZodSchema>({
@@ -17,11 +18,12 @@ export async function getOpenAiFunctionResponse<Schema extends ZodSchema>({
   schema,
   functionName,
   functionDescription,
+  openAiClient,
 }: GetOpenAiFunctionResponseParams<Schema>): Promise<z.infer<Schema>> {
   const parameters = zodToJsonSchema(schema, {
     $refStrategy: "none",
   });
-  const { openAiClient, ...createChatCompletionParams } = llmOptions;
+  const { ...createChatCompletionParams } = llmOptions;
   const res = await openAiClient.chat.completions.create({
     messages,
     ...createChatCompletionParams,

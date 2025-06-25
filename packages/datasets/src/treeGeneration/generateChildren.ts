@@ -4,7 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationNode, WithParentNode } from "./GenerationNode";
-import { LlmOptions } from "./databaseNlQueries/databaseNodes/LlmOptions";
+import { LlmOptions } from "mongodb-rag-core/executeCode";
 
 export type GenerateChildren<
   ParentNode extends GenerationNode<unknown, string | undefined> | null,
@@ -59,6 +59,7 @@ export interface MakeGenerateChildrenWithOpenAiParams<
      */
     concurrency?: number;
   };
+  openAiClient: OpenAI;
 
   /**
     Name for child type.
@@ -77,6 +78,7 @@ export function makeGenerateChildrenWithOpenAi<
   response,
   filterNodes,
   childType,
+  openAiClient,
 }: MakeGenerateChildrenWithOpenAiParams<
   ParentNode,
   ChildNode
@@ -91,7 +93,7 @@ export function makeGenerateChildrenWithOpenAi<
     const responseSchema = z.object({
       items: z.array(response.schema),
     });
-    const { openAiClient, ...clientConfig } = llmOptions;
+    const { ...clientConfig } = llmOptions;
 
     // Loop running tool calls to generate
     // exactly the correct amount of children.
@@ -152,6 +154,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   response,
   filterNodes,
   childType,
+  openAiClient,
 }: Omit<
   MakeGenerateChildrenWithOpenAiParams<ParentNode, ChildNode>,
   "response"
@@ -164,7 +167,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
     numChildren: number
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent, numChildren);
-    const { openAiClient, ...clientConfig } = llmOptions;
+    const { ...clientConfig } = llmOptions;
 
     const completion = await getCompletions({
       openAiClient,
@@ -197,6 +200,7 @@ async function getCompletions({
   messages: OpenAI.ChatCompletionMessageParam[];
   numCompletions?: number;
   response: ResponseFunction;
+  openAiClient: OpenAI;
 }) {
   const completion = await openAiClient.chat.completions.create({
     ...clientConfig,

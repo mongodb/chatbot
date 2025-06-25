@@ -1,7 +1,8 @@
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { DatabaseInfoNode } from "./nodeTypes";
-import { LlmOptions } from "./LlmOptions";
+import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { generateAnnotatedDatabaseInfo } from "mongodb-rag-core/executeCode";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export interface GenerateAnnotatedDatabaseInfoParams {
   mongoDb: {
@@ -10,18 +11,21 @@ export interface GenerateAnnotatedDatabaseInfoParams {
     numSamplesPerCollection?: number;
   };
   latestDate?: Date;
-  llm: LlmOptions;
+  llmOptions: LlmOptions;
+  openAiClient: OpenAI;
 }
 
 export async function generateAnnotatedDatabaseInfoNode({
   mongoDb: { mongoClient, databaseName, numSamplesPerCollection = 2 },
   latestDate = new Date(),
-  llm,
+  llmOptions,
+  openAiClient,
 }: GenerateAnnotatedDatabaseInfoParams): Promise<DatabaseInfoNode> {
   const annotatedDatabaseInfo = await generateAnnotatedDatabaseInfo({
     mongoDb: { mongoClient, databaseName, numSamplesPerCollection },
     latestDate,
-    llm,
+    llmOptions,
+    openAiClient,
   });
   // Return the final DatabaseInfoNode
   return {

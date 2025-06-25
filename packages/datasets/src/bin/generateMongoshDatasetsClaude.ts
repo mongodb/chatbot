@@ -3,11 +3,11 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   executeMongoshQuery,
   isReasonableResult,
+  LlmOptions,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
@@ -17,10 +17,16 @@ import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databas
 import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
 import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
 import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
-import { LlmOptions } from "../treeGeneration/databaseNlQueries/databaseNodes/LlmOptions";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import {
+  wrapOpenAI,
+  initLogger,
+  wrapTraced,
+  traced,
+} from "mongodb-rag-core/braintrust";
+import { openAiClient } from "../openAi";
 
 const DEFAULT_CONCURRENCY = 1;
 
@@ -111,7 +117,8 @@ async function generateMongoshDataset({
   console.log(`Generating database info for database ${dataset.databaseName}`);
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
-    llm: llmConfigs.database.llmConfig,
+    llmOptions: llmConfigs.database.llmConfig,
+    openAiClient,
     latestDate: dataset.latestDate,
   });
   await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
@@ -279,6 +286,19 @@ async function main() {
     ...BRAINTRUST_ENV_VARS,
     ...DATABASE_NL_QUERIES,
   });
+
+  initLogger({
+    projectName: "generate-mongosh-dataset-claude",
+    apiKey: BRAINTRUST_API_KEY,
+  });
+  // traced(
+  //   () => {
+  //     return;
+  //   },
+  //   {
+  //     name: "new_experiment",
+  //   }
+  // );
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
 
   const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
@@ -290,10 +310,6 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    openAiClient: new OpenAI({
-      apiKey: BRAINTRUST_API_KEY,
-      baseURL: BRAINTRUST_ENDPOINT,
-    }),
     // TODO: try out "us.anthropic.claude-sonnet-4-20250514-v1:0"
     model: "claude-4-sonnet-20250514",
     temperature: 0.7,
@@ -310,22 +326,22 @@ async function main() {
       },
     },
     users: {
-      numGenerations: 5,
+      numGenerations: 3,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     useCases: {
-      numGenerations: 5,
+      numGenerations: 1,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     nlQueries: {
-      numGenerations: 20,
+      numGenerations: 2,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     dbQueries: {
-      numGenerations: 16,
+      numGenerations: 2,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
@@ -338,7 +354,9 @@ async function main() {
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases.reverse()) {
+    for (const db of datasetDatabases.filter((db) =>
+      db.name.includes("mflix")
+    )) {
       await generateMongoshDataset({
         persistence: {
           mongoClient,

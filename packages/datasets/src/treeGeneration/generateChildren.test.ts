@@ -5,7 +5,7 @@ import {
   makeGenerateChildrenWithOpenAi,
   makeGenerateNChoiceChildrenWithOpenAi,
 } from "./generateChildren";
-import { LlmOptions } from "./databaseNlQueries/databaseNodes/LlmOptions";
+import { LlmOptions } from "mongodb-rag-core/executeCode";
 
 // Mock OpenAI client
 const mockOpenAIClient = {
@@ -46,7 +46,6 @@ function createParentNode(): ParentNode {
 
 function createLlmOptions(): LlmOptions {
   return {
-    openAiClient: mockOpenAIClient,
     model: "gpt-4",
     temperature: 0,
     max_tokens: 1000,
@@ -80,6 +79,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
     ParentNode,
     ChildNode
   >({
+    openAiClient: mockOpenAIClient,
     makePromptMessages: async (parent) => [
       { role: "system", content: "You are a test assistant" },
       {
@@ -114,6 +114,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       ParentNode,
       ChildNode
     >({
+      openAiClient: mockOpenAIClient,
       makePromptMessages: async (parent) => [
         { role: "system", content: "You are a test assistant" },
         {
@@ -229,6 +230,7 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
       ParentNode,
       ChildNode
     >({
+      openAiClient: mockOpenAIClient,
       makePromptMessages: async (parent) => [
         { role: "system", content: "You are a test assistant" },
         {
@@ -260,6 +262,7 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
       ParentNode,
       ChildNode
     >({
+      openAiClient: mockOpenAIClient,
       makePromptMessages: () =>
         Promise.resolve([
           { role: "system", content: "You are a test assistant" },

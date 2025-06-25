@@ -3,11 +3,12 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   executeMongoshQuery,
   isReasonableResult,
+  LlmOptions,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { openAiClient } from "../openAi";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
@@ -17,7 +18,6 @@ import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databas
 import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
 import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
 import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
-import { LlmOptions } from "../treeGeneration/databaseNlQueries/databaseNodes/LlmOptions";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
@@ -111,8 +111,9 @@ async function generateMongoshDataset({
   console.log(`Generating database info for database ${dataset.databaseName}`);
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
-    llm: llmConfigs.database.llmConfig,
+    llmOptions: llmConfigs.database.llmConfig,
     latestDate: dataset.latestDate,
+    openAiClient,
   });
   await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
 
@@ -271,12 +272,7 @@ async function generateMongoshDataset({
 
 async function main() {
   // Set up
-  const {
-    BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-    MONGODB_TEXT_TO_CODE_CONNECTION_URI,
-  } = assertEnvVars({
-    ...BRAINTRUST_ENV_VARS,
+  const { MONGODB_TEXT_TO_CODE_CONNECTION_URI } = assertEnvVars({
     ...DATABASE_NL_QUERIES,
   });
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
@@ -290,10 +286,6 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    openAiClient: new OpenAI({
-      apiKey: BRAINTRUST_API_KEY,
-      baseURL: BRAINTRUST_ENDPOINT,
-    }),
     model: "gpt-4o",
     temperature: 0.7,
     seed: 42,

@@ -4,6 +4,7 @@ import { LlmOptions } from "./LlmOptions";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
 import { prettyPrintMongoDbDocument } from "../prettyPrintMongoDbDocument";
 import { OpenAI } from "openai";
+import { wrapTraced } from "braintrust";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions.
 
@@ -51,29 +52,36 @@ function createHighLevelDbDescriptionsSchema(
 /**
   Get high-level descriptions of the database and its collections.
  */
-export async function generateHighLevelDbDescriptions(
-  databaseMetadata: DatabaseMetadata,
-  llmOptions: LlmOptions
-) {
-  const schema = createHighLevelDbDescriptionsSchema(databaseMetadata);
+export const makeGenerateHighLevelDbDescriptions = (openAiClient: OpenAI) =>
+  wrapTraced(
+    async function (
+      databaseMetadata: DatabaseMetadata,
+      llmOptions: LlmOptions
+    ) {
+      const schema = createHighLevelDbDescriptionsSchema(databaseMetadata);
 
-  const messages = [
-    {
-      role: "system",
-      content: systemPrompt,
-    },
-    {
-      role: "user",
-      content: `Database information:
+      const messages = [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: `Database information:
 ${prettyPrintMongoDbDocument(databaseMetadata)}`,
+        },
+      ] satisfies OpenAI.ChatCompletionMessageParam[];
+      return await getOpenAiFunctionResponse({
+        messages,
+        llmOptions,
+        schema,
+        functionName,
+        functionDescription:
+          "Generate high-level descriptions of the database and its collections based on the provided metadata",
+        openAiClient,
+      });
     },
-  ] satisfies OpenAI.ChatCompletionMessageParam[];
-  return await getOpenAiFunctionResponse({
-    messages,
-    llmOptions,
-    schema,
-    functionName,
-    functionDescription:
-      "Generate high-level descriptions of the database and its collections based on the provided metadata",
-  });
-}
+    {
+      name: "generateHighLevelDbDescriptions",
+    }
+  );

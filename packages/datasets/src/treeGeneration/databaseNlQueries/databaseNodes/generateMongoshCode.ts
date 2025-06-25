@@ -9,6 +9,8 @@ import {
   makePromptDbInfo,
   makePromptNaturalLanguageQueryInfo,
 } from "./makePromptComponents";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { openAiClient } from "../../../openAi";
 
 const abstractOutputExample: DatabaseCode = {
   queryPlan: "<query plan here>",
@@ -44,34 +46,37 @@ For the language field, always put 'mongosh'. For example the output should look
 
 ${JSON.stringify(abstractOutputExample)}`;
 
-export const generateMongoshCode = makeGenerateNChoiceChildrenWithOpenAi<
-  DatabaseNlQueryNode,
-  DatabaseCodeNode
->({
-  childType: "database_code",
-  makePromptMessages: async ({
-    data: naturalLanguageQuery,
-    parent: {
+export const generateMongoshCode = wrapTraced(
+  makeGenerateNChoiceChildrenWithOpenAi<DatabaseNlQueryNode, DatabaseCodeNode>({
+    openAiClient,
+    childType: "database_code",
+    makePromptMessages: async ({
+      data: naturalLanguageQuery,
       parent: {
-        parent: { data: databaseInfo },
+        parent: {
+          parent: { data: databaseInfo },
+        },
       },
-    },
-  }) => {
-    const message = `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
+    }) => {
+      const message = `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
 ${makePromptDbInfo(databaseInfo)}
 
   ${makePromptNaturalLanguageQueryInfo(naturalLanguageQuery)}
 `;
 
-    return [
-      { role: "system", content: nlQuerySystemPrompt },
-      { role: "user", content: message },
-    ];
-  },
-  response: {
-    schema: DatabaseCodeSchema,
-    name: "generate_db_code",
-    description: "A MongoDB Shell (mongosh) query for the database use case",
-  },
-});
+      return [
+        { role: "system", content: nlQuerySystemPrompt },
+        { role: "user", content: message },
+      ];
+    },
+    response: {
+      schema: DatabaseCodeSchema,
+      name: "generate_db_code",
+      description: "A MongoDB Shell (mongosh) query for the database use case",
+    },
+  }),
+  {
+    name: "generateMongoshCode",
+  }
+);

@@ -171,12 +171,27 @@ export const mockGenerateResponse: GenerateResponse = async ({
   };
 };
 
+export const MONGO_CHAT_MODEL = "mongodb-chat-latest";
+
 export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);
   return {
     conversationsRouterConfig: {
       generateResponse: mockGenerateResponse,
       conversations,
+    },
+    responsesRouterConfig: {
+      createResponse: {
+        supportedModels: [MONGO_CHAT_MODEL],
+        maxOutputTokens: 4000,
+        generateResponse: () =>
+          Promise.resolve({
+            messages: [
+              { role: "user", content: "What is MongoDB?" },
+              { role: "assistant", content: "MongoDB is a database." },
+            ],
+          }),
+      },
     },
     maxRequestTimeoutMs: 30000,
     corsOptions: {

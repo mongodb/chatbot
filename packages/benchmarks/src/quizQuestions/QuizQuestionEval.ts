@@ -131,13 +131,13 @@ export function runQuizQuestionEval({
   openaiClient,
   experimentName,
   additionalMetadata,
+  model,
   llmOptions = {
-    // max_tokens: 100,
-    reasoning_enabled: true,
-    reasoning_budget: 1024,
+    max_tokens: model.includes("gemini-2.5") ? undefined : 100,
+    reasoning_enabled: model.includes("gemini-2.5") ? true : undefined,
+    reasoning_budget: model.includes("gemini-2.5") ? 1024 : undefined,
   },
   promptOptions,
-  model,
   maxConcurrency,
 }: MakeQuizQuestionEvalParams) {
   return Eval<

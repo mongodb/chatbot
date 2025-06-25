@@ -98,8 +98,12 @@ export function makeGenerateMongoshCodeToolCallTask({
           llmOptions.max_completion_tokens ??
           undefined,
         model: openai,
+        toolChoice: {
+          toolName: GENERATE_DB_CODE_TOOL_NAME,
+          type: "tool",
+        },
         tools: {
-          generate_db_code: makeDbCodeTool({
+          [GENERATE_DB_CODE_TOOL_NAME]: makeDbCodeTool({
             model: openai,
             databaseName,
             uri,
@@ -158,7 +162,7 @@ function makeDbCodeTool({
   let toolSchema;
   // Gemini 2.5 models aren't compatible with our zod schema
   // This defines the schema more directly instead of relying on the ai sdk
-  if (model.modelId.startsWith("publishers/google/models/gemini-2.5-")) {
+  if (model.modelId.startsWith("publishers/google/models/gemini")) {
     toolSchema = jsonSchema<{
       query_plan: string;
       code: string;
@@ -191,11 +195,11 @@ function makeDbCodeTool({
     execute: async (args) => {
       const execution = await executeMongoshQuery({
         databaseName: databaseName,
-        query: args.code,
+        query: args[CODE_FIELD],
         uri,
       });
       output.execution = execution;
-      output.generatedCode = args.code;
+      output.generatedCode = args[CODE_FIELD];
       return {
         ...execution,
         result: truncateDbOperationOutputForLlm(execution.result),

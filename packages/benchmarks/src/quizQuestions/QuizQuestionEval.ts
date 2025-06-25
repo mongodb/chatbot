@@ -68,12 +68,7 @@ function makeQuizQuestionTask({
       ...llmOptions,
       temperature: 0,
     });
-    const message = res.choices[0].message;
-    let content = message.content;
-    if (typeof content !== "string") {
-      console.warn("Message content was not a string");
-      content = JSON.stringify(content);
-    }
+    const { content } = res.choices[0].message;
     assert(content, "No content found in response");
     return content;
   };

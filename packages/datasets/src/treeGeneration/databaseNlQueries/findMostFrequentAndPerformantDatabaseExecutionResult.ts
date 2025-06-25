@@ -54,10 +54,13 @@ export function getClusterFastestExecutionTimeExecutionResultIndex(
 }
 
 export function findMostFrequentAndPerformantDatabaseExecutionResult(
-  items: DatabaseExecutionResultNode["data"][]
+  items: DatabaseExecutionResultNode["data"][],
+  minClusterSize = 1
 ) {
   const clusters = fuzzyClusterDatabaseExecutionResults(items);
   const largestCluster = findLargestCluster(clusters);
+  if (largestCluster.length < minClusterSize)
+    return { clusters, fastestMostFrequentIndex: null };
   const clusterItems = getClusterElementsFromIndexes(items, largestCluster);
   const fastestMostFrequentIndex =
     getClusterFastestExecutionTimeExecutionResultIndex(clusterItems);

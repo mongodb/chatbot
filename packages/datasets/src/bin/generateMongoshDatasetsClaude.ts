@@ -20,16 +20,10 @@ import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
-import {
-  wrapOpenAI,
-  initLogger,
-  wrapTraced,
-  traced,
-} from "mongodb-rag-core/braintrust";
+import { initLogger } from "mongodb-rag-core/braintrust";
 import { openAiClient } from "../openAi";
-import assert from "assert";
 
-const DEFAULT_CONCURRENCY = 1;
+const DEFAULT_CONCURRENCY = 2;
 
 /**
   Magic number to specify the max results array size to evaluate.
@@ -83,6 +77,7 @@ interface GenerateMongoshDatasetParams {
     dataOutDir: string;
   };
   maxResultsArraySize?: number;
+  minClusterSize?: number;
 }
 
 async function generateMongoshDataset({
@@ -92,6 +87,7 @@ async function generateMongoshDataset({
   datasetUuid,
   writeToFile,
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
+  minClusterSize,
 }: GenerateMongoshDatasetParams) {
   console.log(`Generating dataset for database ${dataset.databaseName}`);
   const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
@@ -194,6 +190,8 @@ async function generateMongoshDataset({
   const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(nlQueryNodes)
     .withConcurrency(llmConfigs.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
     .process(async (nlQueryNode) => {
+      // TODO: the n candidates stuff that works for OpenAI isn't supported by Anthropic.
+      // Will need tot take a different approach. Maybe make a new generator function that does this.
       const dbCodeNodes = await generateMongoshCode(
         nlQueryNode,
         llmConfigs.dbQueries.llmConfig,
@@ -243,7 +241,8 @@ async function generateMongoshDataset({
       // Find the most frequent and performant database execution result
       const { fastestMostFrequentIndex } =
         findMostFrequentAndPerformantDatabaseExecutionResult(
-          dbExecutions.map((node) => node.data)
+          dbExecutions.map((node) => node.data),
+          minClusterSize
         );
       if (
         fastestMostFrequentIndex !== null &&
@@ -310,7 +309,6 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    // TODO: try out "us.anthropic.claude-sonnet-4-20250514-v1:0"
     model: "claude-4-sonnet-20250514",
     temperature: 0.7,
     seed: 42,
@@ -326,22 +324,22 @@ async function main() {
       },
     },
     users: {
-      numGenerations: 20,
+      numGenerations: 1,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     useCases: {
-      numGenerations: 2,
+      numGenerations: 1,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     nlQueries: {
-      numGenerations: 2,
+      numGenerations: 1,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     dbQueries: {
-      numGenerations: 4,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
@@ -377,6 +375,8 @@ async function main() {
         writeToFile: {
           dataOutDir,
         },
+        // If we have 10 generations, we want to find the most frequent and performant result that has at least 4 generations
+        minClusterSize: Math.ceil(config.dbQueries.numGenerations / 3),
       });
     }
   } finally {

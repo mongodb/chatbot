@@ -3,7 +3,7 @@ import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { CreateResponseRequest } from "./createResponse";
 
 interface ResponsesService {
-  createResponse: () => void;
+  generateResponse: () => void;
 }
 
 export interface ResponsesRouterParams {
@@ -21,7 +21,7 @@ export function makeResponsesRouter({ responses }: ResponsesRouterParams) {
     "/",
     validateRequestSchema(CreateResponseRequest),
     (req, res) => {
-      responses.createResponse();
+      responses.generateResponse();
       res.status(200).send({ status: "ok" });
     }
   );

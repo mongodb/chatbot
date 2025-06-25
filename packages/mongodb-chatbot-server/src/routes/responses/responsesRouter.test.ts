@@ -25,7 +25,7 @@ describe("Responses Router", () => {
       ...appConfig,
       responsesRouterConfig: {
         responses: {
-          createResponse: () => null,
+          generateResponse: () => null,
         },
       },
     });

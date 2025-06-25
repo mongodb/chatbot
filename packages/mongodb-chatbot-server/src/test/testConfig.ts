@@ -180,7 +180,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
     },
     responsesRouterConfig: {
       responses: {
-        createResponse: () => null,
+        generateResponse: () => null,
       },
     },
     maxRequestTimeoutMs: 30000,

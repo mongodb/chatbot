@@ -388,7 +388,7 @@ export const config: AppConfig = {
   },
   responsesRouterConfig: {
     responses: {
-      createResponse: () => null,
+      generateResponse: () => null,
     },
   },
   maxRequestTimeoutMs: 60000,

@@ -5,6 +5,8 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  ConversationCustomData,
+  logger,
 } from "mongodb-rag-core";
 import {
   CoreAssistantMessage,
@@ -35,6 +37,34 @@ import {
   SearchTool,
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
+
+/**
+  Adds front matter to the user message text.
+ */
+export function formatUserMessageForGeneration(
+  userMessageText: string,
+  customData: ConversationCustomData
+) {
+  const { origin } = customData ?? {};
+  if (typeof origin !== "string" || !origin) {
+    return userMessageText;
+  }
+  try {
+    const url = new URL(origin);
+    if (
+      url.hostname === "mongodb.com" ||
+      url.hostname.endsWith(".mongodb.com")
+    ) {
+      return `---
+pageUrl: ${origin}
+---
+${userMessageText}`;
+    }
+  } catch (e) {
+    logger.warn(`Origin ${origin} malformed. Not using in front matter.`);
+  }
+  return userMessageText;
+}
 
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;

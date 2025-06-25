@@ -48,7 +48,7 @@ export function makeFetchPageTool(
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
       ): Promise<string> {
-        const normalizedUrl = normalizeUrl(args.pageUrl);
+        const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
         const page = await loadPage({
           urls: [normalizedUrl],
           query: {

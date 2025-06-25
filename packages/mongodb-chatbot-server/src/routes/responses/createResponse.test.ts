@@ -3,6 +3,7 @@ import request from "supertest";
 import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
+import { MONGO_CHAT_MODEL } from "../../test/testConfig";
 
 jest.setTimeout(100000);
 
@@ -23,7 +24,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
         });
@@ -37,7 +38,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             { role: "system", content: "You are a helpful assistant." },
@@ -56,7 +57,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           instructions: "You are a helpful chatbot.",
@@ -71,7 +72,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           max_output_tokens: 4000,
@@ -86,7 +87,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           metadata: { key1: "value1", key2: "value2" },
@@ -101,7 +102,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           temperature: 0,
@@ -116,7 +117,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           previous_response_id: "some-id",
@@ -131,7 +132,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           user: "some-user-id",
@@ -146,7 +147,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           store: false,
@@ -161,7 +162,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           store: true,
@@ -176,7 +177,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tools: [
@@ -204,7 +205,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tools: [
@@ -235,7 +236,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             { role: "user", content: "What is MongoDB?" },
@@ -258,7 +259,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             { role: "user", content: "What is MongoDB?" },
@@ -280,7 +281,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tool_choice: "none",
@@ -295,7 +296,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tool_choice: "only",
@@ -310,7 +311,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tools: [],
@@ -320,6 +321,7 @@ describe("POST /responses", () => {
     });
   });
 
+  // TODO: In EAI-1126, we will need to change the error types to match the OpenAI spec
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
       const response = await request(app)
@@ -327,7 +329,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "",
         });
@@ -342,7 +344,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [],
         });
@@ -374,7 +376,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: false,
           input: "What is MongoDB?",
         });
@@ -389,7 +391,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           max_output_tokens: 4001,
@@ -412,7 +414,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           metadata,
@@ -428,7 +430,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           metadata: { key1: "a".repeat(513) },
@@ -444,7 +446,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           temperature: 0.5,
@@ -460,7 +462,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             { role: "user", content: "What is MongoDB?" },
@@ -477,7 +479,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             {
@@ -499,7 +501,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: [
             {
@@ -520,7 +522,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           tool_choice: "invalid_choice",
@@ -536,7 +538,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
           max_output_tokens: -1,

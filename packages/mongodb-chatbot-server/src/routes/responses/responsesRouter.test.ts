@@ -3,6 +3,7 @@ import { AppConfig } from "../../app";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
+import { MONGO_CHAT_MODEL } from "../../test/testConfig";
 
 jest.setTimeout(60000);
 
@@ -10,7 +11,7 @@ describe("Responses Router", () => {
   const ipAddress = "127.0.0.1";
   const responsesEndpoint = DEFAULT_API_PREFIX + "/responses";
   const validRequestBody = {
-    model: "mongodb-chat-latest",
+    model: MONGO_CHAT_MODEL,
     stream: true,
     input: "What is MongoDB?",
   };
@@ -25,7 +26,7 @@ describe("Responses Router", () => {
       ...appConfig,
       responsesRouterConfig: {
         responses: { generateResponse: () => null },
-        supportedModels: ["mongodb-chat-latest"],
+        supportedModels: [MONGO_CHAT_MODEL],
         maxOutputTokens: 4000,
       },
     });

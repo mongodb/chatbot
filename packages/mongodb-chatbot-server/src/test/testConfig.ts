@@ -171,6 +171,8 @@ export const mockGenerateResponse: GenerateResponse = async ({
   };
 };
 
+export const MONGO_CHAT_MODEL = "mongodb-chat-latest";
+
 export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);
   return {
@@ -180,7 +182,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
     },
     responsesRouterConfig: {
       responses: { generateResponse: () => null },
-      supportedModels: ["mongodb-chat-latest"],
+      supportedModels: [MONGO_CHAT_MODEL],
       maxOutputTokens: 4000,
     },
     maxRequestTimeoutMs: 30000,

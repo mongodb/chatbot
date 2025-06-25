@@ -20,7 +20,8 @@ export interface ResponsesRouterParams {
 export function makeResponsesRouter({ createResponse }: ResponsesRouterParams) {
   const responsesRouter = Router();
 
-  // stateless chat responses
+  // TODO: add rate limit config
+
   responsesRouter.post(
     "/",
     validateRequestSchema(CreateResponseRequest),

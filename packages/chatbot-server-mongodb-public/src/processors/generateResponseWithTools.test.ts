@@ -294,7 +294,34 @@ describe("generateResponseWithTools", () => {
       ) as UserMessage;
       expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
+    it("should not generate until guardrail has resolved (reject)", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool({
+        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        inputGuardrail: async () => {
+          // sleep for 2 seconds
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return mockGuardrailRejectResult;
+        },
+      });
 
+      const result = await generateResponse(generateResponseBaseArgs);
+
+      expectGuardrailRejectResult(result);
+    });
+    it("should not generate until guardrail has resolved (pass)", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool({
+        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        inputGuardrail: async () => {
+          // sleep for 2 seconds
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return mockGuardrailPassResult;
+        },
+      });
+
+      const result = await generateResponse(generateResponseBaseArgs);
+
+      expectSuccessfulResult(result);
+    });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
         const generateResponse = makeGenerateResponseWithTools(

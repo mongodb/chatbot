@@ -33,6 +33,8 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     },
     contextContent: [],
     assistantMessageIndex: 1,
+    rejectionReason: "no rejection",
+    origin: "unknown",
   } as ReturnType<typeof extractTracingData>;
 
   it("should create scrubbed messages from tracing data", async () => {

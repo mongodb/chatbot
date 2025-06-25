@@ -1,4 +1,5 @@
-import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
+import { MODELS } from "../benchmarkModels";
+import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 import "dotenv/config";
 import PromisePool from "@supercharge/promise-pool";
 import { runQuizQuestionEval } from "./QuizQuestionEval";
@@ -19,22 +20,9 @@ async function main() {
     datasetName,
   });
 
-  // These were the requested models to evaluate
-  const modelsToEvaluate = [
-    "gpt-4o",
-    "claude-35-sonnet-v2",
-    "llama-3.1-70b",
-    "nova-pro-v1:0",
-    "mistral-large-2",
-    "gemini-2-flash",
-  ];
-  const modelExperiments = models.filter((m) =>
-    modelsToEvaluate.includes(m.label)
-  );
-
   // Process models in parallel
-  await PromisePool.for(modelExperiments)
-    .withConcurrency(modelsToEvaluate.length)
+  await PromisePool.for(MODELS)
+    .withConcurrency(MODELS.length)
 
     .process(async (modelInfo) => {
       let experimentName = modelInfo.label;

@@ -130,6 +130,10 @@ export const mockAssistantResponse = {
   content: "some content",
 };
 
+export const generateResponseCustomData = {
+  foo: "bar",
+};
+
 export const mockGenerateResponse: GenerateResponse = async ({
   latestMessageText,
   customData,
@@ -160,7 +164,7 @@ export const mockGenerateResponse: GenerateResponse = async ({
       {
         role: "user" as const,
         content: latestMessageText,
-        customData,
+        customData: generateResponseCustomData,
       },
       { ...mockAssistantResponse },
     ],

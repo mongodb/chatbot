@@ -7,7 +7,7 @@ import { makeTestApp } from "../../test/testHelpers";
 jest.setTimeout(100000);
 
 describe("POST /responses", () => {
-  const endpointUrl = `${DEFAULT_API_PREFIX}/conversations/responses`;
+  const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
   let app: Express;
   let ipAddress: string;
   let origin: string;

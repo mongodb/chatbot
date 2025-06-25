@@ -64,7 +64,6 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
 
 export { systemPrompt };
 export {
-  generateUserPrompt,
   openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,

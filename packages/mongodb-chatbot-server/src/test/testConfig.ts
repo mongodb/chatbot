@@ -178,6 +178,11 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
       generateResponse: mockGenerateResponse,
       conversations,
     },
+    responsesRouterConfig: {
+      responses: {
+        createResponse: () => null,
+      },
+    },
     maxRequestTimeoutMs: 30000,
     corsOptions: {
       origin: allowedOrigins,

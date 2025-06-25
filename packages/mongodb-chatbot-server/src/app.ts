@@ -11,7 +11,9 @@ import "dotenv/config";
 import {
   ConversationsRouterParams,
   makeConversationsRouter,
-} from "./routes/conversations/conversationsRouter";
+  ResponsesRouterParams,
+  makeResponsesRouter,
+} from "./routes";
 import { logger } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
@@ -26,6 +28,11 @@ export interface AppConfig {
     Configuration for the conversations router.
    */
   conversationsRouterConfig: ConversationsRouterParams;
+
+  /**
+    Configuration for the responses router.
+   */
+  responsesRouterConfig: ResponsesRouterParams;
 
   /**
     Maximum time in milliseconds for a request to complete before timing out.
@@ -116,6 +123,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   const {
     maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
     conversationsRouterConfig,
+    responsesRouterConfig,
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
     expressAppConfig,
@@ -140,6 +148,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
+  app.use(`${apiPrefix}/responses`, makeResponsesRouter(responsesRouterConfig));
 
   app.get("/health", (_req, res) => {
     const data = {

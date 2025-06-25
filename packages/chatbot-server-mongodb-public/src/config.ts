@@ -386,6 +386,11 @@ export const config: AppConfig = {
     maxInputLengthCharacters: 3000,
     braintrustLogger,
   },
+  responsesRouterConfig: {
+    responses: {
+      createResponse: () => null,
+    },
+  },
   maxRequestTimeoutMs: 60000,
   corsOptions: {
     origin: allowedOrigins,

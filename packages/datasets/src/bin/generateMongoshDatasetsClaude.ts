@@ -27,6 +27,7 @@ import {
   traced,
 } from "mongodb-rag-core/braintrust";
 import { openAiClient } from "../openAi";
+import assert from "assert";
 
 const DEFAULT_CONCURRENCY = 1;
 
@@ -132,7 +133,14 @@ async function generateMongoshDataset({
   );
   await nodeStore.storeNodes({ nodes: userNodes });
 
-  console.log(`Generated ${userNodes.length} database users`);
+  console.log(`Generated ${userNodes.length} database users:`);
+  console.log(
+    JSON.stringify(
+      userNodes.map(({ data }) => data),
+      null,
+      2
+    )
+  );
 
   // Generate use cases for each user
   console.log("Generating use cases for each user...");
@@ -146,7 +154,7 @@ async function generateMongoshDataset({
       );
       await nodeStore.storeNodes({ nodes: useCases });
       console.log(
-        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.jobTitle}`
+        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
       );
       return useCases;
     });
@@ -291,14 +299,6 @@ async function main() {
     projectName: "generate-mongosh-dataset-claude",
     apiKey: BRAINTRUST_API_KEY,
   });
-  // traced(
-  //   () => {
-  //     return;
-  //   },
-  //   {
-  //     name: "new_experiment",
-  //   }
-  // );
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
 
   const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
@@ -326,12 +326,12 @@ async function main() {
       },
     },
     users: {
-      numGenerations: 3,
+      numGenerations: 20,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     useCases: {
-      numGenerations: 1,
+      numGenerations: 2,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
@@ -341,7 +341,7 @@ async function main() {
       concurrency: DEFAULT_CONCURRENCY,
     },
     dbQueries: {
-      numGenerations: 2,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },

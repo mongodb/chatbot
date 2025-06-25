@@ -140,7 +140,7 @@ async function generateMongoshDataset({
       );
       await nodeStore.storeNodes({ nodes: useCases });
       console.log(
-        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.jobTitle}`
+        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
       );
       return useCases;
     });

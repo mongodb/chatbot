@@ -138,25 +138,25 @@ export const sampleMovieDbInfo: DatabaseInfo = {
 export const sampleDatabaseUsers = [
   {
     name: "Alice Chen",
-    jobTitle: "Data Analyst",
+    role: "Data Analyst",
     description:
       "Alice analyzes user interaction data to derive meaningful insights and create reports on movie trends. In Analytics Department. Expertise areas: Data Analysis, SQL, Python, Data Visualization. 5 years of experience.",
   },
   {
     name: "Daniel Garcia",
-    jobTitle: "Film Critic",
+    role: "Film Critic",
     description:
       "Daniel writes and publishes reviews and provides ratings for the latest movie releases on MovieDB. In Content Department. Expertise areas: Film Critique, Writing, Cinema Studies. 7 years of experience.",
   },
   {
     name: "Samuel King",
-    jobTitle: "Film Festival Organizer",
+    role: "Film Festival Organizer",
     description:
       "Samuel organizes film festivals and uses MovieDB to discover films and directors to feature in his events. In Events Department. Expertise areas: Event Planning, Film Selection, Networking. 15 years of experience.",
   },
   {
     name: "Tina Lewis",
-    jobTitle: "Talent Agent",
+    role: "Talent Agent",
     description:
       "Tina represents actors and helps them find roles in films. She uses MovieDB to stay updated on industry trends and opportunities. In Talent Management Department. Expertise areas: Talent Representation, Negotiation, Industry Knowledge. 10 years of experience.",
   },

@@ -12,11 +12,11 @@ export type DatabaseInfoNode = WithParentNode<
 
 export const DatabaseUserSchema = z.object({
   name: z.string().describe("Full name of the database user"),
-  jobTitle: z.string().describe("Current professional role or position"),
+  role: z.string().describe("Current professional role or position."),
   description: z
     .string()
     .describe(
-      "Background of the user. Consider including years of experience and relevant areas of expertise."
+      "Background of the user. Consider including years of experience and relevant areas of expertise/interest."
     ),
 });
 

@@ -37,7 +37,7 @@ import {
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 
-export interface GenerateResponseWithSearchToolParams {
+export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
@@ -60,7 +60,7 @@ export interface GenerateResponseWithSearchToolParams {
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool({
+export function makeGenerateResponseWithTools({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,
@@ -73,7 +73,7 @@ export function makeGenerateResponseWithSearchTool({
   searchTool,
   fetchPageTool,
   toolChoice,
-}: GenerateResponseWithSearchToolParams): GenerateResponse {
+}: GenerateResponseWithToolsParams): GenerateResponse {
   return async function generateResponseWithTools({
     conversation,
     latestMessageText,

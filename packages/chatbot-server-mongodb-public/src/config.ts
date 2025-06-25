@@ -53,7 +53,7 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
-import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import { makeGenerateResponseWithTools } from "./processors/generateResponseWithTools";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
@@ -163,11 +163,6 @@ export const findContent = wrapTraced(
   }
 );
 
-export const pageStore = makeMongoDbPageStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
-});
-
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -195,6 +190,15 @@ export const findVerifiedAnswer = wrapTraced(
   }),
   { name: "findVerifiedAnswer" }
 );
+
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const loadPage = wrapTraced(pageStore.loadPage, {
+  name: "loadPageFromStore",
+});
 
 export const preprocessorOpenAiClient = wrapOpenAI(
   new AzureOpenAI({
@@ -238,7 +242,7 @@ export const generateResponse = wrapTraced(
       };
     },
     onNoVerifiedAnswerFound: wrapTraced( 
-      makeGenerateResponseWithSearchTool({ // This must be renamed when we add fetch_page
+      makeGenerateResponseWithTools({
         languageModel,
         systemMessage: systemPrompt,
         makeReferenceLinks: makeMongoDbReferences,
@@ -257,11 +261,11 @@ export const generateResponse = wrapTraced(
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool(findContent),
-        fetchPageTool: makeFetchPageTool(pageStore, findContent),
+        fetchPageTool: makeFetchPageTool(loadPage, findContent),
         toolChoice: "auto",
         maxSteps: 5,
       }),
-      { name: "generateResponseWithSearchTool" }
+      { name: "generateResponseWithTools" }
     ),
   }),
   {

@@ -1,4 +1,5 @@
 import { FindContentFunc, MongoDbPageStore } from "mongodb-rag-core";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
@@ -24,15 +25,8 @@ export type FetchPageTool = Tool<
   ) => PromiseLike<string>;
 };
 
-export function normalizeUrl(url: string): string {
-  return url
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .replace(/\/$/, "");
-}
-
 export function makeFetchPageTool(
-  pageStore: MongoDbPageStore,
+  loadPage: MongoDbPageStore["loadPage"],
   findContent: FindContentFunc
 ): FetchPageTool {
   return tool({
@@ -44,7 +38,7 @@ export function makeFetchPageTool(
         _options: ToolExecutionOptions
       ): Promise<string> {
         const normalizedUrl = normalizeUrl(args.pageUrl);
-        const page = await pageStore.loadPage({
+        const page = await loadPage({
           urls: [normalizedUrl],
           query: {
             action: {

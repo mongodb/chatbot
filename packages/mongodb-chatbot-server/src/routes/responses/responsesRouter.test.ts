@@ -25,9 +25,17 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
-        responses: { generateResponse: () => null },
-        supportedModels: [MONGO_CHAT_MODEL],
-        maxOutputTokens: 4000,
+        createResponse: {
+          supportedModels: [MONGO_CHAT_MODEL],
+          maxOutputTokens: 4000,
+          generateResponse: () =>
+            Promise.resolve({
+              messages: [
+                { role: "user", content: "What is MongoDB?" },
+                { role: "assistant", content: "MongoDB is a database." },
+              ],
+            }),
+        },
       },
     });
 

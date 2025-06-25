@@ -4,36 +4,27 @@ import {
   makeCreateResponseRoute,
   CreateResponseRequest,
 } from "./createResponse";
-
-interface ResponsesService {
-  generateResponse: () => void;
-}
+import { GenerateResponse } from "../../processors";
 
 export interface ResponsesRouterParams {
-  responses: ResponsesService;
-  supportedModels: string[];
-  maxOutputTokens: number;
+  createResponse: {
+    generateResponse: GenerateResponse;
+    supportedModels: string[];
+    maxOutputTokens: number;
+  };
 }
 
 /**
   Constructor function to make the /responses/* Express.js router.
  */
-export function makeResponsesRouter({
-  responses,
-  supportedModels,
-  maxOutputTokens,
-}: ResponsesRouterParams) {
+export function makeResponsesRouter({ createResponse }: ResponsesRouterParams) {
   const responsesRouter = Router();
 
   // stateless chat responses
   responsesRouter.post(
     "/",
     validateRequestSchema(CreateResponseRequest),
-    makeCreateResponseRoute({
-      generateResponse: responses.generateResponse,
-      supportedModels,
-      maxOutputTokens,
-    })
+    makeCreateResponseRoute(createResponse)
   );
 
   return responsesRouter;

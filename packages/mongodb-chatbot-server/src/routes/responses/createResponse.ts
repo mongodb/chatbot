@@ -3,9 +3,10 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { RequestError, makeRequestError } from "../conversations/utils";
+import { SomeExpressRequest } from "../../middleware";
 import { sendErrorResponse } from "../../utils";
+import { GenerateResponse } from "../../processors";
 
 export const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
@@ -131,13 +132,13 @@ export const CreateResponseRequest = SomeExpressRequest.merge(
 export type CreateResponseRequest = z.infer<typeof CreateResponseRequest>;
 
 export interface CreateResponseRouteParams {
-  generateResponse: () => void;
+  generateResponse: GenerateResponse;
   supportedModels: string[];
   maxOutputTokens: number;
 }
 
 export function makeCreateResponseRoute({
-  generateResponse,
+  // generateResponse,
   supportedModels,
   maxOutputTokens,
 }: CreateResponseRouteParams) {
@@ -174,7 +175,7 @@ export function makeCreateResponseRoute({
       }
 
       // TODO: actually use this call
-      generateResponse();
+      // generateResponse();
       // TODO: do something with maxOutputTokens (validate result length or pass to generateResponse?)
 
       return res.status(200).send({ status: "ok" });

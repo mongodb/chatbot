@@ -387,9 +387,17 @@ export const config: AppConfig = {
     braintrustLogger,
   },
   responsesRouterConfig: {
-    responses: { generateResponse: () => null },
-    supportedModels: ["mongodb-chat-latest"],
-    maxOutputTokens: 4000,
+    createResponse: {
+      supportedModels: ["mongodb-chat-latest"],
+      maxOutputTokens: 4000,
+      generateResponse: () =>
+        Promise.resolve({
+          messages: [
+            { role: "user", content: "What is MongoDB?" },
+            { role: "assistant", content: "MongoDB is a database." },
+          ],
+        }),
+    },
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

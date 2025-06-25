@@ -5,7 +5,7 @@ import {
 } from "express";
 import { RequestError, makeRequestError } from "../conversations/utils";
 import { SomeExpressRequest } from "../../middleware";
-import { sendErrorResponse } from "../../utils";
+import { getRequestId, sendErrorResponse } from "../../utils";
 import { GenerateResponse } from "../../processors";
 
 export const CreateResponseRequestBodySchema = z.object({
@@ -143,16 +143,10 @@ export function makeCreateResponseRoute({
   maxOutputTokens,
 }: CreateResponseRouteParams) {
   return async (
-    req: ExpressRequest<
-      CreateResponseRequest["params"],
-      unknown,
-      CreateResponseRequest["body"]
-    >,
+    req: ExpressRequest,
     res: ExpressResponse<{ status: string }, any>
   ) => {
-    // TODO: figure this one out...
-    const reqId = "request-id";
-
+    const reqId = getRequestId(req);
     try {
       const {
         body: { model, max_output_tokens },

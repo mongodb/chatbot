@@ -1,4 +1,4 @@
-import { models } from "mongodb-rag-core/models";
+import { MODELS } from "../benchmarkModels";
 import "dotenv/config";
 import PromisePool from "@supercharge/promise-pool";
 import { runQuizQuestionEval } from "./QuizQuestionEval";
@@ -19,7 +19,7 @@ async function main() {
     datasetName,
   });
 
-  const modelExperiments = models.filter((m) => m.authorized === true);
+  const modelExperiments = MODELS.filter((m) => m.authorized === true);
 
   // Process models in parallel
   await PromisePool.for(modelExperiments)

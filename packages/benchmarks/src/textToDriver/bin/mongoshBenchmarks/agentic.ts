@@ -5,12 +5,12 @@ import { makeGenerateMongoshCodeAgenticTask } from "../../generateDriverCode/gen
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { MODELS } from "../../../benchmarkModels";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  MODELS,
   MAX_CONCURRENT_EXPERIMENTS,
   makeLlmOptions,
   EXPERIMENT_BASE_NAME,

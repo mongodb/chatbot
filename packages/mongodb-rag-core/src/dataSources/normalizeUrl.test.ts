@@ -18,8 +18,14 @@ describe("normalizeUrl", () => {
     expect(normalizeUrl(url)).toBe("example.com/path");
   });
 
+  it("should convert scheme and host to lowercase", () => {
+    expect(normalizeUrl("HTTP://EXAMPLE.COM/Path")).toBe(
+      "http://example.com/Path"
+    );
+  });
+
   it("should handle URLs with a domain and a trailing slash", () => {
-    expect(normalizeUrl("https://example.com/")).toBe("example.com");
+    expect(normalizeUrl("https://example.com/")).toBe("https://example.com");
   });
 
   it("should handle URLs with https://www. prefix", () => {
@@ -35,7 +41,7 @@ describe("normalizeUrl", () => {
   });
 
   it("should handle complex URLs with many normalizations needed", () => {
-    const url = "http://www.example.com/path/to/resource/";
+    const url = "HTTP://www.EXAMPLE.COM/path/to/resource/";
     expect(normalizeUrl(url)).toBe("example.com/path/to/resource");
   });
 

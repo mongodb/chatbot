@@ -59,7 +59,7 @@ export interface GenerateResponseWithToolsParams {
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool({
+export function makeGenerateResponseWithTools({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,

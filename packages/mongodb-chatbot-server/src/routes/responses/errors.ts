@@ -1,4 +1,6 @@
 import type { Response as ExpressResponse } from "express";
+import type { ZodError } from "zod";
+import { generateErrorMessage } from "zod-error";
 import { logger } from "mongodb-rag-core";
 
 interface ErrorResponseParams {
@@ -26,6 +28,12 @@ export const sendErrorResponse = ({
       },
     });
   }
+};
+
+export const generateZodErrorMessage = (error: ZodError) => {
+  return generateErrorMessage(error.issues, {
+    delimiter: { error: "\n" },
+  });
 };
 
 /*

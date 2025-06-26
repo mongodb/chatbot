@@ -1,10 +1,6 @@
 import Router from "express-promise-router";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  makeCreateResponseRoute,
-  CreateResponseRequest,
-} from "./createResponse";
-import { GenerateResponse } from "../../processors";
+import { makeCreateResponseRoute } from "./createResponse";
+import type { GenerateResponse } from "../../processors";
 
 export interface ResponsesRouterParams {
   createResponse: {
@@ -23,11 +19,7 @@ export function makeResponsesRouter({ createResponse }: ResponsesRouterParams) {
   // TODO: add rate limit config
 
   // Create Response API
-  responsesRouter.post(
-    "/",
-    validateRequestSchema(CreateResponseRequest),
-    makeCreateResponseRoute(createResponse)
-  );
+  responsesRouter.post("/", makeCreateResponseRoute(createResponse));
 
   return responsesRouter;
 }

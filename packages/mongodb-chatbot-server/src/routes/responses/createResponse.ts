@@ -9,6 +9,7 @@ import { GenerateResponse } from "../../processors";
 import {
   makeBadRequestError,
   makeInternalServerError,
+  generateZodErrorMessage,
   sendErrorResponse,
   ERROR_TYPE,
   type StandardError,
@@ -135,7 +136,7 @@ export const CreateResponseRequest = SomeExpressRequest.merge(
   })
 );
 
-export type CreateResponseRequest = z.infer<typeof CreateResponseRequest>;
+export type CreateResponseRequestType = z.infer<typeof CreateResponseRequest>;
 
 export interface CreateResponseRouteParams {
   generateResponse: GenerateResponse;
@@ -157,6 +158,11 @@ export function makeCreateResponseRoute({
       const {
         body: { model, max_output_tokens },
       } = req;
+
+      const { error } = await CreateResponseRequest.safeParseAsync(req);
+      if (error) {
+        throw makeBadRequestError(generateZodErrorMessage(error));
+      }
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {

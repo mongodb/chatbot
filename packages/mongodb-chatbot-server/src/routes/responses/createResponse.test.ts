@@ -9,11 +9,9 @@ import { ERROR_TYPE, ERROR_CODE, DEFAULT_ZOD_ERROR_MESSAGE } from "./errors";
 jest.setTimeout(100000);
 
 const badRequestError = (message: string) => ({
-  error: {
-    type: ERROR_TYPE,
-    code: ERROR_CODE.INVALID_REQUEST_ERROR,
-    message,
-  },
+  type: ERROR_TYPE,
+  code: ERROR_CODE.INVALID_REQUEST_ERROR,
+  message,
 });
 
 describe("POST /responses", () => {
@@ -344,7 +342,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError("Input must be a non-empty string")
       );
     });
@@ -361,7 +359,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError("Input must be a non-empty array")
       );
     });
@@ -378,7 +376,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError("Model gpt-4o-mini is not supported.")
       );
     });
@@ -395,7 +393,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError("'stream' must be true"));
+      expect(response.body.error).toEqual(
+        badRequestError("'stream' must be true")
+      );
     });
 
     it("Should return 400 if max_output_tokens is > 4000", async () => {
@@ -411,7 +411,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError(
           "Max output tokens 4001 is greater than the maximum allowed 4000."
         )
@@ -435,7 +435,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError("Too many metadata fields. Max 16.")
       );
     });
@@ -453,7 +453,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
+      expect(response.body.error).toEqual(
         badRequestError("String must contain at most 512 character(s)")
       );
     });
@@ -471,7 +471,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
+      expect(response.body.error).toEqual(
+        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+      );
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
@@ -488,7 +490,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
+      expect(response.body.error).toEqual(
+        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+      );
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
@@ -510,7 +514,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
+      expect(response.body.error).toEqual(
+        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+      );
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
@@ -531,7 +537,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
+      expect(response.body.error).toEqual(
+        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+      );
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
@@ -547,7 +555,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
+      expect(response.body.error).toEqual(
+        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+      );
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
@@ -563,8 +573,8 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(
-        badRequestError("Number must be greater than or equal to 0")
+      expect(response.body.error).toEqual(
+        badRequestError("Max output tokens must be greater than or equal to 0")
       );
     });
   });

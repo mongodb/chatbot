@@ -1,35 +1,110 @@
+import {
+  APIError,
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+  RateLimitError,
+} from "mongodb-rag-core/openai";
+import { logger } from "mongodb-rag-core";
 import type { Response as ExpressResponse } from "express";
 import type { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
-import { logger } from "mongodb-rag-core";
 
-interface ErrorResponseParams {
+interface SendErrorResponseParams {
   reqId: string;
   res: ExpressResponse;
-  error: StandardError;
+  error: APIError;
 }
 
 export const sendErrorResponse = ({
   reqId,
   res,
   error,
-}: ErrorResponseParams) => {
+}: SendErrorResponseParams) => {
+  const httpStatus = error.status ?? 500;
+
   logger.error({
     reqId,
-    message: `Responding with ${error.httpStatus} status and error message: ${error.message}.`,
+    message: `Responding with ${httpStatus} status and error message: ${error.message}.`,
   });
 
   if (!res.writableEnded) {
-    return res.status(error.httpStatus).json({
-      error: {
-        type: error.type,
-        code: error.code,
-        message: error.message,
-      },
-    });
+    return res.status(httpStatus).json(error);
   }
 };
 
+// --- OPENAI ERROR CONSTANTS ---
+export const ERROR_TYPE = "error";
+export enum ERROR_CODE {
+  INVALID_REQUEST_ERROR = "invalid_request_error",
+  NOT_FOUND_ERROR = "not_found_error",
+  RATE_LIMIT_ERROR = "rate_limit_error",
+  SERVER_ERROR = "server_error",
+}
+
+// --- OPENAI ERROR WRAPPERS ---
+interface MakeOpenAIErrorParams {
+  error: Error;
+  headers: Record<string, string>;
+}
+
+export const makeInternalServerError = ({
+  error,
+  headers,
+}: MakeOpenAIErrorParams): APIError => {
+  const message = error.message ?? "Internal server error";
+  const _error = {
+    ...error,
+    type: ERROR_TYPE,
+    code: ERROR_CODE.SERVER_ERROR,
+    message,
+  };
+  return new InternalServerError(500, _error, message, headers);
+};
+
+export const makeBadRequestError = ({
+  error,
+  headers,
+}: MakeOpenAIErrorParams): APIError => {
+  const message = error.message ?? "Bad request";
+  const _error = {
+    ...error,
+    type: ERROR_TYPE,
+    code: ERROR_CODE.INVALID_REQUEST_ERROR,
+    message,
+  };
+  return new BadRequestError(400, _error, message, headers);
+};
+
+export const makeNotFoundError = ({
+  error,
+  headers,
+}: MakeOpenAIErrorParams): APIError => {
+  const message = error.message ?? "Not found";
+  const _error = {
+    ...error,
+    type: ERROR_TYPE,
+    code: ERROR_CODE.NOT_FOUND_ERROR,
+    message,
+  };
+  return new NotFoundError(404, _error, message, headers);
+};
+
+export const makeRateLimitError = ({
+  error,
+  headers,
+}: MakeOpenAIErrorParams): APIError => {
+  const message = error.message ?? "Rate limit exceeded";
+  const _error = {
+    ...error,
+    type: ERROR_TYPE,
+    code: ERROR_CODE.RATE_LIMIT_ERROR,
+    message,
+  };
+  return new RateLimitError(429, _error, message, headers);
+};
+
+// --- ZOD VALIDATION ERROR MESSAGE GENERATION ---
 export const DEFAULT_ZOD_ERROR_MESSAGE = "Invalid input";
 
 export const generateZodErrorMessage = (error: ZodError) => {
@@ -38,58 +113,4 @@ export const generateZodErrorMessage = (error: ZodError) => {
   });
   const message = zodErrorString.split("Message: ")[1];
   return message ?? DEFAULT_ZOD_ERROR_MESSAGE;
-};
-
-/*
-  Error object schema based on:
-  https://platform.openai.com/docs/api-reference/responses-streaming/error
-*/
-export const ERROR_TYPE = "error";
-export enum ERROR_CODE {
-  INVALID_REQUEST_ERROR = "invalid_request_error",
-  NOT_FOUND_ERROR = "not_found_error",
-  RATE_LIMIT_ERROR = "rate_limit_error",
-  SERVER_ERROR = "server_error",
-}
-export interface StandardError {
-  type: typeof ERROR_TYPE;
-  code: ERROR_CODE;
-  message: string;
-  httpStatus: number;
-}
-
-export const makeInternalServerError = (message: string): StandardError => {
-  return {
-    type: ERROR_TYPE,
-    code: ERROR_CODE.SERVER_ERROR,
-    httpStatus: 500,
-    message,
-  };
-};
-
-export const makeBadRequestError = (message: string): StandardError => {
-  return {
-    type: ERROR_TYPE,
-    code: ERROR_CODE.INVALID_REQUEST_ERROR,
-    httpStatus: 400,
-    message,
-  };
-};
-
-export const makeNotFoundError = (message: string): StandardError => {
-  return {
-    type: ERROR_TYPE,
-    code: ERROR_CODE.NOT_FOUND_ERROR,
-    httpStatus: 404,
-    message,
-  };
-};
-
-export const makeRateLimitError = (message: string): StandardError => {
-  return {
-    type: ERROR_TYPE,
-    code: ERROR_CODE.RATE_LIMIT_ERROR,
-    httpStatus: 429,
-    message,
-  };
 };

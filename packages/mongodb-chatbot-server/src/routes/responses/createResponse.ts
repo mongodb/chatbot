@@ -3,6 +3,7 @@ import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
+import { APIError } from "mongodb-rag-core/openai";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
 import { GenerateResponse } from "../../processors";
@@ -12,7 +13,6 @@ import {
   generateZodErrorMessage,
   sendErrorResponse,
   ERROR_TYPE,
-  type StandardError,
 } from "./errors";
 
 const CreateResponseRequestBodySchema = z.object({
@@ -66,7 +66,12 @@ const CreateResponseRequestBodySchema = z.object({
       )
       .refine((input) => input.length > 0, "Input must be a non-empty array"),
   ]),
-  max_output_tokens: z.number().min(0).default(1000),
+  max_output_tokens: z
+    .number()
+    .default(1000)
+    .refine((max_output_tokens) => max_output_tokens >= 0, {
+      message: "Max output tokens must be greater than or equal to 0",
+    }),
   metadata: z
     .record(z.string(), z.string().max(512))
     .optional()
@@ -145,7 +150,7 @@ export interface CreateResponseRouteParams {
 }
 
 export function makeCreateResponseRoute({
-  // generateResponse,
+  generateResponse,
   supportedModels,
   maxOutputTokens,
 }: CreateResponseRouteParams) {
@@ -154,38 +159,51 @@ export function makeCreateResponseRoute({
     res: ExpressResponse<{ status: string }, any>
   ) => {
     const reqId = getRequestId(req);
+    const headers = req.headers as Record<string, string>;
+
     try {
       const {
         body: { model, max_output_tokens },
       } = req;
 
+      // --- INPUT VALIDATION ---
       const { error } = await CreateResponseRequestSchema.safeParseAsync(req);
       if (error) {
-        throw makeBadRequestError(generateZodErrorMessage(error));
+        throw makeBadRequestError({
+          error: new Error(generateZodErrorMessage(error)),
+          headers,
+        });
       }
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
-        throw makeBadRequestError(`Model ${model} is not supported.`);
+        throw makeBadRequestError({
+          error: new Error(`Model ${model} is not supported.`),
+          headers,
+        });
       }
 
       // --- MAX OUTPUT TOKENS CHECK ---
       if (max_output_tokens > maxOutputTokens) {
-        throw makeBadRequestError(
-          `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`
-        );
+        throw makeBadRequestError({
+          error: new Error(
+            `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`
+          ),
+          headers,
+        });
       }
 
-      // TODO: actually use this call
-      // generateResponse();
+      // TODO: actually implement this call
+      await generateResponse({} as any);
+
       // TODO: do something with maxOutputTokens (validate result length or pass to generateResponse?)
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
       const standardError =
-        (error as StandardError).type === ERROR_TYPE
-          ? (error as StandardError)
-          : makeInternalServerError((error as Error).message);
+        (error as APIError)?.type === ERROR_TYPE
+          ? (error as APIError)
+          : makeInternalServerError({ error: error as Error, headers });
 
       sendErrorResponse({
         res,

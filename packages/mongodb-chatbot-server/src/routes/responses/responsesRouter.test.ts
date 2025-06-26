@@ -47,4 +47,25 @@ describe("Responses Router", () => {
 
     expect(res.status).toBe(200);
   });
+
+  it("should return 500 when handling an unknown error", async () => {
+    const { app, origin } = await makeTestApp({
+      ...appConfig,
+      responsesRouterConfig: {
+        createResponse: {
+          supportedModels: [MONGO_CHAT_MODEL],
+          maxOutputTokens: 4000,
+          generateResponse: () => Promise.reject(new Error("Unknown error")),
+        },
+      },
+    });
+
+    const res = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    expect(res.status).toBe(500);
+  });
 });

@@ -1,6 +1,7 @@
 import { models } from "mongodb-rag-core/models";
 import { strict as assert } from "assert";
 
+// Defines what models will be run for each benchmark.
 export const MODELS = (
   [
     "gpt-4o",
@@ -21,7 +22,8 @@ export const MODELS = (
     "llama-3.3-70b",
     "gemini-2-flash",
     "gemini-2.0-flash-lite-001",
-    "gemini-2.5-flash-preview-04-17",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
     "nova-micro-v1:0",
     "nova-lite-v1:0",
     "nova-pro-v1:0",
@@ -41,7 +43,7 @@ export type ModelWithLabel<T extends (typeof models)[number]["label"]> =
 export function getModelsFromLabels<
   T extends (typeof models)[number]["label"][]
 >(labels: [...T]) {
-  const configs = MODELS.filter((m): m is ModelWithLabel<T[number]> =>
+  const configs = models.filter((m): m is ModelWithLabel<T[number]> =>
     labels.includes(m.label)
   );
 

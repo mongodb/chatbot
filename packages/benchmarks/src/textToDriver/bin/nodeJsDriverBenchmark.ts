@@ -1,5 +1,5 @@
 import { runTextToNodeJsDriverEval } from "../runTextToNodeJsDriverEval";
-import { models } from "mongodb-rag-core/models";
+import { MODELS } from "../../benchmarkModels";
 import { assertEnvVars } from "mongodb-rag-core";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { NODE_JS_PROMPTS } from "../generateDriverCode/languagePrompts/nodeJs";
@@ -33,10 +33,8 @@ async function main() {
   try {
     await mongoClient.connect();
     await sleep(500);
-    const modelExperiments = models
-
-      .filter((m) => m.authorized === true)
-      .map((modelInfo) => {
+    const modelExperiments = MODELS.filter((m) => m.authorized === true).map(
+      (modelInfo) => {
         const modelExperiments = [];
         for (const promptType of Object.keys(prompts)) {
           for (const generateCollectionSchemas of [true, false]) {
@@ -48,7 +46,8 @@ async function main() {
           }
         }
         return modelExperiments;
-      });
+      }
+    );
     // Process models in parallel
     await PromisePool.for(modelExperiments)
       .withConcurrency(3)

@@ -4,8 +4,17 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { ERROR_TYPE, ERROR_CODE } from "./errors";
 
 jest.setTimeout(100000);
+
+const badRequestError = (message: string) => ({
+  error: {
+    type: ERROR_TYPE,
+    code: ERROR_CODE.INVALID_REQUEST_ERROR,
+    message,
+  },
+});
 
 describe("POST /responses", () => {
   const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
@@ -365,9 +374,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error: "Model gpt-4o-mini is not supported.",
-      });
+      expect(response.body).toEqual(
+        badRequestError("Model gpt-4o-mini is not supported.")
+      );
     });
 
     it("Should return 400 if stream is not true", async () => {
@@ -398,10 +407,11 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error:
-          "Max output tokens 4001 is greater than the maximum allowed 4000.",
-      });
+      expect(response.body).toEqual(
+        badRequestError(
+          "Max output tokens 4001 is greater than the maximum allowed 4000."
+        )
+      );
     });
 
     it("Should return 400 if metadata has too many fields", async () => {

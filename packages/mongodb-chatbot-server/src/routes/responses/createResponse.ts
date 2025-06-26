@@ -1,12 +1,18 @@
 import { z } from "zod";
-import {
+import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { RequestError, makeRequestError } from "../conversations/utils";
 import { SomeExpressRequest } from "../../middleware";
-import { getRequestId, sendErrorResponse } from "../../utils";
+import { getRequestId } from "../../utils";
 import { GenerateResponse } from "../../processors";
+import {
+  makeBadRequestError,
+  makeInternalServerError,
+  sendErrorResponse,
+  ERROR_TYPE,
+  type StandardError,
+} from "./errors";
 
 export const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
@@ -154,18 +160,14 @@ export function makeCreateResponseRoute({
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: `Model ${model} is not supported.`,
-        });
+        throw makeBadRequestError(`Model ${model} is not supported.`);
       }
 
       // --- MAX OUTPUT TOKENS CHECK ---
       if (max_output_tokens > maxOutputTokens) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`,
-        });
+        throw makeBadRequestError(
+          `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`
+        );
       }
 
       // TODO: actually use this call
@@ -174,21 +176,15 @@ export function makeCreateResponseRoute({
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
-      // TODO: better error handling, in line with the Responses API
-      const { httpStatus, message } =
-        (error as Error).name === "RequestError"
-          ? (error as RequestError)
-          : makeRequestError({
-              message: (error as Error).message,
-              stack: (error as Error).stack,
-              httpStatus: 500,
-            });
+      const standardError =
+        (error as StandardError).type === ERROR_TYPE
+          ? (error as StandardError)
+          : makeInternalServerError((error as Error).message);
 
       sendErrorResponse({
         res,
         reqId,
-        httpStatus,
-        errorMessage: message,
+        error: standardError,
       });
     }
   };

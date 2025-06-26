@@ -1,4 +1,4 @@
-import { FindContentFunc, MongoDbPageStore } from "mongodb-rag-core";
+import { FindContentFunc, MongoDbPageStore, Reference } from "mongodb-rag-core";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
@@ -47,7 +47,8 @@ export function makeFetchPageTool(
       async function (
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
-      ): Promise<string> {
+      ): Promise<FetchPageToolResult> {
+        // TODO Comment in once ingestion is normalized too
         const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
         const page = await loadPage({
           urls: [normalizedUrl],
@@ -58,25 +59,44 @@ export function makeFetchPageTool(
           },
         });
 
+        let text: string;
+        let reference: Reference | undefined;
         if (page === null) {
           // Fall back - no page for this URL
-          return "{fallback_to_search}";
-        }
-        if (page.body.length > 150000) {
-          // Page content is too long, do cutoff-search
+          text = "{fallback_to_search}";
+        } else if (page.body.length < 150000) {
+          // Page content is short enough, return it directly
+          text = page.body;
+          reference = {
+            url: normalizedUrl,
+            title: page.title ?? normalizedUrl,
+            metadata: page.metadata ?? {},
+          };
+        } else {
+          // Page content is too long, do truncate-search
           const relevantPageContent = await findContent({
             query: args.query,
             filters: { url: normalizedUrl },
           });
+          reference = {
+            url: normalizedUrl,
+            title: page.title ?? normalizedUrl,
+            metadata: page.metadata ?? {},
+          };
           if (relevantPageContent.content.length > 0) {
             const relevantContentText = relevantPageContent.content
               .map((c) => c.text)
               .join("\n");
-            return relevantContentText + page.body.slice(0, 150000);
+            text = relevantContentText + page.body.slice(0, 150000);
+          } else {
+            text = page.body.slice(0, 150000);
           }
-          return page.body.slice(0, 150000);
         }
-        return page.body;
+        return {
+          url: normalizedUrl,
+          text,
+          reference,
+        };
       },
       {
         name: "fetchPageTool",

@@ -45,7 +45,8 @@ export function formatUserMessageForGeneration(
   userMessageText: string,
   customData: ConversationCustomData
 ) {
-  const { origin } = customData ?? {};
+  // TODO add origin code to front matter if origin not available
+  const { origin, originCode } = customData ?? {};
   if (typeof origin !== "string" || !origin) {
     return userMessageText;
   }

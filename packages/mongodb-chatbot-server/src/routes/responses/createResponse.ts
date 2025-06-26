@@ -15,7 +15,7 @@ import {
   type StandardError,
 } from "./errors";
 
-export const CreateResponseRequestBodySchema = z.object({
+const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
@@ -127,7 +127,7 @@ export const CreateResponseRequestBodySchema = z.object({
   user: z.string().optional().describe("The user ID of the user."),
 });
 
-export const CreateResponseRequest = SomeExpressRequest.merge(
+const CreateResponseRequestSchema = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
@@ -136,7 +136,7 @@ export const CreateResponseRequest = SomeExpressRequest.merge(
   })
 );
 
-export type CreateResponseRequestType = z.infer<typeof CreateResponseRequest>;
+export type CreateResponseRequest = z.infer<typeof CreateResponseRequestSchema>;
 
 export interface CreateResponseRouteParams {
   generateResponse: GenerateResponse;
@@ -159,7 +159,7 @@ export function makeCreateResponseRoute({
         body: { model, max_output_tokens },
       } = req;
 
-      const { error } = await CreateResponseRequest.safeParseAsync(req);
+      const { error } = await CreateResponseRequestSchema.safeParseAsync(req);
       if (error) {
         throw makeBadRequestError(generateZodErrorMessage(error));
       }

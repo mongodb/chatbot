@@ -4,7 +4,7 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
-import { ERROR_TYPE, ERROR_CODE } from "./errors";
+import { ERROR_TYPE, ERROR_CODE, DEFAULT_ZOD_ERROR_MESSAGE } from "./errors";
 
 jest.setTimeout(100000);
 
@@ -344,7 +344,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(
+        badRequestError("Input must be a non-empty string")
+      );
     });
 
     it("Should return 400 with an empty message array", async () => {
@@ -359,7 +361,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(
+        badRequestError("Input must be a non-empty array")
+      );
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
@@ -391,7 +395,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError("'stream' must be true"));
     });
 
     it("Should return 400 if max_output_tokens is > 4000", async () => {
@@ -431,7 +435,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(
+        badRequestError("Too many metadata fields. Max 16.")
+      );
     });
 
     it("Should return 400 if metadata value is too long", async () => {
@@ -447,7 +453,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(
+        badRequestError("String must contain at most 512 character(s)")
+      );
     });
 
     it("Should return 400 if temperature is not 0", async () => {
@@ -463,7 +471,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
@@ -480,7 +488,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
@@ -502,7 +510,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
@@ -523,7 +531,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
@@ -539,7 +547,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(badRequestError(DEFAULT_ZOD_ERROR_MESSAGE));
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
@@ -555,7 +563,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual(badRequestError(""));
+      expect(response.body).toEqual(
+        badRequestError("Number must be greater than or equal to 0")
+      );
     });
   });
 });

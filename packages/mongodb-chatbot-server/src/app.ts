@@ -17,6 +17,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";
+import { makeContentRouter, MakeContentRouterParams } from "./routes";
 
 /**
   Configuration for the server Express.js app.
@@ -26,6 +27,11 @@ export interface AppConfig {
     Configuration for the conversations router.
    */
   conversationsRouterConfig: ConversationsRouterParams;
+
+  /**
+    Configuration for the content router.
+   */
+  contentRouterConfig?: MakeContentRouterParams;
 
   /**
     Maximum time in milliseconds for a request to complete before timing out.
@@ -119,6 +125,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
     expressAppConfig,
+    contentRouterConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -140,6 +147,10 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
+
+  if (contentRouterConfig) {
+    app.use(`${apiPrefix}/content`, makeContentRouter(contentRouterConfig));
+  }
 
   app.get("/health", (_req, res) => {
     const data = {

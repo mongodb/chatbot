@@ -324,12 +324,12 @@ async function main() {
       concurrency: DEFAULT_CONCURRENCY,
     },
     useCases: {
-      numGenerations: 2,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     nlQueries: {
-      numGenerations: 4,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },

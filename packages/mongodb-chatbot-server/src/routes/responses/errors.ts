@@ -105,12 +105,21 @@ export const makeRateLimitError = ({
 };
 
 // --- ZOD VALIDATION ERROR MESSAGE GENERATION ---
-export const DEFAULT_ZOD_ERROR_MESSAGE = "Invalid input";
-
 export const generateZodErrorMessage = (error: ZodError) => {
-  const zodErrorString = generateErrorMessage(error.issues, {
-    delimiter: { error: "\n" },
+  return generateErrorMessage(error.issues, {
+    delimiter: {
+      component: " - ",
+    },
+    path: {
+      enabled: true,
+      type: "objectNotation",
+    },
+    code: {
+      enabled: false,
+    },
+    message: {
+      enabled: true,
+      label: "",
+    },
   });
-  const message = zodErrorString.split("Message: ")[1];
-  return message ?? DEFAULT_ZOD_ERROR_MESSAGE;
 };

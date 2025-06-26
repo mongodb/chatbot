@@ -4,7 +4,7 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
-import { ERROR_TYPE, ERROR_CODE, DEFAULT_ZOD_ERROR_MESSAGE } from "./errors";
+import { ERROR_TYPE, ERROR_CODE } from "./errors";
 
 jest.setTimeout(100000);
 
@@ -343,7 +343,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("Input must be a non-empty string")
+        badRequestError("Path: body.input - Input must be a non-empty string")
       );
     });
 
@@ -360,7 +360,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("Input must be a non-empty array")
+        badRequestError("Path: body.input - Input must be a non-empty array")
       );
     });
 
@@ -377,7 +377,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("Model gpt-4o-mini is not supported.")
+        badRequestError("Path: body.model - gpt-4o-mini is not supported.")
       );
     });
 
@@ -394,7 +394,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("'stream' must be true")
+        badRequestError("Path: body.stream - 'stream' must be true")
       );
     });
 
@@ -413,7 +413,7 @@ describe("POST /responses", () => {
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
         badRequestError(
-          "Max output tokens 4001 is greater than the maximum allowed 4000."
+          "Path: body.max_output_tokens - 4001 is greater than the maximum allowed 4000."
         )
       );
     });
@@ -436,7 +436,9 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("Too many metadata fields. Max 16.")
+        badRequestError(
+          "Path: body.metadata - Too many metadata fields. Max 16."
+        )
       );
     });
 
@@ -454,7 +456,9 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("String must contain at most 512 character(s)")
+        badRequestError(
+          "Path: body.metadata.key1 - String must contain at most 512 character(s)"
+        )
       );
     });
 
@@ -472,7 +476,9 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+        badRequestError(
+          "Path: body.temperature - Temperature must be 0 or unset"
+        )
       );
     });
 
@@ -491,7 +497,7 @@ describe("POST /responses", () => {
         });
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+        badRequestError("Path: body.input - Invalid input")
       );
     });
 
@@ -515,7 +521,7 @@ describe("POST /responses", () => {
         });
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+        badRequestError("Path: body.input - Invalid input")
       );
     });
 
@@ -538,7 +544,7 @@ describe("POST /responses", () => {
         });
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+        badRequestError("Path: body.input - Invalid input")
       );
     });
 
@@ -556,7 +562,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(DEFAULT_ZOD_ERROR_MESSAGE)
+        badRequestError("Path: body.tool_choice - Invalid input")
       );
     });
 
@@ -574,7 +580,9 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError("Max output tokens must be greater than or equal to 0")
+        badRequestError(
+          "Path: body.max_output_tokens - Number must be greater than or equal to 0"
+        )
       );
     });
   });

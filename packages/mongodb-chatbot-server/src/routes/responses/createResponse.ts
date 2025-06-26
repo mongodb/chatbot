@@ -66,12 +66,7 @@ const CreateResponseRequestBodySchema = z.object({
       )
       .refine((input) => input.length > 0, "Input must be a non-empty array"),
   ]),
-  max_output_tokens: z
-    .number()
-    .default(1000)
-    .refine((max_output_tokens) => max_output_tokens >= 0, {
-      message: "Max output tokens must be greater than or equal to 0",
-    }),
+  max_output_tokens: z.number().min(0).default(1000),
   metadata: z
     .record(z.string(), z.string().max(512))
     .optional()
@@ -92,12 +87,10 @@ const CreateResponseRequestBodySchema = z.object({
     errorMap: () => ({ message: "'stream' must be true" }),
   }),
   temperature: z
-    .union([
-      z.literal(0, {
-        errorMap: () => ({ message: "Temperature must be 0 or unset" }),
-      }),
-      z.undefined(),
-    ])
+    .number()
+    .refine((temperature) => temperature === 0, {
+      message: "Temperature must be 0 or unset",
+    })
     .optional()
     .describe("Temperature for the model. Defaults to 0.")
     .default(0),
@@ -178,7 +171,7 @@ export function makeCreateResponseRoute({
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
-          error: new Error(`Model ${model} is not supported.`),
+          error: new Error(`Path: body.model - ${model} is not supported.`),
           headers,
         });
       }
@@ -187,7 +180,7 @@ export function makeCreateResponseRoute({
       if (max_output_tokens > maxOutputTokens) {
         throw makeBadRequestError({
           error: new Error(
-            `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`
+            `Path: body.max_output_tokens - ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`
           ),
           headers,
         });

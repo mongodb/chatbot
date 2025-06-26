@@ -284,4 +284,8 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
     expect(children).toHaveLength(1);
     expect(children[0].data.value).toBe(10);
   });
+
+  it("should use claude temperature variation for models with 'claude' in the name", () => {
+    // TODO: add
+  });
 });

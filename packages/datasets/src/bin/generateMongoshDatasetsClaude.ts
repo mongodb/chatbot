@@ -3,7 +3,6 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   executeMongoshQuery,
   isReasonableResult,
-  LlmOptions,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
@@ -22,6 +21,7 @@ import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGen
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import { initLogger } from "mongodb-rag-core/braintrust";
 import { openAiClient } from "../openAi";
+import { GenerateChildrenLlmOptions } from "../treeGeneration/generateChildren";
 
 const DEFAULT_CONCURRENCY = 2;
 
@@ -32,25 +32,25 @@ const MAX_RESULT_ARRAY_SIZE = 20;
 
 type LlmGenerationConfig = {
   database: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
   };
   users: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   useCases: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   nlQueries: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   dbQueries: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
@@ -190,8 +190,6 @@ async function generateMongoshDataset({
   const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(nlQueryNodes)
     .withConcurrency(llmConfigs.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
     .process(async (nlQueryNode) => {
-      // TODO: the n candidates stuff that works for OpenAI isn't supported by Anthropic.
-      // Will need tot take a different approach. Maybe make a new generator function that does this.
       const dbCodeNodes = await generateMongoshCode(
         nlQueryNode,
         llmConfigs.dbQueries.llmConfig,
@@ -285,14 +283,11 @@ async function generateMongoshDataset({
 
 async function main() {
   // Set up
-  const {
-    BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-    MONGODB_TEXT_TO_CODE_CONNECTION_URI,
-  } = assertEnvVars({
-    ...BRAINTRUST_ENV_VARS,
-    ...DATABASE_NL_QUERIES,
-  });
+  const { BRAINTRUST_API_KEY, MONGODB_TEXT_TO_CODE_CONNECTION_URI } =
+    assertEnvVars({
+      ...BRAINTRUST_ENV_VARS,
+      ...DATABASE_NL_QUERIES,
+    });
 
   initLogger({
     projectName: "generate-mongosh-dataset-claude",
@@ -308,7 +303,7 @@ async function main() {
     console.log(`Created directory: ${dataOutDir}`);
   }
 
-  const defaultLlmConfig: LlmOptions = {
+  const defaultLlmConfig: GenerateChildrenLlmOptions = {
     model: "claude-4-sonnet-20250514",
     temperature: 0.7,
     seed: 42,
@@ -320,27 +315,31 @@ async function main() {
     database: {
       llmConfig: {
         ...defaultLlmConfig,
-        temperature: 0,
+        temperature: 0, // Make this one deterministic
       },
     },
     users: {
-      numGenerations: 1,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     useCases: {
-      numGenerations: 1,
+      numGenerations: 2,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     nlQueries: {
-      numGenerations: 1,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: DEFAULT_CONCURRENCY,
     },
     dbQueries: {
       numGenerations: 8,
-      llmConfig: defaultLlmConfig,
+      llmConfig: {
+        ...defaultLlmConfig,
+        __claudeMaxConcurrency: 1,
+        __claudeTemperatureVariation: 0.01,
+      },
       concurrency: DEFAULT_CONCURRENCY,
     },
     dbExecutions: {

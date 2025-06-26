@@ -4,6 +4,7 @@ import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { ERROR_TYPE, ERROR_CODE, makeBadRequestError } from "./errors";
 
 jest.setTimeout(60000);
 
@@ -49,13 +50,14 @@ describe("Responses Router", () => {
   });
 
   it("should return 500 when handling an unknown error", async () => {
+    const errorMessage = "Unknown error";
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
         createResponse: {
           supportedModels: [MONGO_CHAT_MODEL],
           maxOutputTokens: 4000,
-          generateResponse: () => Promise.reject(new Error("Unknown error")),
+          generateResponse: () => Promise.reject(new Error(errorMessage)),
         },
       },
     });
@@ -67,5 +69,43 @@ describe("Responses Router", () => {
       .send(validRequestBody);
 
     expect(res.status).toBe(500);
+    expect(res.body.error).toEqual({
+      type: ERROR_TYPE,
+      code: ERROR_CODE.SERVER_ERROR,
+      message: errorMessage,
+    });
+  });
+
+  it("should return the openai error when service throws an openai error", async () => {
+    const errorMessage = "Bad request input";
+    const { app, origin } = await makeTestApp({
+      ...appConfig,
+      responsesRouterConfig: {
+        createResponse: {
+          supportedModels: [MONGO_CHAT_MODEL],
+          maxOutputTokens: 4000,
+          generateResponse: () =>
+            Promise.reject(
+              makeBadRequestError({
+                error: new Error(errorMessage),
+                headers: {},
+              })
+            ),
+        },
+      },
+    });
+
+    const res = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toEqual({
+      type: ERROR_TYPE,
+      code: ERROR_CODE.INVALID_REQUEST_ERROR,
+      message: errorMessage,
+    });
   });
 });

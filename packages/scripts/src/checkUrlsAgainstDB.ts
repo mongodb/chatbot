@@ -11,6 +11,7 @@
 
 import fs from "fs";
 import { assertEnvVars, makeMongoDbPageStore } from "mongodb-rag-core";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 
 import "dotenv/config";
 
@@ -64,15 +65,6 @@ const getUrlRedirects = async (
     redirectTo,
   };
 };
-
-/**
- Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
- normalizeUrl('https://www.example.com') // returns 'example.com'
- normalizeUrl('http://example.com') // returns 'example.com'
- */
-function normalizeUrl(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/i, "");
-}
 
 async function main({ urlListFilePath }: { urlListFilePath: string }) {
   let urlList = JSON.parse(fs.readFileSync(urlListFilePath, "utf-8"));

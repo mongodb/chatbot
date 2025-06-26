@@ -6,7 +6,6 @@ import {
   AssistantMessage,
   ToolMessage,
 } from "mongodb-rag-core";
-
 import {
   CoreAssistantMessage,
   CoreMessage,
@@ -29,13 +28,15 @@ import {
   GenerateResponseReturnValue,
   InputGuardrailResult,
 } from "mongodb-chatbot-server";
+import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import {
   MongoDbSearchToolArgs,
   SEARCH_TOOL_NAME,
   SearchTool,
 } from "../tools/search";
+import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 
-export interface GenerateResponseWithSearchToolParams {
+export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
@@ -52,12 +53,13 @@ export interface GenerateResponseWithSearchToolParams {
     search_content: SearchTool;
   }>;
   searchTool: SearchTool;
+  fetchPageTool: FetchPageTool;
 }
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool({
+export function makeGenerateResponseWithTools({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,
@@ -68,9 +70,10 @@ export function makeGenerateResponseWithSearchTool({
   makeReferenceLinks = makeDefaultReferenceLinks,
   maxSteps = 2,
   searchTool,
+  fetchPageTool,
   toolChoice,
-}: GenerateResponseWithSearchToolParams): GenerateResponse {
-  return async function generateResponseWithSearchTool({
+}: GenerateResponseWithToolsParams): GenerateResponse {
+  return async function generateResponseWithTools({
     conversation,
     latestMessageText,
     clientContext,
@@ -85,7 +88,7 @@ export function makeGenerateResponseWithSearchTool({
     }
     const userMessage: UserMessage = {
       role: "user",
-      content: latestMessageText,
+      content: formatUserMessageForGeneration(latestMessageText, customData),
     };
     try {
       // Get preceding messages to include in the LLM prompt
@@ -97,6 +100,7 @@ export function makeGenerateResponseWithSearchTool({
 
       const toolSet = {
         [SEARCH_TOOL_NAME]: searchTool,
+        [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
@@ -164,6 +168,15 @@ export function makeGenerateResponseWithSearchTool({
                   const searchResults = toolResult.result.results;
                   if (searchResults && Array.isArray(searchResults)) {
                     references.push(...makeReferenceLinks(searchResults));
+                  }
+                } else if (
+                  toolResult.type === "tool-result" &&
+                  toolResult.toolName === FETCH_PAGE_TOOL_NAME
+                ) {
+                  // fetchPage returns reference directly.
+                  const reference = toolResult.result.reference;
+                  if (reference) {
+                    references.push(reference);
                   }
                 }
               });

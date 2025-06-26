@@ -344,7 +344,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 with an empty message array", async () => {
@@ -359,7 +359,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
@@ -391,7 +391,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if max_output_tokens is > 4000", async () => {
@@ -431,7 +431,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if metadata value is too long", async () => {
@@ -447,7 +447,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if temperature is not 0", async () => {
@@ -463,7 +463,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
@@ -480,7 +480,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
@@ -502,7 +502,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
@@ -523,7 +523,7 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
@@ -539,7 +539,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
@@ -555,7 +555,7 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body).toEqual(badRequestError(""));
     });
   });
 });

@@ -1,10 +1,9 @@
+import { z } from "zod";
 import { FindContentFunc, MongoDbPageStore, Reference } from "mongodb-rag-core";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { addReferenceSourceType } from "../processors/makeMongoDbReferences";
-
-export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 
@@ -70,7 +69,10 @@ export function makeFetchPageTool(
           reference = {
             url: normalizedUrl,
             title: page.title ?? normalizedUrl,
-            metadata: page.metadata ?? {},
+            metadata: {
+              ...(page.metadata ?? {}),
+              sourceName: page.sourceName,
+            },
           };
         } else {
           // Page content is too long, do truncate-search
@@ -81,7 +83,10 @@ export function makeFetchPageTool(
           reference = {
             url: normalizedUrl,
             title: page.title ?? normalizedUrl,
-            metadata: page.metadata ?? {},
+            metadata: {
+              ...(page.metadata ?? {}),
+              sourceName: page.sourceName,
+            },
           };
           if (relevantPageContent.content.length > 0) {
             const relevantContentText = relevantPageContent.content
@@ -95,7 +100,7 @@ export function makeFetchPageTool(
         return {
           url: normalizedUrl,
           text,
-          reference,
+          reference: reference ? addReferenceSourceType(reference) : undefined,
         };
       },
       {

@@ -1,3 +1,33 @@
+import { Response as ExpressResponse } from "express";
+import { logger } from "mongodb-rag-core";
+
+interface ErrorResponseParams {
+  reqId: string;
+  res: ExpressResponse;
+  error: StandardError;
+}
+
+export const sendErrorResponse = ({
+  reqId,
+  res,
+  error,
+}: ErrorResponseParams) => {
+  logger.error({
+    reqId,
+    message: `Responding with ${error.httpStatus} status and error message: ${error.message}.`,
+  });
+
+  if (!res.writableEnded) {
+    return res.status(error.httpStatus).json({
+      error: {
+        type: error.type,
+        code: error.code,
+        message: error.message,
+      },
+    });
+  }
+};
+
 /*
   Error object schema based on:
   https://platform.openai.com/docs/api-reference/responses-streaming/error

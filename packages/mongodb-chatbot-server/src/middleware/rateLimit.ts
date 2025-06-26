@@ -22,6 +22,6 @@ export const defaultRateLimitOptions = {
 export function makeRateLimit(options?: RateLimitOptions) {
   return rateLimit({
     ...defaultRateLimitOptions,
-    ...(options ?? {}),
+    ...options,
   });
 }

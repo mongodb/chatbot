@@ -46,7 +46,6 @@ const rephraseUserQueryNotes = [
 ];
 
 const searchContentToolNotes = [
-  ...importantNotes,
   "Search all of the available MongoDB reference documents for a given user input.",
   "You must generate an appropriate search query for a given user input.",
   "You are doing this for MongoDB, and all queries relate to MongoDB products.",

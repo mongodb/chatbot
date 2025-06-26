@@ -44,7 +44,8 @@ export function formatUserMessageForGeneration(
   userMessageText: string,
   customData: ConversationCustomData
 ) {
-  const { origin } = customData ?? {};
+  // TODO add origin code to front matter if origin not available
+  const { origin, originCode } = customData ?? {};
   if (typeof origin !== "string" || !origin) {
     return userMessageText;
   }
@@ -197,6 +198,15 @@ export function makeGenerateResponseWithTools({
                   const searchResults = toolResult.result.results;
                   if (searchResults && Array.isArray(searchResults)) {
                     references.push(...makeReferenceLinks(searchResults));
+                  }
+                } else if (
+                  toolResult.type === "tool-result" &&
+                  toolResult.toolName === FETCH_PAGE_TOOL_NAME
+                ) {
+                  // fetchPage returns reference directly.
+                  const reference = toolResult.result.reference;
+                  if (reference) {
+                    references.push(reference);
                   }
                 }
               });

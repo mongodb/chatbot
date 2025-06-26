@@ -100,7 +100,7 @@ function normalizeAnswer(answer: string) {
 
 type QuizQuestionLlmOptions = Pick<
   OpenAI.ChatCompletionCreateParams,
-  "max_tokens"
+  "max_tokens" & "reasoning_budget" & "reasoning_enabled"
 >;
 
 type QuizQuestionPromptOptions = Omit<
@@ -126,9 +126,13 @@ export function runQuizQuestionEval({
   openaiClient,
   experimentName,
   additionalMetadata,
-  llmOptions = { max_tokens: 100 },
-  promptOptions,
   model,
+  llmOptions = {
+    max_tokens: model.includes("gemini-2.5") ? undefined : 100,
+    reasoning_enabled: model.includes("gemini-2.5") ? true : undefined,
+    reasoning_budget: model.includes("gemini-2.5") ? 1024 : undefined,
+  },
+  promptOptions,
   maxConcurrency,
 }: MakeQuizQuestionEvalParams) {
   return Eval<

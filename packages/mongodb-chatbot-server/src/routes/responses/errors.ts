@@ -1,4 +1,4 @@
-import { Response as ExpressResponse } from "express";
+import type { Response as ExpressResponse } from "express";
 import { logger } from "mongodb-rag-core";
 
 interface ErrorResponseParams {
@@ -32,10 +32,16 @@ export const sendErrorResponse = ({
   Error object schema based on:
   https://platform.openai.com/docs/api-reference/responses-streaming/error
 */
-const ERROR_TYPE = "error";
+export const ERROR_TYPE = "error";
+export enum ERROR_CODE {
+  INVALID_REQUEST_ERROR = "invalid_request_error",
+  NOT_FOUND_ERROR = "not_found_error",
+  RATE_LIMIT_ERROR = "rate_limit_error",
+  SERVER_ERROR = "server_error",
+}
 export interface StandardError {
   type: typeof ERROR_TYPE;
-  code: string;
+  code: ERROR_CODE;
   message: string;
   httpStatus: number;
 }
@@ -43,7 +49,7 @@ export interface StandardError {
 export const makeInternalServerError = (message: string): StandardError => {
   return {
     type: ERROR_TYPE,
-    code: "server_error",
+    code: ERROR_CODE.SERVER_ERROR,
     httpStatus: 500,
     message,
   };
@@ -52,7 +58,7 @@ export const makeInternalServerError = (message: string): StandardError => {
 export const makeBadRequestError = (message: string): StandardError => {
   return {
     type: ERROR_TYPE,
-    code: "invalid_request_error",
+    code: ERROR_CODE.INVALID_REQUEST_ERROR,
     httpStatus: 400,
     message,
   };
@@ -61,7 +67,7 @@ export const makeBadRequestError = (message: string): StandardError => {
 export const makeNotFoundError = (message: string): StandardError => {
   return {
     type: ERROR_TYPE,
-    code: "not_found_error",
+    code: ERROR_CODE.NOT_FOUND_ERROR,
     httpStatus: 404,
     message,
   };
@@ -70,7 +76,7 @@ export const makeNotFoundError = (message: string): StandardError => {
 export const makeRateLimitError = (message: string): StandardError => {
   return {
     type: ERROR_TYPE,
-    code: "rate_limit_error",
+    code: ERROR_CODE.RATE_LIMIT_ERROR,
     httpStatus: 429,
     message,
   };

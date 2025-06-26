@@ -30,10 +30,14 @@ export const sendErrorResponse = ({
   }
 };
 
+const DEFAULT_ZOD_ERROR_MESSAGE = "Invalid input";
+
 export const generateZodErrorMessage = (error: ZodError) => {
-  return generateErrorMessage(error.issues, {
+  const zodErrorString = generateErrorMessage(error.issues, {
     delimiter: { error: "\n" },
   });
+  const message = zodErrorString.split("Message: ")[1];
+  return message ?? DEFAULT_ZOD_ERROR_MESSAGE;
 };
 
 /*

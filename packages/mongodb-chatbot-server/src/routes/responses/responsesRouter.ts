@@ -35,12 +35,13 @@ export function makeResponsesRouter({
    */
   const rateLimit = makeRateLimit({
     ...rateLimitConfig?.routerRateLimitConfig,
-    message: makeRateLimitError({
-      error: new Error(
-        rateLimitConfig?.routerRateLimitConfig?.message ?? "Rate limit exceeded"
-      ),
-      headers: {},
-    }),
+    handler: (req, res, next, options) => {
+      const error = makeRateLimitError({
+        error: new Error(options.message),
+        headers: req.headers as Record<string, string>,
+      });
+      return res.status(options.statusCode).send(error);
+    },
   });
   responsesRouter.use(rateLimit);
   /*

@@ -111,7 +111,7 @@ describe("Responses Router", () => {
     });
   });
 
-  test("Should apply responses router rate limit", async () => {
+  test("Should apply responses router rate limit and return an openai error", async () => {
     const rateLimitErrorMessage = "Error: rate limit exceeded!";
 
     const { app, origin } = await makeTestApp({
@@ -148,5 +148,7 @@ describe("Responses Router", () => {
     expect(rateLimitedRes.body.error.type).toBe(ERROR_TYPE);
     expect(rateLimitedRes.body.error.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
     expect(rateLimitedRes.body.error.message).toBe(rateLimitErrorMessage);
+    expect(rateLimitedRes.body.headers["x-forwarded-for"]).toBe(ipAddress);
+    expect(rateLimitedRes.body.headers["origin"]).toBe(origin);
   });
 });

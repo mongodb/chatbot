@@ -69,6 +69,8 @@ describe("Responses Router", () => {
       .send(validRequestBody);
 
     expect(res.status).toBe(500);
+    expect(res.body.type).toBe(ERROR_TYPE);
+    expect(res.body.code).toBe(ERROR_CODE.SERVER_ERROR);
     expect(res.body.error).toEqual({
       type: ERROR_TYPE,
       code: ERROR_CODE.SERVER_ERROR,
@@ -102,10 +104,55 @@ describe("Responses Router", () => {
       .send(validRequestBody);
 
     expect(res.status).toBe(400);
+    expect(res.body.type).toBe(ERROR_TYPE);
+    expect(res.body.code).toBe(ERROR_CODE.INVALID_REQUEST_ERROR);
     expect(res.body.error).toEqual({
       type: ERROR_TYPE,
       code: ERROR_CODE.INVALID_REQUEST_ERROR,
       message: errorMessage,
     });
+  });
+
+  test("Should apply responses router rate limit and return an openai error", async () => {
+    const rateLimitErrorMessage = "Error: rate limit exceeded!";
+
+    const { app, origin } = await makeTestApp({
+      responsesRouterConfig: {
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 50000, // Big window to cover test duration
+            max: 1, // Only one request should be allowed
+            message: rateLimitErrorMessage,
+          },
+        },
+      },
+    });
+
+    const successRes = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    const rateLimitedRes = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    expect(successRes.status).toBe(200);
+    expect(successRes.error).toBeFalsy();
+
+    expect(rateLimitedRes.status).toBe(429);
+    expect(rateLimitedRes.error).toBeTruthy();
+    expect(rateLimitedRes.body.type).toBe(ERROR_TYPE);
+    expect(rateLimitedRes.body.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
+    expect(rateLimitedRes.body.error).toEqual({
+      type: ERROR_TYPE,
+      code: ERROR_CODE.RATE_LIMIT_ERROR,
+      message: rateLimitErrorMessage,
+    });
+    expect(rateLimitedRes.body.headers["x-forwarded-for"]).toBe(ipAddress);
+    expect(rateLimitedRes.body.headers["origin"]).toBe(origin);
   });
 });

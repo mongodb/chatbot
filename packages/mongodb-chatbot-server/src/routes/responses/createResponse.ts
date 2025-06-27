@@ -189,8 +189,6 @@ export function makeCreateResponseRoute({
       // TODO: actually implement this call
       await generateResponse({} as any);
 
-      // TODO: do something with maxOutputTokens (validate result length or pass to generateResponse?)
-
       return res.status(200).send({ status: "ok" });
     } catch (error) {
       const standardError =

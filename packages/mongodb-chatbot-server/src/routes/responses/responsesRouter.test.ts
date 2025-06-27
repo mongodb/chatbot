@@ -147,9 +147,11 @@ describe("Responses Router", () => {
     expect(rateLimitedRes.error).toBeTruthy();
     expect(rateLimitedRes.body.type).toBe(ERROR_TYPE);
     expect(rateLimitedRes.body.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
-    expect(rateLimitedRes.body.error.type).toBe(ERROR_TYPE);
-    expect(rateLimitedRes.body.error.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
-    expect(rateLimitedRes.body.error.message).toBe(rateLimitErrorMessage);
+    expect(rateLimitedRes.body.error).toEqual({
+      type: ERROR_TYPE,
+      code: ERROR_CODE.RATE_LIMIT_ERROR,
+      message: rateLimitErrorMessage,
+    });
     expect(rateLimitedRes.body.headers["x-forwarded-for"]).toBe(ipAddress);
     expect(rateLimitedRes.body.headers["origin"]).toBe(origin);
   });

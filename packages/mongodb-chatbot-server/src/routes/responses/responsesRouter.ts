@@ -1,12 +1,20 @@
 import Router from "express-promise-router";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
+import { makeCreateResponseRoute } from "./createResponse";
+import type { GenerateResponse } from "../../processors";
+import { getRequestId } from "../../utils";
 import {
-  makeCreateResponseRoute,
-  CreateResponseRequest,
-} from "./createResponse";
-import { GenerateResponse } from "../../processors";
+  makeRateLimit,
+  makeSlowDown,
+  type RateLimitOptions,
+  type SlowDownOptions,
+} from "../../middleware";
+import { makeRateLimitError, sendErrorResponse } from "./errors";
 
 export interface ResponsesRouterParams {
+  rateLimitConfig?: {
+    routerRateLimitConfig?: RateLimitOptions;
+    routerSlowDownConfig?: SlowDownOptions;
+  };
   createResponse: {
     generateResponse: GenerateResponse;
     supportedModels: string[];
@@ -17,17 +25,36 @@ export interface ResponsesRouterParams {
 /**
   Constructor function to make the /responses/* Express.js router.
  */
-export function makeResponsesRouter({ createResponse }: ResponsesRouterParams) {
+export function makeResponsesRouter({
+  rateLimitConfig,
+  createResponse,
+}: ResponsesRouterParams) {
   const responsesRouter = Router();
 
-  // TODO: add rate limit config
+  /*
+    Global rate limit the requests to the responsesRouter.
+   */
+  const rateLimit = makeRateLimit({
+    ...rateLimitConfig?.routerRateLimitConfig,
+    handler: (req, res, next, options) => {
+      const reqId = getRequestId(req);
+      const error = makeRateLimitError({
+        error: new Error(options.message),
+        headers: req.headers as Record<string, string>,
+      });
+      return sendErrorResponse({ reqId, res, error });
+    },
+  });
+  responsesRouter.use(rateLimit);
+  /*
+    Slow down the response to the responsesRouter after certain number
+    of requests in the time window.
+   */
+  const globalSlowDown = makeSlowDown(rateLimitConfig?.routerSlowDownConfig);
+  responsesRouter.use(globalSlowDown);
 
   // Create Response API
-  responsesRouter.post(
-    "/",
-    validateRequestSchema(CreateResponseRequest),
-    makeCreateResponseRoute(createResponse)
-  );
+  responsesRouter.post("/", makeCreateResponseRoute(createResponse));
 
   return responsesRouter;
 }

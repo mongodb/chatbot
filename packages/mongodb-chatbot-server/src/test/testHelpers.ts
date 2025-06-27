@@ -18,6 +18,10 @@ export async function makeTestAppConfig(
       ...config.conversationsRouterConfig,
       ...(defaultConfigOverrides?.conversationsRouterConfig ?? {}),
     },
+    responsesRouterConfig: {
+      ...config.responsesRouterConfig,
+      ...(defaultConfigOverrides?.responsesRouterConfig ?? {}),
+    },
   };
   assert(memoryDb, "memoryDb must be defined");
   return { appConfig, systemPrompt, mongodb: memoryDb };
@@ -25,9 +29,10 @@ export async function makeTestAppConfig(
 
 export type PartialAppConfig = Omit<
   Partial<AppConfig>,
-  "conversationsRouterConfig"
+  "conversationsRouterConfig" | "responsesRouterConfig"
 > & {
   conversationsRouterConfig?: Partial<AppConfig["conversationsRouterConfig"]>;
+  responsesRouterConfig?: Partial<AppConfig["responsesRouterConfig"]>;
 };
 
 export const TEST_ORIGIN = "http://localhost:5173";

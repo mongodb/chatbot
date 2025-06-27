@@ -4,8 +4,24 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { ERROR_TYPE, ERROR_CODE } from "./errors";
+import {
+  INPUT_STRING_ERR_MSG,
+  INPUT_ARRAY_ERR_MSG,
+  METADATA_LENGTH_ERR_MSG,
+  TEMPERATURE_ERR_MSG,
+  STREAM_ERR_MSG,
+  MODEL_NOT_SUPPORTED_ERR_MSG,
+  MAX_OUTPUT_TOKENS_ERR_MSG,
+} from "./createResponse";
 
 jest.setTimeout(100000);
+
+const badRequestError = (message: string) => ({
+  type: ERROR_TYPE,
+  code: ERROR_CODE.INVALID_REQUEST_ERROR,
+  message,
+});
 
 describe("POST /responses", () => {
   const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
@@ -321,7 +337,6 @@ describe("POST /responses", () => {
     });
   });
 
-  // TODO: In EAI-1126, we will need to change the error types to match the OpenAI spec
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
       const response = await request(app)
@@ -335,7 +350,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(`Path: body.input - ${INPUT_STRING_ERR_MSG}`)
+      );
     });
 
     it("Should return 400 with an empty message array", async () => {
@@ -350,7 +367,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(`Path: body.input - ${INPUT_ARRAY_ERR_MSG}`)
+      );
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
@@ -365,9 +384,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error: "Model gpt-4o-mini is not supported.",
-      });
+      expect(response.body.error).toEqual(
+        badRequestError(MODEL_NOT_SUPPORTED_ERR_MSG("gpt-4o-mini"))
+      );
     });
 
     it("Should return 400 if stream is not true", async () => {
@@ -382,10 +401,14 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(`Path: body.stream - ${STREAM_ERR_MSG}`)
+      );
     });
 
     it("Should return 400 if max_output_tokens is > 4000", async () => {
+      const max_output_tokens = 4001;
+
       const response = await request(app)
         .post(endpointUrl)
         .set("X-Forwarded-For", ipAddress)
@@ -394,14 +417,13 @@ describe("POST /responses", () => {
           model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
-          max_output_tokens: 4001,
+          max_output_tokens,
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error:
-          "Max output tokens 4001 is greater than the maximum allowed 4000.",
-      });
+      expect(response.body.error).toEqual(
+        badRequestError(MAX_OUTPUT_TOKENS_ERR_MSG(max_output_tokens, 4000))
+      );
     });
 
     it("Should return 400 if metadata has too many fields", async () => {
@@ -421,7 +443,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(`Path: body.metadata - ${METADATA_LENGTH_ERR_MSG}`)
+      );
     });
 
     it("Should return 400 if metadata value is too long", async () => {
@@ -437,7 +461,11 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(
+          "Path: body.metadata.key1 - String must contain at most 512 character(s)"
+        )
+      );
     });
 
     it("Should return 400 if temperature is not 0", async () => {
@@ -453,7 +481,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(`Path: body.temperature - ${TEMPERATURE_ERR_MSG}`)
+      );
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
@@ -470,7 +500,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError("Path: body.input - Invalid input")
+      );
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
@@ -492,7 +524,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError("Path: body.input - Invalid input")
+      );
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
@@ -513,7 +547,9 @@ describe("POST /responses", () => {
           ],
         });
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError("Path: body.input - Invalid input")
+      );
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
@@ -529,7 +565,9 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError("Path: body.tool_choice - Invalid input")
+      );
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
@@ -545,7 +583,11 @@ describe("POST /responses", () => {
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({ error: "Invalid request" });
+      expect(response.body.error).toEqual(
+        badRequestError(
+          "Path: body.max_output_tokens - Number must be greater than or equal to 0"
+        )
+      );
     });
   });
 });

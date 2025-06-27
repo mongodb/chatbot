@@ -1,20 +1,36 @@
 import { z } from "zod";
-import {
+import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { RequestError, makeRequestError } from "../conversations/utils";
+import { APIError } from "mongodb-rag-core/openai";
 import { SomeExpressRequest } from "../../middleware";
-import { getRequestId, sendErrorResponse } from "../../utils";
+import { getRequestId } from "../../utils";
 import { GenerateResponse } from "../../processors";
+import {
+  makeBadRequestError,
+  makeInternalServerError,
+  generateZodErrorMessage,
+  sendErrorResponse,
+  ERROR_TYPE,
+} from "./errors";
 
-export const CreateResponseRequestBodySchema = z.object({
+export const INPUT_STRING_ERR_MSG = "Input must be a non-empty string";
+export const INPUT_ARRAY_ERR_MSG =
+  "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.";
+export const METADATA_LENGTH_ERR_MSG = "Too many metadata fields. Max 16.";
+export const TEMPERATURE_ERR_MSG = "Temperature must be 0 or unset";
+export const STREAM_ERR_MSG = "'stream' must be true";
+export const MODEL_NOT_SUPPORTED_ERR_MSG = (model: string) =>
+  `Path: body.model - ${model} is not supported.`;
+export const MAX_OUTPUT_TOKENS_ERR_MSG = (input: number, max: number) =>
+  `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`;
+
+const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
-    z
-      .string()
-      .refine((input) => input.length > 0, "Input must be a non-empty string"),
+    z.string().refine((input) => input.length > 0, INPUT_STRING_ERR_MSG),
     z
       .array(
         z.union([
@@ -57,7 +73,7 @@ export const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, "Input must be a non-empty array"),
+      .refine((input) => input.length > 0, INPUT_ARRAY_ERR_MSG),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -65,7 +81,7 @@ export const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      "Too many metadata fields. Max 16."
+      METADATA_LENGTH_ERR_MSG
     ),
   previous_response_id: z
     .string()
@@ -76,16 +92,10 @@ export const CreateResponseRequestBodySchema = z.object({
     .optional()
     .describe("Whether to store the response in the conversation.")
     .default(true),
-  stream: z.literal(true, {
-    errorMap: () => ({ message: "'stream' must be true" }),
-  }),
+  stream: z.boolean().refine((stream) => stream, STREAM_ERR_MSG),
   temperature: z
-    .union([
-      z.literal(0, {
-        errorMap: () => ({ message: "Temperature must be 0 or unset" }),
-      }),
-      z.undefined(),
-    ])
+    .number()
+    .refine((temperature) => temperature === 0, TEMPERATURE_ERR_MSG)
     .optional()
     .describe("Temperature for the model. Defaults to 0.")
     .default(0),
@@ -120,7 +130,7 @@ export const CreateResponseRequestBodySchema = z.object({
   user: z.string().optional().describe("The user ID of the user."),
 });
 
-export const CreateResponseRequest = SomeExpressRequest.merge(
+const CreateResponseRequestSchema = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
@@ -129,7 +139,7 @@ export const CreateResponseRequest = SomeExpressRequest.merge(
   })
 );
 
-export type CreateResponseRequest = z.infer<typeof CreateResponseRequest>;
+export type CreateResponseRequest = z.infer<typeof CreateResponseRequestSchema>;
 
 export interface CreateResponseRouteParams {
   generateResponse: GenerateResponse;
@@ -138,7 +148,7 @@ export interface CreateResponseRouteParams {
 }
 
 export function makeCreateResponseRoute({
-  // generateResponse,
+  generateResponse,
   supportedModels,
   maxOutputTokens,
 }: CreateResponseRouteParams) {
@@ -147,48 +157,54 @@ export function makeCreateResponseRoute({
     res: ExpressResponse<{ status: string }, any>
   ) => {
     const reqId = getRequestId(req);
+    const headers = req.headers as Record<string, string>;
+
     try {
       const {
         body: { model, max_output_tokens },
       } = req;
 
+      // --- INPUT VALIDATION ---
+      const { error } = await CreateResponseRequestSchema.safeParseAsync(req);
+      if (error) {
+        throw makeBadRequestError({
+          error: new Error(generateZodErrorMessage(error)),
+          headers,
+        });
+      }
+
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: `Model ${model} is not supported.`,
+        throw makeBadRequestError({
+          error: new Error(MODEL_NOT_SUPPORTED_ERR_MSG(model)),
+          headers,
         });
       }
 
       // --- MAX OUTPUT TOKENS CHECK ---
       if (max_output_tokens > maxOutputTokens) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: `Max output tokens ${max_output_tokens} is greater than the maximum allowed ${maxOutputTokens}.`,
+        throw makeBadRequestError({
+          error: new Error(
+            MAX_OUTPUT_TOKENS_ERR_MSG(max_output_tokens, maxOutputTokens)
+          ),
+          headers,
         });
       }
 
-      // TODO: actually use this call
-      // generateResponse();
-      // TODO: do something with maxOutputTokens (validate result length or pass to generateResponse?)
+      // TODO: actually implement this call
+      await generateResponse({} as any);
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
-      // TODO: better error handling, in line with the Responses API
-      const { httpStatus, message } =
-        (error as Error).name === "RequestError"
-          ? (error as RequestError)
-          : makeRequestError({
-              message: (error as Error).message,
-              stack: (error as Error).stack,
-              httpStatus: 500,
-            });
+      const standardError =
+        (error as APIError)?.type === ERROR_TYPE
+          ? (error as APIError)
+          : makeInternalServerError({ error: error as Error, headers });
 
       sendErrorResponse({
         res,
         reqId,
-        httpStatus,
-        errorMessage: message,
+        error: standardError,
       });
     }
   };

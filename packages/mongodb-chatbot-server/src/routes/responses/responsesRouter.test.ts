@@ -102,6 +102,8 @@ describe("Responses Router", () => {
       .send(validRequestBody);
 
     expect(res.status).toBe(400);
+    expect(res.body.type).toBe(ERROR_TYPE);
+    expect(res.body.code).toBe(ERROR_CODE.INVALID_REQUEST_ERROR);
     expect(res.body.error).toEqual({
       type: ERROR_TYPE,
       code: ERROR_CODE.INVALID_REQUEST_ERROR,

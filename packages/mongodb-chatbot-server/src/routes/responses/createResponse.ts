@@ -64,7 +64,10 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, "Input must be a non-empty array"),
+      .refine(
+        (input) => input.length > 0,
+        "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information."
+      ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z

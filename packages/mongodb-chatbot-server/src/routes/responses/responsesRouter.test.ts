@@ -108,4 +108,43 @@ describe("Responses Router", () => {
       message: errorMessage,
     });
   });
+
+  test("Should apply responses router rate limit", async () => {
+    const rateLimitErrorMessage = "Error: rate limit exceeded!";
+
+    const { app, origin } = await makeTestApp({
+      responsesRouterConfig: {
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 50000, // Big window to cover test duration
+            max: 1, // Only one request should be allowed
+            message: rateLimitErrorMessage,
+          },
+        },
+      },
+    });
+
+    const successRes = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    const rateLimitedRes = await request(app)
+      .post(responsesEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(validRequestBody);
+
+    expect(successRes.status).toBe(200);
+    expect(successRes.error).toBeFalsy();
+
+    expect(rateLimitedRes.status).toBe(429);
+    expect(rateLimitedRes.error).toBeTruthy();
+    expect(rateLimitedRes.body.type).toBe(ERROR_TYPE);
+    expect(rateLimitedRes.body.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
+    expect(rateLimitedRes.body.error.type).toBe(ERROR_TYPE);
+    expect(rateLimitedRes.body.error.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
+    expect(rateLimitedRes.body.error.message).toBe(rateLimitErrorMessage);
+  });
 });

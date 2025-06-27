@@ -33,19 +33,16 @@ export function makeResponsesRouter({
   /*
     Global rate limit the requests to the responsesRouter.
    */
-  const rateLimitErrorMessage =
-    rateLimitConfig?.routerRateLimitConfig?.message ?? "Rate limit exceeded";
-
-  responsesRouter.use((req, res, next) => {
-    const rateLimit = makeRateLimit({
-      ...rateLimitConfig?.routerRateLimitConfig,
-      message: makeRateLimitError({
-        error: new Error(rateLimitErrorMessage),
-        headers: req.headers as Record<string, string>,
-      }),
-    });
-    rateLimit(req, res, next);
+  const rateLimit = makeRateLimit({
+    ...rateLimitConfig?.routerRateLimitConfig,
+    message: makeRateLimitError({
+      error: new Error(
+        rateLimitConfig?.routerRateLimitConfig?.message ?? "Rate limit exceeded"
+      ),
+      headers: {},
+    }),
   });
+  responsesRouter.use(rateLimit);
   /*
     Slow down the response to the responsesRouter after certain number
     of requests in the time window.

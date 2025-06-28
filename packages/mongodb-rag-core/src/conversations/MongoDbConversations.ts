@@ -4,18 +4,12 @@ import {
   defaultConversationConstants,
   ConversationsService,
   Conversation,
-  CreateConversationParams,
-  AddConversationMessageParams,
-  FindByIdParams,
-  RateMessageParams,
   Message,
   UserMessage,
-  AddManyConversationMessagesParams,
-  AddSomeMessageParams,
   AssistantMessage,
   SystemMessage,
-  CommentMessageParams,
   ToolMessage,
+  AddSomeMessageParams,
 } from "./ConversationsService";
 
 /**
@@ -29,7 +23,7 @@ export function makeMongoDbConversationsService(
     database.collection<Conversation>("conversations");
   return {
     conversationConstants,
-    async create(params?: CreateConversationParams) {
+    async create(params) {
       const customData = params?.customData;
       const initialMessages = params?.initialMessages;
       const newConversation = {
@@ -56,7 +50,7 @@ export function makeMongoDbConversationsService(
       return newConversation;
     },
 
-    async addConversationMessage(params: AddConversationMessageParams) {
+    async addConversationMessage(params) {
       const { conversationId, message } = params;
       const newMessage = createMessage(message);
       const updateResult = await conversationsCollection.updateOne(
@@ -75,9 +69,7 @@ export function makeMongoDbConversationsService(
       return newMessage;
     },
 
-    async addManyConversationMessages(
-      params: AddManyConversationMessagesParams
-    ) {
+    async addManyConversationMessages(params) {
       const { messages, conversationId } = params;
       const newMessages = messages.map(createMessage);
       const updateResult = await conversationsCollection.updateOne(
@@ -98,7 +90,7 @@ export function makeMongoDbConversationsService(
       return newMessages;
     },
 
-    async findById({ _id }: FindByIdParams) {
+    async findById({ _id }) {
       const conversation = await conversationsCollection.findOne({ _id });
       return conversation;
     },
@@ -132,11 +124,7 @@ export function makeMongoDbConversationsService(
       return true;
     },
 
-    async commentMessage({
-      conversationId,
-      messageId,
-      comment,
-    }: CommentMessageParams) {
+    async commentMessage({ conversationId, messageId, comment }) {
       const updateResult = await conversationsCollection.updateOne(
         {
           _id: conversationId,

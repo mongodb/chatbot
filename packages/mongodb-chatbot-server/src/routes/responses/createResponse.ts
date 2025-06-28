@@ -15,22 +15,24 @@ import {
   ERROR_TYPE,
 } from "./errors";
 
-export const INPUT_STRING_ERR_MSG = "Input must be a non-empty string";
-export const INPUT_ARRAY_ERR_MSG =
-  "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.";
-export const METADATA_LENGTH_ERR_MSG = "Too many metadata fields. Max 16.";
-export const TEMPERATURE_ERR_MSG = "Temperature must be 0 or unset";
-export const STREAM_ERR_MSG = "'stream' must be true";
-export const MODEL_NOT_SUPPORTED_ERR_MSG = (model: string) =>
-  `Path: body.model - ${model} is not supported.`;
-export const MAX_OUTPUT_TOKENS_ERR_MSG = (input: number, max: number) =>
-  `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`;
+export const ERR_MSG = {
+  INPUT_STRING: "Input must be a non-empty string",
+  INPUT_ARRAY:
+    "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  METADATA_LENGTH: "Too many metadata fields. Max 16.",
+  TEMPERATURE: "Temperature must be 0 or unset",
+  STREAM: "'stream' must be true",
+  MODEL_NOT_SUPPORTED: (model: string) =>
+    `Path: body.model - ${model} is not supported.`,
+  MAX_OUTPUT_TOKENS: (input: number, max: number) =>
+    `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`,
+};
 
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
-    z.string().refine((input) => input.length > 0, INPUT_STRING_ERR_MSG),
+    z.string().refine((input) => input.length > 0, ERR_MSG.INPUT_STRING),
     z
       .array(
         z.union([
@@ -73,7 +75,7 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, INPUT_ARRAY_ERR_MSG),
+      .refine((input) => input.length > 0, ERR_MSG.INPUT_ARRAY),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -81,7 +83,7 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      METADATA_LENGTH_ERR_MSG
+      ERR_MSG.METADATA_LENGTH
     ),
   previous_response_id: z
     .string()
@@ -92,10 +94,10 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .describe("Whether to store the response in the conversation.")
     .default(true),
-  stream: z.boolean().refine((stream) => stream, STREAM_ERR_MSG),
+  stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
   temperature: z
     .number()
-    .refine((temperature) => temperature === 0, TEMPERATURE_ERR_MSG)
+    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
     .optional()
     .describe("Temperature for the model. Defaults to 0.")
     .default(0),
@@ -176,7 +178,7 @@ export function makeCreateResponseRoute({
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
-          error: new Error(MODEL_NOT_SUPPORTED_ERR_MSG(model)),
+          error: new Error(ERR_MSG.MODEL_NOT_SUPPORTED(model)),
           headers,
         });
       }
@@ -185,7 +187,7 @@ export function makeCreateResponseRoute({
       if (max_output_tokens > maxOutputTokens) {
         throw makeBadRequestError({
           error: new Error(
-            MAX_OUTPUT_TOKENS_ERR_MSG(max_output_tokens, maxOutputTokens)
+            ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, maxOutputTokens)
           ),
           headers,
         });

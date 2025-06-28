@@ -5,15 +5,7 @@ import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
-import {
-  INPUT_STRING_ERR_MSG,
-  INPUT_ARRAY_ERR_MSG,
-  METADATA_LENGTH_ERR_MSG,
-  TEMPERATURE_ERR_MSG,
-  STREAM_ERR_MSG,
-  MODEL_NOT_SUPPORTED_ERR_MSG,
-  MAX_OUTPUT_TOKENS_ERR_MSG,
-} from "./createResponse";
+import { ERR_MSG } from "./createResponse";
 
 jest.setTimeout(100000);
 
@@ -351,7 +343,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(`Path: body.input - ${INPUT_STRING_ERR_MSG}`)
+        badRequestError(`Path: body.input - ${ERR_MSG.INPUT_STRING}`)
       );
     });
 
@@ -368,7 +360,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(`Path: body.input - ${INPUT_ARRAY_ERR_MSG}`)
+        badRequestError(`Path: body.input - ${ERR_MSG.INPUT_ARRAY}`)
       );
     });
 
@@ -385,7 +377,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(MODEL_NOT_SUPPORTED_ERR_MSG("gpt-4o-mini"))
+        badRequestError(ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini"))
       );
     });
 
@@ -402,7 +394,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(`Path: body.stream - ${STREAM_ERR_MSG}`)
+        badRequestError(`Path: body.stream - ${ERR_MSG.STREAM}`)
       );
     });
 
@@ -422,7 +414,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(MAX_OUTPUT_TOKENS_ERR_MSG(max_output_tokens, 4000))
+        badRequestError(ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000))
       );
     });
 
@@ -444,7 +436,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(`Path: body.metadata - ${METADATA_LENGTH_ERR_MSG}`)
+        badRequestError(`Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`)
       );
     });
 
@@ -482,7 +474,7 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
-        badRequestError(`Path: body.temperature - ${TEMPERATURE_ERR_MSG}`)
+        badRequestError(`Path: body.temperature - ${ERR_MSG.TEMPERATURE}`)
       );
     });
 

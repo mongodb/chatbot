@@ -103,11 +103,14 @@ export function makeMongoDbConversationsService(
       return conversation;
     },
 
-    async rateMessage({
-      conversationId,
-      messageId,
-      rating,
-    }: RateMessageParams) {
+    async findByMessageId({ messageId }) {
+      const conversation = await conversationsCollection.findOne({
+        "messages.id": messageId,
+      });
+      return conversation;
+    },
+
+    async rateMessage({ conversationId, messageId, rating }) {
       const updateResult = await conversationsCollection.updateOne(
         {
           _id: conversationId,

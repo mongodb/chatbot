@@ -10,7 +10,7 @@ import {
 
 // Note: These tests require mongosh to be installed.
 // They are skipped in CI but can be run locally.
-describe("profileMongoshQuery", () => {
+describe.skip("profileMongoshQuery", () => {
   let mongoClient: MongoClient;
   const databaseName = "test_db_" + Date.now().toString();
 

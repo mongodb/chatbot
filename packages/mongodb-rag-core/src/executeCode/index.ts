@@ -10,4 +10,5 @@ export * from "./redactMongoDbConnectionUri";
 export * from "./isNonMutativeOperation";
 export * from "./isReasonableResult";
 export * from "./prettyPrintMongoDbDocument";
+export * from "./profileMongoshQuery";
 export * from "./truncateDbOperationOutputForLlm";

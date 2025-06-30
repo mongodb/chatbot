@@ -96,3 +96,18 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
     },
   ];
 };
+
+export function makeQueryPerformance(): TextToDriverEvalScorer {
+  return async function QueryPerformance({ output, expected }) {
+    return [
+      {
+        name: "NormalizedQueryEfficiency",
+        score: null,
+      },
+      {
+        name: "AdaptivePowerEfficiency",
+        score: null,
+      },
+    ];
+  };
+}

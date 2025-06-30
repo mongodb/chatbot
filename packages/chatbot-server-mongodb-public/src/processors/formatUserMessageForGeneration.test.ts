@@ -9,50 +9,38 @@ describe("formatUserMessageForGeneration", () => {
   const userMessage = "Hello, world!";
 
   it("formats front matter correctly for mongodb.com origin", () => {
-    const result = formatUserMessageForGeneration(userMessage, {
-      origin: "https://mongodb.com",
-    });
+    const origin = "https://mongodb.com";
+    const result = formatUserMessageForGeneration(userMessage, { origin });
     expect(result).toEqual(`---
-pageUrl: https://mongodb.com
+pageUrl: ${origin}
 ---
+
 ${userMessage}`);
   });
 
   it("adds pageUrl front matter for subdomain of mongodb.com", () => {
-    const result = formatUserMessageForGeneration(userMessage, {
-      origin: "https://learn.mongodb.com",
-    });
-    expect(result).toContain("pageUrl: https://learn.mongodb.com");
+    const origin = "https://learn.mongodb.com";
+    const result = formatUserMessageForGeneration(userMessage, { origin });
+    expect(result).toEqual(`---
+pageUrl: ${origin}
+---
+
+${userMessage}`);
   });
 
   it("returns the original message if customData is empty", () => {
     expect(
       formatUserMessageForGeneration(userMessage, { origin: undefined })
-    ).toBe(userMessage);
-    expect(formatUserMessageForGeneration(userMessage, {})).toBe(userMessage);
-    expect(formatUserMessageForGeneration(userMessage)).toBe(userMessage);
-  });
-
-  it("does not add front matter if customData contains irrelevant keys", () => {
-    expect(
-      formatUserMessageForGeneration(userMessage, {
-        someOtherKey: "str",
-      })
-    ).toBe(userMessage);
-  });
-
-  it("returns the original message if origin is not a string", () => {
-    expect(formatUserMessageForGeneration(userMessage, { origin: 123 })).toBe(
-      userMessage
-    );
+    ).toEqual(userMessage);
+    expect(formatUserMessageForGeneration(userMessage, {})).toEqual(userMessage);
+    expect(formatUserMessageForGeneration(userMessage)).toEqual(userMessage);
   });
 
   it("does not add pageUrl for non-mongodb.com origins", () => {
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "https://example.com",
     });
-    expect(result).not.toContain("pageUrl:");
-    expect(result).toBe(userMessage);
+    expect(result).toEqual(userMessage);
   });
 
   it("adds client front matter for VSCODE originCode", () => {
@@ -60,8 +48,11 @@ ${userMessage}`);
       origin: "vscode-mongodb-copilot",
       originCode: "VSCODE",
     });
-    expect(result).toContain("client: MongoDB VS Code plugin");
-    expect(result).not.toContain("pageUrl:");
+    expect(result).toEqual(`---
+client: MongoDB VS Code plugin
+---
+
+${userMessage}`);
   });
 
   it("adds client front matter for GEMINI_CODE_ASSIST originCode", () => {
@@ -69,17 +60,11 @@ ${userMessage}`);
       origin: "google-gemini-code-assist",
       originCode: "GEMINI_CODE_ASSIST",
     });
-    expect(result).toContain("client: Gemini Code Assist");
-    expect(result).not.toContain("pageUrl:");
-  });
+    expect(result).toEqual(`---
+client: Gemini Code Assist
+---
 
-  it("does not add client front matter for unknown originCode", () => {
-    const result = formatUserMessageForGeneration(userMessage, {
-      origin: "https://mongodb.com",
-      originCode: "SOMETHING_ELSE",
-    });
-    expect(result).not.toContain("client:");
-    expect(result).toContain("pageUrl: https://mongodb.com");
+${userMessage}`);
   });
 
   it("logs a warning and does not add pageUrl if origin is malformed", () => {
@@ -90,24 +75,37 @@ ${userMessage}`);
     expect(logger.warn).toHaveBeenCalledWith(
       `Origin ${malformedOrigin} malformed. Not using in front matter.`
     );
-    expect(result).toBe(userMessage);
+    expect(result).toEqual(userMessage);
   });
 
   it("adds both pageUrl and client front matter if both are present", () => {
+    const origin = "https://mongodb.com";
+    const originCode = "VSCODE";
     const result = formatUserMessageForGeneration(userMessage, {
-      origin: "https://mongodb.com",
-      originCode: "VSCODE",
+      origin,
+      originCode,
     });
-    expect(result).toContain("pageUrl: https://mongodb.com");
-    expect(result).toContain("client: MongoDB VS Code plugin");
-    expect(result).toContain(userMessage);
+    expect(result).toEqual(`---
+pageUrl: ${origin}
+client: MongoDB VS Code plugin
+---
+
+${userMessage}`);
   });
 
-  it("returns the original message if frontMatters is empty", () => {
+  it("returns original user message when given unknown origin", () => {
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "https://example.com",
       originCode: "OTHER",
     });
-    expect(result).toBe(userMessage);
+    expect(result).toEqual(userMessage);
+  });
+
+  it("returns original user message when given unused fields", () => {
+    const result = formatUserMessageForGeneration(userMessage, {
+      ip: "foo",
+      userAgent: "bar",
+    });
+    expect(result).toEqual(userMessage);
   });
 });

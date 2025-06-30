@@ -20,7 +20,7 @@ const systemPrompt = {
 describe("Conversations Service", () => {
   const mongoClient = new MongoClient(MONGO_MEMORY_SERVER_URI);
 
-  const mongodb = mongoClient.db(`conversations-test-${new Date().getTime()}`); // New DB for each test run
+  const mongodb = mongoClient.db("conversations-tests");
 
   afterEach(async () => {
     await mongodb.dropCollection("conversations");

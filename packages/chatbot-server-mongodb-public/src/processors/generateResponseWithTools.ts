@@ -173,10 +173,10 @@ export function makeGenerateResponseWithTools({
                   toolResult.type === "tool-result" &&
                   toolResult.toolName === FETCH_PAGE_TOOL_NAME
                 ) {
-                  // fetchPage returns reference directly.
-                  const reference = toolResult.result.reference;
-                  if (reference) {
-                    references.push(reference);
+                  // fetchPage returns references directly.
+                  const fetchedReferences = toolResult.result.references;
+                  if (fetchedReferences) {
+                    references.push(...fetchedReferences);
                   }
                 }
               });

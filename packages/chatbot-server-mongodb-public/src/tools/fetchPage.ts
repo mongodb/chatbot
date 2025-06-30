@@ -6,8 +6,8 @@ import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { addReferenceSourceType } from "../processors/makeMongoDbReferences";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
-
-const SEARCH_PAGE_LENGTH_CUTOFF = 150000;
+export const SEARCH_ALL_FALLBACK_TEXT = "{fallback_to_search}";
+const SEARCH_ON_PAGE_LENGTH_CUTOFF = 150000;
 
 export const MongoDbFetchPageToolArgsSchema = z.object({
   pageUrl: z.string().describe("URL of page to fetch"),
@@ -36,7 +36,9 @@ export type FetchPageTool = Tool<
 
 export function makeFetchPageTool(
   loadPage: MongoDbPageStore["loadPage"],
-  findContent: FindContentFunc
+  findContent: FindContentFunc,
+  searchFallbackText: string = SEARCH_ALL_FALLBACK_TEXT,
+  pageLengthCutoff: number = SEARCH_ON_PAGE_LENGTH_CUTOFF
 ): FetchPageTool {
   return tool({
     parameters: MongoDbFetchPageToolArgsSchema,
@@ -61,6 +63,8 @@ export function makeFetchPageTool(
         });
         const { text, reference } = await getPageContent(
           page,
+          pageLengthCutoff,
+          searchFallbackText,
           findContent,
           args.query,
           normalizedUrl
@@ -80,6 +84,8 @@ export function makeFetchPageTool(
 
 async function getPageContent(
   page: Awaited<ReturnType<MongoDbPageStore["loadPage"]>>,
+  pageLengthCutoff: number,
+  searchFallbackText: string,
   findContent: FindContentFunc,
   query: string,
   normalizedUrl: string
@@ -89,12 +95,9 @@ async function getPageContent(
 }> {
   if (page === null) {
     // Fall back - no page for this URL
-    // TODO - do search here
-    const text = "{fallback_to_search}";
-    return { text, reference: undefined };
+    return { text: searchFallbackText };
   }
-
-  if (page.body.length < SEARCH_PAGE_LENGTH_CUTOFF) {
+  if (page.body.length < pageLengthCutoff) {
     // Page content is short enough, return it directly
     return {
       text: page.body,
@@ -126,9 +129,9 @@ async function getPageContent(
     const relevantContentText = relevantPageContent.content
       .map((c) => c.text)
       .join("\n");
-    const text = relevantContentText + page.body.slice(0, SEARCH_PAGE_LENGTH_CUTOFF);
+    const text = relevantContentText + page.body.slice(0, pageLengthCutoff);
     return { text, reference };
   }
-  const text = page.body.slice(0, SEARCH_PAGE_LENGTH_CUTOFF);
+  const text = page.body.slice(0, pageLengthCutoff);
   return { text, reference };
 }

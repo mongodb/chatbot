@@ -4,7 +4,7 @@ import {
   mongoDbProgrammingLanguages,
 } from "mongodb-rag-core/mongoDbMetadata";
 import { SEARCH_TOOL_NAME } from "./tools/search";
-import { FETCH_PAGE_TOOL_NAME } from "./tools/fetchPage";
+import { FETCH_PAGE_TOOL_NAME, SEARCH_ALL_FALLBACK_TEXT } from "./tools/fetchPage";
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
@@ -58,7 +58,7 @@ const fetchPageToolNotes = [
   "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
   ...rephraseUserQueryNotes,
   "Do not include URLs in the search query.",
-  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "{fallback_to_search}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
+  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
 ];
 
 export const systemPrompt = {

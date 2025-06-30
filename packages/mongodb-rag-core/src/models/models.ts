@@ -146,7 +146,7 @@ const allModels = [
     developer: "OpenAI",
     provider: "braintrust",
     authorized: true,
-    maxConcurrency: 30,
+    maxConcurrency: 25,
     parent: "gpt-4o-mini",
     generation: "gpt-4.1",
   },

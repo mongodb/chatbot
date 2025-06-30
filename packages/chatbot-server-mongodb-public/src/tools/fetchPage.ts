@@ -7,6 +7,8 @@ import { addReferenceSourceType } from "../processors/makeMongoDbReferences";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 
+const SEARCH_PAGE_LENGTH_CUTOFF = 150000;
+
 export const MongoDbFetchPageToolArgsSchema = z.object({
   pageUrl: z.string().describe("URL of page to fetch"),
   query: z.string().describe("Search query"),
@@ -57,46 +59,12 @@ export function makeFetchPageTool(
             },
           },
         });
-
-        let text: string;
-        let reference: Reference | undefined;
-        if (page === null) {
-          // Fall back - no page for this URL
-          text = "{fallback_to_search}";
-        } else if (page.body.length < 150000) {
-          // Page content is short enough, return it directly
-          text = page.body;
-          reference = {
-            url: normalizedUrl,
-            title: page.title ?? normalizedUrl,
-            metadata: {
-              ...(page.metadata ?? {}),
-              sourceName: page.sourceName,
-            },
-          };
-        } else {
-          // Page content is too long, do truncate-search
-          const relevantPageContent = await findContent({
-            query: args.query,
-            filters: { url: normalizedUrl },
-          });
-          reference = {
-            url: normalizedUrl,
-            title: page.title ?? normalizedUrl,
-            metadata: {
-              ...(page.metadata ?? {}),
-              sourceName: page.sourceName,
-            },
-          };
-          if (relevantPageContent.content.length > 0) {
-            const relevantContentText = relevantPageContent.content
-              .map((c) => c.text)
-              .join("\n");
-            text = relevantContentText + page.body.slice(0, 150000);
-          } else {
-            text = page.body.slice(0, 150000);
-          }
-        }
+        const { text, reference } = await getPageContent(
+          page,
+          findContent,
+          args.query,
+          normalizedUrl
+        );
         return {
           url: normalizedUrl,
           text,
@@ -108,4 +76,59 @@ export function makeFetchPageTool(
       }
     ),
   });
+}
+
+async function getPageContent(
+  page: Awaited<ReturnType<MongoDbPageStore["loadPage"]>>,
+  findContent: FindContentFunc,
+  query: string,
+  normalizedUrl: string
+): Promise<{
+  text: string;
+  reference?: Reference;
+}> {
+  if (page === null) {
+    // Fall back - no page for this URL
+    // TODO - do search here
+    const text = "{fallback_to_search}";
+    return { text, reference: undefined };
+  }
+
+  if (page.body.length < SEARCH_PAGE_LENGTH_CUTOFF) {
+    // Page content is short enough, return it directly
+    return {
+      text: page.body,
+      reference: {
+        url: normalizedUrl,
+        title: page.title ?? normalizedUrl,
+        metadata: {
+          ...(page.metadata ?? {}),
+          sourceName: page.sourceName,
+        },
+      },
+    };
+  }
+
+  // Page content is too long, do truncate-search
+  const relevantPageContent = await findContent({
+    query: query,
+    filters: { url: normalizedUrl },
+  });
+  const reference = {
+    url: normalizedUrl,
+    title: page.title ?? normalizedUrl,
+    metadata: {
+      ...(page.metadata ?? {}),
+      sourceName: page.sourceName,
+    },
+  };
+  if (relevantPageContent.content.length > 0) {
+    const relevantContentText = relevantPageContent.content
+      .map((c) => c.text)
+      .join("\n");
+    const text = relevantContentText + page.body.slice(0, SEARCH_PAGE_LENGTH_CUTOFF);
+    return { text, reference };
+  }
+  const text = page.body.slice(0, SEARCH_PAGE_LENGTH_CUTOFF);
+  return { text, reference };
 }

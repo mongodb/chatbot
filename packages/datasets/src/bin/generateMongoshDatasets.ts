@@ -9,7 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
 import { openAiClient } from "../openAi";
-import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";

@@ -23,7 +23,7 @@ import { initLogger } from "mongodb-rag-core/braintrust";
 import { openAiClient } from "../openAi";
 import { GenerateChildrenLlmOptions } from "../treeGeneration/generateChildren";
 
-const DEFAULT_CONCURRENCY = 2;
+const DEFAULT_CONCURRENCY = 16;
 
 /**
   Magic number to specify the max results array size to evaluate.
@@ -151,6 +151,12 @@ async function generateMongoshDataset({
       await nodeStore.storeNodes({ nodes: useCases });
       console.log(
         `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
+      );
+      console.log(
+        useCases.map(
+          ({ data }, i) =>
+            `${i + 1}: ${data.title}: ${data.description.slice(0, 20)}...`
+        )
       );
       return useCases;
     });
@@ -304,7 +310,7 @@ async function main() {
   }
 
   const defaultLlmConfig: GenerateChildrenLlmOptions = {
-    model: "claude-4-sonnet-20250514",
+    model: "claude-4-opus-20250514",
     temperature: 0.7,
     seed: 42,
   };
@@ -351,9 +357,8 @@ async function main() {
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases.filter((db) =>
-      db.name.includes("mflix")
-    )) {
+    // TODO: 2nd dataset, weather data throwing err. need to investigate
+    for (const db of datasetDatabases) {
       await generateMongoshDataset({
         persistence: {
           mongoClient,

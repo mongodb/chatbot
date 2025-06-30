@@ -8,6 +8,7 @@ import {
   AddSomeMessageParams,
   SystemMessage,
 } from "./ConversationsService";
+import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 
 jest.setTimeout(100000);
 
@@ -17,20 +18,16 @@ const systemPrompt = {
 } satisfies SystemMessage;
 
 describe("Conversations Service", () => {
-  const { MONGODB_CONNECTION_URI } = process.env;
-  if (!MONGODB_CONNECTION_URI) {
-    throw new Error("Missing MONGODB_CONNECTION_URI");
-  }
-  const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  const mongoClient = new MongoClient(MONGO_MEMORY_SERVER_URI);
 
-  const mongodb = mongoClient.db(`conversations-test-${new Date().getTime()}`); // New DB for each test run
+  const mongodb = mongoClient.db("conversations-tests");
 
   afterEach(async () => {
-    await mongodb.collection("conversations").deleteMany({});
+    await mongodb.dropCollection("conversations");
   });
   afterAll(async () => {
     await mongodb.dropDatabase();
-    await mongoClient.close();
+    await mongoClient?.close();
   });
 
   const conversationsService = makeMongoDbConversationsService(mongodb);

@@ -19,9 +19,8 @@ export type MongoDbFetchPageToolArgs = z.infer<
 >;
 
 export type FetchPageToolResult = {
-  url: string;
   text: string;
-  reference?: Reference;
+  references?: Reference[];
 };
 
 export type FetchPageTool = Tool<
@@ -70,9 +69,10 @@ export function makeFetchPageTool(
           normalizedUrl
         );
         return {
-          url: normalizedUrl,
           text,
-          reference: reference ? addReferenceSourceType(reference) : undefined,
+          references: reference
+            ? [addReferenceSourceType(reference)]
+            : undefined,
         };
       },
       {

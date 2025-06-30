@@ -60,7 +60,14 @@ export const MODELS: ModelConfig[] = (
     // "gpt-4.1-mini",
     // "gemini-2.5-flash-preview-05-20",
     // "gemini-2.5-pro-preview-05-06",
-    "gpt-4.1-nano",
+    // "gpt-4.1-nano",
+    // "gpt-4.1",
+    // "o3",
+    // "o4-mini",
+    "anthropic/claude-opus-4",
+    "anthropic/claude-sonnet-4",
+    // "claude-opus-4",
+    // "claude-sonnet-4",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

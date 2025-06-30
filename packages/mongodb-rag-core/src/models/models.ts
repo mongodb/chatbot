@@ -235,7 +235,7 @@ const allModels = [
     deployment: "us.anthropic.claude-sonnet-4-20250514-v1:0",
     provider: "braintrust",
     developer: "Anthropic",
-    maxConcurrency: 10,
+    maxConcurrency: 5,
     authorized: true,
   },
   {
@@ -243,7 +243,23 @@ const allModels = [
     deployment: "us.anthropic.claude-opus-4-20250514-v1:0",
     provider: "braintrust",
     developer: "Anthropic",
-    maxConcurrency: 10,
+    maxConcurrency: 5,
+    authorized: true,
+  },
+  {
+    label: "anthropic/claude-sonnet-4",
+    deployment: "claude-sonnet-4-20250514",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    authorized: true,
+  },
+  {
+    label: "anthropic/claude-opus-4",
+    deployment: "claude-opus-4-20250514",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 5,
     authorized: true,
   },
   {

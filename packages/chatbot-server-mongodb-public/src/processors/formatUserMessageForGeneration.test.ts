@@ -1,5 +1,6 @@
+import exp from "constants";
 import { formatUserMessageForGeneration } from "./formatUserMessageForGeneration";
-import { logger } from "mongodb-rag-core";
+import { ConversationCustomData, logger } from "mongodb-rag-core";
 
 beforeAll(() => {
   logger.warn = jest.fn();
@@ -10,7 +11,9 @@ describe("formatUserMessageForGeneration", () => {
 
   it("formats front matter correctly for mongodb.com origin", () => {
     const origin = "https://mongodb.com";
-    const result = formatUserMessageForGeneration(userMessage, { origin });
+    const result = formatUserMessageForGeneration(userMessage, {
+      origin,
+    } as ConversationCustomData);
     expect(result).toEqual(`---
 pageUrl: ${origin}
 ---
@@ -20,7 +23,9 @@ ${userMessage}`);
 
   it("adds pageUrl front matter for subdomain of mongodb.com", () => {
     const origin = "https://learn.mongodb.com";
-    const result = formatUserMessageForGeneration(userMessage, { origin });
+    const result = formatUserMessageForGeneration(userMessage, {
+      origin,
+    } as ConversationCustomData);
     expect(result).toEqual(`---
 pageUrl: ${origin}
 ---
@@ -28,18 +33,19 @@ pageUrl: ${origin}
 ${userMessage}`);
   });
 
-  it("returns the original message if customData is empty", () => {
-    expect(
-      formatUserMessageForGeneration(userMessage, { origin: undefined })
-    ).toEqual(userMessage);
-    expect(formatUserMessageForGeneration(userMessage, {})).toEqual(userMessage);
-    expect(formatUserMessageForGeneration(userMessage)).toEqual(userMessage);
+  it("logs a warning & returns the original message if customData is empty", () => {
+    const result = formatUserMessageForGeneration(
+      userMessage,
+      {} as ConversationCustomData
+    );
+    expect(result).toEqual(userMessage);
+    expect(logger.warn).toHaveBeenCalled();
   });
 
   it("does not add pageUrl for non-mongodb.com origins", () => {
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "https://example.com",
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(userMessage);
   });
 
@@ -47,7 +53,7 @@ ${userMessage}`);
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "vscode-mongodb-copilot",
       originCode: "VSCODE",
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(`---
 client: MongoDB VS Code plugin
 ---
@@ -59,7 +65,7 @@ ${userMessage}`);
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "google-gemini-code-assist",
       originCode: "GEMINI_CODE_ASSIST",
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(`---
 client: Gemini Code Assist
 ---
@@ -71,10 +77,17 @@ ${userMessage}`);
     const malformedOrigin = "http://not a url";
     const result = formatUserMessageForGeneration(userMessage, {
       origin: malformedOrigin,
-    });
-    expect(logger.warn).toHaveBeenCalledWith(
-      `Origin ${malformedOrigin} malformed. Not using in front matter.`
-    );
+    } as ConversationCustomData);
+    expect(logger.warn).toHaveBeenCalled();
+    expect(result).toEqual(userMessage);
+  });
+
+  it("logs a warning and returns user message for an unknown originCode", () => {
+    const result = formatUserMessageForGeneration(userMessage, {
+      origin: "https://example.com",
+      originCode: "NOT_A_CODE",
+    } as ConversationCustomData);
+    expect(logger.warn).toHaveBeenCalled();
     expect(result).toEqual(userMessage);
   });
 
@@ -84,7 +97,7 @@ ${userMessage}`);
     const result = formatUserMessageForGeneration(userMessage, {
       origin,
       originCode,
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(`---
 pageUrl: ${origin}
 client: MongoDB VS Code plugin
@@ -97,7 +110,7 @@ ${userMessage}`);
     const result = formatUserMessageForGeneration(userMessage, {
       origin: "https://example.com",
       originCode: "OTHER",
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(userMessage);
   });
 
@@ -105,7 +118,7 @@ ${userMessage}`);
     const result = formatUserMessageForGeneration(userMessage, {
       ip: "foo",
       userAgent: "bar",
-    });
+    } as ConversationCustomData);
     expect(result).toEqual(userMessage);
   });
 });

@@ -1,4 +1,5 @@
 import Router from "express-promise-router";
+import type { ConversationsService } from "mongodb-rag-core";
 import { makeCreateResponseRoute } from "./createResponse";
 import type { GenerateResponse } from "../../processors";
 import { getRequestId } from "../../utils";
@@ -16,9 +17,11 @@ export interface ResponsesRouterParams {
     routerSlowDownConfig?: SlowDownOptions;
   };
   createResponse: {
+    conversations: ConversationsService;
     generateResponse: GenerateResponse;
     supportedModels: string[];
     maxOutputTokens: number;
+    maxUserMessagesInConversation: number;
   };
 }
 

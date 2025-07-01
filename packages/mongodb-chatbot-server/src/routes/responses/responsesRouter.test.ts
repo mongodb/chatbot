@@ -1,50 +1,40 @@
+import type { Express } from "express";
 import request from "supertest";
 import { AppConfig } from "../../app";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
-import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE, makeBadRequestError } from "./errors";
+import { CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(60000);
 
 describe("Responses Router", () => {
   const ipAddress = "127.0.0.1";
   const responsesEndpoint = DEFAULT_API_PREFIX + "/responses";
-  const validRequestBody = {
-    model: MONGO_CHAT_MODEL,
-    stream: true,
-    input: "What is MongoDB?",
-  };
   let appConfig: AppConfig;
 
   beforeAll(async () => {
     ({ appConfig } = await makeTestAppConfig());
   });
 
-  it("should return 200 given a valid request", async () => {
-    const { app, origin } = await makeTestApp({
-      ...appConfig,
-      responsesRouterConfig: {
-        createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
-          generateResponse: () =>
-            Promise.resolve({
-              messages: [
-                { role: "user", content: "What is MongoDB?" },
-                { role: "assistant", content: "MongoDB is a database." },
-              ],
-            }),
-        },
-      },
-    });
-
-    const res = await request(app)
+  const makeCreateResponseRequest = (
+    app: Express,
+    origin: string,
+    body?: Partial<CreateResponseRequest["body"]>
+  ) => {
+    return request(app)
       .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
+      .set("X-Forwarded-For", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send({ ...basicResponsesRequestBody, ...body });
+  };
+
+  it("should return 200 given a valid request", async () => {
+    const { app, origin } = await makeTestApp(appConfig);
+
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(200);
   });
@@ -54,19 +44,15 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
+        ...appConfig.responsesRouterConfig,
         createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
+          ...appConfig.responsesRouterConfig.createResponse,
           generateResponse: () => Promise.reject(new Error(errorMessage)),
         },
       },
     });
 
-    const res = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(validRequestBody);
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(500);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -83,9 +69,9 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
+        ...appConfig.responsesRouterConfig,
         createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
+          ...appConfig.responsesRouterConfig.createResponse,
           generateResponse: () =>
             Promise.reject(
               makeBadRequestError({
@@ -97,11 +83,7 @@ describe("Responses Router", () => {
       },
     });
 
-    const res = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(validRequestBody);
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(400);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -128,17 +110,8 @@ describe("Responses Router", () => {
       },
     });
 
-    const successRes = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(validRequestBody);
-
-    const rateLimitedRes = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(validRequestBody);
+    const successRes = await makeCreateResponseRequest(app, origin);
+    const rateLimitedRes = await makeCreateResponseRequest(app, origin);
 
     expect(successRes.status).toBe(200);
     expect(successRes.error).toBeFalsy();

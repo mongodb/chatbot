@@ -213,6 +213,9 @@ export type AddManyConversationMessagesParams = {
 export interface FindByIdParams {
   _id: ObjectId;
 }
+export interface FindByMessageIdParams {
+  messageId: ObjectId;
+}
 export interface RateMessageParams {
   conversationId: ObjectId;
   messageId: ObjectId;
@@ -246,6 +249,11 @@ export interface ConversationsService {
   conversationConstants: ConversationConstants;
 
   /**
+    Initialize the conversations service.
+   */
+  init?: () => Promise<void>;
+
+  /**
     Create a new {@link Conversation}.
    */
   create: (params?: CreateConversationParams) => Promise<Conversation>;
@@ -263,6 +271,13 @@ export interface ConversationsService {
     params: AddManyConversationMessagesParams
   ) => Promise<Message[]>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
+
+  /**
+    Find a {@link Conversation} by the id of a {@link Message} in the conversation.
+   */
+  findByMessageId: ({
+    messageId,
+  }: FindByMessageIdParams) => Promise<Conversation | null>;
 
   /**
     Rate a {@link Message} in a {@link Conversation}.

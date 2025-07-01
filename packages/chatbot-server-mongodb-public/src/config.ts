@@ -388,15 +388,11 @@ export const config: AppConfig = {
   },
   responsesRouterConfig: {
     createResponse: {
+      conversations,
+      generateResponse,
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
-      generateResponse: () =>
-        Promise.resolve({
-          messages: [
-            { role: "user", content: "What is MongoDB?" },
-            { role: "assistant", content: "MongoDB is a database." },
-          ],
-        }),
+      maxUserMessagesInConversation: 6,
     },
   },
   maxRequestTimeoutMs: 60000,

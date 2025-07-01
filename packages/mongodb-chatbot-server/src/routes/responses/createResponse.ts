@@ -24,6 +24,8 @@ export const ERR_MSG = {
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
   TEMPERATURE: "Temperature must be 0 or unset",
   STREAM: "'stream' must be true",
+  INVALID_OBJECT_ID: (id: string) =>
+    `Path: body.previous_response_id - ${id} is not a valid ObjectId`,
   MESSAGE_NOT_FOUND: (messageId: string) =>
     `Path: body.previous_response_id - Message ${messageId} not found`,
   MESSAGE_NOT_LATEST: (messageId: string) =>
@@ -263,7 +265,7 @@ async function loadConversationByMessageId({
   }
 
   const conversation = await conversations.findByMessageId({
-    messageId: new ObjectId(messageId),
+    messageId: convertToObjectId(messageId, headers),
   });
 
   if (!conversation) {
@@ -283,3 +285,17 @@ async function loadConversationByMessageId({
 
   return conversation;
 }
+
+const convertToObjectId = (
+  messageId: string,
+  headers: Record<string, string>
+): ObjectId => {
+  try {
+    return new ObjectId(messageId);
+  } catch (error) {
+    throw makeBadRequestError({
+      error: new Error(ERR_MSG.INVALID_OBJECT_ID(messageId)),
+      headers,
+    });
+  }
+};

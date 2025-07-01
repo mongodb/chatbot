@@ -13,6 +13,7 @@ import {
   runNlPromptResponseEval,
   NlPromptResponseEvalCase,
 } from "./NlQuestionAnswerEval";
+import { strict as assert } from "assert";
 
 export interface DatasetConfig {
   projectName: string;
@@ -54,6 +55,11 @@ export async function runNlPromptResponseBenchmark({
   braintrustApiKey: string;
   filterDataset?: (datasetEntry: NlPromptResponseEvalCase) => boolean;
 }) {
+  assert(
+    judgeModelsConfig?.length > 0,
+    "At least one judge model must be configured in 'judgeModelsConfig'. Check your model labels in 'globalConfig.ts'."
+  );
+
   const judgeClients = await Promise.all(
     judgeModelsConfig.map(async (m) => {
       const endpointAndKey = await getOpenAiEndpointAndApiKey(m);

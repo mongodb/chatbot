@@ -1,13 +1,15 @@
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { TEXT_TO_DRIVER_ENV_VARS } from "../../TextToDriverEnvVars";
-import { ModelConfig, models } from "mongodb-rag-core/models";
-import { strict as assert } from "assert";
+import { MODELS } from "../../../benchmarkModels";
+import { ModelConfig } from "mongodb-rag-core/models";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import {
   SchemaStrategy,
   SystemPromptStrategy,
 } from "../../generateDriverCode/languagePrompts/PromptStrategies";
 import { makeMongoshBenchmarkMetrics } from "../../evaluationMetrics";
+
+export { MODELS } from "../../../benchmarkModels";
 
 export const DATASET_NAME =
   "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time";
@@ -55,29 +57,6 @@ export interface Experiment {
 export const MAX_CONCURRENT_EXPERIMENTS = 4;
 
 export const MAX_CONCURRENT_MODELS = 2;
-
-export const MODELS: ModelConfig[] = (
-  [
-    // benchmark models
-    "gpt-4o-mini",
-    "gpt-4o",
-    "o3-mini",
-    "claude-35-haiku",
-    "claude-37-sonnet",
-    "llama-3.3-70b",
-    "gemini-2-flash",
-    "nova-pro-v1:0",
-    "mistral-large-2",
-    "gpt-4.1-nano",
-    "gpt-4.1-mini",
-    "gpt-4.1",
-    "gemini-2.5-flash-preview-05-20",
-  ] satisfies (typeof models)[number]["label"][]
-).map((label) => {
-  const model = models.find((m) => m.label === label);
-  assert(model, `Model ${label} not found`);
-  return model;
-});
 
 export function makeLlmOptions(
   model: ModelConfig

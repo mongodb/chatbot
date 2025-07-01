@@ -3,7 +3,7 @@ import request from "supertest";
 import { Express } from "express";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
-import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
 import { ERR_MSG } from "./createResponse";
 
@@ -32,11 +32,7 @@ describe("POST /responses", () => {
         .post(endpointUrl)
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
-        .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
-        });
+        .send(basicResponsesRequestBody);
 
       expect(response.statusCode).toBe(200);
     });
@@ -47,8 +43,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: "What is MongoDB?" },
@@ -66,9 +61,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           instructions: "You are a helpful chatbot.",
         });
 
@@ -81,9 +74,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           max_output_tokens: 4000,
         });
 
@@ -96,9 +87,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           metadata: { key1: "value1", key2: "value2" },
         });
 
@@ -111,9 +100,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           temperature: 0,
         });
 
@@ -132,9 +119,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           previous_response_id: previousResponseId,
         });
 
@@ -147,9 +132,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           user: "some-user-id",
         });
 
@@ -162,9 +145,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           store: false,
         });
 
@@ -177,9 +158,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           store: true,
         });
 
@@ -192,9 +171,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tools: [
             {
               name: "test-tool",
@@ -220,9 +197,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tools: [
             {
               name: "test-tool",
@@ -251,8 +226,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             { role: "user", content: "What is MongoDB?" },
             {
@@ -274,8 +248,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             { role: "user", content: "What is MongoDB?" },
             {
@@ -296,9 +269,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tool_choice: "none",
         });
 
@@ -311,9 +282,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tool_choice: "only",
         });
 
@@ -326,9 +295,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tools: [],
         });
 
@@ -343,8 +310,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: "",
         });
 
@@ -360,8 +326,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [],
         });
 
@@ -377,9 +342,8 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
+          ...basicResponsesRequestBody,
           model: "gpt-4o-mini",
-          stream: true,
-          input: "What is MongoDB?",
         });
 
       expect(response.statusCode).toBe(400);
@@ -394,9 +358,8 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
+          ...basicResponsesRequestBody,
           stream: false,
-          input: "What is MongoDB?",
         });
 
       expect(response.statusCode).toBe(400);
@@ -413,9 +376,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           max_output_tokens,
         });
 
@@ -435,9 +396,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           metadata,
         });
 
@@ -453,9 +412,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           metadata: { key1: "a".repeat(513) },
         });
 
@@ -473,9 +430,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           temperature: 0.5,
         });
 
@@ -491,8 +446,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             { role: "user", content: "What is MongoDB?" },
             { role: "invalid-role", content: "This is an invalid role." },
@@ -510,8 +464,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             {
               type: "function_call",
@@ -534,8 +487,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
+          ...basicResponsesRequestBody,
           input: [
             {
               type: "function_call_output",
@@ -557,9 +509,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           tool_choice: "invalid_choice",
         });
 
@@ -575,9 +525,7 @@ describe("POST /responses", () => {
         .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
-          model: MONGO_CHAT_MODEL,
-          stream: true,
-          input: "What is MongoDB?",
+          ...basicResponsesRequestBody,
           max_output_tokens: -1,
         });
 

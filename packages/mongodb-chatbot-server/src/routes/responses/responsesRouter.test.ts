@@ -3,7 +3,7 @@ import { AppConfig } from "../../app";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
-import { MONGO_CHAT_MODEL } from "../../test/testConfig";
+import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE, makeBadRequestError } from "./errors";
 
 jest.setTimeout(60000);
@@ -11,11 +11,6 @@ jest.setTimeout(60000);
 describe("Responses Router", () => {
   const ipAddress = "127.0.0.1";
   const responsesEndpoint = DEFAULT_API_PREFIX + "/responses";
-  const validRequestBody = {
-    model: MONGO_CHAT_MODEL,
-    stream: true,
-    input: "What is MongoDB?",
-  };
   let appConfig: AppConfig;
 
   beforeAll(async () => {
@@ -29,7 +24,7 @@ describe("Responses Router", () => {
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send(basicResponsesRequestBody);
 
     expect(res.status).toBe(200);
   });
@@ -51,7 +46,7 @@ describe("Responses Router", () => {
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send(basicResponsesRequestBody);
 
     expect(res.status).toBe(500);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -86,7 +81,7 @@ describe("Responses Router", () => {
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send(basicResponsesRequestBody);
 
     expect(res.status).toBe(400);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -117,13 +112,13 @@ describe("Responses Router", () => {
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send(basicResponsesRequestBody);
 
     const rateLimitedRes = await request(app)
       .post(responsesEndpoint)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send(validRequestBody);
+      .send(basicResponsesRequestBody);
 
     expect(successRes.status).toBe(200);
     expect(successRes.error).toBeFalsy();

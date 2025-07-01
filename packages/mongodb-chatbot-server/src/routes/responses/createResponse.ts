@@ -216,12 +216,13 @@ export function makeCreateResponseRoute({
         headers,
       });
 
-      // TODO: abstract this logic and share between this and addMessageToConversation
-      const numUserMessages = conversation.messages.reduce(
-        (acc, message) => (message.role === "user" ? acc + 1 : acc),
-        0
-      );
-      if (numUserMessages >= maxUserMessagesInConversation) {
+      // --- MAX CONVERSATION LENGTH CHECK ---
+      if (
+        hasTooManyUserMessagesInConversation(
+          conversation,
+          maxUserMessagesInConversation
+        )
+      ) {
         throw makeBadRequestError({
           error: new Error(
             ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
@@ -298,4 +299,16 @@ const convertToObjectId = (
       headers,
     });
   }
+};
+
+// ideally this doesn't need to be exported once nothing else relies on it (addMessageToConversation)
+export const hasTooManyUserMessagesInConversation = (
+  conversation: Conversation,
+  maxUserMessagesInConversation: number
+) => {
+  const numUserMessages = conversation.messages.reduce(
+    (acc, message) => (message.role === "user" ? acc + 1 : acc),
+    0
+  );
+  return numUserMessages >= maxUserMessagesInConversation;
 };

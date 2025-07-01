@@ -301,7 +301,7 @@ const convertToObjectId = (
   }
 };
 
-// ideally this doesn't need to be exported once nothing else relies on it (addMessageToConversation)
+// ideally this doesn't need to be exported once nothing else relies on it (addMessageToConversation for now)
 export const hasTooManyUserMessagesInConversation = (
   conversation: Conversation,
   maxUserMessagesInConversation: number

@@ -4,7 +4,11 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { SuccessfulExecution, ReasonableOutput, makeQueryPerformanceMongoh } from "./evaluationMetrics";
+import {
+  SuccessfulExecution,
+  ReasonableOutput,
+  makeQueryPerformanceMongosh,
+} from "./evaluationMetrics";
 import { profileMongoshQuery } from "mongodb-rag-core/executeCode";
 
 // Mock the profileMongoshQuery function
@@ -13,7 +17,9 @@ jest.mock("mongodb-rag-core/executeCode", () => ({
   profileMongoshQuery: jest.fn(),
 }));
 
-const mockProfileMongoshQuery = profileMongoshQuery as jest.MockedFunction<typeof profileMongoshQuery>;
+const mockProfileMongoshQuery = profileMongoshQuery as jest.MockedFunction<
+  typeof profileMongoshQuery
+>;
 
 const input = {
   databaseName: "some dataset",
@@ -355,9 +361,9 @@ describe("ReasonableOutput", () => {
   });
 });
 
-describe("makeQueryPerformanceMongoh", () => {
+describe("makeQueryPerformanceMongosh", () => {
   const connectionUri = "mongodb://test-connection";
-  const queryPerformanceScorer = makeQueryPerformanceMongoh(connectionUri);
+  const queryPerformanceScorer = makeQueryPerformanceMongosh(connectionUri);
 
   const input = {
     databaseName: "test_db",
@@ -388,18 +394,23 @@ describe("makeQueryPerformanceMongoh", () => {
     mockProfileMongoshQuery.mockClear();
   });
 
-  it("should return score 0 and error metadata when profiling fails", async () => {
+  it("should return score null and error metadata when profiling fails", async () => {
     const profileError = { message: "Connection failed" };
     mockProfileMongoshQuery.mockResolvedValue({
       profile: null,
       error: profileError,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     expect(result).toEqual({
       name: "QueryPerformance",
-      score: 0,
+      score: null,
       metadata: { error: "Connection failed" },
     });
 
@@ -435,7 +446,12 @@ describe("makeQueryPerformanceMongoh", () => {
       error: null,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     expect(result).toEqual({
       name: "QueryPerformance",
@@ -469,7 +485,12 @@ describe("makeQueryPerformanceMongoh", () => {
       error: null,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     // Using the logarithmic formula: 1 - log(10000/100) / log(1000000/100)
     // = 1 - log(100) / log(10000) = 1 - 2 / 4 = 0.5
@@ -505,7 +526,12 @@ describe("makeQueryPerformanceMongoh", () => {
       error: null,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     expect(result).toEqual({
       name: "QueryPerformance",
@@ -539,7 +565,12 @@ describe("makeQueryPerformanceMongoh", () => {
       error: null,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     // For large result sets, efficiency should still be calculated correctly
     // This tests the edge case handling in the logarithmic formula
@@ -611,10 +642,17 @@ describe("makeQueryPerformanceMongoh", () => {
       error: null,
     });
 
-    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+    const result = await queryPerformanceScorer({
+      output,
+      input,
+      expected,
+      metadata,
+    });
 
     expect((result as any).metadata).toEqual(complexMockProfile);
-    expect((result as any).metadata.explainOutput.queryPlanner.winningPlan.indexName).toBe("product_index");
+    expect(
+      (result as any).metadata.explainOutput.queryPlanner.winningPlan.indexName
+    ).toBe("product_index");
     expect((result as any).metadata.collection.name).toBe("products");
   });
 });

@@ -70,7 +70,7 @@ async function main() {
           llmOptions,
           ...experiment,
         },
-        scores: mongoshScores,
+        scores: [mongoshScores],
       });
     });
 }

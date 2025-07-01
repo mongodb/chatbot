@@ -1,6 +1,5 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
@@ -70,7 +69,7 @@ async function main() {
           llmOptions,
           ...experiment,
         },
-        scores: mongoshScores,
+        scores: [mongoshScores],
       });
     });
 }

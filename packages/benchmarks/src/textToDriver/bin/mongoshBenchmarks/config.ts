@@ -7,11 +7,7 @@ import {
   SchemaStrategy,
   SystemPromptStrategy,
 } from "../../generateDriverCode/languagePrompts/PromptStrategies";
-import {
-  makeQueryPerformanceMongoh,
-  ReasonableOutput,
-  SuccessfulExecution,
-} from "../../evaluationMetrics";
+import { makeMongoshBenchmarkMetrics } from "../../evaluationMetrics";
 
 export const DATASET_NAME =
   "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time";
@@ -63,19 +59,19 @@ export const MAX_CONCURRENT_MODELS = 2;
 export const MODELS: ModelConfig[] = (
   [
     // benchmark models
-    "gpt-4o-mini",
-    "gpt-4o",
-    "o3-mini",
-    "claude-35-haiku",
-    "claude-37-sonnet",
-    "llama-3.3-70b",
-    "gemini-2-flash",
-    "nova-pro-v1:0",
-    "mistral-large-2",
+    // "gpt-4o-mini",
+    // "gpt-4o",
+    // "o3-mini",
+    // "claude-35-haiku",
+    // "claude-37-sonnet",
+    // "llama-3.3-70b",
+    // "gemini-2-flash",
+    // "nova-pro-v1:0",
+    // "mistral-large-2",
     "gpt-4.1-nano",
     "gpt-4.1-mini",
     "gpt-4.1",
-    "gemini-2.5-flash-preview-05-20",
+    // "gemini-2.5-flash-preview-05-20",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);
@@ -100,8 +96,6 @@ export function makeLlmOptions(
   };
 }
 
-export const mongoshScores = [
-  SuccessfulExecution,
-  ReasonableOutput,
-  makeQueryPerformanceMongoh(MONGODB_TEXT_TO_DRIVER_CONNECTION_URI),
-];
+export const mongoshScores = makeMongoshBenchmarkMetrics(
+  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI
+);

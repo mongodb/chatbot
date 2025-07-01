@@ -101,7 +101,7 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
   return scores;
 };
 
-export function makeQueryPerformanceMongoh(
+export function makeQueryPerformanceMongosh(
   connectionUri: string
 ): TextToDriverEvalScorer {
   return async function QueryPerformance({ output, input }) {
@@ -115,7 +115,7 @@ export function makeQueryPerformanceMongoh(
     if (profileError) {
       return {
         name: "QueryPerformance",
-        score: 0,
+        score: null,
         metadata: { error: profileError.message },
       };
     }
@@ -145,13 +145,14 @@ export const makeMongoshBenchmarkMetrics = (
 
     // Only track performance if its the correct answer..this is so that it serves as a "bonus" metric.
     if (
-      successfulExecution.find((score) => {
-        score.name === "CorrectOutputFuzzy" && score.score !== 0;
+      successfulExecution.find(({ name, score }) => {
+        return name === "CorrectOutputFuzzy" && score !== 0;
       })
     ) {
-      const queryPerformance = (await makeQueryPerformanceMongoh(connectionUri)(
-        args
-      )) as Score;
+      const queryPerformance = (await makeQueryPerformanceMongosh(
+        connectionUri
+      )(args)) as Score;
+      console.log(queryPerformance);
       allScores.push(queryPerformance);
     }
 

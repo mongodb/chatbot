@@ -64,7 +64,7 @@ async function main() {
           model,
           experimentType,
         },
-        scores: mongoshScores,
+        scores: [mongoshScores],
       });
     });
 }

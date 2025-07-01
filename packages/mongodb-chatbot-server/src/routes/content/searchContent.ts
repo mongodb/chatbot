@@ -10,9 +10,8 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-
-// TODO: need to make this store, as discussed, it should probably be in mongodb-rag-core
-export type SearchResultsStore = unknown;
+import type { SearchResultsStore } from "mongodb-rag-core";
+import { makeRequestError } from "../conversations/utils";
 
 export const DataSourceSchema = z.object({
   name: z.string(),
@@ -49,8 +48,8 @@ interface SearchContentResponseChunk {
   url: string;
   title: string;
   text: string;
-  metadata: {
-    sourceName: string;
+  metadata?: {
+    sourceName?: string;
     sourceType?: string;
     sourceVersionLabel?: string;
     tags?: string[];
@@ -85,24 +84,49 @@ export function makeSearchContentRoute({
         searchResultsStore,
       });
     } catch (error) {
-      // TODO: error handling
+      throw makeRequestError({
+        httpStatus: 500,
+        message: "Unable to query search database",
+      });
     }
   };
 }
 
-// TODO: map FindContentResult to SearchContentResponseChunk
 function mapFindContentResultToSearchContentResponseChunk(
   result: FindContentResult
 ): SearchContentResponseBody {
-  // TODO:
   return {
-    results: [],
+    results: result.content.map(({ url, metadata, text }) => ({
+      url,
+      title: metadata?.pageTitle || "",
+      text,
+      metadata,
+    })),
   };
 }
 
-function mapDataSourcesToFilters(dataSources: DataSource[]): QueryFilters {
-  // TODO: implement
-  return {};
+function mapDataSourcesToFilters(dataSources?: DataSource[]): QueryFilters {
+  if (!dataSources || dataSources.length === 0) {
+    return {};
+  }
+
+  const sourceNames = dataSources.map(ds => ds.name);
+  const sourceTypes = dataSources.map(ds => ds.type).filter((t): t is string => !!t);
+  const versionLabels = dataSources.map(ds => ds.versionLabel).filter((v): v is string => !!v);
+
+  const filter: QueryFilters = {};
+
+  if (sourceNames.length) {
+    filter.sourceName = { $in: sourceNames };
+  }
+  if (sourceTypes.length) {
+    filter.sourceType = { $in: sourceTypes };
+  }
+  if (versionLabels.length) {
+    filter.version = { label: { $in: versionLabels } };
+  }
+
+  return filter;
 }
 
 async function persistSearchResultsToDatabase(params: {
@@ -112,5 +136,5 @@ async function persistSearchResultsToDatabase(params: {
   limit: number;
   searchResultsStore: SearchResultsStore;
 }) {
-  // TODO: implement
+  // TODO: implement in EAI-973
 }

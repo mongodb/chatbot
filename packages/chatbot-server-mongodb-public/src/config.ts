@@ -5,6 +5,7 @@
 import "dotenv/config";
 import {
   makeMongoDbEmbeddedContentStore,
+  makeMongoDbSearchResultsStore,
   makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
   makeMongoDbConversationsService,
@@ -118,6 +119,11 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
+});
+
+export const searchResultsStore = makeMongoDbSearchResultsStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const verifiedAnswerConfig = {
@@ -307,6 +313,10 @@ export async function closeDbConnections() {
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
+  contentRouterConfig: {
+    findContent,
+    searchResultsStore,
+  },
   conversationsRouterConfig: {
     middleware: [
       blockGetRequests,

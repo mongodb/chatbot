@@ -1,10 +1,14 @@
+import { NextFunction, Request, Response } from "express-serve-static-core";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
-import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
-export function requireRequestOrigin(): ConversationsMiddleware {
-  return (req, res, next) => {
+export function requireRequestOrigin<Locals extends Record<string, any>>() {
+  return (
+    req: Request<any, any, any, any>,
+    res: Response<any, Locals>,
+    next: NextFunction
+  ) => {
     const reqId = getRequestId(req);
 
     const origin = req.header("origin");

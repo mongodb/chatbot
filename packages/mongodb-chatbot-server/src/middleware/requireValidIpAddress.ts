@@ -1,9 +1,13 @@
+import { NextFunction, Request, Response } from "express-serve-static-core";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
-import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
 import { isValidIp } from "../routes/conversations/utils";
 
-export function requireValidIpAddress(): ConversationsMiddleware {
-  return (req, res, next) => {
+export function requireValidIpAddress<Locals extends Record<string, any>>() {
+  return (
+    req: Request<any, any, any, any>,
+    res: Response<any, Locals>,
+    next: NextFunction
+  ) => {
     const reqId = getRequestId(req);
 
     const { ip } = req;

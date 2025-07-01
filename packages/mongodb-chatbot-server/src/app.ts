@@ -148,6 +148,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     makeConversationsRouter(conversationsRouterConfig)
   );
 
+  console.log('content router config ', contentRouterConfig)
   if (contentRouterConfig) {
     app.use(`${apiPrefix}/content`, makeContentRouter(contentRouterConfig));
   }

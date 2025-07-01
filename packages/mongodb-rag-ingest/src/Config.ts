@@ -4,6 +4,7 @@ import {
   EmbeddedContentStore,
   ChunkOptions,
   EmbedConcurrencyOptions,
+  SearchResultsStore,
   PageConcurrencyOptions,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
@@ -36,6 +37,11 @@ export type Config = {
     The store that holds the embedded content and vector embeddings for later vector search.
    */
   embeddedContentStore: Constructor<EmbeddedContentStore>;
+
+  /**
+    The store that holds the search results.
+   */
+  searchResultsStore?: Constructor<SearchResultsStore>;
 
   /**
     The data sources that you want ingest to pull content from.

@@ -4,6 +4,7 @@ import {
   assertEnvVars,
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
+  makeMongoDbSearchResultsStore,
   makeMongoDbPageStore,
   filterFulfilled,
 } from "mongodb-rag-core";
@@ -55,6 +56,11 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
       entryId: "all",
+    }),
+  searchResultsStore: () =>
+    makeMongoDbSearchResultsStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
     }),
   chunkOptions: () => ({
     transform: standardChunkFrontMatterUpdater,

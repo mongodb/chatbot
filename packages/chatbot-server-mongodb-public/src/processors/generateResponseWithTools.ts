@@ -356,6 +356,8 @@ function handleReturnGeneration({
     references ?? []
   );
 
+  console.log([userMessage, ...formattedMessages]);
+
   return {
     messages: [userMessage, ...formattedMessages],
   } satisfies GenerateResponseReturnValue;

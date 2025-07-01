@@ -68,7 +68,7 @@ export function makeGenerateResponseWithTools({
   filterPreviousMessages,
   additionalTools,
   makeReferenceLinks = makeDefaultReferenceLinks,
-  maxSteps = 2,
+  maxSteps = 3,
   searchTool,
   fetchPageTool,
   toolChoice,

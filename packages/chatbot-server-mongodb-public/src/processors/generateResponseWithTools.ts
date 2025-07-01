@@ -36,6 +36,8 @@ import {
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 
+export const MAX_GENERATION_STEPS = 5;
+
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
@@ -68,7 +70,7 @@ export function makeGenerateResponseWithTools({
   filterPreviousMessages,
   additionalTools,
   makeReferenceLinks = makeDefaultReferenceLinks,
-  maxSteps = 3,
+  maxSteps = MAX_GENERATION_STEPS,
   searchTool,
   fetchPageTool,
   toolChoice,
@@ -355,8 +357,6 @@ function handleReturnGeneration({
     messages,
     references ?? []
   );
-
-  console.log([userMessage, ...formattedMessages]);
 
   return {
     messages: [userMessage, ...formattedMessages],

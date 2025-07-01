@@ -251,7 +251,7 @@ export interface ConversationsService {
   /**
     Initialize the conversations service.
    */
-  init: () => Promise<void>;
+  init?: () => Promise<void>;
 
   /**
     Create a new {@link Conversation}.

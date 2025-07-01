@@ -19,7 +19,7 @@ describe("Responses Router", () => {
     ({ appConfig } = await makeTestAppConfig());
   });
 
-  const makeRequest = (
+  const makeCreateResponseRequest = (
     app: Express,
     origin: string,
     body?: Partial<CreateResponseRequest["body"]>
@@ -34,7 +34,7 @@ describe("Responses Router", () => {
   it("should return 200 given a valid request", async () => {
     const { app, origin } = await makeTestApp(appConfig);
 
-    const res = await makeRequest(app, origin);
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(200);
   });
@@ -52,7 +52,7 @@ describe("Responses Router", () => {
       },
     });
 
-    const res = await makeRequest(app, origin);
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(500);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -83,7 +83,7 @@ describe("Responses Router", () => {
       },
     });
 
-    const res = await makeRequest(app, origin);
+    const res = await makeCreateResponseRequest(app, origin);
 
     expect(res.status).toBe(400);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -110,8 +110,8 @@ describe("Responses Router", () => {
       },
     });
 
-    const successRes = await makeRequest(app, origin);
-    const rateLimitedRes = await makeRequest(app, origin);
+    const successRes = await makeCreateResponseRequest(app, origin);
+    const rateLimitedRes = await makeCreateResponseRequest(app, origin);
 
     expect(successRes.status).toBe(200);
     expect(successRes.error).toBeFalsy();

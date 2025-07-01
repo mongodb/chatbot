@@ -26,7 +26,7 @@ describe("POST /responses", () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
-  const makeRequest = (
+  const makeCreateResponseRequest = (
     body?: Partial<CreateResponseRequest["body"]>,
     appOverride?: Express
   ) => {
@@ -39,13 +39,13 @@ describe("POST /responses", () => {
 
   describe("Valid requests", () => {
     it("Should return 200 given a string input", async () => {
-      const response = await makeRequest();
+      const response = await makeCreateResponseRequest();
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 given a message array input", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
@@ -58,7 +58,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         instructions: "You are a helpful chatbot.",
       });
 
@@ -66,7 +66,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         max_output_tokens: 4000,
       });
 
@@ -74,7 +74,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid metadata", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         metadata: { key1: "value1", key2: "value2" },
       });
 
@@ -82,7 +82,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid temperature", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         temperature: 0,
       });
 
@@ -94,9 +94,9 @@ describe("POST /responses", () => {
         await appConfig.conversationsRouterConfig.conversations.create({
           initialMessages: [{ role: "user", content: "What is MongoDB?" }],
         });
-      const previousResponseId = conversation.messages[0].id;
 
-      const response = await makeRequest({
+      const previousResponseId = conversation.messages[0].id;
+      const response = await makeCreateResponseRequest({
         previous_response_id: previousResponseId.toString(),
       });
 
@@ -112,8 +112,9 @@ describe("POST /responses", () => {
             { role: "user", content: "What is a document database?" },
           ],
         });
+
       const previousResponseId = conversation.messages[2].id;
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         previous_response_id: previousResponseId.toString(),
       });
 
@@ -121,7 +122,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with user", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         user: "some-user-id",
       });
 
@@ -129,7 +130,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with store=false", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         store: false,
       });
 
@@ -137,7 +138,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with store=true", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         store: true,
       });
 
@@ -145,7 +146,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tools: [
           {
             name: "test-tool",
@@ -166,7 +167,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tools: [
           {
             name: "test-tool",
@@ -190,7 +191,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a message array with function_call", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -207,7 +208,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -223,7 +224,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tool_choice: "none",
       });
 
@@ -231,7 +232,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with tool_choice 'only'", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tool_choice: "only",
       });
 
@@ -239,7 +240,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with an empty tools array", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tools: [],
       });
 
@@ -249,7 +250,7 @@ describe("POST /responses", () => {
 
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: "",
       });
 
@@ -260,7 +261,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an empty message array", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [],
       });
 
@@ -271,7 +272,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         model: "gpt-4o-mini",
       });
 
@@ -282,7 +283,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if stream is not true", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         stream: false,
       });
 
@@ -292,10 +293,10 @@ describe("POST /responses", () => {
       );
     });
 
-    it("Should return 400 if max_output_tokens is > 4000", async () => {
+    it("Should return 400 if max_output_tokens is > allowed limit", async () => {
       const max_output_tokens = 4001;
 
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         max_output_tokens,
       });
 
@@ -310,7 +311,7 @@ describe("POST /responses", () => {
       for (let i = 0; i < 17; i++) {
         metadata[`key${i}`] = "value";
       }
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         metadata,
       });
 
@@ -321,7 +322,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if metadata value is too long", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         metadata: { key1: "a".repeat(513) },
       });
 
@@ -334,7 +335,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if temperature is not 0", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         temperature: 0.5 as any,
       });
 
@@ -345,7 +346,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           { role: "invalid-role" as any, content: "This is an invalid role." },
@@ -359,7 +360,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           {
             type: "function_call",
@@ -378,7 +379,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         input: [
           {
             type: "function_call_output",
@@ -396,7 +397,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         tool_choice: "invalid_choice" as any,
       });
 
@@ -407,7 +408,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         max_output_tokens: -1,
       });
 
@@ -422,7 +423,7 @@ describe("POST /responses", () => {
     it("Should return 400 if previous_response_id is not a valid ObjectId", async () => {
       const messageId = "some-id";
 
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         previous_response_id: messageId,
       });
 
@@ -435,7 +436,7 @@ describe("POST /responses", () => {
     it("Should return 400 if previous_response_id is not found", async () => {
       const messageId = "123456789012123456789012";
 
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         previous_response_id: messageId,
       });
 
@@ -454,8 +455,9 @@ describe("POST /responses", () => {
             { role: "user", content: "What is a document database?" },
           ],
         });
+
       const previousResponseId = conversation.messages[0].id;
-      const response = await makeRequest({
+      const response = await makeCreateResponseRequest({
         previous_response_id: previousResponseId.toString(),
       });
 
@@ -479,7 +481,7 @@ describe("POST /responses", () => {
         },
       });
 
-      const response = await makeRequest({}, newApp.app);
+      const response = await makeCreateResponseRequest({}, newApp.app);
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(

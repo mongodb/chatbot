@@ -1,7 +1,7 @@
 import "dotenv/config";
 import request from "supertest";
 import { Express } from "express";
-import { DEFAULT_API_PREFIX } from "../../app";
+import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { MONGO_CHAT_MODEL } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
@@ -18,11 +18,12 @@ const badRequestError = (message: string) => ({
 describe("POST /responses", () => {
   const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
   let app: Express;
+  let appConfig: AppConfig;
   let ipAddress: string;
   let origin: string;
 
   beforeEach(async () => {
-    ({ app, ipAddress, origin } = await makeTestApp());
+    ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
   describe("Valid requests", () => {
@@ -120,6 +121,12 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with previous_response_id", async () => {
+      const conversation =
+        await appConfig.conversationsRouterConfig.conversations.create({
+          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+        });
+      const previousResponseId = conversation.messages[0].id;
+
       const response = await request(app)
         .post(endpointUrl)
         .set("X-Forwarded-For", ipAddress)
@@ -128,7 +135,7 @@ describe("POST /responses", () => {
           model: MONGO_CHAT_MODEL,
           stream: true,
           input: "What is MongoDB?",
-          previous_response_id: "some-id",
+          previous_response_id: previousResponseId,
         });
 
       expect(response.statusCode).toBe(200);

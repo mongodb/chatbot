@@ -4,7 +4,16 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { SuccessfulExecution, ReasonableOutput } from "./evaluationMetrics";
+import { SuccessfulExecution, ReasonableOutput, makeQueryPerformanceMongoh } from "./evaluationMetrics";
+import { profileMongoshQuery } from "mongodb-rag-core/executeCode";
+
+// Mock the profileMongoshQuery function
+jest.mock("mongodb-rag-core/executeCode", () => ({
+  ...jest.requireActual("mongodb-rag-core/executeCode"),
+  profileMongoshQuery: jest.fn(),
+}));
+
+const mockProfileMongoshQuery = profileMongoshQuery as jest.MockedFunction<typeof profileMongoshQuery>;
 
 const input = {
   databaseName: "some dataset",
@@ -343,5 +352,269 @@ describe("ReasonableOutput", () => {
         metadata: { reason: expect.any(String) },
       },
     ]);
+  });
+});
+
+describe("makeQueryPerformanceMongoh", () => {
+  const connectionUri = "mongodb://test-connection";
+  const queryPerformanceScorer = makeQueryPerformanceMongoh(connectionUri);
+
+  const input = {
+    databaseName: "test_db",
+    nlQuery: "Find all users",
+  } satisfies TextToDriverInput;
+
+  const output = {
+    generatedCode: "db.users.find({})",
+    execution: {
+      result: [{ name: "John" }, { name: "Jane" }],
+      executionTimeMs: 50,
+    },
+  } satisfies TextToDriverOutput;
+
+  const expected = {
+    dbQuery: "db.users.find({})",
+    result: [{ name: "John" }, { name: "Jane" }],
+    executionTimeMs: 50,
+  } satisfies TextToDriverExpected;
+
+  const metadata = {
+    language: "javascript",
+    orderMatters: false,
+    isAggregation: false,
+  } satisfies TextToDriverMetadata;
+
+  beforeEach(() => {
+    mockProfileMongoshQuery.mockClear();
+  });
+
+  it("should return score 0 and error metadata when profiling fails", async () => {
+    const profileError = { message: "Connection failed" };
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: null,
+      error: profileError,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    expect(result).toEqual({
+      name: "QueryPerformance",
+      score: 0,
+      metadata: { error: "Connection failed" },
+    });
+
+    expect(mockProfileMongoshQuery).toHaveBeenCalledWith(
+      "db.users.find({})",
+      "test_db",
+      connectionUri
+    );
+  });
+
+  it("should return efficiency score for perfect query performance", async () => {
+    const mockProfile = {
+      explainOutput: {
+        executionStats: {
+          nReturned: 100,
+          totalDocsExamined: 100, // Perfect efficiency
+          totalKeysExamined: 100,
+          executionTimeMillis: 50,
+        },
+        queryPlanner: {
+          namespace: "test_db.users",
+          winningPlan: { stage: "IXSCAN" },
+        },
+      },
+      collection: {
+        name: "users",
+        documentCount: 1000,
+      },
+    };
+
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: mockProfile,
+      error: null,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    expect(result).toEqual({
+      name: "QueryPerformance",
+      score: 1.0, // Perfect efficiency should give score of 1
+      metadata: mockProfile,
+    });
+  });
+
+  it("should return lower efficiency score for poor query performance", async () => {
+    const mockProfile = {
+      explainOutput: {
+        executionStats: {
+          nReturned: 100,
+          totalDocsExamined: 10000, // 100x more examined than returned
+          totalKeysExamined: 10000,
+          executionTimeMillis: 500,
+        },
+        queryPlanner: {
+          namespace: "test_db.users",
+          winningPlan: { stage: "COLLSCAN" },
+        },
+      },
+      collection: {
+        name: "users",
+        documentCount: 1000000,
+      },
+    };
+
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: mockProfile,
+      error: null,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    // Using the logarithmic formula: 1 - log(10000/100) / log(1000000/100)
+    // = 1 - log(100) / log(10000) = 1 - 2 / 4 = 0.5
+    expect(result).toEqual({
+      name: "QueryPerformance",
+      score: 0.5,
+      metadata: mockProfile,
+    });
+  });
+
+  it("should return score 0 for full collection scan with minimal results", async () => {
+    const mockProfile = {
+      explainOutput: {
+        executionStats: {
+          nReturned: 1,
+          totalDocsExamined: 1000000, // Full scan for 1 result
+          totalKeysExamined: 0,
+          executionTimeMillis: 2000,
+        },
+        queryPlanner: {
+          namespace: "test_db.users",
+          winningPlan: { stage: "COLLSCAN" },
+        },
+      },
+      collection: {
+        name: "users",
+        documentCount: 1000000,
+      },
+    };
+
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: mockProfile,
+      error: null,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    expect(result).toEqual({
+      name: "QueryPerformance",
+      score: 0.0, // Full scan should give score close to 0
+      metadata: mockProfile,
+    });
+  });
+
+  it("should handle edge case with reasonable efficiency for large result sets", async () => {
+    const mockProfile = {
+      explainOutput: {
+        executionStats: {
+          nReturned: 500000,
+          totalDocsExamined: 800000, // Some overhead but large result set
+          totalKeysExamined: 500000,
+          executionTimeMillis: 1000,
+        },
+        queryPlanner: {
+          namespace: "test_db.users",
+          winningPlan: { stage: "IXSCAN" },
+        },
+      },
+      collection: {
+        name: "users",
+        documentCount: 1000000,
+      },
+    };
+
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: mockProfile,
+      error: null,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    // For large result sets, efficiency should still be calculated correctly
+    // This tests the edge case handling in the logarithmic formula
+    expect((result as any).score).toBeGreaterThan(0);
+    expect((result as any).score).toBeLessThan(1);
+    expect((result as any).metadata).toEqual(mockProfile);
+  });
+
+  it("should call profileMongoshQuery with correct parameters", async () => {
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: null,
+      error: { message: "Test error" },
+    });
+
+    const customInput = {
+      databaseName: "custom_db",
+      nlQuery: "Custom query",
+    };
+
+    const customOutput = {
+      generatedCode: "db.custom.aggregate([{$match: {}}])",
+      execution: {
+        result: [],
+        executionTimeMs: 100,
+      },
+    };
+
+    await queryPerformanceScorer({
+      output: customOutput,
+      input: customInput,
+      expected,
+      metadata,
+    });
+
+    expect(mockProfileMongoshQuery).toHaveBeenCalledWith(
+      "db.custom.aggregate([{$match: {}}])",
+      "custom_db",
+      connectionUri
+    );
+  });
+
+  it("should preserve all profile metadata in the result", async () => {
+    const complexMockProfile = {
+      explainOutput: {
+        executionStats: {
+          nReturned: 50,
+          totalDocsExamined: 50,
+          totalKeysExamined: 50,
+          executionTimeMillis: 25,
+          totalDocsExaminedByStage: { IXSCAN: 50 },
+        },
+        queryPlanner: {
+          namespace: "test_db.products",
+          winningPlan: {
+            stage: "IXSCAN",
+            indexName: "product_index",
+            direction: "forward",
+          },
+        },
+      },
+      collection: {
+        name: "products",
+        documentCount: 5000,
+      },
+    };
+
+    mockProfileMongoshQuery.mockResolvedValue({
+      profile: complexMockProfile,
+      error: null,
+    });
+
+    const result = await queryPerformanceScorer({ output, input, expected, metadata });
+
+    expect((result as any).metadata).toEqual(complexMockProfile);
+    expect((result as any).metadata.explainOutput.queryPlanner.winningPlan.indexName).toBe("product_index");
+    expect((result as any).metadata.collection.name).toBe("products");
   });
 });

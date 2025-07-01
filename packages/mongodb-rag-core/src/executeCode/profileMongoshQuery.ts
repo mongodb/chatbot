@@ -20,57 +20,42 @@ export const ExplainOutputSchema = z.object({
 type ExplainOutput = z.infer<typeof ExplainOutputSchema>;
 
 /**
-  Extracts collection name from a MongoDB query string
-  @param query - The MongoDB query string (e.g., "db.users.find({})")
-  @returns The collection name or null if not found
- */
-export function extractCollectionName(query: string): string | null {
-  // Match patterns like db.collectionName.method() or db['collectionName'].method()
-  const patterns = [
-    /db\.([a-zA-Z_][a-zA-Z0-9_]*)\.\w+\s*\(/,
-    /db\[['"](.*?)['"]]\./,
-    /db\.getCollection\(['"]([^'"]+)['"]\)/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = query.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-
-  return null;
-}
-
-/**
   Transforms a MongoDB query to include .explain() for execution analysis
   @param query - The original MongoDB query
   @returns The query with .explain() added
  */
 export function addExplainToQuery(query: string): string {
-  // Handle different query patterns - add .explain() at the end
-  const patterns = [
-    // db.collection.method(...) -> db.collection.method(...).explain()
-    {
-      pattern:
-        /(db\.\w+\.(find|findOne|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\))/,
-      replacement: "$1.explain()",
-    },
-    // db['collection'].method(...) -> db['collection'].method(...).explain()
-    {
-      pattern:
-        /(db\[['"][^'"]+['"]\]\.(find|findOne|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\))/,
-      replacement: "$1.explain()",
-    },
-    // db.getCollection('collection').method(...) -> db.getCollection('collection').method(...).explain()
-    {
-      pattern:
-        /(db\.getCollection\((['"])[^'"]+\2\)\.(find|findOne|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\))/,
-      replacement: "$1.explain()",
-    },
+  // Handle findOne() specially - convert to find().limit(1).explain()
+  const findOnePatterns = [
+    /(db\.\w+)\.findOne\s*\(([^)]*)\)/,
+    /(db\[['"][^'"]+['"]\])\.findOne\s*\(([^)]*)\)/,
+    /(db\.getCollection\((['"])[^'"]+\2\))\.findOne\s*\(([^)]*)\)/,
   ];
 
-  for (const { pattern } of patterns) {
+  for (let i = 0; i < findOnePatterns.length; i++) {
+    const pattern = findOnePatterns[i];
+    if (pattern.test(query)) {
+      if (i === 2) { // getCollection pattern has different capture groups
+        return query.replace(pattern, '$1.find($3).limit(1).explain("executionStats")');
+      } else {
+        return query.replace(pattern, '$1.find($2).limit(1).explain("executionStats")');
+      }
+    }
+  }
+
+  // Handle other operations that support .explain() directly
+  const patterns = [
+    // db.collection.method(...) with optional chained methods -> db.collection.method(...).chainedMethods().explain()
+    /(db\.\w+\.(find|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\)(?:\.\w+\s*\([^)]*\))*)/,
+
+    // db['collection'].method(...) with optional chained methods -> db['collection'].method(...).chainedMethods().explain()
+    /(db\[['"][^'"]+['"]\]\.(find|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\)(?:\.\w+\s*\([^)]*\))*)/,
+
+    // db.getCollection('collection').method(...) with optional chained methods -> db.getCollection('collection').method(...).chainedMethods().explain()
+    /(db\.getCollection\((['"])[^'"]+\2\)\.(find|aggregate|count|distinct|update|remove|delete)\s*\([^)]*\)(?:\.\w+\s*\([^)]*\))*)/,
+  ];
+
+  for (const pattern of patterns) {
     if (pattern.test(query)) {
       // Add .explain("executionStats") to get execution statistics
       return query.replace(pattern, '$1.explain("executionStats")');
@@ -147,10 +132,33 @@ export function calculateQueryEfficiency(
 
 export interface QueryProfile {
   explainOutput: ExplainOutput;
-  collectionName: string;
-  totalDocs: number;
-  queryEfficiency: number;
+  collection: {
+    name: string;
+    documentCount: number;
+  };
 }
+
+// helper function to extract collection name from explain output
+function extractCollectionName(explainOutput: ExplainOutput): string | null {
+  const namespace = explainOutput.queryPlanner.namespace;
+  if (namespace.includes(".")) {
+    return namespace.split(".").slice(1).join(".");
+  } else {
+    throw new Error(
+      "Could not extract collection name from explain output namespace"
+    );
+  }
+}
+
+export type ProfileMongoshQueryReturnValue =
+  | {
+      profile: QueryProfile;
+      error: null;
+    }
+  | {
+      profile: null;
+      error: { message: string };
+    };
 
 /**
   Calls MongoDB .explain() on the query and analyzes performance
@@ -158,11 +166,11 @@ export interface QueryProfile {
   @param databaseName - The database name for execution context
   @returns Explain output with performance metrics
  */
-export async function explainQuery(
+export async function profileMongoshQuery(
   dbQuery: string,
   databaseName: string,
   connectionUri: string
-): Promise<QueryProfile | null> {
+): Promise<ProfileMongoshQueryReturnValue> {
   try {
     // Step 1: Add explain to the query
     const explainQuery = addExplainToQuery(dbQuery);
@@ -175,41 +183,54 @@ export async function explainQuery(
     });
     if (!executionResult.result) {
       // If the query failed (e.g., invalid syntax), return null
-      return null;
+
+      return {
+        profile: null,
+        error: {
+          message:
+            executionResult.error?.message ??
+            "Unknown error executing explain query",
+        },
+      };
     }
 
     // Step 3: Parse the explain output
     const explainOutput = ExplainOutputSchema.parse(executionResult.result);
 
-    // Extract collection name from namespace or original query
-    const namespace = explainOutput.queryPlanner.namespace;
-    const collectionName = namespace.includes(".")
-      ? namespace.split(".").slice(1).join(".")
-      : extractCollectionName(dbQuery);
+    const collectionName = extractCollectionName(explainOutput);
 
     // If we can't extract the collection name, return null
     if (!collectionName) {
-      return null;
+      return {
+        profile: null,
+        error: { message: "Could not extract collection name from query" },
+      };
     }
 
     // Step 4: Get total document count
-    const totalDocs = await getMongoshCollectionDocumentCount(
+    const collectionDocumentCount = await getMongoshCollectionDocumentCount(
       connectionUri,
       collectionName,
       databaseName
     );
 
-    // Step 5: Calculate query efficiency
-    const queryEfficiency = calculateQueryEfficiency(explainOutput, totalDocs);
-
     return {
-      explainOutput,
-      collectionName,
-      totalDocs,
-      queryEfficiency,
+      profile: {
+        explainOutput,
+        collection: {
+          name: collectionName,
+          documentCount: collectionDocumentCount,
+        },
+      },
+      error: null,
     };
   } catch (error) {
     // If any error occurs (invalid query, parsing error, etc.), return null
-    return null;
+    return {
+      profile: null,
+      error: {
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+    };
   }
 }

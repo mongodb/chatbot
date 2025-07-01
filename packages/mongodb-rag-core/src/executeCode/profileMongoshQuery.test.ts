@@ -1,11 +1,11 @@
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 import {
-  extractCollectionName,
   addExplainToQuery,
   getMongoshCollectionDocumentCount,
   calculateQueryEfficiency,
-  explainQuery,
+  profileMongoshQuery,
+  ProfileMongoshQueryReturnValue,
 } from "./profileMongoshQuery";
 
 // Note: These tests require mongosh to be installed.
@@ -23,56 +23,13 @@ describe.skip("profileMongoshQuery", () => {
     await mongoClient.close();
   });
 
-  describe("extractCollectionName", () => {
-    it("should extract collection name from db.collection.method() pattern", () => {
-      expect(extractCollectionName("db.users.find({})")).toBe("users");
-      expect(extractCollectionName("db.products.findOne({ id: 1 })")).toBe(
-        "products"
-      );
-      expect(extractCollectionName("db.orders.aggregate([])")).toBe("orders");
-    });
-
-    it("should extract collection name from db['collection'].method() pattern", () => {
-      expect(extractCollectionName("db['users'].find({})")).toBe("users");
-      expect(extractCollectionName('db["products"].findOne({ id: 1 })')).toBe(
-        "products"
-      );
-    });
-
-    it("should extract collection name from db.getCollection() pattern", () => {
-      expect(extractCollectionName("db.getCollection('users').find({})")).toBe(
-        "users"
-      );
-      expect(
-        extractCollectionName('db.getCollection("products").findOne()')
-      ).toBe("products");
-    });
-
-    it("should handle collection names with underscores and numbers", () => {
-      expect(extractCollectionName("db.user_profiles.find({})")).toBe(
-        "user_profiles"
-      );
-      expect(extractCollectionName("db.data2024.find({})")).toBe("data2024");
-      expect(extractCollectionName("db._privateCollection.find({})")).toBe(
-        "_privateCollection"
-      );
-    });
-
-    it("should return null for invalid patterns", () => {
-      expect(extractCollectionName("invalid query")).toBeNull();
-      expect(extractCollectionName("db.find()")).toBeNull();
-      expect(extractCollectionName("")).toBeNull();
-      expect(extractCollectionName("db..find()")).toBeNull();
-    });
-  });
-
   describe("addExplainToQuery", () => {
     it("should add explain to db.collection.method() pattern", () => {
       expect(addExplainToQuery("db.users.find({})")).toBe(
         'db.users.find({}).explain("executionStats")'
       );
       expect(addExplainToQuery("db.products.findOne({ id: 1 })")).toBe(
-        'db.products.findOne({ id: 1 }).explain("executionStats")'
+        'db.products.find({ id: 1 }).limit(1).explain("executionStats")'
       );
       expect(addExplainToQuery("db.orders.aggregate([{ $match: {} }])")).toBe(
         'db.orders.aggregate([{ $match: {} }]).explain("executionStats")'
@@ -83,8 +40,8 @@ describe.skip("profileMongoshQuery", () => {
       expect(addExplainToQuery("db['users'].find({})")).toBe(
         "db['users'].find({}).explain(\"executionStats\")"
       );
-      expect(addExplainToQuery('db["products"].findOne({ id: 1 })')).toBe(
-        'db["products"].findOne({ id: 1 }).explain("executionStats")'
+      expect(addExplainToQuery('db["products"].find({ id: 1 })')).toBe(
+        'db["products"].find({ id: 1 }).explain("executionStats")'
       );
     });
 
@@ -93,14 +50,37 @@ describe.skip("profileMongoshQuery", () => {
         "db.getCollection('users').find({}).explain(\"executionStats\")"
       );
       expect(addExplainToQuery('db.getCollection("products").findOne()')).toBe(
-        'db.getCollection("products").findOne().explain("executionStats")'
+        'db.getCollection("products").find().limit(1).explain("executionStats")'
+      );
+    });
+
+    it("should add explain to db.collection.method().sort() pattern", () => {
+      expect(addExplainToQuery("db.users.find({}).sort({ age: 1 })")).toBe(
+        'db.users.find({}).sort({ age: 1 }).explain("executionStats")'
+      );
+    });
+
+    it("should add explain to db.collection.method().limit() pattern", () => {
+      expect(addExplainToQuery("db.users.find({}).limit(10)")).toBe(
+        'db.users.find({}).limit(10).explain("executionStats")'
+      );
+    });
+
+    it("should transform findOne to find().limit(1).explain() for all patterns", () => {
+      expect(addExplainToQuery("db.users.findOne({})")).toBe(
+        'db.users.find({}).limit(1).explain("executionStats")'
+      );
+      expect(addExplainToQuery("db['users'].findOne({ age: 30 })")).toBe(
+        "db['users'].find({ age: 30 }).limit(1).explain(\"executionStats\")"
+      );
+      expect(addExplainToQuery("db.getCollection('users').findOne()")).toBe(
+        "db.getCollection('users').find().limit(1).explain(\"executionStats\")"
       );
     });
 
     it("should handle all supported MongoDB methods", () => {
       const methods = [
         "find",
-        "findOne",
         "aggregate",
         "count",
         "distinct",
@@ -277,7 +257,7 @@ describe.skip("profileMongoshQuery", () => {
     });
   });
 
-  describe("explainQuery", () => {
+  describe("profileMongoshQuery", () => {
     const collectionName = "explain_test_" + Date.now();
     let collection: any;
 
@@ -301,66 +281,113 @@ describe.skip("profileMongoshQuery", () => {
     });
 
     it("should successfully profile a query", async () => {
-      const result = await explainQuery(
+      const result = await profileMongoshQuery(
         `db.${collectionName}.find({ age: { $gt: 25 } })`,
         databaseName,
         MONGO_MEMORY_SERVER_URI
       );
 
-      expect(result).not.toBeNull();
-      expect(result?.collectionName).toBe(collectionName);
-      expect(result?.totalDocs).toBe(5);
-      expect(result?.explainOutput.executionStats.nReturned).toBe(4); // John, Jane, Bob, Charlie
-      expect(result?.queryEfficiency).toBeGreaterThan(0);
-      expect(result?.queryEfficiency).toBeLessThanOrEqual(1);
+      expect(result).toMatchObject({
+        error: null,
+        profile: {
+          explainOutput: expect.objectContaining({
+            executionStats: expect.objectContaining({
+              nReturned: 4, // John, Jane, Bob, Charlie
+            }),
+          }),
+          collection: expect.objectContaining({
+            name: collectionName,
+            documentCount: 5,
+          }),
+        },
+      } satisfies ProfileMongoshQueryReturnValue);
     });
 
-    it("should return null when collection name cannot be extracted", async () => {
-      const result = await explainQuery(
+    it("should return error when collection name cannot be extracted", async () => {
+      const result = await profileMongoshQuery(
         "invalidQuery",
         databaseName,
         MONGO_MEMORY_SERVER_URI
       );
 
-      expect(result).toBeNull();
+      expect(result).toMatchObject({
+        error: expect.objectContaining({
+          message: expect.any(String),
+        }),
+        profile: null,
+      } satisfies ProfileMongoshQueryReturnValue);
     });
 
     it("should handle db.getCollection pattern correctly", async () => {
-      const result = await explainQuery(
+      const result = await profileMongoshQuery(
         `db.getCollection("${collectionName}").find({ name: 'John' })`,
         databaseName,
         MONGO_MEMORY_SERVER_URI
       );
 
-      expect(result).not.toBeNull();
-      expect(result?.collectionName).toBe(collectionName);
-      expect(result?.explainOutput.executionStats.nReturned).toBe(1);
+      expect(result).toMatchObject({
+        error: null,
+        profile: {
+          explainOutput: expect.objectContaining({
+            executionStats: expect.objectContaining({
+              nReturned: 1, // John
+            }),
+          }),
+          collection: expect.objectContaining({
+            name: collectionName,
+            documentCount: 5,
+          }),
+        },
+      } satisfies ProfileMongoshQueryReturnValue);
     });
 
     it("should handle db['collection'] pattern correctly", async () => {
-      const result = await explainQuery(
+      const result = await profileMongoshQuery(
         `db['${collectionName}'].find({ city: "NYC" })`,
         databaseName,
         MONGO_MEMORY_SERVER_URI
       );
 
-      expect(result).not.toBeNull();
-      expect(result?.collectionName).toBe(collectionName);
-      expect(result?.explainOutput.executionStats.nReturned).toBe(3); // John, Bob, Charlie
+      expect(result).toMatchObject({
+        error: null,
+        profile: {
+          explainOutput: expect.objectContaining({
+            executionStats: expect.objectContaining({
+              nReturned: 3, // John, Bob, Charlie
+            }),
+          }),
+          collection: expect.objectContaining({
+            name: collectionName,
+            documentCount: 5,
+          }),
+        },
+      } satisfies ProfileMongoshQueryReturnValue);
     });
 
     it("should calculate efficiency correctly for indexed vs non-indexed queries", async () => {
       // Create an index
       await collection.createIndex({ age: 1 });
 
-      const result = await explainQuery(
+      const result = await profileMongoshQuery(
         `db.${collectionName}.find({ age: 30 })`,
         databaseName,
         MONGO_MEMORY_SERVER_URI
       );
 
-      expect(result).not.toBeNull();
-      expect(result?.queryEfficiency).toBeGreaterThan(0.5); // Should be efficient with index
+      expect(result).toMatchObject({
+        error: null,
+        profile: {
+          explainOutput: expect.objectContaining({
+            executionStats: expect.objectContaining({
+              nReturned: 1, // John
+            }),
+          }),
+          collection: expect.objectContaining({
+            name: collectionName,
+            documentCount: 5,
+          }),
+        },
+      } satisfies ProfileMongoshQueryReturnValue);
     });
   });
 });

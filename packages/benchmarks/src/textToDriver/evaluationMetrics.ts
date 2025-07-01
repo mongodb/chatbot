@@ -1,10 +1,13 @@
 import {
+  computeNormalizedLogarithmicQueryEfficiency,
   computeNormalizedLogisticalExecutionTime,
   fuzzyMatchExecutionResults,
   isNonEmptyResult,
   isReasonableResult,
+  profileMongoshQuery,
 } from "mongodb-rag-core/executeCode";
 import { TextToDriverEvalScorer } from "./TextToDriverEval";
+import { Score } from "autoevals";
 
 /**
   Check if the generated query successfully executed.
@@ -15,7 +18,7 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
   output,
   expected,
   metadata,
-}) => {
+}): Promise<Score[]> => {
   const noOutput = output.execution.result === null;
   const successfulExecution = {
     name: "SuccessfulExecution",
@@ -57,7 +60,7 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
 export const ReasonableOutput: TextToDriverEvalScorer = ({
   output,
   expected,
-}) => {
+}): Score[] => {
   const isNonEmpty = isNonEmptyResult(output.execution.result);
   const isReasonable = isReasonableResult(output.execution.result);
 
@@ -70,7 +73,7 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
     expected.executionTimeMs &&
     expected.executionTimeMs > 0;
 
-  return [
+  const scores: Score[] = [
     {
       name: "NonEmptyOutput",
       score: isNonEmpty.success ? 1 : 0,
@@ -95,19 +98,64 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
         : undefined,
     },
   ];
+  return scores;
 };
 
-export function makeQueryPerformance(): TextToDriverEvalScorer {
-  return async function QueryPerformance({ output, expected }) {
-    return [
-      {
-        name: "NormalizedQueryEfficiency",
-        score: null,
-      },
-      {
-        name: "AdaptivePowerEfficiency",
-        score: null,
-      },
-    ];
+export function makeQueryPerformanceMongoh(
+  connectionUri: string
+): TextToDriverEvalScorer {
+  return async function QueryPerformance({ output, input }) {
+    const { profile, error: profileError } = await profileMongoshQuery(
+      output.generatedCode,
+      input.databaseName,
+      connectionUri
+    );
+
+    // Do not return scores if the query profiling failed
+    if (profileError) {
+      return {
+        name: "QueryPerformance",
+        score: 0,
+        metadata: { error: profileError.message },
+      };
+    }
+
+    const efficiency = computeNormalizedLogarithmicQueryEfficiency({
+      nExamined: profile.explainOutput.executionStats.totalDocsExamined,
+      nReturned: profile.explainOutput.executionStats.nReturned,
+      nTotal: profile.collection.documentCount,
+    });
+    return {
+      name: "QueryPerformance",
+      score: efficiency,
+      metadata: { ...profile },
+    };
   };
 }
+
+export const makeMongoshBenchmarkMetrics = (
+  connectionUri: string
+): TextToDriverEvalScorer => {
+  const compoundScorer: TextToDriverEvalScorer = async (args) => {
+    const successfulExecution = (await SuccessfulExecution(args)) as Score[];
+    const reasonableOutput = (await ReasonableOutput(args)) as Score[];
+
+    // Note doing casting b/c of limitations of the Braintrust typing used here.
+    const allScores = [...successfulExecution, ...reasonableOutput];
+
+    // Only track performance if its the correct answer..this is so that it serves as a "bonus" metric.
+    if (
+      successfulExecution.find((score) => {
+        score.name === "CorrectOutputFuzzy" && score.score !== 0;
+      })
+    ) {
+      const queryPerformance = (await makeQueryPerformanceMongoh(connectionUri)(
+        args
+      )) as Score;
+      allScores.push(queryPerformance);
+    }
+
+    return allScores;
+  };
+  return compoundScorer;
+};

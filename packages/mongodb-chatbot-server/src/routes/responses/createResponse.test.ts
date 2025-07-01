@@ -26,8 +26,11 @@ describe("POST /responses", () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
-  const makeRequest = (body?: Partial<CreateResponseRequest["body"]>) => {
-    return request(app)
+  const makeRequest = (
+    body?: Partial<CreateResponseRequest["body"]>,
+    appOverride?: Express
+  ) => {
+    return request(appOverride ?? app)
       .post(endpointUrl)
       .set("X-Forwarded-For", ipAddress)
       .set("Origin", origin)
@@ -460,6 +463,28 @@ describe("POST /responses", () => {
       expect(response.body.error).toEqual(
         badRequestError(
           ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
+        )
+      );
+    });
+
+    it("Should return 400 if there are too many messages in the conversation", async () => {
+      const maxUserMessagesInConversation = 0;
+      const newApp = await makeTestApp({
+        responsesRouterConfig: {
+          ...appConfig.responsesRouterConfig,
+          createResponse: {
+            ...appConfig.responsesRouterConfig.createResponse,
+            maxUserMessagesInConversation,
+          },
+        },
+      });
+
+      const response = await makeRequest({}, newApp.app);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error).toEqual(
+        badRequestError(
+          ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
         )
       );
     });

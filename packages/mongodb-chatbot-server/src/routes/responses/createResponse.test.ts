@@ -1,11 +1,11 @@
 import "dotenv/config";
 import request from "supertest";
-import { Express } from "express";
+import type { Express } from "express";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
-import { ERR_MSG } from "./createResponse";
+import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(100000);
 
@@ -26,83 +26,62 @@ describe("POST /responses", () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
+  const makeRequest = (body?: Partial<CreateResponseRequest["body"]>) => {
+    return request(app)
+      .post(endpointUrl)
+      .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
+      .send({ ...basicResponsesRequestBody, ...body });
+  };
+
   describe("Valid requests", () => {
     it("Should return 200 given a string input", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send(basicResponsesRequestBody);
+      const response = await makeRequest();
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 given a message array input", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: "What is MongoDB?" },
-            { role: "assistant", content: "MongoDB is a document database." },
-            { role: "user", content: "What is a document database?" },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: "What is MongoDB?" },
+          { role: "assistant", content: "MongoDB is a document database." },
+          { role: "user", content: "What is a document database?" },
+        ],
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          instructions: "You are a helpful chatbot.",
-        });
+      const response = await makeRequest({
+        instructions: "You are a helpful chatbot.",
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          max_output_tokens: 4000,
-        });
+      const response = await makeRequest({
+        max_output_tokens: 4000,
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with valid metadata", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          metadata: { key1: "value1", key2: "value2" },
-        });
+      const response = await makeRequest({
+        metadata: { key1: "value1", key2: "value2" },
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with valid temperature", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          temperature: 0,
-        });
+      const response = await makeRequest({
+        temperature: 0,
+      });
 
       expect(response.statusCode).toBe(200);
     });
@@ -114,190 +93,135 @@ describe("POST /responses", () => {
         });
       const previousResponseId = conversation.messages[0].id;
 
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          previous_response_id: previousResponseId,
-        });
+      const response = await makeRequest({
+        previous_response_id: previousResponseId.toString(),
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with user", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          user: "some-user-id",
-        });
+      const response = await makeRequest({
+        user: "some-user-id",
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with store=false", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          store: false,
-        });
+      const response = await makeRequest({
+        store: false,
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with store=true", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          store: true,
-        });
+      const response = await makeRequest({
+        store: true,
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tools: [
-            {
-              name: "test-tool",
-              description: "A tool for testing.",
-              parameters: {
-                type: "object",
-                properties: {
-                  query: { type: "string" },
-                },
-                required: ["query"],
+      const response = await makeRequest({
+        tools: [
+          {
+            name: "test-tool",
+            description: "A tool for testing.",
+            parameters: {
+              type: "object",
+              properties: {
+                query: { type: "string" },
               },
+              required: ["query"],
             },
-          ],
-          tool_choice: "auto",
-        });
+          },
+        ],
+        tool_choice: "auto",
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tools: [
-            {
-              name: "test-tool",
-              description: "A tool for testing.",
-              parameters: {
-                type: "object",
-                properties: {
-                  query: { type: "string" },
-                },
-                required: ["query"],
-              },
-            },
-          ],
-          tool_choice: {
-            type: "function",
+      const response = await makeRequest({
+        tools: [
+          {
             name: "test-tool",
+            description: "A tool for testing.",
+            parameters: {
+              type: "object",
+              properties: {
+                query: { type: "string" },
+              },
+              required: ["query"],
+            },
           },
-        });
+        ],
+        tool_choice: {
+          type: "function",
+          name: "test-tool",
+        },
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 given a message array with function_call", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            { role: "user", content: "What is MongoDB?" },
-            {
-              type: "function_call",
-              id: "call123",
-              name: "my_function",
-              arguments: `{"query": "value"}`,
-              status: "in_progress",
-            },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          { role: "user", content: "What is MongoDB?" },
+          {
+            type: "function_call",
+            id: "call123",
+            name: "my_function",
+            arguments: `{"query": "value"}`,
+            status: "in_progress",
+          },
+        ],
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            { role: "user", content: "What is MongoDB?" },
-            {
-              type: "function_call_output",
-              call_id: "call123",
-              output: `{"result": "success"}`,
-              status: "completed",
-            },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          { role: "user", content: "What is MongoDB?" },
+          {
+            type: "function_call_output",
+            call_id: "call123",
+            output: `{"result": "success"}`,
+            status: "completed",
+          },
+        ],
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tool_choice: "none",
-        });
+      const response = await makeRequest({
+        tool_choice: "none",
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with tool_choice 'only'", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tool_choice: "only",
-        });
+      const response = await makeRequest({
+        tool_choice: "only",
+      });
 
       expect(response.statusCode).toBe(200);
     });
 
     it("Should return 200 with an empty tools array", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tools: [],
-        });
+      const response = await makeRequest({
+        tools: [],
+      });
 
       expect(response.statusCode).toBe(200);
     });
@@ -305,14 +229,9 @@ describe("POST /responses", () => {
 
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: "",
-        });
+      const response = await makeRequest({
+        input: "",
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -321,14 +240,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an empty message array", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [],
-        });
+      const response = await makeRequest({
+        input: [],
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -337,14 +251,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          model: "gpt-4o-mini",
-        });
+      const response = await makeRequest({
+        model: "gpt-4o-mini",
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -353,14 +262,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if stream is not true", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          stream: false,
-        });
+      const response = await makeRequest({
+        stream: false,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -371,14 +275,9 @@ describe("POST /responses", () => {
     it("Should return 400 if max_output_tokens is > 4000", async () => {
       const max_output_tokens = 4001;
 
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          max_output_tokens,
-        });
+      const response = await makeRequest({
+        max_output_tokens,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -391,14 +290,9 @@ describe("POST /responses", () => {
       for (let i = 0; i < 17; i++) {
         metadata[`key${i}`] = "value";
       }
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          metadata,
-        });
+      const response = await makeRequest({
+        metadata,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -407,14 +301,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if metadata value is too long", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          metadata: { key1: "a".repeat(513) },
-        });
+      const response = await makeRequest({
+        metadata: { key1: "a".repeat(513) },
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -425,14 +314,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if temperature is not 0", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          temperature: 0.5,
-        });
+      const response = await makeRequest({
+        temperature: 0.5 as any,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -441,17 +325,13 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            { role: "user", content: "What is MongoDB?" },
-            { role: "invalid-role", content: "This is an invalid role." },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          { role: "user", content: "What is MongoDB?" },
+          { role: "invalid-role" as any, content: "This is an invalid role." },
+        ],
+      });
+
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
@@ -459,22 +339,18 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            {
-              type: "function_call",
-              id: "call123",
-              name: "my_function",
-              arguments: `{"query": "value"}`,
-              status: "invalid_status",
-            },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          {
+            type: "function_call",
+            id: "call123",
+            name: "my_function",
+            arguments: `{"query": "value"}`,
+            status: "invalid_status" as any,
+          },
+        ],
+      });
+
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
@@ -482,21 +358,17 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          input: [
-            {
-              type: "function_call_output",
-              call_id: "call123",
-              output: `{"result": "success"}`,
-              status: "invalid_status",
-            },
-          ],
-        });
+      const response = await makeRequest({
+        input: [
+          {
+            type: "function_call_output",
+            call_id: "call123",
+            output: `{"result": "success"}`,
+            status: "invalid_status" as any,
+          },
+        ],
+      });
+
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
@@ -504,14 +376,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          tool_choice: "invalid_choice",
-        });
+      const response = await makeRequest({
+        tool_choice: "invalid_choice" as any,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
@@ -520,14 +387,9 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
-      const response = await request(app)
-        .post(endpointUrl)
-        .set("X-Forwarded-For", ipAddress)
-        .set("Origin", origin)
-        .send({
-          ...basicResponsesRequestBody,
-          max_output_tokens: -1,
-        });
+      const response = await makeRequest({
+        max_output_tokens: -1,
+      });
 
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(

@@ -1,3 +1,4 @@
+import type { Express } from "express";
 import request from "supertest";
 import { AppConfig } from "../../app";
 import { DEFAULT_API_PREFIX } from "../../app";
@@ -5,6 +6,7 @@ import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE, makeBadRequestError } from "./errors";
+import { CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(60000);
 
@@ -17,14 +19,22 @@ describe("Responses Router", () => {
     ({ appConfig } = await makeTestAppConfig());
   });
 
+  const makeRequest = (
+    app: Express,
+    origin: string,
+    body?: Partial<CreateResponseRequest["body"]>
+  ) => {
+    return request(app)
+      .post(responsesEndpoint)
+      .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
+      .send({ ...basicResponsesRequestBody, ...body });
+  };
+
   it("should return 200 given a valid request", async () => {
     const { app, origin } = await makeTestApp(appConfig);
 
-    const res = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(basicResponsesRequestBody);
+    const res = await makeRequest(app, origin);
 
     expect(res.status).toBe(200);
   });
@@ -42,11 +52,7 @@ describe("Responses Router", () => {
       },
     });
 
-    const res = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(basicResponsesRequestBody);
+    const res = await makeRequest(app, origin);
 
     expect(res.status).toBe(500);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -77,11 +83,7 @@ describe("Responses Router", () => {
       },
     });
 
-    const res = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(basicResponsesRequestBody);
+    const res = await makeRequest(app, origin);
 
     expect(res.status).toBe(400);
     expect(res.body.type).toBe(ERROR_TYPE);
@@ -108,17 +110,8 @@ describe("Responses Router", () => {
       },
     });
 
-    const successRes = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(basicResponsesRequestBody);
-
-    const rateLimitedRes = await request(app)
-      .post(responsesEndpoint)
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send(basicResponsesRequestBody);
+    const successRes = await makeRequest(app, origin);
+    const rateLimitedRes = await makeRequest(app, origin);
 
     expect(successRes.status).toBe(200);
     expect(successRes.error).toBeFalsy();

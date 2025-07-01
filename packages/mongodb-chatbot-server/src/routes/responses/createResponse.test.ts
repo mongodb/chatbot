@@ -398,5 +398,31 @@ describe("POST /responses", () => {
         )
       );
     });
+
+    it("Should return 400 if previous_response_id is not a valid object id", async () => {
+      const messageId = "some-id";
+
+      const response = await makeRequest({
+        previous_response_id: messageId,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error).toEqual(
+        badRequestError(ERR_MSG.INVALID_OBJECT_ID(messageId))
+      );
+    });
+
+    it("Should return 400 if previous_response_id is not found", async () => {
+      const messageId = "123456789012123456789012";
+
+      const response = await makeRequest({
+        previous_response_id: messageId,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error).toEqual(
+        badRequestError(ERR_MSG.MESSAGE_NOT_FOUND(messageId))
+      );
+    });
   });
 });

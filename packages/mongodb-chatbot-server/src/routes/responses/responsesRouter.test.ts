@@ -23,22 +23,7 @@ describe("Responses Router", () => {
   });
 
   it("should return 200 given a valid request", async () => {
-    const { app, origin } = await makeTestApp({
-      ...appConfig,
-      responsesRouterConfig: {
-        createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
-          generateResponse: () =>
-            Promise.resolve({
-              messages: [
-                { role: "user", content: "What is MongoDB?" },
-                { role: "assistant", content: "MongoDB is a database." },
-              ],
-            }),
-        },
-      },
-    });
+    const { app, origin } = await makeTestApp(appConfig);
 
     const res = await request(app)
       .post(responsesEndpoint)
@@ -54,9 +39,9 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
+        ...appConfig.responsesRouterConfig,
         createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
+          ...appConfig.responsesRouterConfig.createResponse,
           generateResponse: () => Promise.reject(new Error(errorMessage)),
         },
       },
@@ -83,9 +68,9 @@ describe("Responses Router", () => {
     const { app, origin } = await makeTestApp({
       ...appConfig,
       responsesRouterConfig: {
+        ...appConfig.responsesRouterConfig,
         createResponse: {
-          supportedModels: [MONGO_CHAT_MODEL],
-          maxOutputTokens: 4000,
+          ...appConfig.responsesRouterConfig.createResponse,
           generateResponse: () =>
             Promise.reject(
               makeBadRequestError({

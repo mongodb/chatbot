@@ -182,15 +182,11 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
     },
     responsesRouterConfig: {
       createResponse: {
+        conversations,
+        generateResponse: mockGenerateResponse,
         supportedModels: [MONGO_CHAT_MODEL],
         maxOutputTokens: 4000,
-        generateResponse: () =>
-          Promise.resolve({
-            messages: [
-              { role: "user", content: "What is MongoDB?" },
-              { role: "assistant", content: "MongoDB is a database." },
-            ],
-          }),
+        maxUserMessagesInConversation: 6,
       },
     },
     maxRequestTimeoutMs: 30000,

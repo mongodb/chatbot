@@ -202,15 +202,20 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toBeNull();
   });
   test("should find a conversation by message id", async () => {
-    // TODO: implement
-    expect(true).toBe(false);
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
+    const messageId = conversation.messages[0].id;
+    const conversationInDb = await conversationsService.findByMessageId({
+      messageId,
+    });
+    expect(conversationInDb).toEqual(conversation);
   });
   test("should return null if cannot find a conversation by message id", async () => {
-    // const conversationInDb = await conversationsService.findByMessageId({
-    //   messageId: new BSON.ObjectId(),
-    // });
-    // expect(conversationInDb).toBeNull();
-    expect(true).toBe(false);
+    const conversationInDb = await conversationsService.findByMessageId({
+      messageId: new BSON.ObjectId(),
+    });
+    expect(conversationInDb).toBeNull();
   });
   test("Should rate a message", async () => {
     const { _id: conversationId } = await conversationsService.create({

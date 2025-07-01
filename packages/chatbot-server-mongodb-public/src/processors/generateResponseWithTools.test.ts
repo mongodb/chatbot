@@ -272,6 +272,7 @@ const makeGenerateResponseWithToolsArgs = () =>
     llmNotWorkingMessage: mockLlmNotWorkingMessage,
     llmRefusalMessage: mockLlmRefusalMessage,
     systemMessage: mockSystemMessage,
+    maxSteps: 3,
     searchTool: mockSearchTool,
     fetchPageTool: mockFetchPageTool,
   } satisfies Partial<GenerateResponseWithToolsParams>);

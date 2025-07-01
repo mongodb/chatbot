@@ -3,10 +3,12 @@ import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { APIError } from "mongodb-rag-core/openai";
+import { ObjectId } from "mongodb";
+import type { APIError } from "mongodb-rag-core/openai";
+import type { ConversationsService, Conversation } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
-import { GenerateResponse } from "../../processors";
+import type { GenerateResponse } from "../../processors";
 import {
   makeBadRequestError,
   makeInternalServerError,
@@ -22,6 +24,12 @@ export const ERR_MSG = {
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
   TEMPERATURE: "Temperature must be 0 or unset",
   STREAM: "'stream' must be true",
+  MESSAGE_NOT_FOUND: (messageId: string) =>
+    `Path: body.previous_response_id - Message ${messageId} not found`,
+  MESSAGE_NOT_LATEST: (messageId: string) =>
+    `Path: body.previous_response_id - Message ${messageId} is not the latest message in the conversation`,
+  TOO_MANY_MESSAGES: (max: number) =>
+    `Too many messages. You cannot send more than ${max} messages in this conversation.`,
   MODEL_NOT_SUPPORTED: (model: string) =>
     `Path: body.model - ${model} is not supported.`,
   MAX_OUTPUT_TOKENS: (input: number, max: number) =>
@@ -144,36 +152,42 @@ const CreateResponseRequestSchema = SomeExpressRequest.merge(
 export type CreateResponseRequest = z.infer<typeof CreateResponseRequestSchema>;
 
 export interface CreateResponseRouteParams {
+  conversations: ConversationsService;
   generateResponse: GenerateResponse;
   supportedModels: string[];
   maxOutputTokens: number;
+  maxUserMessagesInConversation: number;
 }
 
 export function makeCreateResponseRoute({
+  conversations,
   generateResponse,
   supportedModels,
   maxOutputTokens,
+  maxUserMessagesInConversation,
 }: CreateResponseRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse<{ status: string }, any>
+    res: ExpressResponse<{ status: string }, any> // TODO: fix type
   ) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
 
     try {
-      const {
-        body: { model, max_output_tokens },
-      } = req;
-
       // --- INPUT VALIDATION ---
-      const { error } = await CreateResponseRequestSchema.safeParseAsync(req);
+      const { error, data } = await CreateResponseRequestSchema.safeParseAsync(
+        req
+      );
       if (error) {
         throw makeBadRequestError({
           error: new Error(generateZodErrorMessage(error)),
           headers,
         });
       }
+
+      const {
+        body: { model, max_output_tokens, previous_response_id },
+      } = data;
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
@@ -188,6 +202,27 @@ export function makeCreateResponseRoute({
         throw makeBadRequestError({
           error: new Error(
             ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, maxOutputTokens)
+          ),
+          headers,
+        });
+      }
+
+      // --- LOAD CONVERSATION ---
+      const conversation = await loadConversationByMessageId({
+        messageId: previous_response_id,
+        conversations,
+        headers,
+      });
+
+      // TODO: abstract this logic and share between this and addMessageToConversation
+      const numUserMessages = conversation.messages.reduce(
+        (acc, message) => (message.role === "user" ? acc + 1 : acc),
+        0
+      );
+      if (numUserMessages >= maxUserMessagesInConversation) {
+        throw makeBadRequestError({
+          error: new Error(
+            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
           ),
           headers,
         });
@@ -210,4 +245,41 @@ export function makeCreateResponseRoute({
       });
     }
   };
+}
+
+interface LoadConversationByMessageIdParams {
+  messageId?: string;
+  conversations: ConversationsService;
+  headers: Record<string, string>;
+}
+
+async function loadConversationByMessageId({
+  messageId,
+  conversations,
+  headers,
+}: LoadConversationByMessageIdParams): Promise<Conversation> {
+  if (!messageId) {
+    return await conversations.create();
+  }
+
+  const conversation = await conversations.findByMessageId({
+    messageId: new ObjectId(messageId),
+  });
+
+  if (!conversation) {
+    throw makeBadRequestError({
+      error: new Error(ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
+      headers,
+    });
+  }
+
+  const latestMessage = conversation.messages[conversation.messages.length - 1];
+  if (latestMessage.id.toString() !== messageId) {
+    throw makeBadRequestError({
+      error: new Error(ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
+      headers,
+    });
+  }
+
+  return conversation;
 }

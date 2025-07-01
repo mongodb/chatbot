@@ -100,6 +100,23 @@ describe("POST /responses", () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it("Should return 200 if previous_response_id is the latest message", async () => {
+      const conversation =
+        await appConfig.conversationsRouterConfig.conversations.create({
+          initialMessages: [
+            { role: "user", content: "What is MongoDB?" },
+            { role: "assistant", content: "MongoDB is a document database." },
+            { role: "user", content: "What is a document database?" },
+          ],
+        });
+      const previousResponseId = conversation.messages[2].id;
+      const response = await makeRequest({
+        previous_response_id: previousResponseId.toString(),
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it("Should return 200 with user", async () => {
       const response = await makeRequest({
         user: "some-user-id",
@@ -399,7 +416,7 @@ describe("POST /responses", () => {
       );
     });
 
-    it("Should return 400 if previous_response_id is not a valid object id", async () => {
+    it("Should return 400 if previous_response_id is not a valid ObjectId", async () => {
       const messageId = "some-id";
 
       const response = await makeRequest({
@@ -422,6 +439,28 @@ describe("POST /responses", () => {
       expect(response.statusCode).toBe(400);
       expect(response.body.error).toEqual(
         badRequestError(ERR_MSG.MESSAGE_NOT_FOUND(messageId))
+      );
+    });
+
+    it("Should return 400 if previous_response_id is not the latest message", async () => {
+      const conversation =
+        await appConfig.conversationsRouterConfig.conversations.create({
+          initialMessages: [
+            { role: "user", content: "What is MongoDB?" },
+            { role: "assistant", content: "MongoDB is a document database." },
+            { role: "user", content: "What is a document database?" },
+          ],
+        });
+      const previousResponseId = conversation.messages[0].id;
+      const response = await makeRequest({
+        previous_response_id: previousResponseId.toString(),
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error).toEqual(
+        badRequestError(
+          ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
+        )
       );
     });
   });

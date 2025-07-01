@@ -1,6 +1,5 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { makeGenerateMongoshCodeAgenticTask } from "../../generateDriverCode/generateMongoshCodeAgentic";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -14,6 +13,7 @@ import {
   MAX_CONCURRENT_EXPERIMENTS,
   makeLlmOptions,
   EXPERIMENT_BASE_NAME,
+  mongoshScores,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
@@ -64,7 +64,7 @@ async function main() {
           model,
           experimentType,
         },
-        scores: [SuccessfulExecution, ReasonableOutput],
+        scores: mongoshScores,
       });
     });
 }

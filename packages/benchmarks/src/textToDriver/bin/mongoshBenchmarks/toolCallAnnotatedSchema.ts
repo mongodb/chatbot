@@ -15,6 +15,7 @@ import {
   MODELS,
   Experiment,
   EXPERIMENT_BASE_NAME,
+  mongoshScores,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
@@ -69,7 +70,7 @@ async function main() {
           llmOptions,
           ...experiment,
         },
-        scores: [SuccessfulExecution, ReasonableOutput],
+        scores: mongoshScores,
       });
     });
 }

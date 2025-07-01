@@ -1,6 +1,5 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
@@ -13,11 +12,9 @@ import {
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
   MAX_CONCURRENT_MODELS,
-  schemaStrategies,
-  systemPromptStrategies,
   Experiment,
-  fewShot,
   EXPERIMENT_BASE_NAME,
+  mongoshScores,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
@@ -115,7 +112,7 @@ async function main() {
               llmOptions,
               ...experiment,
             },
-            scores: [SuccessfulExecution, ReasonableOutput],
+            scores: mongoshScores,
           });
         });
     });

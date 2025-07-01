@@ -23,6 +23,13 @@ export function makeMongoDbConversationsService(
     database.collection<Conversation>("conversations");
   return {
     conversationConstants,
+
+    async init() {
+      await conversationsCollection.createIndex("messages.id");
+      // NOTE: createdAt index is only used via the production collection
+      await conversationsCollection.createIndex("createdAt");
+    },
+
     async create(params) {
       const customData = params?.customData;
       const initialMessages = params?.initialMessages;

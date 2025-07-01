@@ -249,6 +249,11 @@ export interface ConversationsService {
   conversationConstants: ConversationConstants;
 
   /**
+    Initialize the conversations service.
+   */
+  init: () => Promise<void>;
+
+  /**
     Create a new {@link Conversation}.
    */
   create: (params?: CreateConversationParams) => Promise<Conversation>;

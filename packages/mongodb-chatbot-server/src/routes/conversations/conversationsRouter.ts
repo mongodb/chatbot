@@ -28,7 +28,13 @@ import {
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
 import { GenerateResponse } from "../../processors/GenerateResponse";
 import { Logger } from "mongodb-rag-core/braintrust";
-
+import {
+  AddCustomDataFunc,
+  addIpToCustomData,
+  addOriginCodeToCustomData,
+  addOriginToCustomData,
+  addUserAgentToCustomData,
+} from "../../processors";
 /**
   Configuration for rate limiting on the /conversations/* routes.
  */
@@ -57,16 +63,6 @@ export interface ConversationsRateLimitConfig {
    */
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
-
-/**
-  Function to add custom data to the {@link Conversation} persisted to the database.
-  Has access to the Express.js request and response plus the {@link ConversationsRouterLocals}
-  from the {@link Response.locals} object.
- */
-export type AddCustomDataFunc = (
-  request: Request,
-  response: ConversationsRouterResponse
-) => Promise<ConversationCustomData>;
 
 /**
   Express.js Request that exposes the app's {@link ConversationsService}.
@@ -157,7 +153,10 @@ export interface ConversationsRouterParams {
     The custom data is persisted to the database with the Conversation in the
     {@link Conversation.customData} field.
    */
-  createConversationCustomData?: AddCustomDataFunc;
+  createConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >;
 
   /**
     Function that takes the request + response and returns any custom data you want to include
@@ -166,7 +165,10 @@ export interface ConversationsRouterParams {
     The custom data is persisted to the database with the `Message` in the
     {@link Message.customData} field inside of the {@link Conversation.messages} array.
    */
-  addMessageToConversationCustomData?: AddCustomDataFunc;
+  addMessageToConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >;
 
   addMessageToConversationUpdateTrace?: AddMessageToConversationRouteParams["updateTrace"];
 
@@ -201,73 +203,8 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 
-const addIpToCustomData: AddCustomDataFunc = async (req) =>
-  req.ip
-    ? {
-        ip: req.ip,
-      }
-    : undefined;
-
-const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
-  res.locals.customData.origin
-    ? {
-        origin: res.locals.customData.origin,
-      }
-    : undefined;
-
-export const originCodes = [
-  "LEARN",
-  "DEVELOPER",
-  "DOCS",
-  "DOTCOM",
-  "GEMINI_CODE_ASSIST",
-  "VSCODE",
-  "OTHER",
-] as const;
-
-export type OriginCode = (typeof originCodes)[number];
-
-interface OriginRule {
-  regex: RegExp;
-  code: OriginCode;
-}
-
-const ORIGIN_RULES: OriginRule[] = [
-  { regex: /learn\.mongodb\.com/, code: "LEARN" },
-  { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
-  { regex: /mongodb\.com\/docs/, code: "DOCS" },
-  { regex: /mongodb\.com\//, code: "DOTCOM" },
-  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
-  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
-];
-
-function getOriginCode(origin: string): OriginCode {
-  for (const rule of ORIGIN_RULES) {
-    if (rule.regex.test(origin)) {
-      return rule.code;
-    }
-  }
-  return "OTHER";
-}
-
-const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {
-  const origin = res.locals.customData.origin;
-  return typeof origin === "string" && origin.length > 0
-    ? {
-        originCode: getOriginCode(origin),
-      }
-    : undefined;
-};
-
-const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
-  req.headers["user-agent"]
-    ? {
-        userAgent: req.headers["user-agent"],
-      }
-    : undefined;
-
 export type AddDefinedCustomDataFunc = (
-  ...args: Parameters<AddCustomDataFunc>
+  ...args: Parameters<AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>>
 ) => Promise<Exclude<ConversationCustomData, undefined>>;
 
 export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =

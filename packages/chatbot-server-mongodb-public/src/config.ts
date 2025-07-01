@@ -20,6 +20,7 @@ import {
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
   makeVerifiedAnswerGenerateResponse,
+  ConversationsRouterLocals,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -32,7 +33,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { ConversationCustomData, logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -268,18 +269,20 @@ export const generateResponse = wrapTraced(
   }
 );
 
-export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
-  async (req, res) => {
-    const customData = await defaultCreateConversationCustomData(req, res);
-    if (req.cookies.auth_user) {
-      customData.authUser = req.cookies.auth_user;
-    }
-    logRequest({
-      reqId: getRequestId(req),
-      message: `Custom data: ${customData}`,
-    });
-    return customData;
-  };
+export const createConversationCustomDataWithAuthUser: AddCustomDataFunc<
+  ConversationsRouterLocals,
+  ConversationCustomData
+> = async (req, res) => {
+  const customData = await defaultCreateConversationCustomData(req, res);
+  if (req.cookies.auth_user) {
+    customData.authUser = req.cookies.auth_user;
+  }
+  logRequest({
+    reqId: getRequestId(req),
+    message: `Custom data: ${customData}`,
+  });
+  return customData;
+};
 export const isProduction = process.env.NODE_ENV === "production";
 
 const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({

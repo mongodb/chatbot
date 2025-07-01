@@ -9,6 +9,7 @@ import {
   assertEnvVars,
   makeMongoDbConversationsService,
   SystemMessage,
+  makeMongoDbSearchResultsStore,
 } from "mongodb-rag-core";
 import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
@@ -59,6 +60,11 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
+});
+
+export const searchResultsStore = makeMongoDbSearchResultsStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
@@ -177,6 +183,10 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
     conversationsRouterConfig: {
       generateResponse: mockGenerateResponse,
       conversations,
+    },
+    contentRouterConfig: {
+      findContent,
+      searchResultsStore,
     },
     maxRequestTimeoutMs: 30000,
     corsOptions: {

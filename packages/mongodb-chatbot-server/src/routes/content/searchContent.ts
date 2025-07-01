@@ -1,4 +1,5 @@
 import {
+  DataSourceSchema,
   FindContentFunc,
   FindContentResult,
   QueryFilters,
@@ -10,16 +11,8 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { SearchResultsStore } from "mongodb-rag-core";
+import type { DataSource, SearchResultsStore } from "mongodb-rag-core";
 import { makeRequestError } from "../conversations/utils";
-
-export const DataSourceSchema = z.object({
-  name: z.string(),
-  type: z.string().optional(),
-  versionLabel: z.string().optional(),
-});
-
-export type DataSource = z.infer<typeof DataSourceSchema>;
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -68,6 +61,7 @@ export function makeSearchContentRoute({
     req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, ConversationsRouterLocals>
   ) => {
+    console.log('about to query!!')
     try {
       const { query, dataSources, limit } = req.body;
       const results = await findContent({
@@ -75,6 +69,7 @@ export function makeSearchContentRoute({
         filters: mapDataSourcesToFilters(dataSources),
         limit,
       });
+      console.log('results ', results)
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
       await persistSearchResultsToDatabase({
         query,
@@ -84,6 +79,7 @@ export function makeSearchContentRoute({
         searchResultsStore,
       });
     } catch (error) {
+      console.log('error ', error)
       throw makeRequestError({
         httpStatus: 500,
         message: "Unable to query search database",
@@ -91,6 +87,25 @@ export function makeSearchContentRoute({
     }
   };
 }
+
+// async function getCustomData(
+//   req: ExpressRequest,
+//   res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
+//   contentCustomData?: AddCustomDataFunc
+// ): Promise<ConversationCustomData | undefined> {
+//   try {
+//     if (contentCustomData) {
+//       return await contentCustomData(req, res);
+//     }
+//   } catch (error) {
+//     throw makeRequestError({
+//       message: "Error parsing custom data from the request",
+//       stack: (error as Error).stack,
+//       httpStatus: 500,
+//     });
+//   }
+// }
+
 
 function mapFindContentResultToSearchContentResponseChunk(
   result: FindContentResult
@@ -136,5 +151,13 @@ async function persistSearchResultsToDatabase(params: {
   limit: number;
   searchResultsStore: SearchResultsStore;
 }) {
+  console.log('calling?')
+  params.searchResultsStore.saveSearchResult({
+    query: params.query,
+    results: params.results.content,
+    dataSources: params.dataSources,
+    limit: params.limit,
+    createdAt: new Date(),
+  });
   // TODO: implement in EAI-973
 }

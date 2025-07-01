@@ -17,9 +17,9 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
-  AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
+import { AddCustomDataFunc } from "../../processors";
 
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
@@ -32,7 +32,10 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
-  createConversationCustomData?: AddCustomDataFunc;
+  createConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >;
 }
 
 export function makeCreateConversationRoute({
@@ -87,7 +90,7 @@ export function makeCreateConversationRoute({
 async function getCustomData(
   req: ExpressRequest,
   res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
-  createConversationCustomData?: AddCustomDataFunc
+  createConversationCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>
 ): Promise<ConversationCustomData | undefined> {
   try {
     if (createConversationCustomData) {

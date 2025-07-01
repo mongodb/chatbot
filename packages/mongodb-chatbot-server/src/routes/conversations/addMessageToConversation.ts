@@ -4,7 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
+import { ConversationCustomData, DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -22,7 +22,6 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
-  AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
 import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
@@ -31,6 +30,7 @@ import {
   GenerateResponse,
   GenerateResponseParams,
 } from "../../processors/GenerateResponse";
+import { AddCustomDataFunc } from "../../processors";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -63,7 +63,7 @@ export interface AddMessageToConversationRouteParams {
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
   generateResponse: GenerateResponse;
-  addMessageToConversationCustomData?: AddCustomDataFunc;
+  addMessageToConversationCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>;
   /**
     If present, the route will create a new conversation
     when given the `conversationIdPathParam` in the URL.
@@ -77,7 +77,7 @@ export interface AddMessageToConversationRouteParams {
       The custom data to add to the new conversation
       when it is created.
      */
-    addCustomData?: AddCustomDataFunc;
+    addCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>;
   };
 
   /**
@@ -342,7 +342,10 @@ async function getCustomData({
 }: {
   req: ExpressRequest;
   res: ExpressResponse<ApiMessage, ConversationsRouterLocals>;
-  addMessageToConversationCustomData?: AddCustomDataFunc;
+  addMessageToConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >;
 }) {
   try {
     return addMessageToConversationCustomData

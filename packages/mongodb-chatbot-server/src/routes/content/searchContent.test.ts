@@ -99,21 +99,25 @@ describe("makeSearchContentRoute", () => {
     expect(searchResultsStore.saveSearchResult).toHaveBeenCalledWith(
       expect.objectContaining({
         query: baseReqBody.query,
-        results: baseFindContentResult,
+        results: baseFindContentResult.content,
         dataSources: baseReqBody.dataSources,
         limit: baseReqBody.limit,
       })
     );
   });
 
-  it("should handle errors from findContent and return 500", async () => {
+  it("should handle errors from findContent and throw", async () => {
     const findContent = jest.fn().mockRejectedValue(new Error("fail"));
     const searchResultsStore = makeMockSearchResultsStore();
     const handler = makeSearchContentRoute({ findContent, searchResultsStore });
     const req = createRequest({ body: baseReqBody, headers: { "req-id": "test-req-id" } });
     const res = createResponse();
 
-    await expect(handler(req, res as any)).rejects.toThrow("Unable to query search database");
+    await expect(handler(req, res as any)).rejects.toMatchObject({
+      message: "Unable to query search database",
+      httpStatus: 500,
+      name: "RequestError",
+    });
   });
 
   it("should respect `limit` and `dataSources` parameters", async () => {

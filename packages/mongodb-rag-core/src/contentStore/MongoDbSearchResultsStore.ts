@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
   MakeMongoDbDatabaseConnectionParams,
@@ -5,10 +6,18 @@ import {
 } from "../MongoDbDatabaseConnection";
 import { Document } from "mongodb";
 
+export const DataSourceSchema = z.object({
+  name: z.string(),
+  type: z.string().optional(),
+  versionLabel: z.string().optional(),
+});
+
+export type DataSource = z.infer<typeof DataSourceSchema>;
+
 export interface SearchResultRecord {
   query: string;
   results: Document[];
-  dataSources?: string[];
+  dataSources?: DataSource[];
   limit?: number;
   createdAt: Date;
 }
@@ -26,6 +35,8 @@ export type SearchResultsStore = DatabaseConnection & {
 export type MakeMongoDbSearchResultsStoreParams = MakeMongoDbDatabaseConnectionParams & {
   collectionName?: string;
 };
+
+export type ContentCustomData = Record<string, unknown> | undefined;
 
 export function makeMongoDbSearchResultsStore({
   connectionUri,

@@ -263,6 +263,7 @@ export const generateResponse = wrapTraced(
         searchTool: makeSearchTool(findContent),
         fetchPageTool: makeFetchPageTool(loadPage, findContent),
         toolChoice: "auto",
+        maxSteps: 5,
       }),
       { name: "generateResponseWithTools" }
     ),

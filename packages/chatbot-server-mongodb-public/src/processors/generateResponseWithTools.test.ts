@@ -274,6 +274,7 @@ const makeGenerateResponseWithToolsArgs = () =>
     systemMessage: mockSystemMessage,
     searchTool: mockSearchTool,
     fetchPageTool: mockFetchPageTool,
+    maxSteps: 5,
   } satisfies Partial<GenerateResponseWithToolsParams>);
 
 const generateResponseBaseArgs = {

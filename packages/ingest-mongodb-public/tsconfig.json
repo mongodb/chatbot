@@ -3,5 +3,8 @@
   "compilerOptions": {
     "outDir": "./build"
   },
-  "include": ["./src/**/*.ts"]
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.d.ts"
+  ]
 }

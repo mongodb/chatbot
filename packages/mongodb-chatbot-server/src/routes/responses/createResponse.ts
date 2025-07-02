@@ -5,7 +5,11 @@ import type {
 } from "express";
 import { ObjectId } from "mongodb";
 import type { APIError } from "mongodb-rag-core/openai";
-import type { ConversationsService, Conversation } from "mongodb-rag-core";
+import type {
+  ConversationsService,
+  Conversation,
+  SomeMessage,
+} from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
 import type { GenerateResponse } from "../../processors";
@@ -188,7 +192,7 @@ export function makeCreateResponseRoute({
       }
 
       const {
-        body: { model, max_output_tokens, previous_response_id },
+        body: { model, max_output_tokens, previous_response_id, store },
       } = data;
 
       // --- MODEL CHECK ---
@@ -234,6 +238,14 @@ export function makeCreateResponseRoute({
       // TODO: actually implement this call
       await generateResponse({} as any);
 
+      // --- STORE MESSAGES IN CONVERSATION ---
+      await addMessagesToConversation({
+        conversations,
+        conversation,
+        store,
+        messages: [],
+      });
+
       return res.status(200).send({ status: "ok" });
     } catch (error) {
       const standardError =
@@ -256,11 +268,11 @@ interface LoadConversationByMessageIdParams {
   headers: Record<string, string>;
 }
 
-async function loadConversationByMessageId({
+const loadConversationByMessageId = async ({
   messageId,
   conversations,
   headers,
-}: LoadConversationByMessageIdParams): Promise<Conversation> {
+}: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     return await conversations.create();
   }
@@ -285,17 +297,17 @@ async function loadConversationByMessageId({
   }
 
   return conversation;
-}
+};
 
 const convertToObjectId = (
-  messageId: string,
+  inputString: string,
   headers: Record<string, string>
 ): ObjectId => {
   try {
-    return new ObjectId(messageId);
+    return new ObjectId(inputString);
   } catch (error) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.INVALID_OBJECT_ID(messageId)),
+      error: new Error(ERR_MSG.INVALID_OBJECT_ID(inputString)),
       headers,
     });
   }
@@ -305,10 +317,34 @@ const convertToObjectId = (
 export const hasTooManyUserMessagesInConversation = (
   conversation: Conversation,
   maxUserMessagesInConversation: number
-) => {
+): boolean => {
   const numUserMessages = conversation.messages.reduce(
     (acc, message) => (message.role === "user" ? acc + 1 : acc),
     0
   );
   return numUserMessages >= maxUserMessagesInConversation;
+};
+
+interface AddMessagesToConversationParams {
+  conversations: ConversationsService;
+  conversation: Conversation;
+  store: boolean;
+  messages: Array<SomeMessage>;
+}
+
+const addMessagesToConversation = async ({
+  conversations,
+  conversation,
+  store,
+  messages,
+}: AddMessagesToConversationParams) => {
+  // If storage flag is set, store messages in the conversation record.
+
+  // If storage flag is NOT set, only store metadata about the conversation.
+
+  // Handle persisting request metadata to message array
+
+  // Handle persisting request userId to conversation. Throw if userId changes throughout conversation
+
+  return null;
 };

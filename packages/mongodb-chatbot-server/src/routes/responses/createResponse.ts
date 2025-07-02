@@ -397,15 +397,8 @@ const saveMessagesToConversation = async ({
     });
   } else {
     finalMessages.push(
-      ...input.map((message) => {
-        const role = message.type === "message" ? message.role : "system";
-        const content = message.type === "message" ? message.content : "";
-        return {
-          role,
-          content,
-          metadata,
-        };
-      })
+      // TODO: fix type here, but the gist is to filter out any function/tool calls
+      ...input.filter((message) => message.type === "message")
     );
   }
 

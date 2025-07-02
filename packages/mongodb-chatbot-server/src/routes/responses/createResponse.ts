@@ -9,6 +9,7 @@ import type {
   ConversationsService,
   Conversation,
   SomeMessage,
+  UserMessage,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
@@ -199,6 +200,7 @@ export function makeCreateResponseRoute({
           store,
           metadata,
           user,
+          input,
         },
       } = data;
 
@@ -243,7 +245,7 @@ export function makeCreateResponseRoute({
       }
 
       // TODO: actually implement this call
-      await generateResponse({} as any);
+      const { messages } = await generateResponse({} as any);
 
       // --- STORE MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({
@@ -252,7 +254,8 @@ export function makeCreateResponseRoute({
         metadata,
         userId: user,
         storeMessageData: store,
-        messages: [],
+        input,
+        messages,
       });
 
       return res.status(200).send({ status: "ok" });
@@ -338,8 +341,10 @@ interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   metadata?: Record<string, string>;
+  previousMessageId?: string;
   userId?: string;
   storeMessageData: boolean;
+  input: CreateResponseRequest["body"]["input"];
   messages: Array<SomeMessage>;
 }
 
@@ -347,10 +352,23 @@ const saveMessagesToConversation = async ({
   conversations,
   conversation,
   metadata,
+  previousMessageId,
   userId,
   storeMessageData,
+  input,
   messages,
 }: AddMessagesToConversationParams) => {
+  // if previous_response_id and input is array,
+  // do we need to validate that the input has no old messages?
+
+  if (typeof input === "string") {
+    const userMessage: UserMessage = {
+      role: "user",
+      content: input,
+      metadata,
+    };
+  }
+
   // If storage flag is set, store messages in the conversation record.
 
   // If storage flag is NOT set, only store metadata about the conversation.

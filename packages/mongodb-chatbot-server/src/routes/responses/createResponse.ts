@@ -9,7 +9,6 @@ import type {
   ConversationsService,
   Conversation,
   SomeMessage,
-  UserMessage,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
@@ -229,7 +228,12 @@ export function makeCreateResponseRoute({
         messageId: previous_response_id,
         conversations,
         headers,
+        metadata,
+        userId: user,
       });
+
+      // --- CONVERSATION USER ID CHECK ---
+      // TODO
 
       // TODO: if previous_response_id and input is array,
       // do we need to validate that the input has no old messages?
@@ -259,15 +263,15 @@ export function makeCreateResponseRoute({
       const { messages } = await generateResponse({} as any);
 
       // --- STORE MESSAGES IN CONVERSATION ---
-      await saveMessagesToConversation({
-        conversations,
-        conversation,
-        metadata,
-        userId: user,
-        storeMessageData: store,
-        input,
-        messages,
-      });
+      if (store) {
+        await saveMessagesToConversation({
+          conversations,
+          conversation,
+          metadata,
+          input,
+          messages,
+        });
+      }
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
@@ -289,15 +293,21 @@ interface LoadConversationByMessageIdParams {
   messageId?: string;
   conversations: ConversationsService;
   headers: Record<string, string>;
+  metadata?: Record<string, string>;
+  userId?: string;
 }
 
 const loadConversationByMessageId = async ({
   messageId,
   conversations,
   headers,
+  metadata,
+  userId,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
-    return await conversations.create();
+    return await conversations.create({
+      customData: { metadata, userId },
+    });
   }
 
   const conversation = await conversations.findByMessageId({
@@ -352,8 +362,6 @@ interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   metadata?: Record<string, string>;
-  userId?: string;
-  storeMessageData: boolean;
   input: CreateResponseRequest["body"]["input"];
   messages: Array<SomeMessage>;
 }
@@ -362,26 +370,37 @@ const saveMessagesToConversation = async ({
   conversations,
   conversation,
   metadata,
-  userId,
-  storeMessageData,
   input,
   messages,
 }: AddMessagesToConversationParams) => {
+  const finalMessages: Array<SomeMessage> = [];
+
   if (typeof input === "string") {
-    const userMessage: UserMessage = {
+    finalMessages.push({
       role: "user",
       content: input,
       metadata,
-    };
+    });
+  } else {
+    finalMessages.push(
+      ...input.map((message) => {
+        const role = message.type === "message" ? message.role : "system";
+        const content = message.type === "message" ? message.content : "";
+        return {
+          role,
+          content,
+          metadata,
+        };
+      })
+    );
   }
 
-  // If storage flag is set, store messages in the conversation record.
-
-  // If storage flag is NOT set, only store metadata about the conversation.
-
-  // Handle persisting request metadata to message array
-
-  // Handle persisting request userId to conversation. Throw if userId changes throughout conversation
+  finalMessages.push(
+    ...messages.map((message) => ({
+      ...message,
+      metadata,
+    }))
+  );
 
   return null;
 };

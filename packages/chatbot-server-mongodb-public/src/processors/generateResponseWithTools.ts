@@ -88,7 +88,11 @@ export function makeGenerateResponseWithTools({
     }
     const userMessage: UserMessage = {
       role: "user",
-      content: formatUserMessageForGeneration(latestMessageText, customData),
+      content: formatUserMessageForGeneration(
+        latestMessageText,
+        reqId,
+        customData
+      ),
     };
     try {
       // Get preceding messages to include in the LLM prompt

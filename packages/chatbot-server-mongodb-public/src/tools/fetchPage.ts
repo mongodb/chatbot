@@ -33,12 +33,19 @@ export type FetchPageTool = Tool<
   ) => PromiseLike<FetchPageToolResult>;
 };
 
-export function makeFetchPageTool(
-  loadPage: MongoDbPageStore["loadPage"],
-  findContent: FindContentFunc,
-  searchFallbackText: string = SEARCH_ALL_FALLBACK_TEXT,
-  pageLengthCutoff: number = SEARCH_ON_PAGE_LENGTH_CUTOFF
-): FetchPageTool {
+export interface MakeFetchPageToolParams {
+  loadPage: MongoDbPageStore["loadPage"];
+  findContent: FindContentFunc;
+  searchFallbackText?: string;
+  pageLengthCutoff?: number;
+}
+
+export function makeFetchPageTool({
+  loadPage,
+  findContent,
+  searchFallbackText = SEARCH_ALL_FALLBACK_TEXT,
+  pageLengthCutoff = SEARCH_ON_PAGE_LENGTH_CUTOFF,
+}: MakeFetchPageToolParams): FetchPageTool {
   return tool({
     parameters: MongoDbFetchPageToolArgsSchema,
     description: "Fetch all content for a specific URL",
@@ -50,7 +57,7 @@ export function makeFetchPageTool(
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
       ): Promise<FetchPageToolResult> {
-        // TODO Comment in once ingestion is normalized too
+        // TODO EAI-1135: Comment in once ingestion is normalized too
         const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
         const page = await loadPage({
           urls: [normalizedUrl],
@@ -113,7 +120,7 @@ async function getPageContent(
   }
 
   // Page content is too long, do truncate-search
-  const relevantPageContent = await findContent({
+  const mostRelevantChunks = await findContent({
     query: query,
     filters: { url: normalizedUrl },
   });
@@ -125,11 +132,25 @@ async function getPageContent(
       sourceName: page.sourceName,
     },
   };
-  if (relevantPageContent.content.length > 0) {
-    const relevantContentText = relevantPageContent.content
-      .map((c) => c.text)
-      .join("\n");
-    const text = relevantContentText + page.body.slice(0, pageLengthCutoff);
+  if (mostRelevantChunks.content.length > 0) {
+    const searchResultsText = mostRelevantChunks.content.map(
+      (c) => `
+<result> 
+${c.text} 
+</result>`
+    );
+
+    const text = `<search_results>
+
+Search results from page ${normalizedUrl}
+
+${searchResultsText}
+</search_results>
+
+<truncated_page>
+${page.body.slice(0, pageLengthCutoff)}
+</truncated_page>
+`;
     return { text, reference };
   }
   const text = page.body.slice(0, pageLengthCutoff);

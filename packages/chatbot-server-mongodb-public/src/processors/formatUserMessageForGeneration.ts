@@ -5,26 +5,28 @@ import {
 } from "mongodb-rag-core";
 import { originCodes } from "mongodb-chatbot-server";
 import { z } from "zod";
+import { logRequest } from "../utils";
 
 const RawCustomDataSchema = z.object({
   origin: z.string().describe("Origin of the request"),
   originCode: z
     .enum(originCodes)
-    // .optional()
     .default("OTHER")
     .describe("Code representing the origin of the request"),
 });
 
 export function formatUserMessageForGeneration(
   userMessageText: string,
+  reqId: string,
   customData: ConversationCustomData
 ): string {
   const result = RawCustomDataSchema.safeParse(customData);
   if (!result.success) {
-    logger.warn(
-      `Invalid customData provided ${customData}`,
-      result.error.message
-    );
+    logRequest({
+      reqId,
+      message: `Zod parse error in formatUserMessageForGeneration: ${result.error.message}`,
+      type: "error",
+    });
     return userMessageText;
   }
 

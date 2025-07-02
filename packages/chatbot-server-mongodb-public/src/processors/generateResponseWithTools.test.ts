@@ -89,7 +89,10 @@ const mockFindContent: FindContentFunc = async () => {
 const mockSearchTool = makeSearchTool(mockFindContent);
 
 // Create a mock fetch_page tool that matches the SearchTool interface
-const mockFetchPageTool = makeFetchPageTool(mockLoadPage, mockFindContent);
+const mockFetchPageTool = makeFetchPageTool({
+  loadPage: mockLoadPage,
+  findContent: mockFindContent,
+});
 
 // What the references are expected to look like
 const mockReferences = [

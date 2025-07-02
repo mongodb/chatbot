@@ -192,7 +192,14 @@ export function makeCreateResponseRoute({
       }
 
       const {
-        body: { model, max_output_tokens, previous_response_id, store },
+        body: {
+          model,
+          max_output_tokens,
+          previous_response_id,
+          store,
+          metadata,
+          user,
+        },
       } = data;
 
       // --- MODEL CHECK ---
@@ -243,6 +250,8 @@ export function makeCreateResponseRoute({
         conversations,
         conversation,
         store,
+        metadata,
+        userId: user,
         messages: [],
       });
 
@@ -329,6 +338,8 @@ interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   store: boolean;
+  metadata?: Record<string, string>;
+  userId?: string;
   messages: Array<SomeMessage>;
 }
 
@@ -336,6 +347,8 @@ const addMessagesToConversation = async ({
   conversations,
   conversation,
   store,
+  metadata,
+  userId,
   messages,
 }: AddMessagesToConversationParams) => {
   // If storage flag is set, store messages in the conversation record.

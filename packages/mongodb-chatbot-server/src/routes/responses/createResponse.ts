@@ -246,12 +246,12 @@ export function makeCreateResponseRoute({
       await generateResponse({} as any);
 
       // --- STORE MESSAGES IN CONVERSATION ---
-      await addMessagesToConversation({
+      await saveMessagesToConversation({
         conversations,
         conversation,
-        store,
         metadata,
         userId: user,
+        storeMessageData: store,
         messages: [],
       });
 
@@ -337,18 +337,18 @@ export const hasTooManyUserMessagesInConversation = (
 interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
-  store: boolean;
   metadata?: Record<string, string>;
   userId?: string;
+  storeMessageData: boolean;
   messages: Array<SomeMessage>;
 }
 
-const addMessagesToConversation = async ({
+const saveMessagesToConversation = async ({
   conversations,
   conversation,
-  store,
   metadata,
   userId,
+  storeMessageData,
   messages,
 }: AddMessagesToConversationParams) => {
   // If storage flag is set, store messages in the conversation record.

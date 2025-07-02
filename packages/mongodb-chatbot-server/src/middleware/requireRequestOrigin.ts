@@ -9,7 +9,6 @@ export function requireRequestOrigin<Locals extends Record<string, any>>() {
     res: Response<any, Locals>,
     next: NextFunction
   ) => {
-    console.log('in middleware origin')
     const reqId = getRequestId(req);
 
     const origin = req.header("origin");

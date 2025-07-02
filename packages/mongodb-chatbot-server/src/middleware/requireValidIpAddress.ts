@@ -8,7 +8,6 @@ export function requireValidIpAddress<Locals extends Record<string, any>>() {
     res: Response<any, Locals>,
     next: NextFunction
   ) => {
-    console.log('ip address')
     const reqId = getRequestId(req);
 
     const { ip } = req;

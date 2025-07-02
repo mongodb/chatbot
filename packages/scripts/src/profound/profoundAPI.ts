@@ -95,14 +95,59 @@ export class ProfoundApi {
     return res.json();
   }
 
-  async getAnswer({
+  private async paginatedRequest<T>(
+    endpoint: string,
+    body: Record<string, any> = {},
+    maxLimit: number = 50000 // Limit set by Profound
+  ): Promise<T> {
+    let offset = 0;
+    const limit = maxLimit;
+    let allData: any[] = [];
+    let totalRows: number | undefined = undefined;
+
+    while (true) {
+      console.log(`Requesting the next ${limit} records, offset by ${offset}`)
+      const paginatedBody = {
+        ...body,
+        pagination: { limit, offset }
+      };
+      const res = await fetch(
+        `${this.baseUrl}${endpoint}?api_key=${this.apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paginatedBody)
+        }
+      );
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(
+          `Profound API error: ${res.status} ${res.statusText} - ${errorText}`
+        );
+      }
+      const json = await res.json();
+      if (totalRows === undefined) totalRows = json.info?.total_rows;
+      allData = allData.concat(json.data || []);
+      const effectiveTotalRows = totalRows ?? allData.length;
+      if ((json.data?.length ?? 0) < limit || allData.length >= effectiveTotalRows) break;
+      offset += limit;
+    }
+
+    // Return the same structure as a single response, but with all data
+    return {
+      ...body,
+      info: { total_rows: totalRows ?? allData.length },
+      data: allData
+    } as T;
+  }
+
+  async getAnswers({
     body
   }: {
     body: ProfoundAnswerRequestBody;
   }): Promise<ProfoundAnswerResponse> {
-    return this.request<ProfoundAnswerResponse>('/prompts/answers', {
-      method: 'POST',
-      body: { ...body, category_id: PROFOUND_CATALOG_ID_EDU }
+    return this.paginatedRequest<ProfoundAnswerResponse>('/prompts/answers', { 
+      ...body, category_id: PROFOUND_CATALOG_ID_EDU 
     });
   }
 

@@ -74,7 +74,7 @@ export async function getAnswers({
     }
   };
   console.log('Getting answers from Profound API for these params:', { body })
-  const response = await profoundAPI.getAnswer({ body });
+  const response = await profoundAPI.getAnswers({ body });
   return response.data;
 }
 

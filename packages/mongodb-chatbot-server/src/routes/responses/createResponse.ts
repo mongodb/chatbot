@@ -26,6 +26,8 @@ export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_ARRAY_WITH_OLD_MESSAGES:
+    "Path: body.input & body.previous_response_id - Currently does not support input arrays with existing conversations.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
   TEMPERATURE: "Temperature must be 0 or unset",
   STREAM: "'stream' must be true",
@@ -229,6 +231,15 @@ export function makeCreateResponseRoute({
         headers,
       });
 
+      // TODO: if previous_response_id and input is array,
+      // do we need to validate that the input has no old messages?
+      if (previous_response_id && Array.isArray(input)) {
+        throw makeBadRequestError({
+          error: new Error(ERR_MSG.INPUT_ARRAY_WITH_OLD_MESSAGES),
+          headers,
+        });
+      }
+
       // --- MAX CONVERSATION LENGTH CHECK ---
       if (
         hasTooManyUserMessagesInConversation(
@@ -341,7 +352,6 @@ interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   metadata?: Record<string, string>;
-  previousMessageId?: string;
   userId?: string;
   storeMessageData: boolean;
   input: CreateResponseRequest["body"]["input"];
@@ -352,15 +362,11 @@ const saveMessagesToConversation = async ({
   conversations,
   conversation,
   metadata,
-  previousMessageId,
   userId,
   storeMessageData,
   input,
   messages,
 }: AddMessagesToConversationParams) => {
-  // if previous_response_id and input is array,
-  // do we need to validate that the input has no old messages?
-
   if (typeof input === "string") {
     const userMessage: UserMessage = {
       role: "user",

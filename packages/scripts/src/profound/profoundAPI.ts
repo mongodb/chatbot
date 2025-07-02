@@ -10,6 +10,21 @@ const {
   'PROFOUND_CATALOG_ID_EDU': "",
 });
 
+/**
+ * The request body for fetching answers from the Profound API.
+ *
+ * Note: The `category_id` field is required by the Profound API, but is automatically
+ * injected by the ProfoundApi class and should NOT be set by callers.
+ */
+export interface ProfoundAnswerRequestBody {
+  start_date: string,
+  end_date: string,
+  filters?: { operator: string; field: string; value: string }[];
+  include?: {
+    prompt_id?: boolean,
+    run_id?: boolean,
+  }
+}
 export interface ProfoundAnswer {
   created_at: string;
   prompt: string;
@@ -26,6 +41,7 @@ export interface ProfoundAnswer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asset: null | any;
 }
+
 
 export interface ProfoundAnswerResponse {
   info: {
@@ -82,7 +98,7 @@ export class ProfoundApi {
   async getAnswer({
     body
   }: {
-    body: Record<string, unknown>;
+    body: ProfoundAnswerRequestBody;
   }): Promise<ProfoundAnswerResponse> {
     return this.request<ProfoundAnswerResponse>('/prompts/answers', {
       method: 'POST',

@@ -1,5 +1,6 @@
 import {
   ProfoundAnswer,
+  ProfoundAnswerRequestBody,
   ProfoundApi,
 } from './profoundAPI';
 import { makeReferenceAlignment } from "benchmarks";
@@ -48,7 +49,7 @@ export async function getAnswers({
   caseContent,
   platform
 }: GetAnswersArgs): Promise<ProfoundAnswer[]> {
-  const filters = [];
+  const filters: ProfoundAnswerRequestBody['filters'] = [];
   if (caseContent) {
     filters.push({
       operator: 'matches',
@@ -63,7 +64,7 @@ export async function getAnswers({
       value: platform
     });
   }
-  const body = {
+  const body: ProfoundAnswerRequestBody = {
     filters,
     start_date: startDate,
     end_date: endDate,

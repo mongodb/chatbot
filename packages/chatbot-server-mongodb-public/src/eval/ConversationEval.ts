@@ -264,7 +264,7 @@ export async function makeConversationEval({
         });
 
         const { rejectQuery, userMessage, contextContent, assistantMessage } =
-          extractTracingData(mockDbMessages, id);
+          extractTracingData(mockDbMessages, id, new ObjectId());
         assert(assistantMessage, "No assistant message found");
         assert(contextContent, "No context content found");
         assert(userMessage, "No user message found");

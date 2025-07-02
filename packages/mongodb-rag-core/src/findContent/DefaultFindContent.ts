@@ -21,7 +21,6 @@ export const makeDefaultFindContent = ({
   searchBoosters,
 }: MakeDefaultFindContentFuncArgs): FindContentFunc => {
   return async ({ query, filters = {}, limit }) => {
-    console.log('query default', query)
     const { embedding } = await embedder.embed({
       text: query,
     });

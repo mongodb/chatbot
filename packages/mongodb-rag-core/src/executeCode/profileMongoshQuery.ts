@@ -35,10 +35,17 @@ export function addExplainToQuery(query: string): string {
   for (let i = 0; i < findOnePatterns.length; i++) {
     const pattern = findOnePatterns[i];
     if (pattern.test(query)) {
-      if (i === 2) { // getCollection pattern has different capture groups
-        return query.replace(pattern, '$1.find($3).limit(1).explain("executionStats")');
+      if (i === 2) {
+        // getCollection pattern has different capture groups
+        return query.replace(
+          pattern,
+          '$1.find($3).limit(1).explain("executionStats")'
+        );
       } else {
-        return query.replace(pattern, '$1.find($2).limit(1).explain("executionStats")');
+        return query.replace(
+          pattern,
+          '$1.find($2).limit(1).explain("executionStats")'
+        );
       }
     }
   }

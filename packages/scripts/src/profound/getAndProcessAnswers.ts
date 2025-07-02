@@ -113,8 +113,24 @@ const model: ModelConfig = {
   generation: "gpt-4.1",
 }
 
-export const main = async () => {
+export const main = async (startDateArg?: string, endDateArg?: string) => {
   // START setup
+  // Parse optional startDate and endDate from command line arguments
+  let start: Date, end: Date;
+  if (startDateArg) {
+    const startDate = new Date(startDateArg);
+    const endDate = endDateArg ? new Date(endDateArg) : startDate;
+    ({ start, end } = getFullDayRange(startDate, endDate));
+  } else {
+    // Default to yesterday
+    const now = new Date();
+    const utcYear = now.getUTCFullYear();
+    const utcMonth = now.getUTCMonth();
+    const utcDate = now.getUTCDate();
+    const yesterday = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1));
+    ({ start, end } = getFullDayRange(yesterday, yesterday));
+  }
+
   const client = await MongoClient.connect(MONGODB_LLM_CLUSTER_URI);
   const db = client.db(MONGODB_LLM_DATABASE);
   const answersCollection = db.collection(MONGODB_LLM_ANSWERS_COLLECTION);
@@ -124,13 +140,6 @@ export const main = async () => {
   const platformsByNameMap = await platformsByName()
   // END set up
 
-  // get all answers for yesterday. 
-  const now = new Date();
-  const utcYear = now.getUTCFullYear();
-  const utcMonth = now.getUTCMonth();
-  const utcDate = now.getUTCDate();
-  const yesterday = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1));
-  const { start, end } = getFullDayRange(yesterday, yesterday);
   const answers = await getAnswers({
     startDate: start.toISOString(),
     endDate: end.toISOString()
@@ -271,4 +280,24 @@ export const main = async () => {
   }
 };
 
-main()
+// Usage documentation for CLI users
+if (process.argv.includes('--help')) {
+  console.log(`
+Usage: node getAndProcessAnswers.js [startDate] [endDate]
+
+Optional arguments:
+  startDate   ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
+  endDate     ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
+
+Date range is inclusive: the start date will have the time set to T00:00:00.000Z and the end date will have the time set to T23:59:59.999Z.
+
+Examples:
+  node getAndProcessAnswers.js
+  node getAndProcessAnswers.js 2025-06-20
+  node getAndProcessAnswers.js 2025-06-20 2025-06-30
+`);
+  process.exit(0);
+}
+
+const [, , startDateArg, endDateArg] = process.argv;
+main(startDateArg, endDateArg)

@@ -5,7 +5,9 @@ import type { SearchResultsStore, SearchResultRecord } from "mongodb-rag-core";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
 const mockSearchResultsStore: SearchResultsStore = {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   drop: async () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   close: async () => {},
   metadata: {
     databaseName: "mock",
@@ -14,11 +16,14 @@ const mockSearchResultsStore: SearchResultsStore = {
   async saveSearchResult(_record: SearchResultRecord) {
     // Not implemented
   },
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async init() {},
 };
 
 // Helper to build contentRouterConfig for the test app
-function makeContentRouterConfig(overrides: Partial<MakeContentRouterParams> = {}) {
+function makeContentRouterConfig(
+  overrides: Partial<MakeContentRouterParams> = {}
+) {
   return {
     findContent: jest
       .fn()
@@ -65,7 +70,9 @@ describe("contentRouter", () => {
   it("should call custom middleware if provided", async () => {
     const mockMiddleware = jest.fn((_req, _res, next) => next());
     const { app, origin } = await makeTestApp({
-      contentRouterConfig: makeContentRouterConfig({ middleware: [mockMiddleware] }),
+      contentRouterConfig: makeContentRouterConfig({
+        middleware: [mockMiddleware],
+      }),
     });
     await request(app)
       .post(searchEndpoint)

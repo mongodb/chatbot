@@ -61,7 +61,7 @@ export function makeSearchContentRoute({
     req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, ConversationsRouterLocals>
   ) => {
-    console.log('about to query!!')
+    console.log("about to query!!");
     try {
       const { query, dataSources, limit } = req.body;
       const results = await findContent({
@@ -69,7 +69,7 @@ export function makeSearchContentRoute({
         filters: mapDataSourcesToFilters(dataSources),
         limit,
       });
-      console.log('results ', results)
+      console.log("results ", results);
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
       await persistSearchResultsToDatabase({
         query,
@@ -79,7 +79,7 @@ export function makeSearchContentRoute({
         searchResultsStore,
       });
     } catch (error) {
-      console.log('error ', error)
+      console.log("error ", error);
       throw makeRequestError({
         httpStatus: 500,
         message: "Unable to query search database",
@@ -106,7 +106,6 @@ export function makeSearchContentRoute({
 //   }
 // }
 
-
 function mapFindContentResultToSearchContentResponseChunk(
   result: FindContentResult
 ): SearchContentResponseBody {
@@ -125,9 +124,13 @@ function mapDataSourcesToFilters(dataSources?: DataSource[]): QueryFilters {
     return {};
   }
 
-  const sourceNames = dataSources.map(ds => ds.name);
-  const sourceTypes = dataSources.map(ds => ds.type).filter((t): t is string => !!t);
-  const versionLabels = dataSources.map(ds => ds.versionLabel).filter((v): v is string => !!v);
+  const sourceNames = dataSources.map((ds) => ds.name);
+  const sourceTypes = dataSources
+    .map((ds) => ds.type)
+    .filter((t): t is string => !!t);
+  const versionLabels = dataSources
+    .map((ds) => ds.versionLabel)
+    .filter((v): v is string => !!v);
 
   const filter: QueryFilters = {};
 
@@ -151,7 +154,7 @@ async function persistSearchResultsToDatabase(params: {
   limit: number;
   searchResultsStore: SearchResultsStore;
 }) {
-  console.log('calling?')
+  console.log("calling?");
   params.searchResultsStore.saveSearchResult({
     query: params.query,
     results: params.results.content,

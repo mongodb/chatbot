@@ -204,7 +204,9 @@ function keyGenerator(request: Request) {
 }
 
 export type AddDefinedCustomDataFunc = (
-  ...args: Parameters<AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>>
+  ...args: Parameters<
+    AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>
+  >
 ) => Promise<Exclude<ConversationCustomData, undefined>>;
 
 export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =

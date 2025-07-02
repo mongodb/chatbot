@@ -1,10 +1,7 @@
 import { Response, RequestHandler, Router } from "express";
 import { FindContentFunc } from "mongodb-rag-core";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  SearchContentRequest,
-  makeSearchContentRoute,
-} from "./searchContent";
+import { SearchContentRequest, makeSearchContentRoute } from "./searchContent";
 import type { ContentCustomData, SearchResultsStore } from "mongodb-rag-core";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
@@ -52,12 +49,13 @@ export interface MakeContentRouterParams {
 }
 
 export type AddDefinedContentCustomDataFunc = (
-  ...args: Parameters<
-    AddCustomDataFunc<ContentRouterLocals, ContentCustomData>
-  >
+  ...args: Parameters<AddCustomDataFunc<ContentRouterLocals, ContentCustomData>>
 ) => Promise<Exclude<ContentCustomData, undefined>>;
 
-export const defaultContentCustomData: AddDefinedContentCustomDataFunc = async (req, res) => {
+export const defaultContentCustomData: AddDefinedContentCustomDataFunc = async (
+  req,
+  res
+) => {
   return {
     ...(await addIpToCustomData(req, res)),
     ...(await addOriginToCustomData(req, res)),
@@ -70,8 +68,9 @@ export function makeContentRouter({
   findContent,
   searchResultsStore,
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
-  // TODO: Use this
-  contentCustomData = defaultContentCustomData
+  // TODO: Use this custom data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  contentCustomData = defaultContentCustomData,
 }: MakeContentRouterParams) {
   const contentRouter = Router();
 

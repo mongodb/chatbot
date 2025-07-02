@@ -4,7 +4,12 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ConversationCustomData, DbMessage, Message, ToolMessage } from "mongodb-rag-core";
+import {
+  ConversationCustomData,
+  DbMessage,
+  Message,
+  ToolMessage,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -21,9 +26,7 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import {
-  ConversationsRouterLocals,
-} from "./conversationsRouter";
+import { ConversationsRouterLocals } from "./conversationsRouter";
 import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 import {
@@ -63,7 +66,10 @@ export interface AddMessageToConversationRouteParams {
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
   generateResponse: GenerateResponse;
-  addMessageToConversationCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>;
+  addMessageToConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >;
   /**
     If present, the route will create a new conversation
     when given the `conversationIdPathParam` in the URL.
@@ -77,7 +83,10 @@ export interface AddMessageToConversationRouteParams {
       The custom data to add to the new conversation
       when it is created.
      */
-    addCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>;
+    addCustomData?: AddCustomDataFunc<
+      ConversationsRouterLocals,
+      ConversationCustomData
+    >;
   };
 
   /**

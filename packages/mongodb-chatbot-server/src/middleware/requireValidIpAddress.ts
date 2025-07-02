@@ -2,9 +2,12 @@ import { NextFunction, Request, Response } from "express-serve-static-core";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 import { isValidIp } from "../routes/conversations/utils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function requireValidIpAddress<Locals extends Record<string, any>>() {
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     req: Request<any, any, any, any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     res: Response<any, Locals>,
     next: NextFunction
   ) => {

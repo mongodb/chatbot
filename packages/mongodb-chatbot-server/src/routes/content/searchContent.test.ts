@@ -24,9 +24,7 @@ describe("makeSearchContentRoute", () => {
   const baseReqBody = {
     query: "What is aggregation?",
     limit: 2,
-    dataSources: [
-      { name: "source1", type: "docs", versionLabel: "v1" },
-    ],
+    dataSources: [{ name: "source1", type: "docs", versionLabel: "v1" }],
   };
   // Add all required EmbeddedContent fields for the mock result
   const baseFindContentResult: FindContentResult = {
@@ -60,8 +58,12 @@ describe("makeSearchContentRoute", () => {
     const searchResultsStore = makeMockSearchResultsStore();
     const handler = makeSearchContentRoute({ findContent, searchResultsStore });
 
-    const req = createRequest({ body: baseReqBody, headers: { "req-id": "test-req-id" } });
+    const req = createRequest({
+      body: baseReqBody,
+      headers: { "req-id": "test-req-id" },
+    });
     const res = createResponse();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
 
     const data = res._getJSONData();
@@ -77,8 +79,12 @@ describe("makeSearchContentRoute", () => {
     const findContent = jest.fn().mockResolvedValue(baseFindContentResult);
     const searchResultsStore = makeMockSearchResultsStore();
     const handler = makeSearchContentRoute({ findContent, searchResultsStore });
-    const req = createRequest({ body: baseReqBody, headers: { "req-id": "test-req-id" } });
+    const req = createRequest({
+      body: baseReqBody,
+      headers: { "req-id": "test-req-id" },
+    });
     const res = createResponse();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
 
     expect(findContent).toHaveBeenCalledWith({
@@ -92,9 +98,13 @@ describe("makeSearchContentRoute", () => {
     const findContent = makeMockFindContent(baseFindContentResult);
     const searchResultsStore = makeMockSearchResultsStore();
     const handler = makeSearchContentRoute({ findContent, searchResultsStore });
-    const req = createRequest({ body: baseReqBody, headers: { "req-id": "test-req-id" } });
+    const req = createRequest({
+      body: baseReqBody,
+      headers: { "req-id": "test-req-id" },
+    });
     const res = createResponse();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
     expect(searchResultsStore.saveSearchResult).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -110,9 +120,13 @@ describe("makeSearchContentRoute", () => {
     const findContent = jest.fn().mockRejectedValue(new Error("fail"));
     const searchResultsStore = makeMockSearchResultsStore();
     const handler = makeSearchContentRoute({ findContent, searchResultsStore });
-    const req = createRequest({ body: baseReqBody, headers: { "req-id": "test-req-id" } });
+    const req = createRequest({
+      body: baseReqBody,
+      headers: { "req-id": "test-req-id" },
+    });
     const res = createResponse();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(handler(req, res as any)).rejects.toMatchObject({
       message: "Unable to query search database",
       httpStatus: 500,
@@ -130,6 +144,7 @@ describe("makeSearchContentRoute", () => {
     });
     const res = createResponse();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
     expect(findContent).toHaveBeenCalledWith(
       expect.objectContaining({

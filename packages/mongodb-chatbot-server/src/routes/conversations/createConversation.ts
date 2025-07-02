@@ -3,11 +3,7 @@ import {
   Request as ExpressRequest,
 } from "express";
 import { z } from "zod";
-import {
-  ConversationCustomData,
-  ConversationsService,
-  SystemMessage,
-} from "mongodb-rag-core";
+import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
   ApiConversation,
   convertConversationFromDbToApi,
@@ -16,9 +12,7 @@ import {
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import {
-  ConversationsRouterLocals,
-} from "./conversationsRouter";
+import { ConversationsRouterLocals } from "./conversationsRouter";
 import { AddCustomDataFunc } from "../../processors";
 
 export type CreateConversationRequest = z.infer<
@@ -90,7 +84,10 @@ export function makeCreateConversationRoute({
 async function getCustomData(
   req: ExpressRequest,
   res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
-  createConversationCustomData?: AddCustomDataFunc<ConversationsRouterLocals, ConversationCustomData>
+  createConversationCustomData?: AddCustomDataFunc<
+    ConversationsRouterLocals,
+    ConversationCustomData
+  >
 ): Promise<ConversationCustomData | undefined> {
   try {
     if (createConversationCustomData) {

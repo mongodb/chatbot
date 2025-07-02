@@ -8,24 +8,29 @@ import { Request, Response } from "express";
  */
 
 export type AddCustomDataFunc<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TLocals extends Record<string, any>,
   TCustomData = Record<string, unknown>
 > = (
   request: Request,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   response: Response<any, TLocals>
 ) => Promise<TCustomData | undefined>;
 
-export const addIpToCustomData: AddCustomDataFunc<Record<string, any>> = async (req) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const addIpToCustomData: AddCustomDataFunc<Record<string, any>> = async (
+  req
+) =>
   req.ip
     ? {
         ip: req.ip,
       }
     : undefined;
 
-export const addOriginToCustomData: AddCustomDataFunc<Record<string, any>> = async (
-  _,
-  res
-) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const addOriginToCustomData: AddCustomDataFunc<
+  Record<string, any>
+> = async (_, res) =>
   res.locals.customData.origin
     ? {
         origin: res.locals.customData.origin,
@@ -68,6 +73,7 @@ export function getOriginCode(origin: string): OriginCode {
 }
 
 export const addOriginCodeToCustomData: AddCustomDataFunc<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Record<string, any>
 > = async (_, res) => {
   const origin = res.locals.customData.origin;
@@ -78,9 +84,10 @@ export const addOriginCodeToCustomData: AddCustomDataFunc<
     : undefined;
 };
 
-export const addUserAgentToCustomData: AddCustomDataFunc<Record<string, any>> = async (
-  req
-) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const addUserAgentToCustomData: AddCustomDataFunc<
+  Record<string, any>
+> = async (req) =>
   req.headers["user-agent"]
     ? {
         userAgent: req.headers["user-agent"],

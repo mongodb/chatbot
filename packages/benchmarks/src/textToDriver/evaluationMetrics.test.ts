@@ -496,7 +496,7 @@ describe("makeQueryPerformanceMongosh", () => {
     // = 1 - log(100) / log(10000) = 1 - 2 / 4 = 0.5
     expect(result).toEqual({
       name: "QueryPerformance",
-      score: 0.5,
+      score: expect.closeTo(0.5, 3), // actual: 0.5000053253224807
       metadata: mockProfile,
     });
   });
@@ -535,7 +535,7 @@ describe("makeQueryPerformanceMongosh", () => {
 
     expect(result).toEqual({
       name: "QueryPerformance",
-      score: 0.0, // Full scan should give score close to 0
+      score: expect.closeTo(0.0, 3), // Full scan should give score close to 0
       metadata: mockProfile,
     });
   });

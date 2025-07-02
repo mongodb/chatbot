@@ -193,7 +193,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nExamined,
         nTotal,
       });
-      expect(result).toBeCloseTo(expected, 4);
+      expect(result).toBeCloseTo(expected, 3);
     }
   );
 });

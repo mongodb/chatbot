@@ -1,4 +1,7 @@
-import { makeMdOnGithubDataSource } from "mongodb-rag-core/dataSources";
+import {
+  makeMdOnGithubDataSource,
+  normalizeUrl,
+} from "mongodb-rag-core/dataSources";
 import { SourceTypeName } from ".";
 
 /**
@@ -51,7 +54,7 @@ export const prismaSourceConstructor = async () => {
       if (frontMatter?.dbSwitcher) {
         url += "-mongodb";
       }
-      return url;
+      return normalizeUrl(url);
     },
     extractTitle(_pageContent, frontMatter) {
       // metaTitle is more descriptive

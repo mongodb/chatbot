@@ -87,14 +87,7 @@ export function makeDevCenterPage(
       pageDescription: document.description,
       contentType: document.type,
     },
-    url: normalizeUrl(
-      /^https?:\/\//.test(document.calculated_slug)
-        ? document.calculated_slug
-        : new URL(
-            document.calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
-            baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
-          ).toString()
-    ),
+    url: makeDevCenterPageUrl(document.calculated_slug, baseUrl),
   };
 }
 
@@ -137,4 +130,15 @@ export function makeDevCenterPageBody({
   content = content.replaceAll(/\n{3,}/g, "\n\n");
 
   return content;
+}
+
+function makeDevCenterPageUrl(calculated_slug: string, baseUrl: string) {
+  return normalizeUrl(
+    /^https?:\/\//.test(calculated_slug)
+      ? calculated_slug
+      : new URL(
+          calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
+          baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
+        ).toString()
+  );
 }

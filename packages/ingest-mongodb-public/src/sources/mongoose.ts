@@ -1,4 +1,7 @@
-import { makeAcquitRequireMdOnGithubDataSource } from "mongodb-rag-core/dataSources";
+import {
+  makeAcquitRequireMdOnGithubDataSource,
+  normalizeUrl,
+} from "mongodb-rag-core/dataSources";
 import { SourceTypeName } from ".";
 
 export const mongooseSourceConstructor = async () => {
@@ -18,9 +21,11 @@ export const mongooseSourceConstructor = async () => {
     repoLoaderOptions,
     name: "mongoose",
     pathToPageUrl(path) {
-      return path
-        .replace(/^\/docs\//, "https://mongoosejs.com/docs/")
-        .replace(/\.md$/, ".html");
+      return normalizeUrl(
+        path
+          .replace(/^\/docs\//, "https://mongoosejs.com/docs/")
+          .replace(/\.md$/, ".html")
+      );
     },
     testFileLoaderOptions,
     acquitCodeBlockLanguageReplacement: "javascript",

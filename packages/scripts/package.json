@@ -29,6 +29,7 @@
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",
     "verifyPagesInSources": "npm run build && node ./build/verifyPagesInSources.js",
+    "getLLMAnswers": "npm run build && node ./build/profound/getAndProcessAnswers.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "clean": "rm -rf ./build",
@@ -49,6 +50,7 @@
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "chatbot-server-mongodb-public": "*",
+    "benchmarks": "*",
     "yaml": "^2.3.4",
     "yargs": "^17.7.2"
   },

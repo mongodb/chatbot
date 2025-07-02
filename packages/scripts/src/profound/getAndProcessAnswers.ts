@@ -2,7 +2,7 @@ import {
   ProfoundAnswer,
   ProfoundApi,
 } from './profoundAPI';
-import { makeReferenceAlignment } from "../../../benchmarks/src/nlPromptResponse/metrics";
+import { makeReferenceAlignment } from "benchmarks";
 import {
   ModelConfig,
   getOpenAiEndpointAndApiKey,

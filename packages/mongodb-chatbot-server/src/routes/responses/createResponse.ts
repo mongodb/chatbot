@@ -402,5 +402,8 @@ const saveMessagesToConversation = async ({
     }))
   );
 
-  return null;
+  await conversations.addManyConversationMessages({
+    conversationId: conversation._id,
+    messages: finalMessages,
+  });
 };

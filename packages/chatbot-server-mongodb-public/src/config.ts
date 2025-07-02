@@ -31,7 +31,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -53,11 +53,12 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
-import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import { makeGenerateResponseWithTools } from "./processors/generateResponseWithTools";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeFetchPageTool } from "./tools/fetchPage";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -190,6 +191,15 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const loadPage = wrapTraced(pageStore.loadPage, {
+  name: "loadPageFromStore",
+});
+
 export const preprocessorOpenAiClient = wrapOpenAI(
   new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
@@ -231,8 +241,8 @@ export const generateResponse = wrapTraced(
         references: verifiedAnswer.references.map(addReferenceSourceType),
       };
     },
-    onNoVerifiedAnswerFound: wrapTraced(
-      makeGenerateResponseWithSearchTool({
+    onNoVerifiedAnswerFound: wrapTraced( 
+      makeGenerateResponseWithTools({
         languageModel,
         systemMessage: systemPrompt,
         makeReferenceLinks: makeMongoDbReferences,
@@ -251,10 +261,11 @@ export const generateResponse = wrapTraced(
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool(findContent),
+        fetchPageTool: makeFetchPageTool({ loadPage, findContent }),
         toolChoice: "auto",
         maxSteps: 5,
       }),
-      { name: "generateResponseWithSearchTool" }
+      { name: "generateResponseWithTools" }
     ),
   }),
   {
@@ -300,6 +311,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export async function closeDbConnections() {
   await mongodb.close();
+  await pageStore.close();
   await verifiedAnswerStore.close();
   await embeddedContentStore.close();
 }

@@ -4,7 +4,10 @@ import {
   mongoDbProgrammingLanguages,
 } from "mongodb-rag-core/mongoDbMetadata";
 import { SEARCH_TOOL_NAME } from "./tools/search";
-import { FETCH_PAGE_TOOL_NAME } from "./tools/fetchPage";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  SEARCH_ALL_FALLBACK_TEXT,
+} from "./tools/fetchPage";
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
@@ -32,13 +35,17 @@ const technicalKnowledge = [
 ];
 
 const importantNotes = [
-  "User messages may be accompanied by metadata explaining where the chatbot is on the site.",
-  "The metadata is formatted as Front Matter.",
+  `ALWAYS use either ${SEARCH_TOOL_NAME} or ${FETCH_PAGE_TOOL_NAME} after every user message. Zero exceptions!`,
+];
+
+const metadataNotes = [
+  "User messages may be accompanied by metadata explaining where user is making requests from, such as the URL of the page they are on.",
+  "This metadata is formatted as Front Matter.",
   "This metadata is provided by the system. The end-user is not aware of it. Do not mention it directly.",
   `Use this metadata to inform tool calls, such as ${FETCH_PAGE_TOOL_NAME} and ${SEARCH_TOOL_NAME} tools.`,
 ];
 
-const rephraseUserQueryNotes = [
+const searchRequiresRephraseNotes = [
   'When constructing the query, take a "step back" to generate a more general search query that finds the information relevant to the user query.',
   'If the user query is already a "good" search query, do not modify it.',
   'For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: If the user query is "or", transform it into "what is the $or operator in MongoDB?".',
@@ -49,16 +56,14 @@ const searchContentToolNotes = [
   "Search all of the available MongoDB reference documents for a given user input.",
   "You must generate an appropriate search query for a given user input.",
   "You are doing this for MongoDB, and all queries relate to MongoDB products.",
-  ...rephraseUserQueryNotes,
   `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
 ];
 
 const fetchPageToolNotes = [
   "Fetch the entire page content for a given URL.",
   "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
-  ...rephraseUserQueryNotes,
   "Do not include URLs in the search query.",
-  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "{fallback_to_search}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
+  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
 ];
 
 export const systemPrompt = {
@@ -106,6 +111,20 @@ You know about the following programming languages:
 ${mongoDbProgrammingLanguages.map((language) => `* ${language.id}`).join("\n")}
 
 </product_knowledge>
+
+<message-metadata>
+
+User messages may be accompanied by metadata as follows:
+${makeMarkdownNumberedList(metadataNotes)}
+
+</message-metadata>
+
+<search-query>
+
+When searching for content, such as in the ${SEARCH_TOOL_NAME} or the ${FETCH_PAGE_TOOL_NAME}, use these guidelines to construct the search query:
+${makeMarkdownNumberedList(searchRequiresRephraseNotes)}
+
+</search-query>
 
 <tools>
 

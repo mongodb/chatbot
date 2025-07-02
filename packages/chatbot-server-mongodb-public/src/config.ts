@@ -261,7 +261,7 @@ export const generateResponse = wrapTraced(
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool(findContent),
-        fetchPageTool: makeFetchPageTool(loadPage, findContent),
+        fetchPageTool: makeFetchPageTool({ loadPage, findContent }),
         toolChoice: "auto",
         maxSteps: 5,
       }),

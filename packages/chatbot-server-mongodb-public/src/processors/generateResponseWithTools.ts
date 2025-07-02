@@ -48,7 +48,7 @@ export interface GenerateResponseWithToolsParams {
    */
   additionalTools?: ToolSet;
   makeReferenceLinks?: MakeReferenceLinksFunc;
-  maxSteps?: number;
+  maxSteps: number;
   toolChoice?: ToolChoice<{
     search_content: SearchTool;
   }>;
@@ -68,7 +68,7 @@ export function makeGenerateResponseWithTools({
   filterPreviousMessages,
   additionalTools,
   makeReferenceLinks = makeDefaultReferenceLinks,
-  maxSteps = 2,
+  maxSteps,
   searchTool,
   fetchPageTool,
   toolChoice,
@@ -88,7 +88,11 @@ export function makeGenerateResponseWithTools({
     }
     const userMessage: UserMessage = {
       role: "user",
-      content: formatUserMessageForGeneration(latestMessageText, customData),
+      content: formatUserMessageForGeneration(
+        latestMessageText,
+        reqId,
+        customData
+      ),
     };
     try {
       // Get preceding messages to include in the LLM prompt
@@ -173,10 +177,10 @@ export function makeGenerateResponseWithTools({
                   toolResult.type === "tool-result" &&
                   toolResult.toolName === FETCH_PAGE_TOOL_NAME
                 ) {
-                  // fetchPage returns reference directly.
-                  const reference = toolResult.result.reference;
-                  if (reference) {
-                    references.push(reference);
+                  // fetchPage returns references directly.
+                  const fetchedReferences = toolResult.result.references;
+                  if (fetchedReferences) {
+                    references.push(...fetchedReferences);
                   }
                 }
               });

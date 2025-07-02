@@ -57,8 +57,7 @@ export function makeFetchPageTool({
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
       ): Promise<FetchPageToolResult> {
-        // TODO EAI-1135: Comment in once ingestion is normalized too
-        const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
+        const normalizedUrl = normalizeUrl(args.pageUrl);
         const page = await loadPage({
           urls: [normalizedUrl],
           query: {

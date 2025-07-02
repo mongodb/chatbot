@@ -15,7 +15,8 @@ export interface ComputeNormalizedLogarithmicQueryEfficiencyParams {
   - 1 means perfect efficiency (n_examined = n_returned)
   - 0 means full scan with minimal results
   - Score decreases logarithmically as examination overhead increases
-  - Formula: 1 - log(n_examined/n_returned) / log(n_total/n_returned)
+  - Formula: 1 - log((n_examined+eps2)/(n_returned+eps2)) / log((n_total+eps1)/(n_returned+eps2))
+  - Uses epsilon values for numerical stability and to handle zero-result queries
 
   @returns A score between 0 and 1
  */
@@ -25,8 +26,8 @@ export function computeNormalizedLogarithmicQueryEfficiency({
   nTotal,
 }: ComputeNormalizedLogarithmicQueryEfficiencyParams): number {
   assert(
-    nReturned > 0 && nExamined > 0 && nTotal > 0,
-    "All document counts must be greater than 0"
+    nReturned >= 0 && nExamined >= 0 && nTotal > 0,
+    "Document counts must be non-negative, and total must be > 0"
   );
   assert(
     nExamined >= nReturned,
@@ -35,18 +36,15 @@ export function computeNormalizedLogarithmicQueryEfficiency({
 
   assert(nTotal >= nExamined, "Total documents must be >= documents examined");
 
-  // Perfect efficiency case
-  if (nExamined === nReturned) {
-    return 1.0;
-  }
+  // Epsilon values for numerical stability
+  const eps1 = 0.1; // Added to nTotal
+  const eps2 = 0.01; // Added to nReturned and nExamined
 
-  // Avoid edge case where nReturned equals nTotal
-  if (nReturned === nTotal) {
-    return nExamined === nTotal ? 1.0 : 0.0;
-  }
-
+  // Formula with epsilon smoothing
   const efficiency =
-    1 - Math.log(nExamined / nReturned) / Math.log(nTotal / nReturned);
+    1 -
+    Math.log((nExamined + eps2) / (nReturned + eps2)) /
+      Math.log((nTotal + eps1) / (nReturned + eps2));
 
   // Clamp between 0 and 1
   return Math.max(0, Math.min(1, efficiency));

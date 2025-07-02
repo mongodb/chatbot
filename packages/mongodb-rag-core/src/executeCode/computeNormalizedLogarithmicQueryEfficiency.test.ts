@@ -107,13 +107,6 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
   it("should throw error for invalid inputs", () => {
     expect(() =>
       computeNormalizedLogarithmicQueryEfficiency({
-        nReturned: 0,
-        nExamined: 100,
-        nTotal: 1000,
-      })
-    ).toThrow();
-    expect(() =>
-      computeNormalizedLogarithmicQueryEfficiency({
         nReturned: 100,
         nExamined: 0,
         nTotal: 1000,
@@ -144,6 +137,23 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
     ).toThrow();
   });
 
+  it("should handle zero results correctly with epsilon values", () => {
+    const result = computeNormalizedLogarithmicQueryEfficiency({
+      nReturned: 0,
+      nExamined: 100,
+      nTotal: 1000,
+    });
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThanOrEqual(1);
+
+    const perfectZeroResult = computeNormalizedLogarithmicQueryEfficiency({
+      nReturned: 0,
+      nExamined: 0,
+      nTotal: 1000,
+    });
+    expect(perfectZeroResult).toBe(1.0); // Perfect efficiency: found nothing, examined nothing
+  });
+
   it("should clamp results between 0 and 1", () => {
     const result = computeNormalizedLogarithmicQueryEfficiency({
       nReturned: 1,
@@ -153,4 +163,37 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
     expect(result).toBeGreaterThanOrEqual(0);
     expect(result).toBeLessThanOrEqual(1);
   });
+
+  // Order: [nReturned, nExamined, nTotal, expected]
+  const testCases = [
+    [100, 100, 1000000, 1.0], // Perfect efficiency
+    [100, 1000, 1000000, 0.75], // 10x overhead (common)
+    [100, 10000, 1000000, 0.5], // 100x overhead
+    [100, 100000, 1000000, 0.25], // 1000x overhead
+    [100, 1000000, 1000000, 0.0], // Full scan, small result
+    [1000, 1000, 1000000, 1.0], // Perfect efficiency with other values
+    [500000, 800000, 1000000, 0.3219], // Large n_returned
+    [500000, 900000, 1000000, 0.152], // Large n_returned
+    [500000, 1000000, 1000000, 0.0], // Large n_returned
+    [900000, 950000, 1000000, 0.4868], // Unavoidable almost full scan
+    [0, 0, 1000000, 1.0], // No results, no scan
+    [0, 1, 1000000, 0.7495], // No results, some scan
+    [0, 10, 1000000, 0.6249], // No results, some scan
+    [0, 100, 1000000, 0.5], // No results, some scan
+    [0, 100000, 1000000, 0.125], // No results, some scan
+    [0, 1000000, 1000000, 0.0], // No results, full scan
+    [100, 100, 100, 1.0], // Return whole collection
+  ] as const;
+
+  test.each(testCases)(
+    "should return %s for n_returned=%s, n_examined=%s, n_total=%s",
+    (nReturned, nExamined, nTotal, expected) => {
+      const result = computeNormalizedLogarithmicQueryEfficiency({
+        nReturned,
+        nExamined,
+        nTotal,
+      });
+      expect(result).toBeCloseTo(expected, 4);
+    }
+  );
 });

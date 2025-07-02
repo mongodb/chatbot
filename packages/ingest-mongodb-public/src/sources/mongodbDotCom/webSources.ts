@@ -417,10 +417,7 @@ export const initialWebSources: InitialWebSource[] = [
   },
   {
     name: "web-misc",
-    urls: [
-      "https://www.mongodb.com",
-      "https://www.mongodb.com/pricing",
-    ],
+    urls: ["https://www.mongodb.com", "https://www.mongodb.com/pricing"],
     sourceType: "marketing-misc",
     staticMetadata: {
       type: "Web",
@@ -442,10 +439,11 @@ export const initialWebSources: InitialWebSource[] = [
     name: "mongodb-university-web",
     urls: [
       "https://learn.mongodb.com",
+      "https://learn.mongodb.com/pages/instructor-led-training-schedule",
     ],
     sourceType: "university-content",
     staticMetadata: {
-      tags: ["MongoDB University" ],
+      tags: ["MongoDB University"],
     },
   },
   {

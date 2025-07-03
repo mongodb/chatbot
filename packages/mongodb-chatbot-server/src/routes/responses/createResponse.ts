@@ -43,7 +43,9 @@ export const ERR_MSG = {
   MAX_OUTPUT_TOKENS: (input: number, max: number) =>
     `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`,
   STORE_NOT_SUPPORTED:
-    "Path: body.previous_response_id | body.store - to use previous_response_id store must be true",
+    "Path: body.previous_response_id | body.store - to use previous_response_id the store flag must be true",
+  CONVERSATION_STORE_MISMATCH:
+    "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
 };
 
 const CreateResponseRequestBodySchema = z.object({
@@ -325,6 +327,16 @@ const loadConversationByMessageId = async ({
   if (!conversation) {
     throw makeBadRequestError({
       error: new Error(ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
+      headers,
+    });
+  }
+
+  // The default should be true because, if unset, we assume message data is stored
+  const conversationStore = conversation.customData?.store ?? true;
+  // this ensures that conversations will respect the store flag initially set
+  if (conversationStore !== store) {
+    throw makeBadRequestError({
+      error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
       headers,
     });
   }

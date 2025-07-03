@@ -1,6 +1,7 @@
 import "dotenv/config";
 import request from "supertest";
 import type { Express } from "express";
+import type { Conversation, SomeMessage } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
@@ -8,12 +9,6 @@ import { ERROR_TYPE, ERROR_CODE } from "./errors";
 import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(100000);
-
-const badRequestError = (message: string) => ({
-  type: ERROR_TYPE,
-  code: ERROR_CODE.INVALID_REQUEST_ERROR,
-  message,
-});
 
 describe("POST /responses", () => {
   const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
@@ -253,20 +248,41 @@ describe("POST /responses", () => {
     });
 
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const storeMessageContent = undefined;
       const conversation =
         await appConfig.conversationsRouterConfig.conversations.create({
-          storeMessageContent: undefined,
+          storeMessageContent,
           initialMessages: [{ role: "user", content: "What is MongoDB?" }],
         });
 
+      const store = true;
       const previousResponseId = conversation.messages[0].id.toString();
       const response = await makeCreateResponseRequest({
         previous_response_id: previousResponseId,
-        store: true,
+        store,
       });
 
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
       expect(response.statusCode).toBe(200);
-      // test full message
+      expect(createdConversation.storeMessageContent).toEqual(
+        storeMessageContent
+      );
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        store,
+      });
     });
 
     it("Should store conversation messages when `store: true`", async () => {
@@ -295,13 +311,14 @@ describe("POST /responses", () => {
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
-      expect(createdConversation.customData).toEqual({ metadata });
-      expect(createdConversation.userId).toEqual(userId);
       expect(createdConversation.storeMessageContent).toEqual(store);
-      expect(addedMessages[0].role).toBe("user");
-      expect(addedMessages[0].content).toBe("What is MongoDB?");
-      expect(addedMessages[0].metadata).toEqual(metadata);
-      // make a helper for this
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        userId,
+        store,
+        metadata,
+      });
     });
 
     it("Should not store conversation messages when `store: false`", async () => {
@@ -330,13 +347,14 @@ describe("POST /responses", () => {
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
-      expect(createdConversation.customData).toEqual({ metadata });
-      expect(createdConversation.userId).toEqual(userId);
       expect(createdConversation.storeMessageContent).toEqual(store);
-      expect(addedMessages[0].role).toBe("user");
-      expect(addedMessages[0].content).toBe("");
-      expect(addedMessages[0].metadata).toEqual(metadata);
-      // make a helper for this
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        userId,
+        store,
+        metadata,
+      });
     });
 
     it("Should store function_call messages when `store: true`", async () => {
@@ -645,3 +663,44 @@ describe("POST /responses", () => {
     );
   });
 });
+
+// --- HELPERS ---
+
+const badRequestError = (message: string) => ({
+  type: ERROR_TYPE,
+  code: ERROR_CODE.INVALID_REQUEST_ERROR,
+  message,
+});
+
+interface TestDefaultMessageContentParams {
+  createdConversation: Conversation;
+  addedMessages: SomeMessage[];
+  store: boolean;
+  userId?: string;
+  metadata?: Record<string, string>;
+}
+
+const testDefaultMessageContent = ({
+  createdConversation,
+  addedMessages,
+  store,
+  userId,
+  metadata,
+}: TestDefaultMessageContentParams) => {
+  expect(createdConversation.userId).toEqual(userId);
+
+  expect(addedMessages[0].role).toBe("user");
+  expect(addedMessages[1].role).toEqual("user");
+  expect(addedMessages[2].role).toEqual("assistant");
+
+  expect(addedMessages[0].content).toBe(store ? "What is MongoDB?" : "");
+  expect(addedMessages[1].content).toBeFalsy();
+  expect(addedMessages[2].content).toEqual(store ? "some content" : "");
+
+  if (metadata) {
+    expect(createdConversation.customData).toEqual({ metadata });
+    expect(addedMessages[0].metadata).toEqual(metadata);
+    expect(addedMessages[1].metadata).toEqual(metadata);
+    expect(addedMessages[2].metadata).toEqual(metadata);
+  }
+};

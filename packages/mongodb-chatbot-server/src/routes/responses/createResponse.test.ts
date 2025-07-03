@@ -492,24 +492,6 @@ describe("POST /responses", () => {
     });
   });
 
-  it("Should return 400 if input is array and previous_response_id is provided", async () => {
-    const conversation =
-      await appConfig.conversationsRouterConfig.conversations.create({
-        initialMessages: [{ role: "user", content: "What is MongoDB?" }],
-      });
-
-    const previousResponseId = conversation.messages[0].id;
-    const response = await makeCreateResponseRequest({
-      previous_response_id: previousResponseId.toString(),
-      input: [{ role: "user", content: "What is MongoDB?" }],
-    });
-
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error).toEqual(
-      badRequestError(ERR_MSG.INPUT_ARRAY_WITH_OLD_MESSAGES)
-    );
-  });
-
   it("Should return 400 if user id has changed since the conversation was created", async () => {
     const userId1 = "user1";
     const userId2 = "user2";

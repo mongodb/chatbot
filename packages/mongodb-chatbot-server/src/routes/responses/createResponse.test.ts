@@ -248,7 +248,7 @@ describe("POST /responses", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("Should return 200 if conversation store flag is undefined (should default to true) and store is true", async () => {
+    it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
       const conversation =
         await appConfig.conversationsRouterConfig.conversations.create({
           storeMessageContent: undefined,
@@ -262,9 +262,10 @@ describe("POST /responses", () => {
       });
 
       expect(response.statusCode).toBe(200);
+      // test full message
     });
 
-    it("Should properly store conversations when store flag is true", async () => {
+    it("Should store conversation messages when `store: true`", async () => {
       const createSpy = jest.spyOn(
         appConfig.conversationsRouterConfig.conversations,
         "create"
@@ -296,9 +297,10 @@ describe("POST /responses", () => {
       expect(addedMessages[0].role).toBe("user");
       expect(addedMessages[0].content).toBe("What is MongoDB?");
       expect(addedMessages[0].metadata).toEqual(metadata);
+      // make a helper for this
     });
 
-    it("Should properly store conversations when store flag is false", async () => {
+    it("Should not store conversation messages when `store: false`", async () => {
       const createSpy = jest.spyOn(
         appConfig.conversationsRouterConfig.conversations,
         "create"
@@ -330,6 +332,7 @@ describe("POST /responses", () => {
       expect(addedMessages[0].role).toBe("user");
       expect(addedMessages[0].content).toBe("");
       expect(addedMessages[0].metadata).toEqual(metadata);
+      // make a helper for this
     });
   });
 
@@ -598,7 +601,7 @@ describe("POST /responses", () => {
     );
   });
 
-  it("Should return 400 if previous_response_id is provided but store is false", async () => {
+  it("Should return 400 if `store: false` and `previous_response_id` is provided", async () => {
     const response = await makeCreateResponseRequest({
       previous_response_id: "123456789012123456789012",
       store: false,
@@ -610,7 +613,7 @@ describe("POST /responses", () => {
     );
   });
 
-  it("Should return 400 if store is true but storeMessageContent is false", async () => {
+  it("Should return 400 if `store: true` and `storeMessageContent: false`", async () => {
     const conversation =
       await appConfig.conversationsRouterConfig.conversations.create({
         storeMessageContent: false,

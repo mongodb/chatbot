@@ -240,7 +240,7 @@ export function makeCreateResponseRoute({
         headers,
         metadata,
         userId: user,
-        store,
+        storeMessageContent: store,
       });
 
       // --- CONVERSATION USER ID CHECK ---
@@ -301,7 +301,7 @@ interface LoadConversationByMessageIdParams {
   headers: Record<string, string>;
   metadata?: Record<string, string>;
   userId?: string;
-  store: boolean;
+  storeMessageContent: boolean;
 }
 
 const loadConversationByMessageId = async ({
@@ -310,11 +310,13 @@ const loadConversationByMessageId = async ({
   headers,
   metadata,
   userId,
-  store,
+  storeMessageContent,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     return await conversations.create({
-      customData: { metadata, userId, store },
+      userId,
+      storeMessageContent,
+      customData: { metadata },
     });
   }
 
@@ -330,11 +332,9 @@ const loadConversationByMessageId = async ({
   }
 
   // The default should be true because, if unset, we assume message data is stored
-  const conversationStore = conversation.messages.some(
-    (message) => message.customData?.store ?? true
-  );
+  const shouldStoreConversation = conversation.storeMessageContent ?? true;
   // this ensures that conversations will respect the store flag initially set
-  if (conversationStore !== store) {
+  if (shouldStoreConversation !== storeMessageContent) {
     throw makeBadRequestError({
       error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
       headers,

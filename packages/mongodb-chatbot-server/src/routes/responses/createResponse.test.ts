@@ -246,6 +246,29 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it("Should return 200 if conversation store flag is undefined (should default to true) and store is true", async () => {
+      const conversation =
+        await appConfig.conversationsRouterConfig.conversations.create({
+          initialMessages: [
+            {
+              role: "user",
+              content: "What is MongoDB?",
+              customData: {
+                store: undefined,
+              },
+            },
+          ],
+        });
+
+      const previousResponseId = conversation.messages[0].id.toString();
+      const response = await makeCreateResponseRequest({
+        previous_response_id: previousResponseId,
+        store: true,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
   });
 
   describe("Invalid requests", () => {
@@ -515,6 +538,44 @@ describe("POST /responses", () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.error).toEqual(
       badRequestError(ERR_MSG.CONVERSATION_USER_ID_CHANGED)
+    );
+  });
+
+  it("Should return 400 if previous_response_id is provided but store is false", async () => {
+    const response = await makeCreateResponseRequest({
+      previous_response_id: "123456789012123456789012",
+      store: false,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      badRequestError(ERR_MSG.STORE_NOT_SUPPORTED)
+    );
+  });
+
+  it("Should return 400 if conversation store flag is false but store is true", async () => {
+    const conversation =
+      await appConfig.conversationsRouterConfig.conversations.create({
+        initialMessages: [
+          {
+            role: "user",
+            content: "",
+            customData: {
+              store: false,
+            },
+          },
+        ],
+      });
+
+    const previousResponseId = conversation.messages[0].id.toString();
+    const response = await makeCreateResponseRequest({
+      previous_response_id: previousResponseId,
+      store: true,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      badRequestError(ERR_MSG.CONVERSATION_STORE_MISMATCH)
     );
   });
 });

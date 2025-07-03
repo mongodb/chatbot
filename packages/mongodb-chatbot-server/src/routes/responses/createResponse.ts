@@ -332,7 +332,9 @@ const loadConversationByMessageId = async ({
   }
 
   // The default should be true because, if unset, we assume message data is stored
-  const conversationStore = conversation.customData?.store ?? true;
+  const conversationStore = conversation.messages.some(
+    (message) => message.customData?.store ?? true
+  );
   // this ensures that conversations will respect the store flag initially set
   if (conversationStore !== store) {
     throw makeBadRequestError({

@@ -33,7 +33,7 @@ export function makeMongoDbConversationsService(
     async create(params) {
       const customData = params?.customData;
       const initialMessages = params?.initialMessages;
-      const newConversation = {
+      const newConversation: Conversation = {
         _id: new ObjectId(),
         messages: initialMessages
           ? initialMessages?.map(createMessageFromOpenAIChatMessage)
@@ -44,6 +44,13 @@ export function makeMongoDbConversationsService(
         // which we don't want.
         ...(customData !== undefined && { customData }),
       };
+      if (params?.userId) {
+        newConversation.userId = params.userId;
+      }
+      if (params?.storeMessageContent) {
+        newConversation.storeMessageContent = params.storeMessageContent;
+      }
+
       const insertResult = await conversationsCollection.insertOne(
         newConversation
       );

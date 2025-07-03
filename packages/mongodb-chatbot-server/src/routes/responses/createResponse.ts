@@ -382,7 +382,7 @@ const hasConversationUserIdChanged = (
   conversation: Conversation,
   userId?: string
 ): boolean => {
-  return conversation.customData?.userId !== userId;
+  return conversation.userId !== userId;
 };
 
 interface AddMessagesToConversationParams {

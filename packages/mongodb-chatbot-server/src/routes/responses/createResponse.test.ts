@@ -251,15 +251,8 @@ describe("POST /responses", () => {
     it("Should return 200 if conversation store flag is undefined (should default to true) and store is true", async () => {
       const conversation =
         await appConfig.conversationsRouterConfig.conversations.create({
-          initialMessages: [
-            {
-              role: "user",
-              content: "What is MongoDB?",
-              customData: {
-                store: undefined,
-              },
-            },
-          ],
+          storeMessageContent: undefined,
+          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
         });
 
       const previousResponseId = conversation.messages[0].id.toString();
@@ -297,11 +290,9 @@ describe("POST /responses", () => {
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
-      expect(createdConversation.customData).toEqual({
-        store,
-        metadata,
-        userId,
-      });
+      expect(createdConversation.customData).toEqual({ metadata });
+      expect(createdConversation.userId).toEqual(userId);
+      expect(createdConversation.storeMessageContent).toEqual(store);
       expect(addedMessages[0].role).toBe("user");
       expect(addedMessages[0].content).toBe("What is MongoDB?");
       expect(addedMessages[0].metadata).toEqual(metadata);
@@ -333,11 +324,9 @@ describe("POST /responses", () => {
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
-      expect(createdConversation.customData).toEqual({
-        store,
-        metadata,
-        userId,
-      });
+      expect(createdConversation.customData).toEqual({ metadata });
+      expect(createdConversation.userId).toEqual(userId);
+      expect(createdConversation.storeMessageContent).toEqual(store);
       expect(addedMessages[0].role).toBe("user");
       expect(addedMessages[0].content).toBe("");
       expect(addedMessages[0].metadata).toEqual(metadata);
@@ -593,13 +582,8 @@ describe("POST /responses", () => {
     const userId2 = "user2";
     const conversation =
       await appConfig.conversationsRouterConfig.conversations.create({
-        initialMessages: [
-          {
-            role: "user",
-            content: "What is MongoDB?",
-            customData: { userId: userId1 },
-          },
-        ],
+        userId: userId1,
+        initialMessages: [{ role: "user", content: "What is MongoDB?" }],
       });
 
     const previousResponseId = conversation.messages[0].id.toString();
@@ -629,15 +613,8 @@ describe("POST /responses", () => {
   it("Should return 400 if conversation store flag is false but store is true", async () => {
     const conversation =
       await appConfig.conversationsRouterConfig.conversations.create({
-        initialMessages: [
-          {
-            role: "user",
-            content: "",
-            customData: {
-              store: false,
-            },
-          },
-        ],
+        storeMessageContent: false,
+        initialMessages: [{ role: "user", content: "" }],
       });
 
     const previousResponseId = conversation.messages[0].id.toString();

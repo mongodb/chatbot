@@ -269,6 +269,41 @@ describe("POST /responses", () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it("Should properly store conversations when store flag is true", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+
+      const customUserId = "customUserId";
+      const customMetadata = {
+        customMessage1: "customMessage1",
+        customMessage2: "customMessage2",
+      };
+      const response = await makeCreateResponseRequest({
+        store: true,
+        metadata: customMetadata,
+        user: customUserId,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(createSpy).toHaveBeenCalledWith({
+        customData: {
+          metadata: customMetadata,
+          store: true,
+          userId: customUserId,
+        },
+      });
+    });
+
+    it("Should properly store conversations when store flag is false", async () => {
+      const response = await makeCreateResponseRequest({
+        store: false,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
   });
 
   describe("Invalid requests", () => {

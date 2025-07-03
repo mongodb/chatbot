@@ -44,10 +44,10 @@ export function makeMongoDbConversationsService(
         // which we don't want.
         ...(customData !== undefined && { customData }),
       };
-      if (params?.userId) {
+      if (params?.userId !== undefined) {
         newConversation.userId = params.userId;
       }
-      if (params?.storeMessageContent) {
+      if (params?.storeMessageContent !== undefined) {
         newConversation.storeMessageContent = params.storeMessageContent;
       }
 

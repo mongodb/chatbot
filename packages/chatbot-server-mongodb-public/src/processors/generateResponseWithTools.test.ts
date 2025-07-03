@@ -45,7 +45,7 @@ const mockReqId = "test";
 
 const mockContent: WithScore<EmbeddedContent>[] = [
   {
-    url: "https://example.com/",
+    url: "example.com",
     text: `Content!`,
     metadata: {
       pageTitle: "Example Embedded Content",
@@ -61,7 +61,7 @@ const mockContent: WithScore<EmbeddedContent>[] = [
 ];
 
 const mockPageContent = {
-  url: "https://example.com/",
+  url: "example.com",
   body: "Example page body",
   format: "md",
   sourceName: "test source name",
@@ -72,10 +72,7 @@ const mockPageContent = {
 } as PersistedPage;
 
 const mockLoadPage: MongoDbPageStore["loadPage"] = async (args) => {
-  if (args?.urls?.[0] === "https://example.com/") {
-    return mockPageContent;
-  }
-  return null;
+  return mockPageContent;
 };
 
 const mockFindContent: FindContentFunc = async () => {
@@ -97,7 +94,7 @@ const mockFetchPageTool = makeFetchPageTool({
 // What the references are expected to look like
 const mockReferences = [
   {
-    url: mockPageContent.url,
+    url: `https://${mockPageContent.url}`,
     title: mockPageContent.title ?? mockPageContent.url,
     metadata: {
       ...mockPageContent.metadata,
@@ -105,8 +102,9 @@ const mockReferences = [
     },
   },
   {
-    url: mockContent[0].url,
-    title: mockContent[0].metadata?.pageTitle ?? mockContent[0].url,
+    url: `https://${mockContent[0].url}`,
+    title:
+      mockContent[0].metadata?.pageTitle ?? `https://${mockContent[0].url}`,
     metadata: {
       // sourceName/tags are not available makeDefaultReferenceLinks
       tags: [],

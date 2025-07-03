@@ -23,7 +23,19 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   });
 
   return uniqueReferenceChunks.map((chunk) => {
-    const url = new URL(chunk.url).href;
+    // Handle normalized URLs, add protocol if missing
+    let url: string;
+    try {
+      if (chunk.url.startsWith("http://") || chunk.url.startsWith("https://")) {
+        url = new URL(chunk.url).href;
+      } else {
+        url = new URL(`https://${chunk.url}`).href;
+      }
+    } catch (error) {
+      console.error(`Could not safely convert URL "${chunk.url}":`, error);
+      url = chunk.url;
+    }
+
     // Ensure title is always a string by checking its type
     const pageTitle = chunk.metadata?.pageTitle;
     const title = typeof pageTitle === "string" ? pageTitle : url;

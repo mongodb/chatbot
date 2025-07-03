@@ -25,8 +25,6 @@ export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
-  INPUT_ARRAY_WITH_OLD_MESSAGES:
-    "Path: body.input & body.previous_response_id - Currently does not support input arrays with existing conversations.",
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -238,15 +236,6 @@ export function makeCreateResponseRoute({
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
           error: new Error(ERR_MSG.CONVERSATION_USER_ID_CHANGED),
-          headers,
-        });
-      }
-
-      // TODO: if previous_response_id and input is array,
-      // do we need to validate that the input has no old messages?
-      if (previous_response_id && Array.isArray(input)) {
-        throw makeBadRequestError({
-          error: new Error(ERR_MSG.INPUT_ARRAY_WITH_OLD_MESSAGES),
           headers,
         });
       }

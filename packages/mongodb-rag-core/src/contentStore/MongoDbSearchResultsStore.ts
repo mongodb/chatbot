@@ -12,7 +12,9 @@ export const SearchRecordDataSourceSchema = z.object({
   versionLabel: z.string().optional(),
 });
 
-export type SearchRecordDataSource = z.infer<typeof SearchRecordDataSourceSchema>;
+export type SearchRecordDataSource = z.infer<
+  typeof SearchRecordDataSourceSchema
+>;
 
 export const SearchResultRecordSchema = z.object({
   query: z.string(),
@@ -69,9 +71,7 @@ export function makeMongoDbSearchResultsStore({
       const insertResult = await searchResultsCollection.insertOne(record);
 
       if (!insertResult.acknowledged) {
-        throw new Error(
-          "Insert was not acknowledged by MongoDB"
-        );
+        throw new Error("Insert was not acknowledged by MongoDB");
       }
       if (!insertResult.insertedId) {
         throw new Error(

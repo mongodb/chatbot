@@ -10,10 +10,8 @@ import {
   SearchResultRecord,
 } from "./MongoDbSearchResultsStore";
 
-const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-} = assertEnvVars(CORE_ENV_VARS);
+const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
+  assertEnvVars(CORE_ENV_VARS);
 
 describe("MongoDbSearchResultsStore", () => {
   let store: MongoDbSearchResultsStore | undefined;
@@ -82,9 +80,10 @@ describe("MongoDbSearchResultsStore", () => {
         createdAt: new Date(),
       };
       await expect(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         store.saveSearchResult(badSearchResultRecord)
-      ).rejects.toThrow();;
+      ).rejects.toThrow();
     });
   });
 });

@@ -1,7 +1,10 @@
 import {
   FindContentFunc,
   FindContentResult,
+  MongoDbSearchResultsStore,
   QueryFilters,
+  SearchRecordDataSource,
+  SearchRecordDataSourceSchema,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { z } from "zod";
@@ -11,20 +14,9 @@ import {
   Response as ExpressResponse,
 } from "express";
 
-// TODO: need to make this store, as discussed, it should probably be in mongodb-rag-core
-export type SearchResultsStore = unknown;
-
-export const DataSourceSchema = z.object({
-  name: z.string(),
-  type: z.string().optional(),
-  versionLabel: z.string().optional(),
-});
-
-export type DataSource = z.infer<typeof DataSourceSchema>;
-
 export const SearchContentRequestBody = z.object({
   query: z.string(),
-  dataSources: z.array(DataSourceSchema).optional(),
+  dataSources: z.array(SearchRecordDataSourceSchema).optional(),
   limit: z.number().int().min(1).max(500).optional().default(5),
 });
 
@@ -42,7 +34,7 @@ export type SearchContentRequestBody = z.infer<typeof SearchContentRequestBody>;
 
 export interface MakeSearchContentRouteParams {
   findContent: FindContentFunc;
-  searchResultsStore: SearchResultsStore;
+  searchResultsStore: MongoDbSearchResultsStore;
 }
 
 interface SearchContentResponseChunk {
@@ -100,7 +92,9 @@ function mapFindContentResultToSearchContentResponseChunk(
   };
 }
 
-function mapDataSourcesToFilters(dataSources: DataSource[]): QueryFilters {
+function mapDataSourcesToFilters(
+  dataSources: SearchRecordDataSource[]
+): QueryFilters {
   // TODO: implement
   return {};
 }
@@ -108,9 +102,9 @@ function mapDataSourcesToFilters(dataSources: DataSource[]): QueryFilters {
 async function persistSearchResultsToDatabase(params: {
   query: string;
   results: FindContentResult;
-  dataSources: DataSource[];
+  dataSources: SearchRecordDataSource[];
   limit: number;
-  searchResultsStore: SearchResultsStore;
+  searchResultsStore: MongoDbSearchResultsStore;
 }) {
   // TODO: implement
 }

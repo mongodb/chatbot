@@ -358,12 +358,48 @@ describe("POST /responses", () => {
     });
 
     it("Should store function_call messages when `store: true`", async () => {
-      // TODO: this
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const store = true;
+      const functionCallType = "function_call";
+      const functionCallOutputType = "function_call_output";
       const response = await makeCreateResponseRequest({
-        store: true,
+        store,
+        input: [
+          {
+            type: functionCallType,
+            id: "call123",
+            name: "my_function",
+            arguments: `{"query": "value"}`,
+            status: "in_progress",
+          },
+          {
+            type: functionCallOutputType,
+            call_id: "call123",
+            output: `{"result": "success"}`,
+            status: "completed",
+          },
+        ],
       });
 
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
       expect(response.statusCode).toBe(200);
+      expect(createdConversation.storeMessageContent).toEqual(store);
+
+      expect(addedMessages[0].role).toEqual("system");
+      expect(addedMessages[1].role).toEqual("system");
+
+      expect(addedMessages[0].content).toEqual(functionCallType);
+      expect(addedMessages[1].content).toEqual(functionCallOutputType);
     });
   });
 

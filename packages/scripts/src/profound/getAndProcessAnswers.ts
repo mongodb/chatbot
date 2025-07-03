@@ -15,15 +15,11 @@ import { Collection } from 'mongodb';
 import { PromisePool } from '@supercharge/promise-pool';
 
 const {
-  MONGODB_LLM_CLUSTER_URI,
-  MONGODB_LLM_DATABASE,
-  MONGODB_LLM_CASES_COLLECTION,
-  MONGODB_LLM_ANSWERS_COLLECTION,
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
 } = assertEnvVars({
-    'MONGODB_LLM_CLUSTER_URI': "",
-    'MONGODB_LLM_DATABASE': "",
-    'MONGODB_LLM_CASES_COLLECTION': "",
-    'MONGODB_LLM_ANSWERS_COLLECTION': "",
+    'MONGODB_CONNECTION_URI': "",
+    'MONGODB_DATABASE_NAME': "",
 });
 
 const profoundAPI = new ProfoundApi();
@@ -131,10 +127,10 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
     ({ start, end } = getFullDayRange(yesterday, yesterday));
   }
 
-  const client = await MongoClient.connect(MONGODB_LLM_CLUSTER_URI);
-  const db = client.db(MONGODB_LLM_DATABASE);
-  const answersCollection = db.collection(MONGODB_LLM_ANSWERS_COLLECTION);
-  const casesCollection = db.collection(MONGODB_LLM_CASES_COLLECTION);
+  const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
+  const db = client.db(MONGODB_DATABASE_NAME);
+  const answersCollection = db.collection('llm_answers');
+  const casesCollection = db.collection('llm_cases');
   // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
   const casesByPromptMap = await casesByPromptId(casesCollection)
   const platformsByNameMap = await platformsByName()

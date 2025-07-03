@@ -294,7 +294,7 @@ describe("POST /responses", () => {
       expect(createdConversation.customData).toEqual({
         store,
         metadata,
-        userId: userId,
+        userId,
       });
     });
 

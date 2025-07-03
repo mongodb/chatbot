@@ -5,7 +5,11 @@ import type {
 } from "express";
 import { ObjectId } from "mongodb";
 import type { APIError } from "mongodb-rag-core/openai";
-import type { ConversationsService, Conversation } from "mongodb-rag-core";
+import type {
+  ConversationsService,
+  Conversation,
+  SomeMessage,
+} from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
 import type { GenerateResponse } from "../../processors";
@@ -21,6 +25,8 @@ export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  CONVERSATION_USER_ID_CHANGED:
+    "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
   TEMPERATURE: "Temperature must be 0 or unset",
   STREAM: "'stream' must be true",
@@ -36,6 +42,10 @@ export const ERR_MSG = {
     `Path: body.model - ${model} is not supported.`,
   MAX_OUTPUT_TOKENS: (input: number, max: number) =>
     `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`,
+  STORE_NOT_SUPPORTED:
+    "Path: body.previous_response_id | body.store - to use previous_response_id the store flag must be true",
+  CONVERSATION_STORE_MISMATCH:
+    "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
 };
 
 const CreateResponseRequestBodySchema = z.object({
@@ -177,9 +187,7 @@ export function makeCreateResponseRoute({
 
     try {
       // --- INPUT VALIDATION ---
-      const { error, data } = await CreateResponseRequestSchema.safeParseAsync(
-        req
-      );
+      const { error, data } = CreateResponseRequestSchema.safeParse(req);
       if (error) {
         throw makeBadRequestError({
           error: new Error(generateZodErrorMessage(error)),
@@ -188,7 +196,15 @@ export function makeCreateResponseRoute({
       }
 
       const {
-        body: { model, max_output_tokens, previous_response_id },
+        body: {
+          model,
+          max_output_tokens,
+          previous_response_id,
+          store,
+          metadata,
+          user,
+          input,
+        },
       } = data;
 
       // --- MODEL CHECK ---
@@ -209,12 +225,31 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // --- STORE CHECK ---
+      if (previous_response_id && !store) {
+        throw makeBadRequestError({
+          error: new Error(ERR_MSG.STORE_NOT_SUPPORTED),
+          headers,
+        });
+      }
+
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
         conversations,
         headers,
+        metadata,
+        userId: user,
+        storeMessageContent: store,
       });
+
+      // --- CONVERSATION USER ID CHECK ---
+      if (hasConversationUserIdChanged(conversation, user)) {
+        throw makeBadRequestError({
+          error: new Error(ERR_MSG.CONVERSATION_USER_ID_CHANGED),
+          headers,
+        });
+      }
 
       // --- MAX CONVERSATION LENGTH CHECK ---
       if (
@@ -232,7 +267,17 @@ export function makeCreateResponseRoute({
       }
 
       // TODO: actually implement this call
-      await generateResponse({} as any);
+      const { messages } = await generateResponse({} as any);
+
+      // --- STORE MESSAGES IN CONVERSATION ---
+      await saveMessagesToConversation({
+        conversations,
+        conversation,
+        store,
+        metadata,
+        input,
+        messages,
+      });
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
@@ -254,15 +299,25 @@ interface LoadConversationByMessageIdParams {
   messageId?: string;
   conversations: ConversationsService;
   headers: Record<string, string>;
+  metadata?: Record<string, string>;
+  userId?: string;
+  storeMessageContent: boolean;
 }
 
-async function loadConversationByMessageId({
+const loadConversationByMessageId = async ({
   messageId,
   conversations,
   headers,
-}: LoadConversationByMessageIdParams): Promise<Conversation> {
+  metadata,
+  userId,
+  storeMessageContent,
+}: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
-    return await conversations.create();
+    return await conversations.create({
+      userId,
+      storeMessageContent,
+      customData: { metadata },
+    });
   }
 
   const conversation = await conversations.findByMessageId({
@@ -276,6 +331,16 @@ async function loadConversationByMessageId({
     });
   }
 
+  // The default should be true because, if unset, we assume message data is stored
+  const shouldStoreConversation = conversation.storeMessageContent ?? true;
+  // this ensures that conversations will respect the store flag initially set
+  if (shouldStoreConversation !== storeMessageContent) {
+    throw makeBadRequestError({
+      error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
+      headers,
+    });
+  }
+
   const latestMessage = conversation.messages[conversation.messages.length - 1];
   if (latestMessage.id.toString() !== messageId) {
     throw makeBadRequestError({
@@ -285,17 +350,17 @@ async function loadConversationByMessageId({
   }
 
   return conversation;
-}
+};
 
 const convertToObjectId = (
-  messageId: string,
+  inputString: string,
   headers: Record<string, string>
 ): ObjectId => {
   try {
-    return new ObjectId(messageId);
+    return new ObjectId(inputString);
   } catch (error) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.INVALID_OBJECT_ID(messageId)),
+      error: new Error(ERR_MSG.INVALID_OBJECT_ID(inputString)),
       headers,
     });
   }
@@ -305,10 +370,77 @@ const convertToObjectId = (
 export const hasTooManyUserMessagesInConversation = (
   conversation: Conversation,
   maxUserMessagesInConversation: number
-) => {
+): boolean => {
   const numUserMessages = conversation.messages.reduce(
     (acc, message) => (message.role === "user" ? acc + 1 : acc),
     0
   );
   return numUserMessages >= maxUserMessagesInConversation;
+};
+
+const hasConversationUserIdChanged = (
+  conversation: Conversation,
+  userId?: string
+): boolean => {
+  return conversation.userId !== userId;
+};
+
+interface AddMessagesToConversationParams {
+  conversations: ConversationsService;
+  conversation: Conversation;
+  store: boolean;
+  metadata?: Record<string, string>;
+  input: CreateResponseRequest["body"]["input"];
+  messages: Array<SomeMessage>;
+}
+
+const saveMessagesToConversation = async ({
+  conversations,
+  conversation,
+  store,
+  metadata,
+  input,
+  messages,
+}: AddMessagesToConversationParams) => {
+  const messagesToAdd = [
+    ...convertInputToDBMessages(input, store, metadata),
+    ...messages.map((message) => formatMessage(message, store, metadata)),
+  ];
+
+  await conversations.addManyConversationMessages({
+    conversationId: conversation._id,
+    messages: messagesToAdd,
+  });
+};
+
+const convertInputToDBMessages = (
+  input: CreateResponseRequest["body"]["input"],
+  store: boolean,
+  metadata?: Record<string, string>
+): Array<SomeMessage> => {
+  if (typeof input === "string") {
+    return [formatMessage({ role: "user", content: input }, store, metadata)];
+  }
+
+  return input.map((message) => {
+    // handle function tool calls and outputs
+    const role = message.type === "message" ? message.role : "system";
+    const content =
+      message.type === "message" ? message.content : message.type ?? "";
+
+    return formatMessage({ role, content }, store, metadata);
+  });
+};
+
+const formatMessage = (
+  message: SomeMessage,
+  store: boolean,
+  metadata?: Record<string, string>
+): SomeMessage => {
+  return {
+    ...message,
+    // store a placeholder string if we're not storing message data
+    content: store ? message.content : "",
+    metadata,
+  };
 };

@@ -55,6 +55,18 @@ describe("Conversations Service", () => {
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
   });
+  test("Should create a conversation with userId and storeMessageContent", async () => {
+    const conversation = await conversationsService.create({
+      userId: "123",
+      storeMessageContent: true,
+    });
+    expect(conversation).toHaveProperty("userId", "123");
+    expect(conversation).toHaveProperty("storeMessageContent", true);
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toStrictEqual(conversation);
+  });
   test("Should add a message to a conversation", async () => {
     const conversation = await conversationsService.create({
       initialMessages: [systemPrompt],

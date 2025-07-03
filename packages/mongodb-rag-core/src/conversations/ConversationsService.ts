@@ -162,6 +162,10 @@ export interface Conversation<
   createdAt: Date;
   /** The hostname that the request originated from. */
   requestOrigin?: string;
+  /** The user id that the request originated from. */
+  userId?: string;
+  /** Whether to store the message's content data. */
+  storeMessageContent?: boolean;
 
   /**
     Custom data to include in the Conversation persisted to the database.
@@ -172,6 +176,8 @@ export interface Conversation<
 export type CreateConversationParams = {
   initialMessages?: SomeMessage[];
   customData?: ConversationCustomData;
+  userId?: string;
+  storeMessageContent?: boolean;
 };
 
 export type AddMessageParams<T extends SomeMessage> = Omit<T, "createdAt"> & {

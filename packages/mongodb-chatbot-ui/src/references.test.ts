@@ -39,6 +39,14 @@ const testReferences = [
     url: "https://www.example.com",
     title: "Example",
   },
+  {
+    url: "mongodb.com",
+    title: "Normalized MongoDB URL",
+  },
+  {
+    url: "learn.mongodb.com/path",
+    title: "Normalized MongoDB URL 2",
+  },
 ] satisfies References;
 
 describe("makePrioritizeReferenceDomain", () => {
@@ -55,6 +63,8 @@ describe("makePrioritizeReferenceDomain", () => {
       "https://mongodb.com/docs/atlas",
       "https://www.example123.com",
       "https://www.example.com",
+      "mongodb.com",
+      "learn.mongodb.com/path",
     ]);
   });
 

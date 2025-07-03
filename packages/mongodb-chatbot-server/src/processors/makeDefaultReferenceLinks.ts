@@ -36,8 +36,9 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
       url = chunk.url;
     }
 
-    // Ensure title is always a string by checking its type
-    const pageTitle = chunk.metadata?.pageTitle;
+    // Location of `title` param depends on chunk type (EmbeddedContent/Page)
+    const pageTitle =
+      chunk.metadata?.pageTitle ?? (hasTitle(chunk) ? chunk.title : undefined);
     const title = typeof pageTitle === "string" ? pageTitle : url;
     const sourceName = chunk.sourceName;
 
@@ -51,3 +52,8 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
     };
   }) satisfies References;
 };
+
+function hasTitle(obj: unknown): obj is { title: string } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return typeof (obj as any)?.title === "string";
+}

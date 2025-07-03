@@ -3,6 +3,7 @@ import {
   GenerateResponseWithToolsParams,
   makeGenerateResponseWithTools,
 } from "./generateResponseWithTools";
+import { makeMongoDbReferences } from "../processors/makeMongoDbReferences";
 import {
   AssistantMessage,
   DataStreamer,
@@ -71,7 +72,7 @@ const mockPageContent = {
   action: "created",
 } as PersistedPage;
 
-const mockLoadPage: MongoDbPageStore["loadPage"] = async (args) => {
+const mockLoadPage: MongoDbPageStore["loadPage"] = async () => {
   return mockPageContent;
 };
 
@@ -83,32 +84,36 @@ const mockFindContent: FindContentFunc = async () => {
 };
 
 // Create a mock search tool that matches the SearchTool interface
-const mockSearchTool = makeSearchTool(mockFindContent);
+const mockSearchTool = makeSearchTool({
+  findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
+});
 
 // Create a mock fetch_page tool that matches the SearchTool interface
 const mockFetchPageTool = makeFetchPageTool({
   loadPage: mockLoadPage,
   findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
 });
 
 // What the references are expected to look like
 const mockReferences = [
   {
-    url: `https://${mockPageContent.url}`,
-    title: mockPageContent.title ?? mockPageContent.url,
+    url: `https://${mockPageContent.url}/`,
+    title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
     metadata: {
-      ...mockPageContent.metadata,
+      tags: [],
       sourceName: mockPageContent.sourceName,
     },
   },
   {
-    url: `https://${mockContent[0].url}`,
+    url: `https://${mockContent[0].url}/`,
     title:
-      mockContent[0].metadata?.pageTitle ?? `https://${mockContent[0].url}`,
+      mockContent[0].metadata?.pageTitle ?? `https://${mockContent[0].url}/`,
     metadata: {
       // sourceName/tags are not available makeDefaultReferenceLinks
       tags: [],
-      sourceName: undefined,
+      sourceName: mockContent[0].sourceName,
     },
   },
 ];

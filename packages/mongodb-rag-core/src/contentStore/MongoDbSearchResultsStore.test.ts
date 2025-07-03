@@ -17,7 +17,16 @@ describe("MongoDbSearchResultsStore", () => {
   let store: MongoDbSearchResultsStore | undefined;
   const searchResultRecord: SearchResultRecord = {
     query: "What is MongoDB Atlas?",
-    results: [],
+    results: [
+      {
+        url: "foo",
+        title: "bar",
+        text: "baz",
+        metadata: {
+          sourceName: "source",
+        },
+      },
+    ],
     dataSources: [{ name: "source1", type: "docs" }],
     createdAt: new Date(),
   };

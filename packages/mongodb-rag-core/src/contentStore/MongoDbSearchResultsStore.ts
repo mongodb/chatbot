@@ -16,9 +16,32 @@ export type SearchRecordDataSource = z.infer<
   typeof SearchRecordDataSourceSchema
 >;
 
+export interface ResultChunk {
+  url: string;
+  title: string;
+  text: string;
+  metadata: {
+    sourceName: string;
+    sourceType?: string;
+    tags?: string[];
+    [key: string]: any; // Accept additional unknown properties
+  };
+}
+
+export const ResultChunkSchema = z.object({
+  url: z.string(),
+  title: z.string(),
+  text: z.string(),
+  metadata: z.object({
+    sourceName: z.string(),
+    sourceType: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+  }).passthrough(),
+});
+
 export const SearchResultRecordSchema = z.object({
   query: z.string(),
-  results: z.array(z.any()), // or a more specific schema
+  results: z.array(ResultChunkSchema),
   dataSources: z.array(SearchRecordDataSourceSchema).optional(),
   limit: z.number().optional(),
   createdAt: z.date(),

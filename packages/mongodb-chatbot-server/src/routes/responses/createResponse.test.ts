@@ -30,6 +30,7 @@ describe("POST /responses", () => {
     body?: Partial<CreateResponseRequest["body"]>,
     appOverride?: Express
   ) => {
+    // TODO: update this to use the openai client
     return request(appOverride ?? app)
       .post(endpointUrl)
       .set("X-Forwarded-For", ipAddress)

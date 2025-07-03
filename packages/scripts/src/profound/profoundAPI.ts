@@ -1,29 +1,26 @@
 import { assertEnvVars } from "mongodb-rag-core";
 
-const { 
-  PROFOUND_API_URL, 
-  PROFOUND_API_KEY, 
-  PROFOUND_CATALOG_ID_EDU 
-} = assertEnvVars({
-  'PROFOUND_API_URL': "", 
-  'PROFOUND_API_KEY': "",
-  'PROFOUND_CATALOG_ID_EDU': "",
-});
+const { PROFOUND_API_URL, PROFOUND_API_KEY, PROFOUND_CATALOG_ID_EDU } =
+  assertEnvVars({
+    PROFOUND_API_URL: "",
+    PROFOUND_API_KEY: "",
+    PROFOUND_CATALOG_ID_EDU: "",
+  });
 
 /**
- * The request body for fetching answers from the Profound API.
- *
- * Note: The `category_id` field is required by the Profound API, but is automatically
- * injected by the ProfoundApi class and should NOT be set by callers.
+ The request body for fetching answers from the Profound API.
+ 
+ Note: The `category_id` field is required by the Profound API, but is automatically
+ injected by the ProfoundApi class and should NOT be set by callers.
  */
 export interface ProfoundAnswerRequestBody {
-  start_date: string,
-  end_date: string,
+  start_date: string;
+  end_date: string;
   filters?: { operator: string; field: string; value: string }[];
   include?: {
-    prompt_id?: boolean,
-    run_id?: boolean,
-  }
+    prompt_id?: boolean;
+    run_id?: boolean;
+  };
 }
 export interface ProfoundAnswer {
   created_at: string;
@@ -41,7 +38,6 @@ export interface ProfoundAnswer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asset: null | any;
 }
-
 
 export interface ProfoundAnswerResponse {
   info: {
@@ -61,7 +57,7 @@ export class ProfoundApi {
 
   constructor(apiKey: string = PROFOUND_API_KEY!) {
     if (!apiKey) {
-      throw new Error('Profound API key is missing.');
+      throw new Error("Profound API key is missing.");
     }
     this.apiKey = apiKey;
   }
@@ -69,19 +65,19 @@ export class ProfoundApi {
   private async request<T>(
     endpoint: string,
     options: {
-      method?: 'GET' | 'POST';
+      method?: "GET" | "POST";
       body?: Record<string, unknown>;
     } = {}
   ): Promise<T> {
-    const { method = 'POST', body } = options;
+    const { method = "POST", body } = options;
     const res = await fetch(
       `${this.baseUrl}${endpoint}?api_key=${this.apiKey}`,
       {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: method === 'POST' && body ? JSON.stringify(body) : undefined
+        body: method === "POST" && body ? JSON.stringify(body) : undefined,
       }
     );
 
@@ -98,25 +94,26 @@ export class ProfoundApi {
   private async paginatedRequest<T>(
     endpoint: string,
     body: Record<string, any> = {},
-    maxLimit: number = 50000 // Limit set by Profound
+    maxLimit = 50000 // Limit set by Profound
   ): Promise<T> {
     let offset = 0;
     const limit = maxLimit;
     let allData: any[] = [];
     let totalRows: number | undefined = undefined;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
-      console.log(`Requesting the next ${limit} records, offset by ${offset}`)
+      console.log(`Requesting the next ${limit} records, offset by ${offset}`);
       const paginatedBody = {
         ...body,
-        pagination: { limit, offset }
+        pagination: { limit, offset },
       };
       const res = await fetch(
         `${this.baseUrl}${endpoint}?api_key=${this.apiKey}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paginatedBody)
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(paginatedBody),
         }
       );
       if (!res.ok) {
@@ -129,7 +126,11 @@ export class ProfoundApi {
       if (totalRows === undefined) totalRows = json.info?.total_rows;
       allData = allData.concat(json.data || []);
       const effectiveTotalRows = totalRows ?? allData.length;
-      if ((json.data?.length ?? 0) < limit || allData.length >= effectiveTotalRows) break;
+      if (
+        (json.data?.length ?? 0) < limit ||
+        allData.length >= effectiveTotalRows
+      )
+        break;
       offset += limit;
     }
 
@@ -137,23 +138,24 @@ export class ProfoundApi {
     return {
       ...body,
       info: { total_rows: totalRows ?? allData.length },
-      data: allData
+      data: allData,
     } as T;
   }
 
   async getAnswers({
-    body
+    body,
   }: {
     body: ProfoundAnswerRequestBody;
   }): Promise<ProfoundAnswerResponse> {
-    return this.paginatedRequest<ProfoundAnswerResponse>('/prompts/answers', { 
-      ...body, category_id: PROFOUND_CATALOG_ID_EDU 
+    return this.paginatedRequest<ProfoundAnswerResponse>("/prompts/answers", {
+      ...body,
+      category_id: PROFOUND_CATALOG_ID_EDU,
     });
   }
 
   async getModels(): Promise<ProfoundModel[]> {
-    const models = await this.request<ProfoundModel[]>('/org/models', {
-      method: 'GET'
+    const models = await this.request<ProfoundModel[]>("/org/models", {
+      method: "GET",
     });
     return models;
   }

@@ -697,10 +697,8 @@ const testDefaultMessageContent = ({
   expect(addedMessages[1].content).toBeFalsy();
   expect(addedMessages[2].content).toEqual(store ? "some content" : "");
 
-  if (metadata) {
-    expect(createdConversation.customData).toEqual({ metadata });
-    expect(addedMessages[0].metadata).toEqual(metadata);
-    expect(addedMessages[1].metadata).toEqual(metadata);
-    expect(addedMessages[2].metadata).toEqual(metadata);
-  }
+  expect(addedMessages[0].metadata).toEqual(metadata);
+  expect(addedMessages[1].metadata).toEqual(metadata);
+  expect(addedMessages[2].metadata).toEqual(metadata);
+  if (metadata) expect(createdConversation.customData).toEqual({ metadata });
 };

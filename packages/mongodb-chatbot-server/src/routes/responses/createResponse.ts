@@ -42,6 +42,8 @@ export const ERR_MSG = {
     `Path: body.model - ${model} is not supported.`,
   MAX_OUTPUT_TOKENS: (input: number, max: number) =>
     `Path: body.max_output_tokens - ${input} is greater than the maximum allowed ${max}.`,
+  STORE_NOT_SUPPORTED:
+    "Path: body.previous_response_id | body.store - to use previous_response_id store must be true",
 };
 
 const CreateResponseRequestBodySchema = z.object({
@@ -223,6 +225,14 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // --- STORE CHECK ---
+      if (previous_response_id && !store) {
+        throw makeBadRequestError({
+          error: new Error(ERR_MSG.STORE_NOT_SUPPORTED),
+          headers,
+        });
+      }
+
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -230,6 +240,7 @@ export function makeCreateResponseRoute({
         headers,
         metadata,
         userId: user,
+        store,
       });
 
       // --- CONVERSATION USER ID CHECK ---
@@ -290,6 +301,7 @@ interface LoadConversationByMessageIdParams {
   headers: Record<string, string>;
   metadata?: Record<string, string>;
   userId?: string;
+  store: boolean;
 }
 
 const loadConversationByMessageId = async ({
@@ -298,10 +310,11 @@ const loadConversationByMessageId = async ({
   headers,
   metadata,
   userId,
+  store,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     return await conversations.create({
-      customData: { metadata, userId },
+      customData: { metadata, userId, store },
     });
   }
 

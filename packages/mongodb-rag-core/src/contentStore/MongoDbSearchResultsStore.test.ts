@@ -66,8 +66,7 @@ describe("MongoDbSearchResultsStore", () => {
       const found = await collection.findOne(searchResultRecord);
 
       expect(found).toBeTruthy();
-      // Optionally, check specific fields
-      expect(found?.query).toBe(searchResultRecord.query);
+      expect(found).toMatchObject(searchResultRecord);
 
       await client.close();
     });

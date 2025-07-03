@@ -275,6 +275,10 @@ describe("POST /responses", () => {
         appConfig.conversationsRouterConfig.conversations,
         "create"
       );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
 
       const store = true;
       const userId = "customUserId";
@@ -289,6 +293,7 @@ describe("POST /responses", () => {
       });
 
       const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
       expect(createdConversation.customData).toEqual({
@@ -296,12 +301,19 @@ describe("POST /responses", () => {
         metadata,
         userId,
       });
+      expect(addedMessages[0].role).toBe("user");
+      expect(addedMessages[0].content).toBe("What is MongoDB?");
+      expect(addedMessages[0].metadata).toEqual(metadata);
     });
 
     it("Should properly store conversations when store flag is false", async () => {
       const createSpy = jest.spyOn(
         appConfig.conversationsRouterConfig.conversations,
         "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
       );
 
       const store = false;
@@ -317,6 +329,7 @@ describe("POST /responses", () => {
       });
 
       const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.statusCode).toBe(200);
       expect(createdConversation.customData).toEqual({
@@ -324,6 +337,9 @@ describe("POST /responses", () => {
         metadata,
         userId,
       });
+      expect(addedMessages[0].role).toBe("user");
+      expect(addedMessages[0].content).toBe("");
+      expect(addedMessages[0].metadata).toEqual(metadata);
     });
   });
 

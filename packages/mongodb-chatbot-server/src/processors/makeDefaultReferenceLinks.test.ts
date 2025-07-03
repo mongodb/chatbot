@@ -15,7 +15,7 @@ describe("makeDefaultReferenceLinks()", () => {
     embeddings,
     updated: new Date(),
     sourceName: "realm",
-  };//satisfies SearchResult;
+  };
   const chunk2 = {
     _id: new ObjectId(),
     url: "https://mongodb.com/docs/realm/sdk/node",

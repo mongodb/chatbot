@@ -259,15 +259,14 @@ export function makeCreateResponseRoute({
       const { messages } = await generateResponse({} as any);
 
       // --- STORE MESSAGES IN CONVERSATION ---
-      if (store) {
-        await saveMessagesToConversation({
-          conversations,
-          conversation,
-          metadata,
-          input,
-          messages,
-        });
-      }
+      await saveMessagesToConversation({
+        conversations,
+        conversation,
+        store,
+        metadata,
+        input,
+        messages,
+      });
 
       return res.status(200).send({ status: "ok" });
     } catch (error) {
@@ -364,6 +363,7 @@ const hasConversationUserIdChanged = (
 interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
+  store: boolean;
   metadata?: Record<string, string>;
   input: CreateResponseRequest["body"]["input"];
   messages: Array<SomeMessage>;
@@ -372,16 +372,14 @@ interface AddMessagesToConversationParams {
 const saveMessagesToConversation = async ({
   conversations,
   conversation,
+  store,
   metadata,
   input,
   messages,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
-    ...convertInputToDBMessages(input, metadata),
-    ...messages.map((message) => ({
-      ...message,
-      metadata,
-    })),
+    ...convertInputToDBMessages(input, store, metadata),
+    ...messages.map((message) => formatMessage(message, store, metadata)),
   ];
 
   await conversations.addManyConversationMessages({
@@ -392,23 +390,32 @@ const saveMessagesToConversation = async ({
 
 const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
+  store: boolean,
   metadata?: Record<string, string>
 ): Array<SomeMessage> => {
   if (typeof input === "string") {
-    return [
-      {
-        role: "user",
-        content: input,
-        metadata,
-      },
-    ];
+    return [formatMessage({ role: "user", content: input }, store, metadata)];
   }
 
   return input.map((message) => {
+    // handle function tool calls and outputs
     const role = message.type === "message" ? message.role : "system";
     const content =
       message.type === "message" ? message.content : message.type ?? "";
 
-    return { role, content, metadata };
+    return formatMessage({ role, content }, store, metadata);
   });
+};
+
+const formatMessage = (
+  message: SomeMessage,
+  store: boolean,
+  metadata?: Record<string, string>
+): SomeMessage => {
+  return {
+    ...message,
+    // store a placeholder string if we're not storing message data
+    content: store ? message.content : "",
+    metadata,
+  };
 };

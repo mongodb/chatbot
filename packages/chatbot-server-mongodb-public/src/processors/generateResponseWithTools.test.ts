@@ -70,7 +70,7 @@ const mockPageContent = {
   title: "Example Page",
   updated: new Date(),
   action: "created",
-} as PersistedPage;
+} satisfies PersistedPage;
 
 const mockLoadPage: MongoDbPageStore["loadPage"] = async () => {
   return mockPageContent;

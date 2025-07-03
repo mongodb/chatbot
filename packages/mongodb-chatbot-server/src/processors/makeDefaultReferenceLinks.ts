@@ -1,4 +1,5 @@
-import { References } from "mongodb-rag-core";
+import { References, logger } from "mongodb-rag-core";
+import { ensureProtocol } from "mongodb-rag-core/dataSources";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 
 /**
@@ -24,15 +25,11 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
 
   return uniqueReferenceChunks.map((chunk) => {
     // Handle normalized URLs, add protocol if missing
-    let url: string;
+    let url;
     try {
-      if (chunk.url.startsWith("http://") || chunk.url.startsWith("https://")) {
-        url = new URL(chunk.url).href;
-      } else {
-        url = new URL(`https://${chunk.url}`).href;
-      }
+      url = new URL(ensureProtocol(chunk.url)).href;
     } catch (error) {
-      console.error(`Could not safely convert URL "${chunk.url}":`, error);
+      logger.error(`Could not safely convert URL "${chunk.url}":`, error);
       url = chunk.url;
     }
 

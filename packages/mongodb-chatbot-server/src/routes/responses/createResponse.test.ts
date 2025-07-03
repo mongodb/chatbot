@@ -610,7 +610,7 @@ describe("POST /responses", () => {
     );
   });
 
-  it("Should return 400 if conversation store flag is false but store is true", async () => {
+  it("Should return 400 if store is true but storeMessageContent is false", async () => {
     const conversation =
       await appConfig.conversationsRouterConfig.conversations.create({
         storeMessageContent: false,

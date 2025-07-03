@@ -3,6 +3,7 @@ import {
   GenerateResponseWithToolsParams,
   makeGenerateResponseWithTools,
 } from "./generateResponseWithTools";
+import { makeMongoDbReferences } from "../processors/makeMongoDbReferences";
 import {
   AssistantMessage,
   DataStreamer,
@@ -45,7 +46,7 @@ const mockReqId = "test";
 
 const mockContent: WithScore<EmbeddedContent>[] = [
   {
-    url: "https://example.com/",
+    url: "example.com",
     text: `Content!`,
     metadata: {
       pageTitle: "Example Embedded Content",
@@ -61,7 +62,7 @@ const mockContent: WithScore<EmbeddedContent>[] = [
 ];
 
 const mockPageContent = {
-  url: "https://example.com/",
+  url: "example.com",
   body: "Example page body",
   format: "md",
   sourceName: "test source name",
@@ -69,13 +70,10 @@ const mockPageContent = {
   title: "Example Page",
   updated: new Date(),
   action: "created",
-} as PersistedPage;
+} satisfies PersistedPage;
 
-const mockLoadPage: MongoDbPageStore["loadPage"] = async (args) => {
-  if (args?.urls?.[0] === "https://example.com/") {
-    return mockPageContent;
-  }
-  return null;
+const mockLoadPage: MongoDbPageStore["loadPage"] = async () => {
+  return mockPageContent;
 };
 
 const mockFindContent: FindContentFunc = async () => {
@@ -86,31 +84,36 @@ const mockFindContent: FindContentFunc = async () => {
 };
 
 // Create a mock search tool that matches the SearchTool interface
-const mockSearchTool = makeSearchTool(mockFindContent);
+const mockSearchTool = makeSearchTool({
+  findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
+});
 
 // Create a mock fetch_page tool that matches the SearchTool interface
 const mockFetchPageTool = makeFetchPageTool({
   loadPage: mockLoadPage,
   findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
 });
 
 // What the references are expected to look like
 const mockReferences = [
   {
-    url: mockPageContent.url,
-    title: mockPageContent.title ?? mockPageContent.url,
+    url: `https://${mockPageContent.url}/`,
+    title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
     metadata: {
-      ...mockPageContent.metadata,
+      tags: [],
       sourceName: mockPageContent.sourceName,
     },
   },
   {
-    url: mockContent[0].url,
-    title: mockContent[0].metadata?.pageTitle ?? mockContent[0].url,
+    url: `https://${mockContent[0].url}/`,
+    title:
+      mockContent[0].metadata?.pageTitle ?? `https://${mockContent[0].url}/`,
     metadata: {
       // sourceName/tags are not available makeDefaultReferenceLinks
       tags: [],
-      sourceName: undefined,
+      sourceName: mockContent[0].sourceName,
     },
   },
 ];

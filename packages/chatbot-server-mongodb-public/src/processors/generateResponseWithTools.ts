@@ -22,8 +22,6 @@ import { strict as assert } from "assert";
 import {
   InputGuardrail,
   FilterPreviousMessages,
-  MakeReferenceLinksFunc,
-  makeDefaultReferenceLinks,
   GenerateResponse,
   GenerateResponseReturnValue,
   InputGuardrailResult,
@@ -47,7 +45,6 @@ export interface GenerateResponseWithToolsParams {
     Required tool for performing content search and gathering {@link References}
    */
   additionalTools?: ToolSet;
-  makeReferenceLinks?: MakeReferenceLinksFunc;
   maxSteps: number;
   toolChoice?: ToolChoice<{
     search_content: SearchTool;
@@ -67,7 +64,6 @@ export function makeGenerateResponseWithTools({
   systemMessage,
   filterPreviousMessages,
   additionalTools,
-  makeReferenceLinks = makeDefaultReferenceLinks,
   maxSteps,
   searchTool,
   fetchPageTool,
@@ -167,21 +163,9 @@ export function makeGenerateResponseWithTools({
               toolResults?.forEach((toolResult) => {
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.toolName === SEARCH_TOOL_NAME
+                  toolResult.result?.references
                 ) {
-                  const searchResults = toolResult.result.results;
-                  if (searchResults && Array.isArray(searchResults)) {
-                    references.push(...makeReferenceLinks(searchResults));
-                  }
-                } else if (
-                  toolResult.type === "tool-result" &&
-                  toolResult.toolName === FETCH_PAGE_TOOL_NAME
-                ) {
-                  // fetchPage returns references directly.
-                  const fetchedReferences = toolResult.result.references;
-                  if (fetchedReferences) {
-                    references.push(...fetchedReferences);
-                  }
+                  references.push(...toolResult.result.references);
                 }
               });
             },

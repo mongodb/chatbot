@@ -9,6 +9,7 @@ import {
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { snootyAstToMd } from "./snootyAstToMd";
 
 const SRC_ROOT = Path.resolve(__dirname, "../../");
@@ -80,9 +81,12 @@ describe("SnootyDataSource", () => {
         metadata: {
           tags: ["docs", "manual"],
         },
-        url: "https://mongodb.com/docs/v6.0/administration/",
+        url: "mongodb.com/docs/v6.0/administration",
         body: firstPageText,
       });
+      for (const page of pages) {
+        expect(page.url).toBe(normalizeUrl(page.url));
+      }
     });
     it("should skip inactive branches", async () => {
       const inactiveProject: SnootyProjectConfig = {
@@ -121,7 +125,7 @@ describe("SnootyDataSource", () => {
         metadata: {
           tags: ["docs", "manual"],
         },
-        url: "https://mongodb.com/docs/v6.0/",
+        url: "mongodb.com/docs/v6.0",
       });
 
       // This one has index at the end of a subpath, so it should not be
@@ -137,7 +141,7 @@ describe("SnootyDataSource", () => {
             label: "v6.0 (current)",
           },
         },
-        url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
+        url: "mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index",
       });
 
       // This has index in the middle of the page_id that should not be stripped
@@ -151,7 +155,7 @@ describe("SnootyDataSource", () => {
             label: "v6.0 (current)",
           },
         },
-        url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
+        url: "mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters",
       });
 
       // This has index but part of a wider phrase so should not be stripped
@@ -165,7 +169,7 @@ describe("SnootyDataSource", () => {
             label: "v6.0 (current)",
           },
         },
-        url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
+        url: "mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index",
       });
     });
 

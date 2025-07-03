@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { FindContentFunc, MongoDbPageStore, Reference } from "mongodb-rag-core";
+import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
-import { addReferenceSourceType } from "../processors/makeMongoDbReferences";
+import { makeMongoDbReferences } from "../processors/makeMongoDbReferences";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 export const SEARCH_ALL_FALLBACK_TEXT = "{fallback_to_search}";
@@ -36,6 +37,7 @@ export type FetchPageTool = Tool<
 export interface MakeFetchPageToolParams {
   loadPage: MongoDbPageStore["loadPage"];
   findContent: FindContentFunc;
+  makeReferences: MakeReferenceLinksFunc;
   searchFallbackText?: string;
   pageLengthCutoff?: number;
 }
@@ -43,6 +45,7 @@ export interface MakeFetchPageToolParams {
 export function makeFetchPageTool({
   loadPage,
   findContent,
+  makeReferences,
   searchFallbackText = SEARCH_ALL_FALLBACK_TEXT,
   pageLengthCutoff = SEARCH_ON_PAGE_LENGTH_CUTOFF,
 }: MakeFetchPageToolParams): FetchPageTool {
@@ -57,8 +60,7 @@ export function makeFetchPageTool({
         args: MongoDbFetchPageToolArgs,
         _options: ToolExecutionOptions
       ): Promise<FetchPageToolResult> {
-        // TODO EAI-1135: Comment in once ingestion is normalized too
-        const normalizedUrl = args.pageUrl; //normalizeUrl(args.pageUrl);
+        const normalizedUrl = normalizeUrl(args.pageUrl);
         const page = await loadPage({
           urls: [normalizedUrl],
           query: {
@@ -67,20 +69,15 @@ export function makeFetchPageTool({
             },
           },
         });
-        const { text, reference } = await getPageContent(
+        return await getPageContent(
           page,
           pageLengthCutoff,
           searchFallbackText,
           findContent,
+          makeReferences,
           args.query,
           normalizedUrl
         );
-        return {
-          text,
-          references: reference
-            ? [addReferenceSourceType(reference)]
-            : undefined,
-        };
       },
       {
         name: "fetchPageTool",
@@ -94,11 +91,12 @@ async function getPageContent(
   pageLengthCutoff: number,
   searchFallbackText: string,
   findContent: FindContentFunc,
+  makeReferences: MakeReferenceLinksFunc,
   query: string,
   normalizedUrl: string
 ): Promise<{
   text: string;
-  reference?: Reference;
+  references?: Reference[];
 }> {
   if (page === null) {
     // Fall back - no page for this URL
@@ -108,30 +106,15 @@ async function getPageContent(
     // Page content is short enough, return it directly
     return {
       text: page.body,
-      reference: {
-        url: normalizedUrl,
-        title: page.title ?? normalizedUrl,
-        metadata: {
-          ...(page.metadata ?? {}),
-          sourceName: page.sourceName,
-        },
-      },
+      references: makeReferences([page]),
     };
   }
-
   // Page content is too long, do truncate-search
+  const references = makeReferences([page]);
   const mostRelevantChunks = await findContent({
     query: query,
     filters: { url: normalizedUrl },
   });
-  const reference = {
-    url: normalizedUrl,
-    title: page.title ?? normalizedUrl,
-    metadata: {
-      ...(page.metadata ?? {}),
-      sourceName: page.sourceName,
-    },
-  };
   if (mostRelevantChunks.content.length > 0) {
     const searchResultsText = mostRelevantChunks.content.map(
       (c) => `
@@ -151,8 +134,8 @@ ${searchResultsText}
 ${page.body.slice(0, pageLengthCutoff)}
 </truncated_page>
 `;
-    return { text, reference };
+    return { text, references };
   }
   const text = page.body.slice(0, pageLengthCutoff);
-  return { text, reference };
+  return { text, references };
 }

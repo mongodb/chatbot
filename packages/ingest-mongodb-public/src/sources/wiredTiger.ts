@@ -2,6 +2,7 @@ import {
   HandleHtmlPageFuncOptions,
   handleHtmlDocument,
   makeGitDataSource,
+  normalizeUrl,
 } from "mongodb-rag-core/dataSources";
 import { SourceTypeName } from ".";
 
@@ -26,7 +27,7 @@ const extractMetadata = (domDoc: Document) => {
 };
 const htmlParserOptions: Omit<HandleHtmlPageFuncOptions, "sourceName"> = {
   pathToPageUrl: (pathInRepo: string) =>
-    `https://source.wiredtiger.com${pathInRepo}`,
+    normalizeUrl(`https://source.wiredtiger.com${pathInRepo}`),
   removeElements,
   extractTitle,
   extractMetadata,

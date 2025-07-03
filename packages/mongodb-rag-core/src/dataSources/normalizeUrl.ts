@@ -9,3 +9,14 @@ export function normalizeUrl(url: string): string {
     .replace(/^www\./, "")
     .replace(/\/+$/, "");
 }
+
+/**
+  Adds protocol ("https://") to a URL if it is missing. 
+  Intended for use in URL constructor.
+ */
+export function ensureProtocol(url: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  return `https://${url}`;
+}

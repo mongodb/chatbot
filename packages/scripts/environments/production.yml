@@ -42,7 +42,7 @@ cronJobs:
 
   - name: verify-sources-have-pages-prod
     schedule: "0 0 * * *" # every day at midnight UTC
-    command: ["npm", "run", "scripts:verifyPagesInSources"]
+    command: ["npm", "run", "scripts:verifyPagesInSource"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-prod
     envSecrets:

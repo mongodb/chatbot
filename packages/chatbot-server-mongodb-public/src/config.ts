@@ -40,7 +40,6 @@ import {
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  ANALYZER_ENV_VARS,
   AZURE_OPENAI_ENV_VARS,
   PREPROCESSOR_ENV_VARS,
   TRACING_ENV_VARS,
@@ -241,11 +240,10 @@ export const generateResponse = wrapTraced(
         references: verifiedAnswer.references.map(addReferenceSourceType),
       };
     },
-    onNoVerifiedAnswerFound: wrapTraced( 
+    onNoVerifiedAnswerFound: wrapTraced(
       makeGenerateResponseWithTools({
         languageModel,
         systemMessage: systemPrompt,
-        makeReferenceLinks: makeMongoDbReferences,
         inputGuardrail,
         llmRefusalMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
@@ -260,8 +258,15 @@ export const generateResponse = wrapTraced(
         },
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
-        searchTool: makeSearchTool(findContent),
-        fetchPageTool: makeFetchPageTool({ loadPage, findContent }),
+        searchTool: makeSearchTool({
+          findContent,
+          makeReferences: makeMongoDbReferences,
+        }),
+        fetchPageTool: makeFetchPageTool({
+          loadPage,
+          findContent,
+          makeReferences: makeMongoDbReferences,
+        }),
         toolChoice: "auto",
         maxSteps: 5,
       }),

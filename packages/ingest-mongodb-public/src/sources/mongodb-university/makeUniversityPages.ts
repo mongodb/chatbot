@@ -1,11 +1,12 @@
 import { Page, PageMetadata } from "mongodb-rag-core";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import {
   TiCatalogItem,
   UniversityVideo,
 } from "./MongoDbUniversityDataApiClient";
 import { SourceTypeName } from "../index";
 
-export const UNI_BASE_URL = "https://learn.mongodb.com";
+export const UNI_BASE_URL = "learn.mongodb.com";
 
 /**
   Helper function to create {@link Page} objects
@@ -49,7 +50,7 @@ function makeCatalogItemPages({
   const pages: Page<SourceTypeName>[] = [];
   for (const catalogItem of tiCatalogItems) {
     /* Create page for higher level courses.
-     * Higher level courses are Leanring Paths and Courses that have nested content.
+     * Higher level courses are Learning Paths and Courses that have nested content.
      * Nested content is made up of other TiCatalogItems such as Units and Learning Bytes.
      * Note: Higher level courses do not have videos, but their nested content does.
      */
@@ -59,7 +60,7 @@ function makeCatalogItemPages({
     ) {
       const page: Page<SourceTypeName> = {
         sourceName,
-        url: `${UNI_BASE_URL}/learning-paths/${catalogItem.slug}`,
+        url: makeUniversityHighLevelCourseUrl(catalogItem.slug),
         title: catalogItem.name,
         format: "md",
         body: generateContentDescriptionMarkdown({
@@ -194,7 +195,17 @@ function makeUniversityPageUrl({
   sectionSlug: string;
   lessonSlug: string;
 }) {
-  return `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`;
+  return normalizeUrl(
+    `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`
+  );
+}
+
+/**
+  Helper function to create the top-level course URL for MongoDB University.
+  This is used for Learning Paths and Courses that have nested content.
+ */
+function makeUniversityHighLevelCourseUrl(catalogItemSlug: string) {
+  return normalizeUrl(`${UNI_BASE_URL}/learning-paths/${catalogItemSlug}`);
 }
 
 /**
@@ -229,7 +240,7 @@ export function generateContentDescriptionMarkdown({
     for (const nested of nested_content) {
       const { name, duration, description, slug } = nested;
       const title = `## ${name}`;
-      const link = `[View Details](${UNI_BASE_URL}/courses/${slug})`;
+      const link = `[View Details](https://${UNI_BASE_URL}/courses/${slug})`;
       markdownContent +=
         title +
         "\n\n" +

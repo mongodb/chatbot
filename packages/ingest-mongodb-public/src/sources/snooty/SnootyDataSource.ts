@@ -1,8 +1,15 @@
 import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
-import { DataSource, ProjectBase } from "mongodb-rag-core/dataSources";
-import { MongoDbDriverName, MongoDbProductName } from "mongodb-rag-core/mongoDbMetadata";
+import {
+  DataSource,
+  ProjectBase,
+  normalizeUrl,
+} from "mongodb-rag-core/dataSources";
+import {
+  MongoDbDriverName,
+  MongoDbProductName,
+} from "mongodb-rag-core/mongoDbMetadata";
 import {
   snootyAstToMd,
   getTitleFromSnootyAst,
@@ -14,7 +21,7 @@ import {
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
 import { truncateEmbeddings } from "./truncateEmbeddings";
-import { SourceTypeName } from  "../index";
+import { SourceTypeName } from "../index";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -454,7 +461,7 @@ function makeUrl(pagePath: string, baseUrl: string): string {
 
   // Handle empty pagePath or root path
   if (!pagePath || pagePath === "/") {
-    return baseUrlTrailingSlash;
+    return normalizeUrl(baseUrlTrailingSlash);
   }
 
   // For non-empty paths, remove leading slash and ensure trailing slash
@@ -463,5 +470,5 @@ function makeUrl(pagePath: string, baseUrl: string): string {
     .replace(/\/?$/, "/"); // Ensure trailing slash
 
   // Concatenate the base URL with the clean page path
-  return baseUrlTrailingSlash + cleanPagePath;
+  return normalizeUrl(baseUrlTrailingSlash + cleanPagePath);
 }

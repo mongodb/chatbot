@@ -1,5 +1,5 @@
 import { logger, Page } from "mongodb-rag-core";
-import { DataSource } from "mongodb-rag-core/dataSources";
+import { DataSource, normalizeUrl } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
 import { Browser, Page as PlaywrightPage } from "playwright";
 import TurndownService from "turndown";
@@ -35,7 +35,7 @@ export function makeWebDataSource({
           });
           if (content) {
             pages.push({
-              url,
+              url: normalizeUrl(url),
               format: "md",
               sourceName: name,
               sourceType,

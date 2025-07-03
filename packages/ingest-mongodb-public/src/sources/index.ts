@@ -5,6 +5,7 @@ import {
   makeMdOnGithubDataSource,
   makeMarkdownUrlDataSource,
   removeMarkdownFileExtension,
+  normalizeUrl,
 } from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
@@ -89,7 +90,7 @@ export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams<SourceT
       if (!frontMatter?.url) {
         throw new Error("frontMatter.url must be specified");
       }
-      return frontMatter?.url as string;
+      return normalizeUrl(frontMatter?.url as string);
     },
     extractMetadata(_, frontMatter) {
       if (!frontMatter) {
@@ -119,7 +120,7 @@ export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams<
       if (!frontMatter?.url) {
         throw new Error("frontMatter.url must be specified");
       }
-      return frontMatter?.url as string;
+      return normalizeUrl(frontMatter?.url as string);
     },
     extractMetadata(_, frontMatter) {
       if (!frontMatter) {
@@ -151,7 +152,9 @@ export const terraformProviderSourceConfig: MakeMdOnGithubDataSourceParams<Sourc
     pathToPageUrl(pathInRepo, _) {
       const siteBaseUrl =
         "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
-      return siteBaseUrl + pathInRepo.replace("docs/", "").replace(".md", "");
+      return normalizeUrl(
+        siteBaseUrl + pathInRepo.replace("docs/", "").replace(".md", "")
+      );
     },
     filter: (path: string) => path.includes("docs") && path.endsWith(".md"),
     sourceType: "tech-docs-external",
@@ -200,7 +203,9 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
     metadata: {
       tags: ["docs", "voyageai"],
     },
-    markdownUrlToPageUrl: removeMarkdownFileExtension,
+    markdownUrlToPageUrl: (url: string) => {
+      return normalizeUrl(removeMarkdownFileExtension(url));
+    },
   });
 };
 

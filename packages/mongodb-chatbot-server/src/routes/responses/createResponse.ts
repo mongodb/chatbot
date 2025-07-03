@@ -376,38 +376,39 @@ const saveMessagesToConversation = async ({
   input,
   messages,
 }: AddMessagesToConversationParams) => {
-  const finalMessages: Array<SomeMessage> = [];
-
-  if (typeof input === "string") {
-    finalMessages.push({
-      role: "user",
-      content: input,
-      metadata,
-    });
-  } else {
-    finalMessages.push(
-      ...input.map((message) => {
-        const role = message.type === "message" ? message.role : "system";
-        const content =
-          message.type === "message" ? message.content : message.type ?? "";
-        return {
-          role,
-          content,
-          metadata,
-        };
-      })
-    );
-  }
-
-  finalMessages.push(
+  const messagesToAdd = [
+    ...convertInputToDBMessages(input, metadata),
     ...messages.map((message) => ({
       ...message,
       metadata,
-    }))
-  );
+    })),
+  ];
 
   await conversations.addManyConversationMessages({
     conversationId: conversation._id,
-    messages: finalMessages,
+    messages: messagesToAdd,
+  });
+};
+
+const convertInputToDBMessages = (
+  input: CreateResponseRequest["body"]["input"],
+  metadata?: Record<string, string>
+): Array<SomeMessage> => {
+  if (typeof input === "string") {
+    return [
+      {
+        role: "user",
+        content: input,
+        metadata,
+      },
+    ];
+  }
+
+  return input.map((message) => {
+    const role = message.type === "message" ? message.role : "system";
+    const content =
+      message.type === "message" ? message.content : message.type ?? "";
+
+    return { role, content, metadata };
   });
 };

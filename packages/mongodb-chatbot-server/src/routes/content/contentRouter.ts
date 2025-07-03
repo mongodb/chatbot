@@ -1,15 +1,14 @@
 import { Router } from "express";
-import { FindContentFunc } from "mongodb-rag-core";
+import { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import {
   SearchContentRequest,
-  SearchResultsStore,
   makeSearchContentRoute,
 } from "./searchContent";
 
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
-  searchResultsStore: SearchResultsStore;
+  searchResultsStore: MongoDbSearchResultsStore;
 }
 
 export function makeContentRouter({

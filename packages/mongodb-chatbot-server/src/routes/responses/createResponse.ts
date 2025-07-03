@@ -187,9 +187,7 @@ export function makeCreateResponseRoute({
 
     try {
       // --- INPUT VALIDATION ---
-      const { error, data } = await CreateResponseRequestSchema.safeParseAsync(
-        req
-      );
+      const { error, data } = CreateResponseRequestSchema.safeParse(req);
       if (error) {
         throw makeBadRequestError({
           error: new Error(generateZodErrorMessage(error)),

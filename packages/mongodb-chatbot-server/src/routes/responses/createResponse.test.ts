@@ -26,6 +26,10 @@ describe("POST /responses", () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const makeCreateResponseRequest = (
     body?: Partial<CreateResponseRequest["body"]>,
     appOverride?: Express
@@ -333,6 +337,15 @@ describe("POST /responses", () => {
       expect(addedMessages[0].content).toBe("");
       expect(addedMessages[0].metadata).toEqual(metadata);
       // make a helper for this
+    });
+
+    it("Should store function_call messages when `store: true`", async () => {
+      // TODO: this
+      const response = await makeCreateResponseRequest({
+        store: true,
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 

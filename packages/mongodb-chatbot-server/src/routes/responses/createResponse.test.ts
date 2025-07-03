@@ -276,33 +276,54 @@ describe("POST /responses", () => {
         "create"
       );
 
-      const customUserId = "customUserId";
-      const customMetadata = {
+      const store = true;
+      const userId = "customUserId";
+      const metadata = {
         customMessage1: "customMessage1",
         customMessage2: "customMessage2",
       };
       const response = await makeCreateResponseRequest({
-        store: true,
-        metadata: customMetadata,
-        user: customUserId,
+        store,
+        metadata,
+        user: userId,
       });
 
+      const createdConversation = await createSpy.mock.results[0].value;
+
       expect(response.statusCode).toBe(200);
-      expect(createSpy).toHaveBeenCalledWith({
-        customData: {
-          metadata: customMetadata,
-          store: true,
-          userId: customUserId,
-        },
+      expect(createdConversation.customData).toEqual({
+        store,
+        metadata,
+        userId: userId,
       });
     });
 
     it("Should properly store conversations when store flag is false", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+
+      const store = false;
+      const userId = "customUserId";
+      const metadata = {
+        customMessage1: "customMessage1",
+        customMessage2: "customMessage2",
+      };
       const response = await makeCreateResponseRequest({
-        store: false,
+        store,
+        metadata,
+        user: userId,
       });
 
+      const createdConversation = await createSpy.mock.results[0].value;
+
       expect(response.statusCode).toBe(200);
+      expect(createdConversation.customData).toEqual({
+        store,
+        metadata,
+        userId,
+      });
     });
   });
 

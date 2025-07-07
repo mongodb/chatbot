@@ -75,6 +75,6 @@ describe("ensureProtocol", () => {
   });
 
   it("should handle empty string", () => {
-    expect(ensureProtocol("")).toBe(null);
+    expect(ensureProtocol("")).toBe("https://");
   });
 });

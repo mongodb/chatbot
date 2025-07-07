@@ -1,5 +1,3 @@
-import { logger } from "../logger";
-
 /**
   Utility function that normalizes a URL.
   Removes http/s protocol, www, trailing backslashes.
@@ -16,21 +14,9 @@ export function normalizeUrl(url: string): string {
   Adds protocol ("https://") to a URL if it is missing. 
   Intended for use in URL constructor.
  */
-export function ensureProtocol(url: string): string | null {
-  if (!url) return null;
-
-  url = url.trim();
-  try {
-    new URL(url);
+export function ensureProtocol(url: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
-  } catch {
-    try {
-      const withProtocol = `https://${url}`;
-      new URL(withProtocol);
-      return withProtocol;
-    } catch {
-      logger.error(`Malformed URL: ${url}`);
-      return null;
-    }
   }
+  return `https://${url}`;
 }

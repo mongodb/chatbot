@@ -31,7 +31,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { logger, makeMongoDbSearchResultsStore } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -118,6 +118,11 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
+});
+
+export const searchResultsStore = makeMongoDbSearchResultsStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const verifiedAnswerConfig = {
@@ -307,6 +312,11 @@ export async function closeDbConnections() {
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
+  contentRouterConfig: {
+    // TODO: Its own implementation of findContent...
+    findContent,
+    searchResultsStore,
+  },
   conversationsRouterConfig: {
     middleware: [
       blockGetRequests,

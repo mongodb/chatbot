@@ -13,6 +13,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
+import { makeRequestError } from "../conversations/utils";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -41,8 +42,8 @@ interface SearchContentResponseChunk {
   url: string;
   title: string;
   text: string;
-  metadata: {
-    sourceName: string;
+  metadata?: {
+    sourceName?: string;
     sourceType?: string;
     sourceVersionLabel?: string;
     tags?: string[];
@@ -77,26 +78,55 @@ export function makeSearchContentRoute({
         searchResultsStore,
       });
     } catch (error) {
-      // TODO: error handling
+      throw makeRequestError({
+        httpStatus: 500,
+        message: "Unable to query search database",
+      });
     }
   };
 }
 
-// TODO: map FindContentResult to SearchContentResponseChunk
 function mapFindContentResultToSearchContentResponseChunk(
   result: FindContentResult
 ): SearchContentResponseBody {
-  // TODO:
   return {
-    results: [],
+    results: result.content.map(({ url, metadata, text }) => ({
+      url,
+      title: metadata?.pageTitle || "",
+      text,
+      metadata,
+    })),
   };
 }
 
 function mapDataSourcesToFilters(
-  dataSources: SearchRecordDataSource[]
+  dataSources?: SearchRecordDataSource[]
 ): QueryFilters {
-  // TODO: implement
-  return {};
+  if (!dataSources || dataSources.length === 0) {
+    return {};
+  }
+
+  const sourceNames = dataSources.map((ds) => ds.name);
+  const sourceTypes = dataSources
+    .map((ds) => ds.type)
+    .filter((t): t is string => !!t);
+  const versionLabels = dataSources
+    .map((ds) => ds.versionLabel)
+    .filter((v): v is string => !!v);
+
+  const filter: QueryFilters = {};
+
+  if (sourceNames.length) {
+    filter.sourceName = { $in: sourceNames };
+  }
+  if (sourceTypes.length) {
+    filter.sourceType = { $in: sourceTypes };
+  }
+  if (versionLabels.length) {
+    filter.version = { label: { $in: versionLabels } };
+  }
+
+  return filter;
 }
 
 async function persistSearchResultsToDatabase(params: {
@@ -106,5 +136,11 @@ async function persistSearchResultsToDatabase(params: {
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
 }) {
-  // TODO: implement
+  params.searchResultsStore.saveSearchResult({
+    query: params.query,
+    results: params.results.content,
+    dataSources: params.dataSources,
+    limit: params.limit,
+    createdAt: new Date(),
+  });
 }

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import request from "supertest";
 import type { Express } from "express";
+import type { Conversation, SomeMessage } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
@@ -8,12 +9,6 @@ import { ERROR_TYPE, ERROR_CODE } from "./errors";
 import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(100000);
-
-const badRequestError = (message: string) => ({
-  type: ERROR_TYPE,
-  code: ERROR_CODE.INVALID_REQUEST_ERROR,
-  message,
-});
 
 describe("POST /responses", () => {
   const endpointUrl = `${DEFAULT_API_PREFIX}/responses`;
@@ -26,10 +21,15 @@ describe("POST /responses", () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const makeCreateResponseRequest = (
     body?: Partial<CreateResponseRequest["body"]>,
     appOverride?: Express
   ) => {
+    // TODO: update this to use the openai client
     return request(appOverride ?? app)
       .post(endpointUrl)
       .set("X-Forwarded-For", ipAddress)
@@ -245,6 +245,161 @@ describe("POST /responses", () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const storeMessageContent = undefined;
+      const conversation =
+        await appConfig.conversationsRouterConfig.conversations.create({
+          storeMessageContent,
+          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+        });
+
+      const store = true;
+      const previousResponseId = conversation.messages[0].id.toString();
+      const response = await makeCreateResponseRequest({
+        previous_response_id: previousResponseId,
+        store,
+      });
+
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
+      expect(response.statusCode).toBe(200);
+      expect(createdConversation.storeMessageContent).toEqual(
+        storeMessageContent
+      );
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        store,
+      });
+    });
+
+    it("Should store conversation messages when `store: true`", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const store = true;
+      const userId = "customUserId";
+      const metadata = {
+        customMessage1: "customMessage1",
+        customMessage2: "customMessage2",
+      };
+      const response = await makeCreateResponseRequest({
+        store,
+        metadata,
+        user: userId,
+      });
+
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
+      expect(response.statusCode).toBe(200);
+      expect(createdConversation.storeMessageContent).toEqual(store);
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        userId,
+        store,
+        metadata,
+      });
+    });
+
+    it("Should not store conversation messages when `store: false`", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const store = false;
+      const userId = "customUserId";
+      const metadata = {
+        customMessage1: "customMessage1",
+        customMessage2: "customMessage2",
+      };
+      const response = await makeCreateResponseRequest({
+        store,
+        metadata,
+        user: userId,
+      });
+
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
+      expect(response.statusCode).toBe(200);
+      expect(createdConversation.storeMessageContent).toEqual(store);
+      testDefaultMessageContent({
+        createdConversation,
+        addedMessages,
+        userId,
+        store,
+        metadata,
+      });
+    });
+
+    it("Should store function_call messages when `store: true`", async () => {
+      const createSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "create"
+      );
+      const addMessagesSpy = jest.spyOn(
+        appConfig.conversationsRouterConfig.conversations,
+        "addManyConversationMessages"
+      );
+
+      const store = true;
+      const functionCallType = "function_call";
+      const functionCallOutputType = "function_call_output";
+      const response = await makeCreateResponseRequest({
+        store,
+        input: [
+          {
+            type: functionCallType,
+            id: "call123",
+            name: "my_function",
+            arguments: `{"query": "value"}`,
+            status: "in_progress",
+          },
+          {
+            type: functionCallOutputType,
+            call_id: "call123",
+            output: `{"result": "success"}`,
+            status: "completed",
+          },
+        ],
+      });
+
+      const createdConversation = await createSpy.mock.results[0].value;
+      const addedMessages = await addMessagesSpy.mock.results[0].value;
+
+      expect(response.statusCode).toBe(200);
+      expect(createdConversation.storeMessageContent).toEqual(store);
+
+      expect(addedMessages[0].role).toEqual("system");
+      expect(addedMessages[1].role).toEqual("system");
+
+      expect(addedMessages[0].content).toEqual(functionCallType);
+      expect(addedMessages[1].content).toEqual(functionCallOutputType);
     });
   });
 
@@ -491,4 +646,95 @@ describe("POST /responses", () => {
       );
     });
   });
+
+  it("Should return 400 if user id has changed since the conversation was created", async () => {
+    const userId1 = "user1";
+    const userId2 = "user2";
+    const conversation =
+      await appConfig.conversationsRouterConfig.conversations.create({
+        userId: userId1,
+        initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+      });
+
+    const previousResponseId = conversation.messages[0].id.toString();
+    const response = await makeCreateResponseRequest({
+      previous_response_id: previousResponseId,
+      user: userId2,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      badRequestError(ERR_MSG.CONVERSATION_USER_ID_CHANGED)
+    );
+  });
+
+  it("Should return 400 if `store: false` and `previous_response_id` is provided", async () => {
+    const response = await makeCreateResponseRequest({
+      previous_response_id: "123456789012123456789012",
+      store: false,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      badRequestError(ERR_MSG.STORE_NOT_SUPPORTED)
+    );
+  });
+
+  it("Should return 400 if `store: true` and `storeMessageContent: false`", async () => {
+    const conversation =
+      await appConfig.conversationsRouterConfig.conversations.create({
+        storeMessageContent: false,
+        initialMessages: [{ role: "user", content: "" }],
+      });
+
+    const previousResponseId = conversation.messages[0].id.toString();
+    const response = await makeCreateResponseRequest({
+      previous_response_id: previousResponseId,
+      store: true,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      badRequestError(ERR_MSG.CONVERSATION_STORE_MISMATCH)
+    );
+  });
 });
+
+// --- HELPERS ---
+
+const badRequestError = (message: string) => ({
+  type: ERROR_TYPE,
+  code: ERROR_CODE.INVALID_REQUEST_ERROR,
+  message,
+});
+
+interface TestDefaultMessageContentParams {
+  createdConversation: Conversation;
+  addedMessages: SomeMessage[];
+  store: boolean;
+  userId?: string;
+  metadata?: Record<string, string>;
+}
+
+const testDefaultMessageContent = ({
+  createdConversation,
+  addedMessages,
+  store,
+  userId,
+  metadata,
+}: TestDefaultMessageContentParams) => {
+  expect(createdConversation.userId).toEqual(userId);
+
+  expect(addedMessages[0].role).toBe("user");
+  expect(addedMessages[1].role).toEqual("user");
+  expect(addedMessages[2].role).toEqual("assistant");
+
+  expect(addedMessages[0].content).toBe(store ? "What is MongoDB?" : "");
+  expect(addedMessages[1].content).toBeFalsy();
+  expect(addedMessages[2].content).toEqual(store ? "some content" : "");
+
+  expect(addedMessages[0].metadata).toEqual(metadata);
+  expect(addedMessages[1].metadata).toEqual(metadata);
+  expect(addedMessages[2].metadata).toEqual(metadata);
+  if (metadata) expect(createdConversation.customData).toEqual({ metadata });
+};

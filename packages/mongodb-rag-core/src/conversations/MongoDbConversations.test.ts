@@ -55,6 +55,31 @@ describe("Conversations Service", () => {
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
   });
+  test("Should create a conversation with userId", async () => {
+    const userId = "123";
+    const conversation = await conversationsService.create({
+      userId,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty("userId", userId);
+  });
+  test("Should create a conversation with storeMessageContent", async () => {
+    const storeMessageContent = true;
+    const conversation = await conversationsService.create({
+      storeMessageContent,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty(
+      "storeMessageContent",
+      storeMessageContent
+    );
+  });
   test("Should add a message to a conversation", async () => {
     const conversation = await conversationsService.create({
       initialMessages: [systemPrompt],

@@ -26,7 +26,6 @@
     "scripts:materializeScrubbedMessagesStats:latest": "lerna run --scope='scripts' materializeScrubbedMessagesStats:latest",
     "scripts:listSlackMessages": "lerna run --scope='scripts' listSlackMessages -- ",
     "scripts:removeSlackMessage": "lerna run --scope='scripts' removeSlackMessage -- ",
-    "scripts:verifyPagesInSource": "lerna run --scope='scripts' verifyPagesInSource -- ",
     "server:start": "lerna run start --scope='chatbot-server-mongodb-public'",
     "eval:conversationQualityCheckPipeline": "lerna run pipeline:conversationQualityCheck --scope='chatbot-eval-mongodb-public'",
     "eval:faqConversationQualityCheckPipeline": "lerna run pipeline:faqConversationQualityCheck --scope='chatbot-eval-mongodb-public'"

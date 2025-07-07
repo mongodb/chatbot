@@ -88,9 +88,9 @@ describe("MongoDbSearchResultsStore", () => {
         createdAt: new Date(),
       };
       await expect(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        store.saveSearchResult(badSearchResultRecord)
+        // Cast as `any` to pass linter (passing bad type purposefully)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        store.saveSearchResult(badSearchResultRecord as any)
       ).rejects.toThrow();
     });
   });

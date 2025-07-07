@@ -28,7 +28,7 @@ export const makeDefaultFindContent = ({
     let content = await store.findNearestNeighbors(embedding, {
       ...findNearestNeighborsOptions,
       filter: filters,
-      k: limit,
+      ...(limit ? { k: limit }: {})
     });
 
     for (const booster of searchBoosters ?? []) {

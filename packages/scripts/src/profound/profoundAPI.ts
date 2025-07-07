@@ -108,21 +108,10 @@ export class ProfoundApi {
         ...body,
         pagination: { limit, offset },
       };
-      const res = await fetch(
-        `${this.baseUrl}${endpoint}?api_key=${this.apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(paginatedBody),
-        }
+      const json = await this.request<{ info?: { total_rows: number }; data?: any[] }>(
+        endpoint,
+        { method: "POST", body: paginatedBody }
       );
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(
-          `Profound API error: ${res.status} ${res.statusText} - ${errorText}`
-        );
-      }
-      const json = await res.json();
       if (totalRows === undefined) totalRows = json.info?.total_rows;
       allData = allData.concat(json.data || []);
       const effectiveTotalRows = totalRows ?? allData.length;

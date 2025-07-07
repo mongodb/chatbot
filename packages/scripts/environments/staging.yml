@@ -67,7 +67,7 @@ cronJobs:
 
   - name: process-citations-for-metrics
     schedule: "0 1 * * *" # every day at 1 AM UTC
-    command: "npm run scripts:getLLMAnswers"
+    command: ["npm", "run", "scripts:getLLMAnswers"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-staging
       PROFOUND_API_URL: https://api.tryprofound.com/v1

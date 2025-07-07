@@ -134,6 +134,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   const casesCollection = db.collection("llm_cases");
   // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
   const casesByPromptMap = await casesByPromptId(casesCollection);
+  // create a hashmap of all platforms, where the key is the platform name and the value is the platform id
   const platformsByNameMap = await platformsByName();
   // END set up
 
@@ -276,13 +277,12 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);
-    } finally {
-      await client.close();
     }
   }
   if (errors && errors.length > 0) {
     console.error("Errors while getting reference alignment scores:", errors);
   }
+  await client.close();
 };
 
 // Usage documentation for CLI users

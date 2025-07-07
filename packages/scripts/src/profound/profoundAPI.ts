@@ -108,10 +108,10 @@ export class ProfoundApi {
         ...body,
         pagination: { limit, offset },
       };
-      const json = await this.request<{ info?: { total_rows: number }; data?: any[] }>(
-        endpoint,
-        { method: "POST", body: paginatedBody }
-      );
+      const json = await this.request<{
+        info?: { total_rows: number };
+        data?: any[];
+      }>(endpoint, { method: "POST", body: paginatedBody });
       if (totalRows === undefined) totalRows = json.info?.total_rows;
       allData = allData.concat(json.data || []);
       const effectiveTotalRows = totalRows ?? allData.length;

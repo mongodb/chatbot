@@ -1,6 +1,6 @@
 ---
 title: MongoDB AI Chatbot Overview
-url: github.com/mongodb/chatbot/blob/main/mongodb-corp/chatbot/overview
+url: github.com/mongodb/chatbot
 metadata:
   description: Overview of Docs AI Chatbot, including it's capabilities and how it's built
   products:

@@ -178,13 +178,13 @@ describe("WebDataSource", () => {
   it("handles valid urls", async () => {
     const source = await makeWebDataSource({
       name: "valid-source",
-      urls: ["https://www.mongodb.com/company"],
+      urls: ["https://www.mongodb.com/company/"],
       makeBrowser: async () => mockBrowser,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(1);
     expect(pages[0]).toMatchObject({
-      url: "https://www.mongodb.com/company",
+      url: "mongodb.com/company",
       metadata: {
         description:
           "MongoDB empowers innovators with our developer data platform and integrated services. MongoDB enables development teams to meet the diverse needs of modern apps. ",

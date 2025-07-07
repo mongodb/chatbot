@@ -1,4 +1,5 @@
-import { References } from "mongodb-rag-core";
+import { References, logger } from "mongodb-rag-core";
+import { ensureProtocol } from "mongodb-rag-core/dataSources";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 
 /**
@@ -23,9 +24,18 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   });
 
   return uniqueReferenceChunks.map((chunk) => {
-    const url = new URL(chunk.url).href;
-    // Ensure title is always a string by checking its type
-    const pageTitle = chunk.metadata?.pageTitle;
+    // Handle normalized URLs, add protocol if missing
+    let url;
+    try {
+      url = new URL(ensureProtocol(chunk.url)).href;
+    } catch (error) {
+      logger.error(`Could not safely convert URL "${chunk.url}":`, error);
+      url = chunk.url;
+    }
+
+    // Location of `title` param depends on chunk type (EmbeddedContent/Page)
+    const pageTitle =
+      chunk.metadata?.pageTitle ?? (hasTitle(chunk) ? chunk.title : undefined);
     const title = typeof pageTitle === "string" ? pageTitle : url;
     const sourceName = chunk.sourceName;
 
@@ -39,3 +49,8 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
     };
   }) satisfies References;
 };
+
+function hasTitle(obj: unknown): obj is { title: string } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return typeof (obj as any)?.title === "string";
+}

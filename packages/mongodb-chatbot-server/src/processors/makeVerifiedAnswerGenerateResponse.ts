@@ -40,6 +40,7 @@ export const makeVerifiedAnswerGenerateResponse = ({
   findVerifiedAnswer,
   onVerifiedAnswerFound,
   onNoVerifiedAnswerFound,
+  stream,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
     const { latestMessageText, shouldStream, dataStreamer } = args;
@@ -66,17 +67,11 @@ export const makeVerifiedAnswerGenerateResponse = ({
 
     if (shouldStream) {
       assert(dataStreamer, "Must have dataStreamer if shouldStream=true");
-      dataStreamer.streamData({
-        type: "metadata",
-        data: metadata,
-      });
-      dataStreamer.streamData({
-        type: "delta",
-        data: answer,
-      });
-      dataStreamer.streamData({
-        type: "references",
-        data: references,
+      assert(stream, "Must have stream if shouldStream=true");
+
+      stream.onVerifiedAnswerFound({
+        dataStreamer,
+        verifiedAnswer,
       });
     }
 

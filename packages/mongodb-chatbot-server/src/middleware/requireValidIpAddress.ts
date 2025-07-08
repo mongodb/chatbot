@@ -3,9 +3,6 @@ import { ParamsDictionary } from "express-serve-static-core";
 
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 import { isValidIp } from "../routes/conversations/utils";
-import { ConversationsRouterLocals, SearchContentRouterLocals } from "../routes";
-
-export type Locals = ConversationsRouterLocals | SearchContentRouterLocals;
 
 export function requireValidIpAddress<
   Locals extends Record<string, any>

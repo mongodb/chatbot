@@ -33,9 +33,6 @@ export interface SearchContentRouterLocals {
   customData: Record<string, unknown>;
 }
 
-
-
-
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;

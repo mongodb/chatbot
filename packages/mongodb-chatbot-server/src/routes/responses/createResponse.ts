@@ -5,10 +5,11 @@ import type {
 } from "express";
 import { ObjectId } from "mongodb";
 import type { APIError } from "mongodb-rag-core/openai";
-import type {
-  ConversationsService,
-  Conversation,
-  SomeMessage,
+import {
+  type ConversationsService,
+  type Conversation,
+  type SomeMessage,
+  makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
@@ -184,6 +185,7 @@ export function makeCreateResponseRoute({
   ) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
+    const dataStreamer = makeDataStreamer();
 
     try {
       // --- INPUT VALIDATION ---
@@ -233,6 +235,16 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // TODO: stream a created message
+      dataStreamer.streamResponses({
+        type: "response.created",
+      });
+
+      // TODO: stream an in progress message
+      dataStreamer.streamResponses({
+        type: "response.in_progress",
+      });
+
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -269,6 +281,11 @@ export function makeCreateResponseRoute({
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);
 
+      // TODO: stream a completed message
+      dataStreamer.streamResponses({
+        type: "response.completed",
+      });
+
       // --- STORE MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({
         conversations,
@@ -286,11 +303,18 @@ export function makeCreateResponseRoute({
           ? (error as APIError)
           : makeInternalServerError({ error: error as Error, headers });
 
-      sendErrorResponse({
-        res,
-        reqId,
-        error: standardError,
-      });
+      if (dataStreamer.connected) {
+        // TODO: stream the standard error object if possible
+        dataStreamer.streamResponses({
+          type: "error",
+        });
+      } else {
+        sendErrorResponse({
+          res,
+          reqId,
+          error: standardError,
+        });
+      }
     }
   };
 }

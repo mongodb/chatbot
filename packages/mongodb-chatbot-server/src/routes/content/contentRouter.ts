@@ -6,7 +6,6 @@ import {
   makeSearchContentRoute,
 } from "./searchContent";
 import { ParamsDictionary } from "express-serve-static-core";
-import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
 
 /**
   Middleware to put in front of all the routes in the contentRouter.
@@ -42,7 +41,7 @@ export interface MakeContentRouterParams {
 export function makeContentRouter({
   findContent,
   searchResultsStore,
-  middleware = [requireValidIpAddress(), requireRequestOrigin()],
+  middleware = [],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
 

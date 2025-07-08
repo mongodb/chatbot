@@ -1,13 +1,9 @@
-import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
+import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
-export function requireRequestOrigin<
-  Locals extends Record<string, any>
->(): RequestHandler<ParamsDictionary, any, any, any, Locals> {
+export function requireRequestOrigin(): ConversationsMiddleware {
   return (req, res, next) => {
     const reqId = getRequestId(req);
 

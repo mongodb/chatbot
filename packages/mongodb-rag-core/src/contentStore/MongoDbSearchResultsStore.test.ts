@@ -72,22 +72,20 @@ describe("MongoDbSearchResultsStore", () => {
     await mongoClient.close();
   });
 
-  describe("saveSearchResult", () => {
-    it("saves search result records to db", async () => {
-      assert(store);
-      await store.saveSearchResult(searchResultRecord);
+  it("saves search result records to db", async () => {
+    assert(store);
+    await store.saveSearchResult(searchResultRecord);
 
-      // Check for record in db
-      const client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db(store.metadata.databaseName);
-      const collection = db.collection<SearchResultRecord>("search_results");
-      const found = await collection.findOne(searchResultRecord);
+    // Check for record in db
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db(store.metadata.databaseName);
+    const collection = db.collection<SearchResultRecord>("search_results");
+    const found = await collection.findOne(searchResultRecord);
 
-      expect(found).toBeTruthy();
-      expect(found).toMatchObject(searchResultRecord);
+    expect(found).toBeTruthy();
+    expect(found).toMatchObject(searchResultRecord);
 
-      await client.close();
-    });
+    await client.close();
   });
 });

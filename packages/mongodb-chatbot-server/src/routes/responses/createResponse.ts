@@ -235,7 +235,6 @@ export function makeCreateResponseRoute({
         });
       }
 
-      // --- BEGIN DATA STREAMING ---
       dataStreamer.connect(res);
 
       // TODO: stream a created message
@@ -288,6 +287,10 @@ export function makeCreateResponseRoute({
       dataStreamer.streamResponses({
         type: "response.completed",
       });
+
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
 
       // --- STORE MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({

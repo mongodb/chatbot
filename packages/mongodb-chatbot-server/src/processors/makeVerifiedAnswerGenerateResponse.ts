@@ -31,6 +31,30 @@ export type StreamFunction<Params> = (
   params: { dataStreamer: DataStreamer } & Params
 ) => void;
 
+export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
+  {
+    onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      dataStreamer.streamData({
+        type: "metadata",
+        data: {
+          verifiedAnswer: {
+            _id: verifiedAnswer._id,
+            created: verifiedAnswer.created,
+            updated: verifiedAnswer.updated,
+          },
+        },
+      });
+      dataStreamer.streamData({
+        type: "delta",
+        data: verifiedAnswer.answer,
+      });
+      dataStreamer.streamData({
+        type: "references",
+        data: verifiedAnswer.references,
+      });
+    },
+  };
+
 /**
   Searches for verified answers for the user query.
   If no verified answer can be found for the given query, the

@@ -42,7 +42,7 @@ type GenerateResponseInput = Partial<GenerateResponseParams> &
 type GenerateResponseExpectedMessage = {
   role: SomeMessage["role"] | "assistant-tool";
   toolCallName?: string;
-  toolCallArgs?: string;
+  toolCallArgs?: Record<string, string>;
 };
 
 type GenerateResponseExpected = {
@@ -65,16 +65,19 @@ const evalCases: EvalCase<
       },
       latestMessageText:
         "Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/",
+      // customData: {}, // TODO For handling origin URL ("On this page...")
     },
-    // customData: {}, // For origin URL
     expected: {
       messages: [
         { role: "user" },
         {
           role: "assistant-tool",
           toolCallName: FETCH_PAGE_TOOL_NAME,
-          toolCallArgs: "",
-        }, // toolCallArgs is JSON string
+          toolCallArgs: {
+            pageUrl:
+              "https://www.mongodb.com/docs/atlas/data-federation/overview/",
+          },
+        },
         { role: "tool" },
         { role: "assistant" },
       ],
@@ -172,25 +175,69 @@ const ScoreCorrectToolsCalled: EvalScorer<
   };
 };
 
-// /** Verify the correct args were generated for the tool call(s). */
-// const ScoreCorrectToolsUsage: EvalScorer<
-//   GenerateResponseInput,
-//   GenerateResponseReturnValue,
-//   GenerateResponseExpected
-// > = ({ output, expected }) => {
-//     if (output.messages.length !== expected.messages.length) {
-//     return {
-//       name: "CorrectToolCallUsage",
-//       score: 0,
-//       metadata: {
-//         message: "Output and expected messages length were different",
-//       },
-//     };
-//   }
-//   for (let i = 0; i < output.messages.length; i++) {
-//     const expectedMessage = expected.messages[i];
-//     const outputMessage = output.messages[i];
-// }
+/** Verify the correct args were generated for the tool call(s) */
+const ScoreToolsUsedCorrectly: EvalScorer<
+  GenerateResponseInput,
+  GenerateResponseReturnValue,
+  GenerateResponseExpected
+> = ({ output, expected }) => {
+  let totalToolArgsCorrect = 0;
+  let totalToolArgs = 0;
+  for (
+    let i = 0;
+    i < output.messages.length && i < expected.messages.length;
+    i++
+  ) {
+    const expectedMessage = expected.messages[i];
+    const outputMessage = output.messages[i];
+
+    // Not expecting tool call/no expected args to validate against.
+    if (expectedMessage.role !== "assistant-tool") {
+      continue;
+    }
+    if (!expectedMessage.toolCallArgs) {
+      continue;
+    }
+
+    // Other scorer checks if correct tool was called
+    const hasToolCall =
+      "toolCall" in outputMessage &&
+      outputMessage.toolCall &&
+      typeof outputMessage.toolCall === "object" &&
+      "function" in outputMessage.toolCall;
+    if (!hasToolCall) {
+      continue;
+    }
+
+    const outputArguments = JSON.parse(
+      outputMessage.toolCall?.function.arguments ?? "{}"
+    );
+    for (const [key, value] of Object.entries(expectedMessage.toolCallArgs)) {
+      totalToolArgs++;
+      if (outputArguments?.[key] && outputArguments[key] === value) {
+        totalToolArgsCorrect++;
+      } else {
+        console.log(
+          `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`
+        );
+      }
+    }
+  }
+
+  if (totalToolArgs === 0) {
+    return {
+      name: "CorrectToolCallUsage",
+      score: null,
+      metadata: {
+        message: "No evaluation to peform - Zero expected args passed.",
+      },
+    };
+  }
+  return {
+    name: "CorrectToolCallUsage",
+    score: totalToolArgsCorrect / totalToolArgs,
+  };
+};
 
 // Mock dependencies
 const azureOpenAi = createAzure({
@@ -212,20 +259,21 @@ Eval("mongodb-chatbot-generate-w-tools", {
     ) => {
       return {
         queryEmbedding: [1, 2, 3],
-        content: [
-          {
-            url: "<This is the URL>",
-            score: 0.9,
-            sourceName: "<This is the source name>",
-            // TODO - is "as" safe here? can be undefined
-            text:
-              (hooks.metadata?.findContentReturnContent as string) ??
-              "<Placeholder text>",
-            tokenCount: 100,
-            embeddings: { key: [1, 2, 3] },
-            updated: new Date(),
-          },
-        ],
+        content: hooks.metadata?.findContentReturnContent
+          ? [
+              {
+                url: "<This is the URL>",
+                score: 0.9,
+                sourceName: "<This is the source name>",
+                text:
+                  (hooks.metadata?.findContentReturnContent as string) ??
+                  "<Placeholder text>",
+                tokenCount: 100,
+                embeddings: { key: [1, 2, 3] },
+                updated: new Date(),
+              },
+            ]
+          : [],
       };
     };
 
@@ -279,5 +327,5 @@ Eval("mongodb-chatbot-generate-w-tools", {
     });
     return result;
   },
-  scores: [ScoreCorrectToolsCalled], //, ScoreCorrectToolsArgs],
+  scores: [ScoreCorrectToolsCalled, ScoreToolsUsedCorrectly],
 });

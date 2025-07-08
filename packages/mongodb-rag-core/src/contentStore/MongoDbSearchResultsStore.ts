@@ -24,7 +24,7 @@ export interface ResultChunk {
     sourceName: string;
     sourceType?: string;
     tags?: string[];
-    [key: string]: any; // Accept additional unknown properties
+    [key: string]: unknown; // Accept additional unknown properties
   };
 }
 

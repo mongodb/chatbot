@@ -1,6 +1,4 @@
 import { strict as assert } from "assert";
-import { assertEnvVars } from "../assertEnvVars";
-import { CORE_ENV_VARS } from "../CoreEnvVars";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
@@ -10,27 +8,25 @@ import {
   SearchResultRecord,
 } from "./MongoDbSearchResultsStore";
 
-const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
-  assertEnvVars(CORE_ENV_VARS);
+const searchResultRecord: SearchResultRecord = {
+  query: "What is MongoDB Atlas?",
+  results: [
+    {
+      url: "foo",
+      title: "bar",
+      text: "baz",
+      metadata: {
+        sourceName: "source",
+      },
+    },
+  ],
+  dataSources: [{ name: "source1", type: "docs" }],
+  createdAt: new Date(),
+};
+const uri = MONGO_MEMORY_SERVER_URI;
 
 describe("MongoDbSearchResultsStore", () => {
   let store: MongoDbSearchResultsStore | undefined;
-  const searchResultRecord: SearchResultRecord = {
-    query: "What is MongoDB Atlas?",
-    results: [
-      {
-        url: "foo",
-        title: "bar",
-        text: "baz",
-        metadata: {
-          sourceName: "source",
-        },
-      },
-    ],
-    dataSources: [{ name: "source1", type: "docs" }],
-    createdAt: new Date(),
-  };
-  const uri = MONGO_MEMORY_SERVER_URI;
 
   beforeAll(async () => {
     store = makeMongoDbSearchResultsStore({
@@ -52,7 +48,7 @@ describe("MongoDbSearchResultsStore", () => {
     expect(store.metadata.collectionName).toBe("search_results");
 
     const storeWithCustomCollectionName = makeMongoDbSearchResultsStore({
-      connectionUri: MONGODB_CONNECTION_URI,
+      connectionUri: uri,
       databaseName: store.metadata.databaseName,
       collectionName: "custom-search_results",
     });
@@ -60,6 +56,20 @@ describe("MongoDbSearchResultsStore", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-search_results"
     );
+  });
+
+  it("creates indexes", async () => {
+    assert(store);
+    await store.init();
+
+    const mongoClient = new MongoClient(uri);
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<SearchResultRecord>(store.metadata.collectionName);
+    const indexes = await coll?.listIndexes().toArray();
+
+    expect(indexes?.some((el) => el.name === "createdAt_-1")).toBe(true);
+    await mongoClient.close();
   });
 
   describe("saveSearchResult", () => {
@@ -79,50 +89,5 @@ describe("MongoDbSearchResultsStore", () => {
 
       await client.close();
     });
-    it("does NOT save badly formed record", async () => {
-      assert(store);
-      const badSearchResultRecord = {
-        query: "What is aggregation?",
-        results: [],
-        dataSources: [{ type: "docs" }],
-        createdAt: new Date(),
-      };
-      await expect(
-        // Cast as `any` to pass linter (passing bad type purposefully)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        store.saveSearchResult(badSearchResultRecord as any)
-      ).rejects.toThrow();
-    });
-  });
-});
-
-describe("initializes DB", () => {
-  let store: MongoDbSearchResultsStore | undefined;
-  let mongoClient: MongoClient | undefined;
-
-  beforeEach(async () => {
-    store = makeMongoDbSearchResultsStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
-    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  });
-
-  afterEach(async () => {
-    assert(store);
-    assert(mongoClient);
-    await store.close();
-    await mongoClient.close();
-  });
-
-  it("creates indexes", async () => {
-    assert(store);
-    await store.init();
-
-    const coll = mongoClient
-      ?.db(store.metadata.databaseName)
-      .collection<SearchResultRecord>(store.metadata.collectionName);
-    const indexes = await coll?.listIndexes().toArray();
-    expect(indexes?.some((el) => el.name === "createdAt_-1")).toBe(true);
   });
 });

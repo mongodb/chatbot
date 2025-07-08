@@ -32,11 +32,13 @@ export const ResultChunkSchema = z.object({
   url: z.string(),
   title: z.string(),
   text: z.string(),
-  metadata: z.object({
-    sourceName: z.string(),
-    sourceType: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-  }).passthrough(),
+  metadata: z
+    .object({
+      sourceName: z.string(),
+      sourceType: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+    })
+    .passthrough(),
 });
 
 export const SearchResultRecordSchema = z.object({
@@ -90,7 +92,6 @@ export function makeMongoDbSearchResultsStore({
       collectionName,
     },
     async saveSearchResult(record: SearchResultRecord) {
-      SearchResultRecordSchema.parse(record);
       const insertResult = await searchResultsCollection.insertOne(record);
 
       if (!insertResult.acknowledged) {

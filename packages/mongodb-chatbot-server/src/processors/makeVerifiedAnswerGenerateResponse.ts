@@ -1,4 +1,8 @@
-import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
+import {
+  VerifiedAnswer,
+  FindVerifiedAnswerFunc,
+  DataStreamer,
+} from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
   GenerateResponse,
@@ -17,7 +21,15 @@ export interface MakeVerifiedAnswerGenerateResponseParams {
   onVerifiedAnswerFound?: (verifiedAnswer: VerifiedAnswer) => VerifiedAnswer;
 
   onNoVerifiedAnswerFound: GenerateResponse;
+
+  stream?: {
+    onVerifiedAnswerFound: StreamFunction<{ verifiedAnswer: VerifiedAnswer }>;
+  };
 }
+
+export type StreamFunction<Params> = (
+  params: { dataStreamer: DataStreamer } & Params
+) => void;
 
 /**
   Searches for verified answers for the user query.

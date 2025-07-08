@@ -5,7 +5,6 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
-  DataStreamer,
 } from "mongodb-rag-core";
 import {
   CoreAssistantMessage,
@@ -28,6 +27,7 @@ import {
   GenerateResponse,
   GenerateResponseReturnValue,
   InputGuardrailResult,
+  type StreamFunction,
 } from "mongodb-chatbot-server";
 import {
   MongoDbSearchToolArgs,
@@ -59,10 +59,6 @@ export interface GenerateResponseWithSearchToolParams {
     onTextDelta: StreamFunction<{ delta: string }>;
   };
 }
-
-type StreamFunction<Params> = (
-  params: { dataStreamer: DataStreamer } & Params
-) => void;
 
 export const addMessageToConversationStream: GenerateResponseWithSearchToolParams["stream"] =
   {

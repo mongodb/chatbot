@@ -55,6 +55,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     connect: jest.fn(),
     disconnect: jest.fn(),
     stream: jest.fn(),
+    streamResponses: jest.fn(),
   });
 
   // Create base request parameters

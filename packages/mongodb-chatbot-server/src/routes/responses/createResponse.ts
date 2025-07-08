@@ -121,11 +121,11 @@ const CreateResponseRequestBodySchema = z.object({
     .default(0),
   tool_choice: z
     .union([
-      z.enum(["none", "only", "auto"]),
+      z.enum(["none", "auto"]),
       z
         .object({
-          name: z.string(),
           type: z.literal("function"),
+          name: z.string(),
         })
         .describe("Function tool choice"),
     ])
@@ -135,6 +135,8 @@ const CreateResponseRequestBodySchema = z.object({
   tools: z
     .array(
       z.object({
+        type: z.literal("function"),
+        strict: z.boolean(),
         name: z.string(),
         description: z.string().optional(),
         parameters: z

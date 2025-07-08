@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+// TODO: i'm not sure what should be put in here
+// Would defer to Nellie on details
+export const ClusterConfigSchema = z.object({
+  cloudProvider: z.enum(["aws", "azure", "gcp"]).default("aws"),
+  region: z.string().optional().default("us-east-1"),
+  instanceType: z.string(),
+});
+
 export const ClusterBuilderConversationEvalCaseSchema = z.object({
   name: z
     .string()
@@ -15,6 +23,9 @@ export const ClusterBuilderConversationEvalCaseSchema = z.object({
     )
     .min(1)
     .describe("Input messages to the AI for the eval case"),
+  currentClusterConfig: ClusterConfigSchema.optional()
+    .nullable()
+    .describe("Current cluster configuration. Null if no cluster exists"),
   // NOTE: we can define a finite set of tags to apply to the eval case, if that'd be useful for filtering.
   tags: z.array(z.string()).optional().describe("Tags for the eval case"),
   skip: z.boolean().optional().describe("Skip this eval case"),
@@ -30,16 +41,11 @@ export const ClusterBuilderConversationEvalCaseSchema = z.object({
     .string()
     .optional()
     .describe("Reference answer for model to output"),
-  // TODO: i'm not sure what should be put in here
-  // Would defer to Nellie on details
-  expectedClusterConfig: z
-    .object({
-      cloudProvider: z.enum(["aws", "azure", "gcp"]),
-      region: z.string().optional().default("us-east-1"),
-      // Maybe this can be an enum of the options?
-      instanceType: z.string(),
-    })
-    .optional(),
+  expectedClusterConfig: ClusterConfigSchema.optional()
+    .nullable()
+    .describe(
+      "Expected cluster configuration. Null if no cluster config is expected"
+    ),
   additionalNotes: z
     .string()
     .optional()
@@ -113,6 +119,27 @@ export const exampleClusterBuilderConversationEvalCases: ClusterBuilderConversat
         instanceType: "m0",
       },
       tags: ["development", "testing", "cost-effective", "m0"],
+    },
+    // With existing cluster
+    {
+      name: "should recommend cluster modification",
+      messages: [
+        {
+          role: "user",
+          content: "Upgrade my cluster from m0 to m10",
+        },
+      ],
+      currentClusterConfig: {
+        cloudProvider: "aws",
+        region: "us-east-1",
+        instanceType: "m0",
+      },
+      expectedClusterConfig: {
+        cloudProvider: "aws",
+        region: "us-east-1",
+        instanceType: "m10",
+      },
+      tags: ["upgrade", "current-cluster"],
     },
     {
       name: "should recommend Azure for enterprise with Azure requirement",

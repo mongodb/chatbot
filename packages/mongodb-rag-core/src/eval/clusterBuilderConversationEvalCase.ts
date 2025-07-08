@@ -70,6 +70,7 @@ export const exampleClusterBuilderConversationEvalCases: ClusterBuilderConversat
       },
       tags: ["simple", "m0"],
     },
+    // Example with reference answer
     {
       name: "should recommend m30 for production high-traffic application",
       messages: [
@@ -79,6 +80,7 @@ export const exampleClusterBuilderConversationEvalCases: ClusterBuilderConversat
             "I'm building a production e-commerce application that will handle thousands of concurrent users and millions of transactions per day",
         },
       ],
+      referenceAnswer: `For a production e-commerce application handling thousands of concurrent users and millions of daily transactions, I recommend an **M30 cluster** on AWS. This tier provides dedicated resources with 8 GB RAM and 2 vCPUs, ensuring reliable performance under heavy load. The M30 tier also includes automated backups, point-in-time recovery, and enhanced security features essential for production workloads.`,
       expectedClusterConfig: {
         cloudProvider: "aws",
         region: "us-east-1",
@@ -128,7 +130,6 @@ export const exampleClusterBuilderConversationEvalCases: ClusterBuilderConversat
       },
       tags: ["enterprise", "azure", "m10"],
     },
-
     {
       name: "should recommend m2 for budget-conscious startup",
       messages: [

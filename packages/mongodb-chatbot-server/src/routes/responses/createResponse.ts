@@ -242,11 +242,6 @@ export function makeCreateResponseRoute({
         type: "response.created",
       });
 
-      // TODO: stream an in progress message
-      dataStreamer.streamResponses({
-        type: "response.in_progress",
-      });
-
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -279,6 +274,11 @@ export function makeCreateResponseRoute({
           headers,
         });
       }
+
+      // TODO: stream an in progress message
+      dataStreamer.streamResponses({
+        type: "response.in_progress",
+      });
 
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);

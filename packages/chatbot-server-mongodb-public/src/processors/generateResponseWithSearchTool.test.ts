@@ -351,18 +351,21 @@ describe("generateResponseWithSearchTool", () => {
     describe("streaming mode", () => {
       // Create a mock DataStreamer implementation
       const makeMockDataStreamer = () => {
-        const mockStreamData = jest.fn();
         const mockConnect = jest.fn();
         const mockDisconnect = jest.fn();
+        const mockStreamData = jest.fn();
+        const mockStreamResponses = jest.fn();
         const mockStream = jest.fn().mockImplementation(async () => {
           // Process the stream and return a string result
           return "Hello";
         });
+
         const dataStreamer = {
           connected: false,
           connect: mockConnect,
           disconnect: mockDisconnect,
           streamData: mockStreamData,
+          streamResponses: mockStreamResponses,
           stream: mockStream,
         } as DataStreamer;
 

@@ -209,7 +209,6 @@ export function makeDataStreamer(): DataStreamer {
     async streamResponses(data) {
       if (!this.connected) {
         throw new Error(
-          // TODO: update this
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
         );
       }

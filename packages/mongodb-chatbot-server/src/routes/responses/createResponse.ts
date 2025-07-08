@@ -235,6 +235,9 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // --- BEGIN DATA STREAMING ---
+      dataStreamer.connect(res);
+
       // TODO: stream a created message
       dataStreamer.streamResponses({
         type: "response.created",

@@ -35,7 +35,8 @@ export type PartialAppConfig = Omit<
   responsesRouterConfig?: Partial<AppConfig["responsesRouterConfig"]>;
 };
 
-export const TEST_ORIGIN = "http://localhost:5173";
+export const TEST_PORT = 5173;
+export const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
 
 /**
   Helper function to quickly make an app for testing purposes. Can't be called
@@ -62,6 +63,25 @@ export async function makeTestApp(defaultConfigOverrides?: PartialAppConfig) {
     systemPrompt,
   };
 }
+
+export const TEST_OPENAI_API_KEY = "test-api-key";
+
+/**
+  Helper function to quickly make a local server for testing purposes.
+  Builds on the other helpers for app/config stuff.
+  @param defaultConfigOverrides - optional overrides for default app config
+ */
+export const makeTestLocalServer = async (
+  defaultConfigOverrides?: PartialAppConfig
+) => {
+  const testAppResult = await makeTestApp(defaultConfigOverrides);
+
+  const server = testAppResult.app.listen(TEST_PORT, () => {
+    console.log(`Test server listening on port ${TEST_PORT}`);
+  });
+
+  return { ...testAppResult, server };
+};
 
 /**
   Create a URL to represent a client-side route on the test origin.

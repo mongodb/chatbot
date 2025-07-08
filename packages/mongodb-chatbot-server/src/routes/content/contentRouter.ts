@@ -6,6 +6,7 @@ import {
   makeSearchContentRoute,
 } from "./searchContent";
 import { ParamsDictionary } from "express-serve-static-core";
+import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
 
 /**
   Middleware to put in front of all the routes in the contentRouter.
@@ -20,7 +21,7 @@ export type SearchContentMiddleware = RequestHandler<
   unknown,
   unknown,
   unknown,
-  ContentRouterLocals
+  SearchContentRouterLocals
 >;
 
 /**
@@ -28,7 +29,7 @@ export type SearchContentMiddleware = RequestHandler<
  
   Keeps track of data for authentication or dynamic data validation.
  */
-export interface ContentRouterLocals {
+export interface SearchContentRouterLocals {
   customData: Record<string, unknown>;
 }
 
@@ -38,15 +39,18 @@ export interface ContentRouterLocals {
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
+  middleware?: SearchContentMiddleware[];
 }
 
 export function makeContentRouter({
   findContent,
   searchResultsStore,
+  middleware = [requireValidIpAddress(), requireRequestOrigin()],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
 
-  // TODO: add middleware, similar to the conversations router
+  // Add middleware to the conversationsRouter.
+  middleware?.forEach((middleware) => contentRouter.use(middleware));
 
   // Create new conversation.
   contentRouter.post(

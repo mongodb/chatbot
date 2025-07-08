@@ -1,8 +1,15 @@
-import { getRequestId, logRequest, sendErrorResponse } from "../utils";
-import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
-import { isValidIp } from "../routes/conversations/utils";
+import { RequestHandler } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
 
-export function requireValidIpAddress(): ConversationsMiddleware {
+import { getRequestId, logRequest, sendErrorResponse } from "../utils";
+import { isValidIp } from "../routes/conversations/utils";
+import { ConversationsRouterLocals, SearchContentRouterLocals } from "../routes";
+
+export type Locals = ConversationsRouterLocals | SearchContentRouterLocals;
+
+export function requireValidIpAddress<
+  Locals extends Record<string, any>
+>(): RequestHandler<ParamsDictionary, any, any, any, Locals> {
   return (req, res, next) => {
     const reqId = getRequestId(req);
 

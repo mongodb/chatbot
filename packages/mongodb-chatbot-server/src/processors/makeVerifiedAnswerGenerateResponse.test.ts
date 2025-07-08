@@ -80,6 +80,12 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     onNoVerifiedAnswerFound: async () => ({
       messages: noVerifiedAnswerFoundMessages,
     }),
+    stream: {
+      onVerifiedAnswerFound: async () => ({
+        // TODO: update this
+        messages: [{ role: "assistant", content: "Verified answer found!" }],
+      }),
+    },
   });
 
   it("uses onNoVerifiedAnswerFound if no verified answer is found", async () => {

@@ -65,10 +65,7 @@ const CreateResponseRequestBodySchema = z.object({
           // function tool call
           z.object({
             type: z.literal("function_call"),
-            id: z
-              .string()
-              .optional()
-              .describe("Unique ID of the function tool call"),
+            call_id: z.string().describe("Unique ID of the function tool call"),
             name: z.string().describe("Name of the function tool to call"),
             arguments: z
               .string()

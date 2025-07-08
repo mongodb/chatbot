@@ -2,6 +2,7 @@ import "dotenv/config";
 import request from "supertest";
 import type { Express } from "express";
 import type { Conversation, SomeMessage } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
@@ -16,6 +17,7 @@ describe("POST /responses", () => {
   let appConfig: AppConfig;
   let ipAddress: string;
   let origin: string;
+  let openAiClient: OpenAI;
 
   beforeEach(async () => {
     ({ app, ipAddress, origin, appConfig } = await makeTestApp());
@@ -26,22 +28,28 @@ describe("POST /responses", () => {
   });
 
   const makeCreateResponseRequest = (
-    body?: Partial<CreateResponseRequest["body"]>,
-    appOverride?: Express
+    body?: Partial<CreateResponseRequest["body"]>
   ) => {
-    // TODO: update this to use the openai client
-    return request(appOverride ?? app)
-      .post(endpointUrl)
-      .set("X-Forwarded-For", ipAddress)
-      .set("Origin", origin)
-      .send({ ...basicResponsesRequestBody, ...body });
+    openAiClient = new OpenAI({
+      apiKey: "test-api-key",
+      baseURL: origin,
+    });
+    return openAiClient.responses.create({
+      ...basicResponsesRequestBody,
+      ...body,
+    } as any);
+    // return request(appOverride ?? app)
+    //   .post(endpointUrl)
+    //   .set("X-Forwarded-For", ipAddress)
+    //   .set("Origin", origin)
+    //   .send({ ...basicResponsesRequestBody, ...body });
   };
 
   describe("Valid requests", () => {
     it("Should return 200 given a string input", async () => {
       const response = await makeCreateResponseRequest();
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 given a message array input", async () => {
@@ -54,7 +62,7 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
@@ -62,7 +70,7 @@ describe("POST /responses", () => {
         instructions: "You are a helpful chatbot.",
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
@@ -70,7 +78,7 @@ describe("POST /responses", () => {
         max_output_tokens: 4000,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with valid metadata", async () => {
@@ -78,7 +86,7 @@ describe("POST /responses", () => {
         metadata: { key1: "value1", key2: "value2" },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with valid temperature", async () => {
@@ -86,7 +94,7 @@ describe("POST /responses", () => {
         temperature: 0,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with previous_response_id", async () => {
@@ -100,7 +108,7 @@ describe("POST /responses", () => {
         previous_response_id: previousResponseId.toString(),
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 if previous_response_id is the latest message", async () => {
@@ -118,7 +126,7 @@ describe("POST /responses", () => {
         previous_response_id: previousResponseId.toString(),
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with user", async () => {
@@ -126,7 +134,7 @@ describe("POST /responses", () => {
         user: "some-user-id",
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with store=false", async () => {
@@ -134,7 +142,7 @@ describe("POST /responses", () => {
         store: false,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with store=true", async () => {
@@ -142,7 +150,7 @@ describe("POST /responses", () => {
         store: true,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
@@ -163,7 +171,7 @@ describe("POST /responses", () => {
         tool_choice: "auto",
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
@@ -187,7 +195,7 @@ describe("POST /responses", () => {
         },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 given a message array with function_call", async () => {
@@ -196,7 +204,7 @@ describe("POST /responses", () => {
           { role: "user", content: "What is MongoDB?" },
           {
             type: "function_call",
-            id: "call123",
+            call_id: "call123",
             name: "my_function",
             arguments: `{"query": "value"}`,
             status: "in_progress",
@@ -204,7 +212,7 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
@@ -220,7 +228,7 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
@@ -228,7 +236,7 @@ describe("POST /responses", () => {
         tool_choice: "none",
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with tool_choice 'only'", async () => {
@@ -236,7 +244,7 @@ describe("POST /responses", () => {
         tool_choice: "only",
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should return 200 with an empty tools array", async () => {
@@ -244,7 +252,7 @@ describe("POST /responses", () => {
         tools: [],
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
     });
 
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
@@ -274,7 +282,7 @@ describe("POST /responses", () => {
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
       expect(createdConversation.storeMessageContent).toEqual(
         storeMessageContent
       );
@@ -310,7 +318,7 @@ describe("POST /responses", () => {
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
       expect(createdConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
         createdConversation,
@@ -346,7 +354,7 @@ describe("POST /responses", () => {
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
       expect(createdConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
         createdConversation,
@@ -375,7 +383,7 @@ describe("POST /responses", () => {
         input: [
           {
             type: functionCallType,
-            id: "call123",
+            call_id: "call123",
             name: "my_function",
             arguments: `{"query": "value"}`,
             status: "in_progress",
@@ -392,7 +400,7 @@ describe("POST /responses", () => {
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
-      expect(response.statusCode).toBe(200);
+      expect(response.status).toBe(200);
       expect(createdConversation.storeMessageContent).toEqual(store);
 
       expect(addedMessages[0].role).toEqual("system");
@@ -409,8 +417,8 @@ describe("POST /responses", () => {
         input: "",
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(`Path: body.input - ${ERR_MSG.INPUT_STRING}`)
       );
     });
@@ -420,8 +428,8 @@ describe("POST /responses", () => {
         input: [],
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(`Path: body.input - ${ERR_MSG.INPUT_ARRAY}`)
       );
     });
@@ -431,8 +439,8 @@ describe("POST /responses", () => {
         model: "gpt-4o-mini",
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini"))
       );
     });
@@ -442,8 +450,8 @@ describe("POST /responses", () => {
         stream: false,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(`Path: body.stream - ${ERR_MSG.STREAM}`)
       );
     });
@@ -455,8 +463,8 @@ describe("POST /responses", () => {
         max_output_tokens,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000))
       );
     });
@@ -470,8 +478,8 @@ describe("POST /responses", () => {
         metadata,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(`Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`)
       );
     });
@@ -481,8 +489,8 @@ describe("POST /responses", () => {
         metadata: { key1: "a".repeat(513) },
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(
           "Path: body.metadata.key1 - String must contain at most 512 character(s)"
         )
@@ -494,8 +502,8 @@ describe("POST /responses", () => {
         temperature: 0.5 as any,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(`Path: body.temperature - ${ERR_MSG.TEMPERATURE}`)
       );
     });
@@ -508,8 +516,8 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
       );
     });
@@ -519,7 +527,7 @@ describe("POST /responses", () => {
         input: [
           {
             type: "function_call",
-            id: "call123",
+            call_id: "call123",
             name: "my_function",
             arguments: `{"query": "value"}`,
             status: "invalid_status" as any,
@@ -527,8 +535,8 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
       );
     });
@@ -545,8 +553,8 @@ describe("POST /responses", () => {
         ],
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError("Path: body.input - Invalid input")
       );
     });
@@ -556,8 +564,8 @@ describe("POST /responses", () => {
         tool_choice: "invalid_choice" as any,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError("Path: body.tool_choice - Invalid input")
       );
     });
@@ -567,8 +575,8 @@ describe("POST /responses", () => {
         max_output_tokens: -1,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(
           "Path: body.max_output_tokens - Number must be greater than or equal to 0"
         )
@@ -582,8 +590,8 @@ describe("POST /responses", () => {
         previous_response_id: messageId,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(ERR_MSG.INVALID_OBJECT_ID(messageId))
       );
     });
@@ -595,8 +603,8 @@ describe("POST /responses", () => {
         previous_response_id: messageId,
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(ERR_MSG.MESSAGE_NOT_FOUND(messageId))
       );
     });
@@ -616,8 +624,8 @@ describe("POST /responses", () => {
         previous_response_id: previousResponseId.toString(),
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(
           ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
         )
@@ -636,10 +644,11 @@ describe("POST /responses", () => {
         },
       });
 
-      const response = await makeCreateResponseRequest({}, newApp.app);
+      console.log("pass this to makeCreateResponse: ", newApp.app);
+      const response = await makeCreateResponseRequest({});
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body.error).toEqual(
+      expect(response.status).toBe(400);
+      expect(response.error).toEqual(
         badRequestError(
           ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
         )
@@ -662,8 +671,8 @@ describe("POST /responses", () => {
       user: userId2,
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error).toEqual(
+    expect(response.status).toBe(400);
+    expect(response.error).toEqual(
       badRequestError(ERR_MSG.CONVERSATION_USER_ID_CHANGED)
     );
   });
@@ -674,8 +683,8 @@ describe("POST /responses", () => {
       store: false,
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error).toEqual(
+    expect(response.status).toBe(400);
+    expect(response.error).toEqual(
       badRequestError(ERR_MSG.STORE_NOT_SUPPORTED)
     );
   });
@@ -693,8 +702,8 @@ describe("POST /responses", () => {
       store: true,
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error).toEqual(
+    expect(response.status).toBe(400);
+    expect(response.error).toEqual(
       badRequestError(ERR_MSG.CONVERSATION_STORE_MISMATCH)
     );
   });

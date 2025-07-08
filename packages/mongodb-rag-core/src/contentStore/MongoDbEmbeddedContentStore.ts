@@ -294,10 +294,10 @@ export function makeMongoDbEmbeddedContentStore({
 }
 
 type MongoDbAtlasVectorSearchFilter = {
-  sourceName?: string;
-  "metadata.version.label"?: string;
+  sourceName?: string | { $in: string[] };
+  "metadata.version.label"?: string | { $in: string[] };
   "metadata.version.isCurrent"?: boolean | { $ne: boolean };
-  sourceType?: string;
+  sourceType?: string | { $in: string[] };
 };
 
 const handleFilters = (

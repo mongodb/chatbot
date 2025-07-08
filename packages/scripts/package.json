@@ -44,11 +44,11 @@
     "@release-it/bumper": "^5.1.0",
     "@slack/web-api": "^7.8.0",
     "@stdlib/random-sample": "^0.2.1",
+    "chatbot-server-mongodb-public": "*",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
-    "chatbot-server-mongodb-public": "*",
     "yaml": "^2.3.4",
     "yargs": "^17.7.2"
   },

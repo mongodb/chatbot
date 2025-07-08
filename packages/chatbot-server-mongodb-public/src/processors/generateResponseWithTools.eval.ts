@@ -6,7 +6,6 @@ import {
   CORE_OPENAI_ENV_VARS,
   defaultConversationConstants,
   SomeMessage,
-  AssistantMessage,
 } from "mongodb-rag-core";
 import {
   FindContentFunc,
@@ -30,11 +29,15 @@ const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
 });
 
-// These evals only validate the correct tool / followup is chosen,
-// it does not evaluate the response for correctness
+// Store the desired content for each test in the EvalCase metadata
+type IntermediateToolResponse = {
+  loadPageReturnContent?: string;
+  findContentReturnContent?: string;
+};
 
 type GenerateResponseInput = Partial<GenerateResponseParams> &
-  Pick<GenerateResponseParams, "conversation" | "latestMessageText">;
+  Pick<GenerateResponseParams, "conversation" | "latestMessageText"> &
+  IntermediateToolResponse;
 
 type GenerateResponseExpectedMessage = {
   role: SomeMessage["role"] | "assistant-tool";
@@ -49,7 +52,7 @@ type GenerateResponseExpected = {
 const evalCases: EvalCase<
   GenerateResponseInput,
   GenerateResponseExpected,
-  void
+  IntermediateToolResponse
 >[] = [
   {
     input: {
@@ -75,6 +78,17 @@ const evalCases: EvalCase<
         { role: "tool" },
         { role: "assistant" },
       ],
+    },
+    metadata: {
+      loadPageReturnContent: `About Atlas Data Federation
+Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+Key Concepts
+Data Federation
+Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+Federated Database Instance
+A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.`,
     },
   },
 ];
@@ -178,94 +192,85 @@ const ScoreCorrectToolsCalled: EvalScorer<
 //     const outputMessage = output.messages[i];
 // }
 
-// Mock dependencies & create generateResponseWithTools function
+// Mock dependencies
 const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
 });
 const languageModel = azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 
-const mockFindContent: FindContentFunc = async (args: FindContentFuncArgs) => {
-  return {
-    queryEmbedding: [1, 2, 3],
-    content: [
-      {
-        url: "mock_url",
-        score: 0.9,
-        sourceName: "mock_src",
-        text: "mock_text",
-        tokenCount: 100,
-        embeddings: { key: [1, 2, 3] },
-        updated: new Date(),
-      },
-    ],
-  };
-};
-
-const mockPageContent = {
-  url: "example.com",
-  body: "Example page body",
-  format: "md",
-  sourceName: "test source name",
-  metadata: {},
-  title: "Example Page",
-  updated: new Date(),
-  action: "created",
-} satisfies PersistedPage;
-
-const loadPage: MongoDbPageStore["loadPage"] = async () => mockPageContent;
-
-const generateResponseWithTools = makeGenerateResponseWithTools({
-  languageModel,
-  systemMessage: systemPrompt,
-  llmRefusalMessage: defaultConversationConstants.NO_RELEVANT_CONTENT,
-  filterPreviousMessages: async (conversation) => {
-    return conversation.messages.filter((message) => {
-      return (
-        message.role === "user" ||
-        // Only include assistant messages that are not tool calls
-        (message.role === "assistant" && !message.toolCall)
-      );
-    });
-  },
-  llmNotWorkingMessage: defaultConversationConstants.LLM_NOT_WORKING,
-  searchTool: makeSearchTool({
-    findContent: mockFindContent,
-    makeReferences: makeMongoDbReferences,
-  }),
-  fetchPageTool: makeFetchPageTool({
-    loadPage,
-    findContent: mockFindContent,
-    makeReferences: makeMongoDbReferences,
-  }),
-  toolChoice: "auto",
-  maxSteps: 5,
-});
-
-// Run the Braintrust eval
-// function makeGenerateResponseWithToolsEvalTask() {
-//   return async function (input) {
-//     const response = await generateResponseWithTools({
-//       conversation: input.conversation,
-//       latestMessageText: input.latestMessageText,
-//       shouldStream: false,
-//       reqId: "mock_req_id",
-//     });
-//   }
-// }
-
-// Eval<Input, GenerateResponseReturnValue>("generateResponseWithTools", {
-//   data: evalCases,
-//   maxConcurrency: 10,
-//   task: makeGenerateResponseWithToolsEvalTask(),
-//   scores: [evalScorerFxn],
-// });
-
+// Run the eval. We recreate generateResponseWithTools each time so
+// we can pass different intermediate return values for lookup/search
 Eval("mongodb-chatbot-generate-w-tools", {
   data: evalCases,
   experimentName: "mongodb-chatbot-generate-w-tools",
   maxConcurrency: 10,
-  async task(input) {
+  async task(input, hooks) {
+    // Set up the findContent and loadPage functions with the return values in the eval case.
+    const mockFindContent: FindContentFunc = async (
+      _args: FindContentFuncArgs
+    ) => {
+      return {
+        queryEmbedding: [1, 2, 3],
+        content: [
+          {
+            url: "<This is the URL>",
+            score: 0.9,
+            sourceName: "<This is the source name>",
+            // TODO - is "as" safe here? can be undefined
+            text:
+              (hooks.metadata?.findContentReturnContent as string) ??
+              "<Placeholder text>",
+            tokenCount: 100,
+            embeddings: { key: [1, 2, 3] },
+            updated: new Date(),
+          },
+        ],
+      };
+    };
+
+    const loadPage: MongoDbPageStore["loadPage"] = async () => {
+      return {
+        url: "<This is the URL>",
+        body:
+          (hooks.metadata?.loadPageReturnContent as string) ??
+          "<Placeholder content>",
+        format: "md",
+        sourceName: "<This is the source name>",
+        metadata: {},
+        title: "<This is the page title>",
+        updated: new Date(),
+        action: "updated",
+      } satisfies PersistedPage;
+    };
+
+    const generateResponseWithTools = makeGenerateResponseWithTools({
+      languageModel,
+      systemMessage: systemPrompt,
+      llmRefusalMessage: defaultConversationConstants.NO_RELEVANT_CONTENT,
+      filterPreviousMessages: async (conversation) => {
+        return conversation.messages.filter((message) => {
+          return (
+            message.role === "user" ||
+            // Only include assistant messages that are not tool calls
+            (message.role === "assistant" && !message.toolCall)
+          );
+        });
+      },
+      llmNotWorkingMessage: defaultConversationConstants.LLM_NOT_WORKING,
+      searchTool: makeSearchTool({
+        findContent: mockFindContent,
+        makeReferences: makeMongoDbReferences,
+      }),
+      fetchPageTool: makeFetchPageTool({
+        loadPage,
+        findContent: mockFindContent,
+        makeReferences: makeMongoDbReferences,
+      }),
+      toolChoice: "auto",
+      maxSteps: 5,
+    });
+
     const result = await generateResponseWithTools({
       conversation: input.conversation,
       latestMessageText: input.latestMessageText,

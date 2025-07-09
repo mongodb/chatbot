@@ -55,7 +55,7 @@ export class ProfoundApi {
   private readonly baseUrl = PROFOUND_API_URL;
   private readonly apiKey: string;
 
-  constructor(apiKey: string = PROFOUND_API_KEY!) {
+  constructor({ apiKey = PROFOUND_API_KEY }: { apiKey?: string } = {}) {
     if (!apiKey) {
       throw new Error("Profound API key is missing.");
     }

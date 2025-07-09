@@ -10,8 +10,7 @@ import {
 } from "mongodb-rag-core/models";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { assertEnvVars } from "mongodb-rag-core";
-import { MongoClient, ObjectId } from "mongodb";
-import { Collection } from "mongodb";
+import { Collection, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { PromisePool } from "@supercharge/promise-pool";
 
 const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } = assertEnvVars({

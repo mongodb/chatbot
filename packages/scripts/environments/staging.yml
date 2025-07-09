@@ -71,7 +71,6 @@ cronJobs:
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-staging
       PROFOUND_API_URL: https://api.tryprofound.com/v1
-      PROFOUND_API_KEY_NAME: education-ai
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
       PROFOUND_API_KEY: docs-chatbot-staging

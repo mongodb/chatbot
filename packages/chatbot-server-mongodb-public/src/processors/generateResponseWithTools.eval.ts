@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs";
 import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import {
@@ -20,9 +21,10 @@ import {
 import { systemPrompt } from "../systemPrompt";
 import { makeGenerateResponseWithTools } from "./generateResponseWithTools";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
-import { makeFetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
-import { makeSearchTool, SEARCH_TOOL_NAME } from "../tools/search";
+import { makeFetchPageTool } from "../tools/fetchPage";
+import { makeSearchTool } from "../tools/search";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { getGenerateWithToolsEvalCasesFromYaml } from "../eval/getGenerateWithToolEvalCasesFromYaml";
 
 const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
   ...CORE_OPENAI_ENV_VARS,
@@ -36,8 +38,7 @@ type IntermediateToolResponse = {
 };
 
 type GenerateResponseInput = Partial<GenerateResponseParams> &
-  Pick<GenerateResponseParams, "conversation" | "latestMessageText"> &
-  IntermediateToolResponse;
+  Pick<GenerateResponseParams, "latestMessageText">;
 
 type GenerateResponseExpectedMessage = {
   role: SomeMessage["role"] | "assistant-tool";
@@ -49,55 +50,78 @@ type GenerateResponseExpected = {
   messages: GenerateResponseExpectedMessage[];
 };
 
-const evalCases: EvalCase<
+// const evalCases: EvalCase<
+//   GenerateResponseInput,
+//   GenerateResponseExpected,
+//   IntermediateToolResponse
+// >[] = [
+//   {
+//     input: {
+//       conversation: {
+//         _id: new ObjectId(),
+//         messages: [
+//           // {id: content: createdAt: role: }
+//         ],
+//         createdAt: new Date(),
+//       },
+//       latestMessageText:
+//         "Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/",
+//       // customData: {}, // TODO For handling origin URL ("On this page...")
+//     },
+//     expected: {
+//       messages: [
+//         { role: "user" },
+//         {
+//           role: "assistant-tool",
+//           toolCallName: FETCH_PAGE_TOOL_NAME,
+//           toolCallArgs: {
+//             pageUrl:
+//               "https://www.mongodb.com/docs/atlas/data-federation/overview/",
+//           },
+//         },
+//         { role: "tool" },
+//         { role: "assistant" },
+//       ],
+//     },
+//     metadata: {
+//       loadPageReturnContent: `About Atlas Data Federation
+// Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+// Key Concepts
+// Data Federation
+// Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+// Federated Database Instance
+// A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.`,
+//     },
+//   },
+// ];
+
+/**
+  Loads eval cases from a YAML file.
+  The YAML should define a list of cases with input, expected, and metadata fields.
+*/
+export function loadEvalCasesFromYaml(
+  filePath: string
+): EvalCase<
   GenerateResponseInput,
   GenerateResponseExpected,
   IntermediateToolResponse
->[] = [
-  {
-    input: {
-      conversation: {
-        _id: new ObjectId(),
-        messages: [
-          // {id: content: createdAt: role: }
-        ],
-        createdAt: new Date(),
-      },
-      latestMessageText:
-        "Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/",
-      // customData: {}, // TODO For handling origin URL ("On this page...")
-    },
-    expected: {
-      messages: [
-        { role: "user" },
-        {
-          role: "assistant-tool",
-          toolCallName: FETCH_PAGE_TOOL_NAME,
-          toolCallArgs: {
-            pageUrl:
-              "https://www.mongodb.com/docs/atlas/data-federation/overview/",
-          },
-        },
-        { role: "tool" },
-        { role: "assistant" },
-      ],
-    },
-    metadata: {
-      loadPageReturnContent: `About Atlas Data Federation
-Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+>[] {
+  const fileContent = fs.readFileSync(filePath, "utf8");
+  const rawCases = getGenerateWithToolsEvalCasesFromYaml(fileContent);
+  return rawCases.map((e) => {
+    return {
+      input: e.input,
+      expected: e.expected,
+      metadata: e.metadata,
+    };
+  });
+}
 
-Key Concepts
-Data Federation
-Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
-
-Federated Database Instance
-A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.`,
-    },
-  },
-];
-
-// const loadEvalCases = async () => {
-// }
+const evalCases = loadEvalCasesFromYaml(
+  require.resolve("../../evalCases/generate_response_with_tools.yml")
+);
 
 function doRolesMatch(expectedRole: string, actualRole: string): boolean {
   if (expectedRole === "assistant-tool" && actualRole === "assistant") {
@@ -320,7 +344,11 @@ Eval("mongodb-chatbot-generate-w-tools", {
     });
 
     const result = await generateResponseWithTools({
-      conversation: input.conversation,
+      conversation: {
+        _id: new ObjectId(),
+        messages: [],
+        createdAt: new Date(),
+      },
       latestMessageText: input.latestMessageText,
       reqId: "mock_req_id",
       shouldStream: false,

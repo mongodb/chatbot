@@ -1,0 +1,26 @@
+- name: "should call fetch_page tool"
+  input:
+    latestMessageText: Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/
+    # customData: 
+    #   origin: string
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+      - role: tool
+      - role: assistant
+  metadata:
+    # findContentReturnContent: 
+    loadPageReturnContent: |
+      About Atlas Data Federation
+      Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+      Key Concepts
+      Data Federation
+      Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+      Federated Database Instance
+      A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.

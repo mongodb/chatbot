@@ -8,6 +8,7 @@ export const GenerateWithToolsEvalCaseSchema = z.object({
   input: z
     .object({
       latestMessageText: z.string(),
+      customData: z.record(z.unknown()).optional(),
     })
     .describe("Input to generateResponseWithTools"),
   expected: z

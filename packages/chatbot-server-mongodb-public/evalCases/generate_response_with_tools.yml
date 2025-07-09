@@ -1,8 +1,8 @@
-- name: "should call fetch_page tool"
+- name: should call fetch_page tool for a user-provided URL
   input:
     latestMessageText: Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/
-    # customData: 
-    #   origin: string
+    customData: 
+      origin: https://www.mongodb.com/docs/atlas/data-federation/overview/
   expected: 
     messages:
       - role: user
@@ -13,7 +13,6 @@
       - role: tool
       - role: assistant
   metadata:
-    # findContentReturnContent: 
     loadPageReturnContent: |
       About Atlas Data Federation
       Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
@@ -24,3 +23,281 @@
 
       Federated Database Instance
       A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.
+
+- name: should call fetch_page tool for a user-provided URL when origin is different
+  input:
+    latestMessageText: I'm following this tutorial https://www.mongodb.com/docs/drivers/java/sync/current/get-started/ but I got a SSL error how to fix it?
+    customData:
+      origin: google-gemini-code-assist
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+      - role: tool
+      - role: assistant
+  metadata:
+    loadPageReturnContent: |
+      Run your Java application
+      Run your application in your IDE or your shell. Your output contains details about the retrieved movie document.
+
+      Important
+      TLS v1.3 Connection Error
+      If your application generates an error that resembles the following code, you might need to update your JDK to the latest patch release:
+
+      javax.net.ssl.SSLHandshakeException: extension (5) should not be presented in certificate_request
+      This exception is a known issue when using the TLS 1.3 protocol with some JDK versions. To resolve the error, update your JDK to one of the following versions, or a newer version:
+
+      JDK 11.0.7  JDK 13.0.3  JDK 14.0.2
+
+- name: should call fetch_page tool for implied on-page use
+  input:
+    latestMessageText: Summarize the page I am on
+    customData: 
+      origin: https://www.mongodb.com/docs/atlas/data-federation/overview/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+      - role: tool
+      - role: assistant
+  metadata:
+    loadPageReturnContent: |
+      About Atlas Data Federation
+      Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+      Key Concepts
+      Data Federation
+      Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+      Federated Database Instance
+      A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.
+
+- name: should call fetch_page tool for implied on-page use 2
+  input:
+    latestMessageText: On this page, what does federation mean?
+    customData: 
+      origin: https://www.mongodb.com/docs/atlas/data-federation/overview/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+      - role: tool
+      - role: assistant
+  metadata:
+    loadPageReturnContent: |
+      About Atlas Data Federation
+      Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+      Key Concepts
+      Data Federation
+      Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+      Federated Database Instance
+      A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.
+
+- name: should call fetch_page tool for implied on-page use 3
+  input:
+    latestMessageText: Use the page I am on. Please summarize with a focus on how to use it 
+    customData: 
+      origin: https://www.mongodb.com/docs/atlas/data-federation/overview/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+      - role: tool
+      - role: assistant
+  metadata:
+    loadPageReturnContent: |
+      About Atlas Data Federation
+      Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
+
+      Key Concepts
+      Data Federation
+      Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
+
+      Federated Database Instance
+      A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.
+
+      Sample Uses
+      You can use Atlas Data Federation to:
+
+      Copy Atlas cluster data into Parquet or CSV files written to AWS S3 buckets or Azure Blob Storage.
+
+      Query across multiple Atlas clusters and online archives to get a holistic view of your Atlas data.
+
+      Materialize data from aggregations across Atlas clusters, AWS S3 buckets, and Azure Blob Storage.
+
+      Read and import data from your AWS S3 buckets or Azure Blob Storage into an Atlas cluster.
+
+- name: falls back to search tool if there's no content for the URL 
+  input:
+    latestMessageText: using this page https://en.wikipedia.org/wiki/MongoDB what are the benefits of mongodb
+    customData: 
+      origin: https://www.mongodb.com/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://en.wikipedia.org/wiki/MongoDB
+      - role: tool
+      - role: assistant-tool
+        toolCallName: search_content 
+      - role: tool
+      - role: assistant
+  metadata:
+    findContentReturnContent: |
+      MongoDB offers many advantages over traditional relational databases:
+
+      Full cloud-based developer data platform
+      Flexible document schemas
+      Widely supported and code-native data access
+      Change-friendly design
+      Powerful querying and analytics
+      Easy horizontal scale-out with sharding
+      Simple installation
+      Cost-effective
+      Full technical support and documentation  
+
+- name: fall back to search tool if answer is not on the page
+  input:
+    latestMessageText: I'm following this tutorial https://www.mongodb.com/docs/drivers/java/sync/current/get-started/ How do I insert a document instead of searching
+    customData:
+      origin: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+      - role: tool
+      - role: assistant-tool
+        toolCallName: search_content 
+      - role: tool
+      - role: assistant
+  metadata:
+    loadPageReturnContent: | 
+      Run a Sample Query
+      After retrieving the connection string for your MongoDB Atlas deployment, you can connect to the deployment from your Java application and query the Atlas sample datasets.
+
+      Create your Java application file
+      In your project's base package directory, create a file called QuickStart.java. Copy and paste the following code into this file, which queries the movies collection in the sample_mflix database:
+
+      public class QuickStart {
+          public static void main( String[] args ) {
+              // Replace the placeholder with your MongoDB deployment's connection string
+              String uri = "<connection string uri>";
+              try (MongoClient mongoClient = MongoClients.create(uri)) {
+                  MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+                  MongoCollection<Document> collection = database.getCollection("movies");
+                  Document doc = collection.find(eq("title", "Back to the Future")).first();
+                  if (doc != null) {
+                      System.out.println(doc.toJson());
+                  } else {
+                      System.out.println("No matching documents found.");
+                  }
+              }
+          }
+      }
+    findContentReturnContent: |
+      An insert operation inserts a single or multiple documents into MongoDB using the insertOne(), insertMany(), and bulkWrite() methods.
+      Example
+      The following example creates and inserts a document using the insertOne() method:
+
+      Document doc1 = new Document("color", "red").append("qty", 5);
+      InsertOneResult result = collection.insertOne(doc1);
+      System.out.println("Inserted a document with the following id: " 
+        + result.getInsertedId().asObjectId().getValue());
+
+- name: fall back to search tool if answer is not on the page 2 
+  input:
+    latestMessageText: I'm using the tutorial on this page. How do I insert a document instead of searching
+    customData:
+      origin: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page 
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+      - role: tool
+      - role: assistant-tool
+        toolCallName: search_content 
+      - role: tool
+      - role: assistant
+    loadPageReturnContent: | 
+      Run a Sample Query
+      After retrieving the connection string for your MongoDB Atlas deployment, you can connect to the deployment from your Java application and query the Atlas sample datasets.
+
+      Create your Java application file
+      In your project's base package directory, create a file called QuickStart.java. Copy and paste the following code into this file, which queries the movies collection in the sample_mflix database:
+
+      public class QuickStart {
+          public static void main( String[] args ) {
+              // Replace the placeholder with your MongoDB deployment's connection string
+              String uri = "<connection string uri>";
+              try (MongoClient mongoClient = MongoClients.create(uri)) {
+                  MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+                  MongoCollection<Document> collection = database.getCollection("movies");
+                  Document doc = collection.find(eq("title", "Back to the Future")).first();
+                  if (doc != null) {
+                      System.out.println(doc.toJson());
+                  } else {
+                      System.out.println("No matching documents found.");
+                  }
+              }
+          }
+      }
+    findContentReturnContent: |
+      An insert operation inserts a single or multiple documents into MongoDB using the insertOne(), insertMany(), and bulkWrite() methods.
+      Example
+      The following example creates and inserts a document using the insertOne() method:
+
+      Document doc1 = new Document("color", "red").append("qty", 5);
+      InsertOneResult result = collection.insertOne(doc1);
+      System.out.println("Inserted a document with the following id: " 
+        + result.getInsertedId().asObjectId().getValue());
+
+- name: search tool used when no URL is given 
+  input:
+    latestMessageText: How do I create a new index using Typescript
+    customData: 
+      origin: https://www.mongodb.com/docs/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: search_content 
+      - role: tool
+      - role: assistant
+  metadata:
+    findContentReturnContent: |
+      Overview
+      Indexes are data structures that support the efficient execution of queries in MongoDB. They contain copies of parts of the data in documents to make queries more efficient.
+
+      Single Field Indexes
+      The following example uses the createIndex() method to create an ascending order index on the title field in the movies collection in the sample_mflix datab
+
+      const result = await movies.createIndex({ title: 1 });
+      console.log(`Index created: ${result}`);
+
+      Compound Indexes
+      The following example uses the createIndex() method to create a compound index on the type and genre fields in the movies collection in the sample_mflix database.
+
+      const result = await movies.createIndex({ type: 1, genre: 1 });
+      console.log(`Index created: ${result}`);

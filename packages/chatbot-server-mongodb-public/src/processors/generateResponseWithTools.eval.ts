@@ -50,53 +50,6 @@ type GenerateResponseExpected = {
   messages: GenerateResponseExpectedMessage[];
 };
 
-// const evalCases: EvalCase<
-//   GenerateResponseInput,
-//   GenerateResponseExpected,
-//   IntermediateToolResponse
-// >[] = [
-//   {
-//     input: {
-//       conversation: {
-//         _id: new ObjectId(),
-//         messages: [
-//           // {id: content: createdAt: role: }
-//         ],
-//         createdAt: new Date(),
-//       },
-//       latestMessageText:
-//         "Summarize this page https://www.mongodb.com/docs/atlas/data-federation/overview/",
-//       // customData: {}, // TODO For handling origin URL ("On this page...")
-//     },
-//     expected: {
-//       messages: [
-//         { role: "user" },
-//         {
-//           role: "assistant-tool",
-//           toolCallName: FETCH_PAGE_TOOL_NAME,
-//           toolCallArgs: {
-//             pageUrl:
-//               "https://www.mongodb.com/docs/atlas/data-federation/overview/",
-//           },
-//         },
-//         { role: "tool" },
-//         { role: "assistant" },
-//       ],
-//     },
-//     metadata: {
-//       loadPageReturnContent: `About Atlas Data Federation
-// Atlas Data Federation is a distributed query engine that allows you to natively query, transform, and move data across various sources inside & outside of MongoDB Atlas.
-
-// Key Concepts
-// Data Federation
-// Data Federation is a strategy that separates compute from storage. When you use Data Federation, you associate data from multiple physical sources into a single virtual source of data for your applications. This enables you to query your data from a single endpoint without physically copying or moving it.
-
-// Federated Database Instance
-// A federated database instance is a deployment of Atlas Data Federation. Each federated database instance contains virtual databases and collections that map to data in your data stores.`,
-//     },
-//   },
-// ];
-
 /**
   Loads eval cases from a YAML file.
   The YAML should define a list of cases with input, expected, and metadata fields.
@@ -263,7 +216,7 @@ const ScoreToolsUsedCorrectly: EvalScorer<
   };
 };
 
-// Mock dependencies
+// Create dependencies
 const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
@@ -271,7 +224,7 @@ const azureOpenAi = createAzure({
 const languageModel = azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 
 // Run the eval. We recreate generateResponseWithTools each time so
-// we can pass different intermediate return values for lookup/search
+// we can pass different intermediate return values for lookup/search tools
 Eval("mongodb-chatbot-generate-w-tools", {
   data: evalCases,
   experimentName: "mongodb-chatbot-generate-w-tools",

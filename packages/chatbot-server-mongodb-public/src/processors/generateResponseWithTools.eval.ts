@@ -7,8 +7,6 @@ import {
   CORE_OPENAI_ENV_VARS,
   defaultConversationConstants,
   SomeMessage,
-} from "mongodb-rag-core";
-import {
   FindContentFunc,
   FindContentFuncArgs,
   MongoDbPageStore,
@@ -129,7 +127,7 @@ const ScoreCorrectToolsCalled: EvalScorer<
           name: "CorrectToolCall",
           score: 0,
           metadata: {
-            message: `Assistant did not return a tool call`,
+            message: `Assistant did not return a tool call where one was expected`,
           },
         };
       }

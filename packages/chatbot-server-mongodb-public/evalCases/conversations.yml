@@ -1476,28 +1476,47 @@
     - cost-optimization
   reference: |
     The Atlas Architecture Center has recommendations on Cost Optimization for Atlas Deployments. It provides guidance on how to control database costs using Atlas's features. It covers implementing Cost-Saving Configurations using auto-scale to ensure your cluster is adequantely provision for its workload. Furthermore, it shows how you can use tags and access billing data programmatically to understand the costs of Atlas across environments, teams, and more.
+
 - name: should handle query over a long page
   messages:
     - role: user
-      content: Tell me how to make my logs verbose. Use this page https://www.mongodb.com/docs/manual/reference/parameters/ 
+      content: Tell me how to make my logs verbose. Use this page https://www.mongodb.com/docs/manual/reference/parameters/
   expectation: >
-    The ASSISTANT explains that the logLevel or logComponentVerbosity parameters can be used to set the verbosity of the logs. 
+    The ASSISTANT explains that the logLevel or logComponentVerbosity parameters can be used to set the verbosity of the logs.
   tags:
     - fetch_page
 - name: should handle query over a long page & follow user instructions
   messages:
-    - content: Give me the command to make my logs more verbose. Use this page https://www.mongodb.com/docs/manual/reference/parameters/ 
+    - content: >
+        I am debugging an issue but my logs aren't giving me enough information. Give me the exact command to make my logs more verbose. 
+        Use this page https://www.mongodb.com/docs/manual/reference/parameters/
+      role: user
+  expectation: >
+    The ASSISTANT returns a command to run on the command-line to set log verbosity. For example:
+    ```
+    db.adminCommand( { setParameter: 1, logLevel: 5 } )
+    ```
+  tags:
+    - fetch_page
+- name: should handle query over a long page & adhere to system prompt & follow user instructions
+  messages:
+    - content: >
+        I am debugging an issue but my logs aren't giving me enough information. Use this page https://www.mongodb.com/docs/manual/reference/parameters/ 
+        Give me the command to make my logs more verbose. When you give your response, speak like a pirate.
       role: user
   expectation: >
     The ASSISTANT returns a command to run on the command-line to set log verbosity. For example:
     ```
     db.adminCommand( { setParameter: 1, logLevel: 5 } )
     ``` 
+    The ASSISTANT DOES NOT speak like a pirate.
   tags:
     - fetch_page
-- name: should handle long page where relevant information is after the cutoff
+- name: should handle long page where relevant information is after the 150,000 character cutoff
   messages:
-    - content: I have a nightly ingestion job that runs a multi-document create transaction and it keeps timing out, what params do I need to change? use this page https://www.mongodb.com/docs/manual/reference/parameters
+    - content: >
+        I have a nightly ingestion job that runs a multi-document create transaction and it keeps timing out, what params do I need to change? 
+        use this page https://www.mongodb.com/docs/manual/reference/parameters
       role: user
   expectation: >
     The ASSISTANT explains that transactionLifetimeLimitSeconds should be increased.

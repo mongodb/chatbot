@@ -193,7 +193,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
           },
           expected: {
             reference: currentCase?.expected ?? "",
-            links: [], // TODO: where can expected links be found?
+            links: [], // TODO: update with links from currentCase if defined
           },
         })) as {
           score: number | null;

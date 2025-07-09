@@ -33,7 +33,7 @@ export interface SearchContentRouterLocals {
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
-  // TODO: Add default middleware as in conversationsRouter
+  // TODO: Add default middleware along with customData as in conversationsRouter
   middleware?: SearchContentMiddleware[];
 }
 

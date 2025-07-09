@@ -201,7 +201,7 @@ export function makeMongoDbUniversityDataApiClient({
     },
     async getAllVideos() {
       let offset = 0;
-      const LIMIT = 300; // Maximum allowed by the MongoDB University Data API.
+      const LIMIT = 250; // Maximum allowed by the MongoDB University Data API.
       let hasMoreVideos = true;
       const videos: UniversityVideo[] = [];
       let metadata: ResponseMetadata | undefined = undefined;

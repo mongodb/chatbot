@@ -84,6 +84,18 @@ export const makeTestLocalServer = async (
 };
 
 /**
+ Helper function to collect a full response from a stream.
+ */
+export const collectStreamingResponse = async (stream: any) => {
+  let content = "";
+  for await (const chunk of stream) {
+    console.log(chunk);
+    content += chunk.choices[0]?.delta?.content ?? "";
+  }
+  return content;
+};
+
+/**
   Create a URL to represent a client-side route on the test origin.
   @param path - path to append to the origin base URL.
   @returns a URL object with the origin base URL and the path appended.

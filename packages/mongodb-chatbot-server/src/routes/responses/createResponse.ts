@@ -313,6 +313,7 @@ export function makeCreateResponseRoute({
         dataStreamer.streamResponses({
           type: "error",
         });
+        dataStreamer.disconnect();
       } else {
         sendErrorResponse({
           res,

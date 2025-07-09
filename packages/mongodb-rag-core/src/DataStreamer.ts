@@ -45,7 +45,7 @@ function makeServerSentEventDispatcher<
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     },
     sendResponsesEvent(data) {
-      res.write(`${JSON.stringify(data)}\n\n`);
+      res.write(data);
     },
   };
 }

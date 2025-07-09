@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DatabaseNlQueryDatasetEntryBraintrust } from "../DatabaseNlQueryDatasetEntry";
+import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
 
 const RewriteClassificationSchema = z.object({
   think: z.string(),
@@ -210,8 +211,8 @@ Things to look out for that make a natural language query ambiguous:
 3. Vague ordering or ranking criteria (e.g., "top 10", "best", "highest" without specifying the ranking metric).
 4. Ambiguous time-based references.
 5. Unclear filtering conditions.
-6. Missing specification of what fields/data should be returned in the final output.
-7. Ambiguous aggregation scope.
+6. Missing specification of what fields/data should be returned in the final output. **This is very common** - queries like "Find the top 10 restaurants" don't specify what information about those restaurants should be returned.
+7. Ambiguous aggregation scope (e.g., unclear whether calculations should be per-restaurant, per-borough, etc.).
 </ambiguous-natural-language-query-definition>
 
 <guidelines-for-rewriting-natural-language-queries>
@@ -232,6 +233,10 @@ If you need to rewrite a natural language query, keep the following in mind:
 - Ensure the rewrite would lead any reasonable person to write the same MongoDB query
 </guidelines-for-rewriting-natural-language-queries>
 
+<rewrite-natural-language-query-style>
+If you modify the original natural language query, maintain the writing style of the original query, but make it more clear and unambiguous.
+</rewrite-natural-language-query-style>
+
 <evaluation-criteria>
 When evaluating whether a natural language query is unambiguous:
 
@@ -244,6 +249,19 @@ When evaluating whether a natural language query is unambiguous:
 A query is **unambiguous** if someone reading it would produce the same MongoDB query and expect the same output structure. A query is **ambiguous** if multiple reasonable interpretations exist.
 
 **For borderline cases**: If you're unsure whether a query is ambiguous, err on the side of classifying it as ambiguous. It's better to have a clear, explicit query than to risk multiple interpretations.
+
+**Critical reminder**: Just because you can reasonably infer what the output should contain doesn't make a query unambiguous. If the natural language doesn't explicitly specify output fields, it should generally be classified as ambiguous.
+
+**Common patterns that should be classified as AMBIGUOUS:**
+- "Find the top 10 restaurants" (doesn't specify what info about restaurants to return)
+- "Show me neighborhoods with the most restaurants" (doesn't specify what fields to include)
+- "Which planet has the highest temperature?" (doesn't specify if you want just the name, or name + temperature, or additional details)
+- "Count customers by tier" (doesn't specify if you want just counts, or tier names + counts, or additional fields)
+
+**Patterns that are typically UNAMBIGUOUS:**
+- "Return the restaurant name and address for the top 10 restaurants by rating" (explicit output specification)
+- "Show the planet name and temperature for the planet with highest temperature" (clear output fields)
+- "Count customers by tier, showing tier name and count" (explicit about what to return)
 </evaluation-criteria>
 
 <thought-process>
@@ -258,7 +276,7 @@ In the "think" field, you should systematically analyze the query by addressing 
    - Output structure (\`$project\` stage)
 
 3. **Compare natural language with MongoDB behavior**: Does the natural language clearly specify what the MongoDB query does? Are there gaps or ambiguities?
-4. **Identify output expectations**: What fields should be returned? Does the natural language make this clear, or would a user be unsure about the output structure?
+4. **Identify output expectations**: What fields should be returned? Does the natural language make this clear, or would a user be unsure about the output structure? **Be strict here**. If the natural language doesn't explicitly mention what data to return, it's likely ambiguous even if the output seems "obvious" from context.
 5. **Look for specific ambiguities**: Check for:
    - Vague ranking criteria ("top 10", "best")
    - Unclear temporal references ("last 4", "recent")
@@ -266,7 +284,7 @@ In the "think" field, you should systematically analyze the query by addressing 
    - Missing output field specifications
 6. **Consider alternative interpretations**: Could a reasonable user interpret this query differently? Would they expect different output fields or structure?
 7. **Make your determination**: Based on the above analysis, classify as "ambiguous" if there are multiple reasonable interpretations, or "unambiguous" if the query clearly specifies the expected MongoDB behavior and output.
-
+8. **Style check**: (only for ambiguous queries to modify) If you modify the original natural language query, think about how to maintain the writing style of the original query, but make it more clear and unambiguous.
 **Your reasoning should be specific and reference concrete aspects of both the natural language query and the MongoDB code.**
 
 </thought-process>
@@ -295,9 +313,48 @@ ${JSON.stringify(example.output, null, 2)}
 
 <final-reminders>
 - Focus on whether the natural language query unambiguously specifies what the MongoDB query actually does
-- Pay special attention to the \`$project\` stage - does the natural language make it clear what fields should be returned?
+- Pay special attention to the \`$project\` stage or \`.project()\` method. Does the natural language make it clear what fields should be returned?
 - Consider edge cases and alternative interpretations a user might have in the "think" field.
 - Remember that the goal is to create a dataset where LLMs can unambiguously generate the correct MongoDB code
 - Only include "rewrittenNaturalLanguageQuery" when classification is "ambiguous"
+- **Be strict about output specifications**: Don't assume that "obvious" outputs make a query unambiguous - explicit is better than implicit
 </final-reminders>
 `;
+
+export function makeRewriteNlQueryPrompt(model: LanguageModel) {
+  return async (
+    datasetEntry: DatabaseNlQueryDatasetEntryBraintrust
+  ): Promise<{
+    classification: RewriteClassification;
+    datasetEntry: DatabaseNlQueryDatasetEntryBraintrust;
+  }> => {
+    const { object: classification } = await generateObject({
+      model,
+      schema: RewriteClassificationSchema,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(datasetEntry, null, 2),
+        },
+      ],
+    });
+    const datasetEntryOut = {
+      ...datasetEntry,
+      input: {
+        ...datasetEntry.input,
+        nlQuery:
+          classification.rewrittenNaturalLanguageQuery ??
+          datasetEntry.input.nlQuery,
+      },
+    } satisfies DatabaseNlQueryDatasetEntryBraintrust;
+
+    return {
+      classification,
+      datasetEntry: datasetEntryOut,
+    };
+  };
+}

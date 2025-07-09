@@ -7,6 +7,7 @@ import {
   TEST_OPENAI_API_KEY,
   makeTestLocalServer,
   collectStreamingResponse,
+  type PartialAppConfig,
 } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
@@ -17,11 +18,14 @@ jest.setTimeout(100000);
 describe("POST /responses", () => {
   let server: Server;
   let appConfig: AppConfig;
+  let overrideAppConfig: PartialAppConfig = {};
   let ipAddress: string;
   let origin: string;
 
   beforeEach(async () => {
-    ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer());
+    ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer(
+      overrideAppConfig
+    ));
   });
 
   afterEach(() => {
@@ -419,6 +423,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           input: "",
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -433,6 +438,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           input: [],
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -447,6 +453,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           model: "gpt-4o-mini",
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -461,6 +468,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           stream: false,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -476,6 +484,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           max_output_tokens,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -494,6 +503,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           metadata,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -508,6 +518,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           metadata: { key1: "a".repeat(513) },
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -524,6 +535,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           temperature: 0.5 as any,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -544,6 +556,7 @@ describe("POST /responses", () => {
             },
           ],
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -566,6 +579,7 @@ describe("POST /responses", () => {
             },
           ],
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -587,6 +601,7 @@ describe("POST /responses", () => {
             },
           ],
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -601,6 +616,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           tool_choice: "invalid_choice" as any,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -615,6 +631,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           max_output_tokens: -1,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -633,6 +650,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           previous_response_id: messageId,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -649,6 +667,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           previous_response_id: messageId,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -673,6 +692,7 @@ describe("POST /responses", () => {
         await makeCreateResponseRequest({
           previous_response_id: previousResponseId.toString(),
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -684,28 +704,31 @@ describe("POST /responses", () => {
       }
     });
 
-    //   it("Should return 400 if there are too many messages in the conversation", async () => {
-    //     const maxUserMessagesInConversation = 0;
-    //     const newApp = await makeTestApp({
-    //       responsesRouterConfig: {
-    //         ...appConfig.responsesRouterConfig,
-    //         createResponse: {
-    //           ...appConfig.responsesRouterConfig.createResponse,
-    //           maxUserMessagesInConversation,
-    //         },
-    //       },
-    //     });
+    it("Should return 400 if there are too many messages in the conversation", async () => {
+      const maxUserMessagesInConversation = 0;
+      overrideAppConfig = {
+        responsesRouterConfig: {
+          ...appConfig.responsesRouterConfig,
+          createResponse: {
+            ...appConfig.responsesRouterConfig.createResponse,
+            maxUserMessagesInConversation,
+          },
+        },
+      };
 
-    //     console.log("pass this to makeCreateResponse: ", newApp.app);
-    //     const { response } = await makeCreateResponseRequest({});
-
-    //     expect(response.status).toBe(400);
-    //     expect(response.error).toEqual(
-    //       badRequestError(
-    //         ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
-    //       )
-    //     );
-    //   });
+      try {
+        await makeCreateResponseRequest();
+        throw new Error("Should not reach this line");
+      } catch (error) {
+        expect(error instanceof APIError).toBe(true);
+        expect((error as APIError).status).toBe(400);
+        expect((error as APIError).error).toEqual(
+          badRequestError(
+            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
+          )
+        );
+      }
+    });
 
     it("Should return 400 if user id has changed since the conversation was created", async () => {
       const userId1 = "user1";
@@ -722,6 +745,7 @@ describe("POST /responses", () => {
           previous_response_id: previousResponseId,
           user: userId2,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -737,6 +761,7 @@ describe("POST /responses", () => {
           previous_response_id: "123456789012123456789012",
           store: false,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);
@@ -759,6 +784,7 @@ describe("POST /responses", () => {
           previous_response_id: previousResponseId,
           store: true,
         });
+        throw new Error("Should not reach this line");
       } catch (error) {
         expect(error instanceof APIError).toBe(true);
         expect((error as APIError).status).toBe(400);

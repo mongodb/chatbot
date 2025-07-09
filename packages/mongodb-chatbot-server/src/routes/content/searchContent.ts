@@ -1,4 +1,8 @@
 import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
+import {
   FindContentFunc,
   FindContentResult,
   MongoDbSearchResultsStore,
@@ -6,13 +10,10 @@ import {
   SearchRecordDataSource,
   SearchRecordDataSourceSchema,
 } from "mongodb-rag-core";
-import { SomeExpressRequest } from "../../middleware";
 import { z } from "zod";
+
+import { SomeExpressRequest } from "../../middleware";
 import { ConversationsRouterLocals } from "../conversations";
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from "express";
 import { makeRequestError } from "../conversations/utils";
 
 export const SearchContentRequestBody = z.object({

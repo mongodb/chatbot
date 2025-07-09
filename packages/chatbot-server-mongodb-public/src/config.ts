@@ -31,7 +31,12 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger, makeMongoDbSearchResultsStore } from "mongodb-rag-core";
+import {
+  FindContentFunc,
+  logger,
+  makeMongoDbSearchResultsStore,
+  updateFrontMatter,
+} from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -40,7 +45,6 @@ import {
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  ANALYZER_ENV_VARS,
   AZURE_OPENAI_ENV_VARS,
   PREPROCESSOR_ENV_VARS,
   TRACING_ENV_VARS,
@@ -57,7 +61,8 @@ import { makeGenerateResponseWithSearchTool } from "./processors/generateRespons
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure } from "mongodb-rag-core/aiSdk";
+import { createAzure, LanguageModel } from "mongodb-rag-core/aiSdk";
+import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/mongoDbMetadata";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -155,6 +160,40 @@ embeddedContentStore.findNearestNeighbors = wrapTraced(
   embeddedContentStore.findNearestNeighbors,
   { name: "findNearestNeighbors" }
 );
+
+export const makeFindContentWithMongoDbMetadata = ({
+  findContent,
+  classifierModel,
+}: {
+  findContent: FindContentFunc;
+  classifierModel: LanguageModel;
+}) => {
+  const wrappedFindContent: FindContentFunc = wrapTraced(
+    async ({ query, filters, limit }) => {
+      const { product, programmingLanguage } =
+        await classifyMongoDbProgrammingLanguageAndProduct(
+          classifierModel,
+          query
+        );
+
+      const preProcessedQuery = updateFrontMatter(query, {
+        ...(product ? { product } : {}),
+        ...(programmingLanguage ? { programmingLanguage } : {}),
+      });
+
+      const res = await findContent({
+        query: preProcessedQuery,
+        filters,
+        limit,
+      });
+      return res;
+    },
+    {
+      name: "makeFindContentWithMongoDbMetadata",
+    }
+  );
+  return wrappedFindContent;
+};
 
 export const findContent = wrapTraced(
   makeDefaultFindContent({
@@ -313,8 +352,10 @@ logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
   contentRouterConfig: {
-    // TODO: Its own implementation of findContent...
-    findContent,
+    findContent: makeFindContentWithMongoDbMetadata({
+      findContent,
+      classifierModel: languageModel,
+    }),
     searchResultsStore,
   },
   conversationsRouterConfig: {

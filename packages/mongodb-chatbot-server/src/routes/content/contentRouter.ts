@@ -1,11 +1,9 @@
 import { RequestHandler, Router } from "express";
-import { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  SearchContentRequest,
-  makeSearchContentRoute,
-} from "./searchContent";
 import { ParamsDictionary } from "express-serve-static-core";
+import { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
+
+import validateRequestSchema from "../../middleware/validateRequestSchema";
+import { SearchContentRequest, makeSearchContentRoute } from "./searchContent";
 
 /**
   Middleware to put in front of all the routes in the contentRouter.
@@ -35,6 +33,7 @@ export interface SearchContentRouterLocals {
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
+  // TODO: Add default middleware as in conversationsRouter
   middleware?: SearchContentMiddleware[];
 }
 

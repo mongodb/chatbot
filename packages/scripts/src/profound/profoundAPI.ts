@@ -35,8 +35,7 @@ export interface ProfoundAnswer {
   topic: string;
   region: string;
   model: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  asset: null | any;
+  asset: unknown;
 }
 
 export interface ProfoundAnswerResponse {

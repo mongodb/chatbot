@@ -13,8 +13,8 @@ import {
 import { z } from "zod";
 
 import { SomeExpressRequest } from "../../middleware";
-import { ConversationsRouterLocals } from "../conversations";
 import { makeRequestError } from "../conversations/utils";
+import { SearchContentRouterLocals } from "./contentRouter";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -61,7 +61,7 @@ export function makeSearchContentRoute({
 }: MakeSearchContentRouteParams) {
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
-    res: ExpressResponse<SearchContentResponseBody, ConversationsRouterLocals>
+    res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
   ) => {
     try {
       const { query, dataSources, limit } = req.body;

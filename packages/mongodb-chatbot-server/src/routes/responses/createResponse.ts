@@ -15,6 +15,7 @@ import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
 import type { GenerateResponse } from "../../processors";
 import {
+  makeOpenAIStreamError,
   makeBadRequestError,
   makeInternalServerError,
   generateZodErrorMessage,
@@ -305,10 +306,7 @@ export function makeCreateResponseRoute({
           : makeInternalServerError({ error: error as Error, headers });
 
       if (dataStreamer.connected) {
-        // TODO: stream the standard error object if possible
-        dataStreamer.streamResponses({
-          type: "error",
-        });
+        dataStreamer.streamResponses(makeOpenAIStreamError(standardError));
       } else {
         sendErrorResponse({
           res,

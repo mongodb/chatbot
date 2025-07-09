@@ -43,6 +43,29 @@ export enum ERROR_CODE {
 }
 
 // --- OPENAI ERROR WRAPPERS ---
+interface OpenAIStreamError {
+  type: typeof ERROR_TYPE;
+  data: {
+    message: string;
+    code?: string;
+    retryable?: boolean;
+  };
+}
+
+export const makeOpenAIStreamError = (
+  error: APIError,
+  retryable = false
+): OpenAIStreamError => {
+  return {
+    type: ERROR_TYPE,
+    data: {
+      message: error.message,
+      code: error.code ?? undefined,
+      retryable,
+    },
+  };
+};
+
 interface MakeOpenAIErrorParams {
   error: Error;
   headers: Record<string, string>;

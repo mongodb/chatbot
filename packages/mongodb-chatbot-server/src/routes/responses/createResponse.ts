@@ -187,6 +187,8 @@ export function makeCreateResponseRoute({
     const dataStreamer = makeDataStreamer();
 
     try {
+      dataStreamer.connect(res);
+
       // --- INPUT VALIDATION ---
       const { error, data } = CreateResponseRequestSchema.safeParse(req);
       if (error) {
@@ -234,13 +236,6 @@ export function makeCreateResponseRoute({
         });
       }
 
-      dataStreamer.connect(res);
-
-      // TODO: stream a created message
-      dataStreamer.streamResponses({
-        type: "response.created",
-      });
-
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -274,6 +269,11 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // TODO: stream a created message
+      dataStreamer.streamResponses({
+        type: "response.created",
+      });
+
       // TODO: stream an in progress message
       dataStreamer.streamResponses({
         type: "response.in_progress",
@@ -281,15 +281,6 @@ export function makeCreateResponseRoute({
 
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);
-
-      // TODO: stream a completed message
-      dataStreamer.streamResponses({
-        type: "response.completed",
-      });
-
-      if (dataStreamer.connected) {
-        dataStreamer.disconnect();
-      }
 
       // --- STORE MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({
@@ -299,6 +290,11 @@ export function makeCreateResponseRoute({
         metadata,
         input,
         messages,
+      });
+
+      // TODO: stream a completed message
+      dataStreamer.streamResponses({
+        type: "response.completed",
       });
 
       return res.status(200).send({ status: "ok" });
@@ -313,13 +309,16 @@ export function makeCreateResponseRoute({
         dataStreamer.streamResponses({
           type: "error",
         });
-        dataStreamer.disconnect();
       } else {
         sendErrorResponse({
           res,
           reqId,
           error: standardError,
         });
+      }
+    } finally {
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
       }
     }
   };

@@ -103,6 +103,22 @@ describe.skip("executeMqlQuery", () => {
     expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
     expect(res.error).toBeUndefined();
   });
+  it("should not postfix .toArray() if .explain() query", async () => {
+    // Execute an explain query
+    const res = await executeMongoshQuery({
+      query: `db.${collectionName}.find({ age: { $gt: 25 } }).explain('executionStats')`,
+      databaseName,
+      uri: MONGO_MEMORY_SERVER_URI,
+    });
+
+    // Verify the result is an explain output object, not an array
+    expect(res.result).toBeTruthy();
+    expect(Array.isArray(res.result)).toBe(false);
+    expect(res.result).toHaveProperty("queryPlanner");
+    expect(res.result).toHaveProperty("executionStats");
+    expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.error).toBeUndefined();
+  });
 
   it("should handle semicolon at end of statement", async () => {
     // Execute the function with a query that has a semicolon

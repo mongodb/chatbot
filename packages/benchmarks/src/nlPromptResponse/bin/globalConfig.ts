@@ -1,4 +1,4 @@
-import { getModelsFromLabels } from "../../benchmarkModels";
+import { MODELS, getModelsFromLabels } from "../../benchmarkModels";
 import { assertEnvVars } from "mongodb-rag-core";
 
 const { BRAINTRUST_API_KEY } = assertEnvVars({
@@ -15,23 +15,4 @@ export const MAX_CONCURRENCY = 15;
 
 export const judgeModelsConfig = getModelsFromLabels(["gpt-4.1"]);
 
-export const models = getModelsFromLabels([
-  "gpt-4.1",
-  "gpt-4.1-mini",
-  "gpt-4.1-nano",
-  "claude-37-sonnet",
-  "gpt-4o",
-  "gpt-4o-mini",
-  "claude-35-sonnet-v2",
-  "claude-35-sonnet",
-  "llama-3.1-70b",
-  "llama-3.2-90b",
-  "llama-3.3-70b",
-  "o3-mini",
-  "o3",
-  "o4-mini",
-  "gemini-2-flash",
-  "gemini-2.0-flash-lite-001",
-  "gemini-2.5-flash-preview-04-17",
-  "gemini-2.5-pro-preview-03-25",
-]);
+export const models = MODELS;

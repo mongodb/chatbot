@@ -78,11 +78,16 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
 function appendToArrayIfNeeded(query: string) {
   query = query.trim();
 
+  // Don't add .toArray() if .explain() is present or .toArray() already exists
+  if (query.includes(".explain(") || query.includes(".toArray()")) {
+    return query;
+  }
+
   // Regex to match cursor-returning operations
   const cursorReturningOperations =
     /(db\.\w+\.(find|aggregate|listCollections|listIndexes)\()/;
 
-  if (cursorReturningOperations.test(query) && !query.includes(".toArray()")) {
+  if (cursorReturningOperations.test(query)) {
     return query.replace(/\)\s*;?$/, ").toArray();");
   }
 

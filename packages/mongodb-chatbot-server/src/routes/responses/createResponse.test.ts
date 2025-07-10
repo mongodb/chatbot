@@ -1,13 +1,12 @@
 import "dotenv/config";
 import type { Server } from "http";
-import { OpenAI, APIError } from "mongodb-rag-core/openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import type { Conversation, SomeMessage } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
 import {
   TEST_OPENAI_API_KEY,
   makeTestLocalServer,
   collectStreamingResponse,
-  type PartialAppConfig,
 } from "../../test/testHelpers";
 import { basicResponsesRequestBody } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
@@ -18,14 +17,11 @@ jest.setTimeout(100000);
 describe("POST /responses", () => {
   let server: Server;
   let appConfig: AppConfig;
-  let overrideAppConfig: PartialAppConfig = {};
   let ipAddress: string;
   let origin: string;
 
   beforeEach(async () => {
-    ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer(
-      overrideAppConfig
-    ));
+    ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer());
   });
 
   afterEach(() => {
@@ -55,11 +51,11 @@ describe("POST /responses", () => {
 
   describe("Valid requests", () => {
     it("Should return 200 given a string input", async () => {
-      const { data: stream, response } = await makeCreateResponseRequest();
-      const content = await collectStreamingResponse(stream);
+      const { response } = await makeCreateResponseRequest();
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(content).toContain("");
+      testResponses({ responses: results });
     });
 
     it("Should return 200 given a message array input", async () => {
@@ -71,96 +67,120 @@ describe("POST /responses", () => {
           { role: "user", content: "What is a document database?" },
         ],
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
       const { response } = await makeCreateResponseRequest({
         instructions: "You are a helpful chatbot.",
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
       const { response } = await makeCreateResponseRequest({
         max_output_tokens: 4000,
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with valid metadata", async () => {
       const { response } = await makeCreateResponseRequest({
         metadata: { key1: "value1", key2: "value2" },
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with valid temperature", async () => {
       const { response } = await makeCreateResponseRequest({
         temperature: 0,
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with previous_response_id", async () => {
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
-        });
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+          }
+        );
 
       const previousResponseId = conversation.messages[0].id;
       const { response } = await makeCreateResponseRequest({
         previous_response_id: previousResponseId.toString(),
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 if previous_response_id is the latest message", async () => {
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          initialMessages: [
-            { role: "user", content: "What is MongoDB?" },
-            { role: "assistant", content: "MongoDB is a document database." },
-            { role: "user", content: "What is a document database?" },
-          ],
-        });
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            initialMessages: [
+              { role: "user", content: "What is MongoDB?" },
+              { role: "assistant", content: "MongoDB is a document database." },
+              { role: "user", content: "What is a document database?" },
+            ],
+          }
+        );
 
       const previousResponseId = conversation.messages[2].id;
       const { response } = await makeCreateResponseRequest({
         previous_response_id: previousResponseId.toString(),
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with user", async () => {
       const { response } = await makeCreateResponseRequest({
         user: "some-user-id",
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with store=false", async () => {
       const { response } = await makeCreateResponseRequest({
         store: false,
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with store=true", async () => {
       const { response } = await makeCreateResponseRequest({
         store: true,
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
@@ -182,8 +202,10 @@ describe("POST /responses", () => {
         ],
         tool_choice: "auto",
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
@@ -208,8 +230,10 @@ describe("POST /responses", () => {
           name: "test-tool",
         },
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 given a message array with function_call", async () => {
@@ -225,8 +249,10 @@ describe("POST /responses", () => {
           },
         ],
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
@@ -241,42 +267,50 @@ describe("POST /responses", () => {
           },
         ],
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
       const { response } = await makeCreateResponseRequest({
         tool_choice: "none",
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should return 200 with an empty tools array", async () => {
       const { response } = await makeCreateResponseRequest({
         tools: [],
       });
+      const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
     });
 
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
       const createSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "create"
       );
       const addMessagesSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "addManyConversationMessages"
       );
 
       const storeMessageContent = undefined;
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          storeMessageContent,
-          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
-        });
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            storeMessageContent,
+            initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+          }
+        );
 
       const store = true;
       const previousResponseId = conversation.messages[0].id.toString();
@@ -284,11 +318,14 @@ describe("POST /responses", () => {
         previous_response_id: previousResponseId,
         store,
       });
+      const results = await collectStreamingResponse(response);
 
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
+
       expect(createdConversation.storeMessageContent).toEqual(
         storeMessageContent
       );
@@ -301,11 +338,11 @@ describe("POST /responses", () => {
 
     it("Should store conversation messages when `store: true`", async () => {
       const createSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "create"
       );
       const addMessagesSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "addManyConversationMessages"
       );
 
@@ -320,11 +357,14 @@ describe("POST /responses", () => {
         metadata,
         user: userId,
       });
+      const results = await collectStreamingResponse(response);
 
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
+
       expect(createdConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
         createdConversation,
@@ -337,11 +377,11 @@ describe("POST /responses", () => {
 
     it("Should not store conversation messages when `store: false`", async () => {
       const createSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "create"
       );
       const addMessagesSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "addManyConversationMessages"
       );
 
@@ -356,11 +396,14 @@ describe("POST /responses", () => {
         metadata,
         user: userId,
       });
+      const results = await collectStreamingResponse(response);
 
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
+
       expect(createdConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
         createdConversation,
@@ -373,11 +416,11 @@ describe("POST /responses", () => {
 
     it("Should store function_call messages when `store: true`", async () => {
       const createSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "create"
       );
       const addMessagesSpy = jest.spyOn(
-        appConfig.conversationsRouterConfig.conversations,
+        appConfig.responsesRouterConfig.createResponse.conversations,
         "addManyConversationMessages"
       );
 
@@ -402,11 +445,14 @@ describe("POST /responses", () => {
           },
         ],
       });
+      const results = await collectStreamingResponse(response);
 
       const createdConversation = await createSpy.mock.results[0].value;
       const addedMessages = await addMessagesSpy.mock.results[0].value;
 
       expect(response.status).toBe(200);
+      testResponses({ responses: results });
+
       expect(createdConversation.storeMessageContent).toEqual(store);
 
       expect(addedMessages[0].role).toEqual("system");
@@ -419,79 +465,89 @@ describe("POST /responses", () => {
 
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
-      try {
-        await makeCreateResponseRequest({
-          input: "",
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(`Path: body.input - ${ERR_MSG.INPUT_STRING}`)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        input: "",
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          `Path: body.input - ${ERR_MSG.INPUT_STRING}`
+        )
+      );
     });
 
     it("Should return 400 with an empty message array", async () => {
-      try {
-        await makeCreateResponseRequest({
-          input: [],
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(`Path: body.input - ${ERR_MSG.INPUT_ARRAY}`)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        input: [],
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`
+        )
+      );
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
-      try {
-        await makeCreateResponseRequest({
-          model: "gpt-4o-mini",
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini"))
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        model: "gpt-4o-mini",
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini")
+        )
+      );
     });
 
     it("Should return 400 if stream is not true", async () => {
-      try {
-        await makeCreateResponseRequest({
-          stream: false,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(`Path: body.stream - ${ERR_MSG.STREAM}`)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        stream: false,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          `Path: body.stream - ${ERR_MSG.STREAM}`
+        )
+      );
     });
 
     it("Should return 400 if max_output_tokens is > allowed limit", async () => {
       const max_output_tokens = 4001;
-      try {
-        await makeCreateResponseRequest({
-          max_output_tokens,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000))
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        max_output_tokens,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000)
+        )
+      );
     });
 
     it("Should return 400 if metadata has too many fields", async () => {
@@ -499,216 +555,241 @@ describe("POST /responses", () => {
       for (let i = 0; i < 17; i++) {
         metadata[`key${i}`] = "value";
       }
-      try {
-        await makeCreateResponseRequest({
-          metadata,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(`Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        metadata,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`
+        )
+      );
     });
 
     it("Should return 400 if metadata value is too long", async () => {
-      try {
-        await makeCreateResponseRequest({
-          metadata: { key1: "a".repeat(513) },
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(
-            "Path: body.metadata.key1 - String must contain at most 512 character(s)"
-          )
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        metadata: { key1: "a".repeat(513) },
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.metadata.key1 - String must contain at most 512 character(s)"
+        )
+      );
     });
 
     it("Should return 400 if temperature is not 0", async () => {
-      try {
-        await makeCreateResponseRequest({
-          temperature: 0.5 as any,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(`Path: body.temperature - ${ERR_MSG.TEMPERATURE}`)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        temperature: 0.5 as any,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`
+        )
+      );
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
-      try {
-        await makeCreateResponseRequest({
-          input: [
-            { role: "user", content: "What is MongoDB?" },
-            {
-              role: "invalid-role" as any,
-              content: "This is an invalid role.",
-            },
-          ],
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError("Path: body.input - Invalid input")
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        input: [
+          { role: "user", content: "What is MongoDB?" },
+          {
+            role: "invalid-role" as any,
+            content: "This is an invalid role.",
+          },
+        ],
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.input - Invalid input"
+        )
+      );
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
-      try {
-        await makeCreateResponseRequest({
-          input: [
-            {
-              type: "function_call",
-              call_id: "call123",
-              name: "my_function",
-              arguments: `{"query": "value"}`,
-              status: "invalid_status" as any,
-            },
-          ],
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError("Path: body.input - Invalid input")
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        input: [
+          {
+            type: "function_call",
+            call_id: "call123",
+            name: "my_function",
+            arguments: `{"query": "value"}`,
+            status: "invalid_status" as any,
+          },
+        ],
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.input - Invalid input"
+        )
+      );
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
-      try {
-        await makeCreateResponseRequest({
-          input: [
-            {
-              type: "function_call_output",
-              call_id: "call123",
-              output: `{"result": "success"}`,
-              status: "invalid_status" as any,
-            },
-          ],
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError("Path: body.input - Invalid input")
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        input: [
+          {
+            type: "function_call_output",
+            call_id: "call123",
+            output: `{"result": "success"}`,
+            status: "invalid_status" as any,
+          },
+        ],
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.input - Invalid input"
+        )
+      );
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
-      try {
-        await makeCreateResponseRequest({
-          tool_choice: "invalid_choice" as any,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError("Path: body.tool_choice - Invalid input")
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        tool_choice: "invalid_choice" as any,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.tool_choice - Invalid input"
+        )
+      );
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
-      try {
-        await makeCreateResponseRequest({
-          max_output_tokens: -1,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(
-            "Path: body.max_output_tokens - Number must be greater than or equal to 0"
-          )
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        max_output_tokens: -1,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          "Path: body.max_output_tokens - Number must be greater than or equal to 0"
+        )
+      );
     });
 
     it("Should return 400 if previous_response_id is not a valid ObjectId", async () => {
       const messageId = "some-id";
 
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: messageId,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.INVALID_OBJECT_ID(messageId))
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: messageId,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.INVALID_OBJECT_ID(messageId)
+        )
+      );
     });
 
     it("Should return 400 if previous_response_id is not found", async () => {
       const messageId = "123456789012123456789012";
 
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: messageId,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.INVALID_OBJECT_ID(messageId))
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: messageId,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.INVALID_OBJECT_ID(messageId)
+        )
+      );
     });
 
     it("Should return 400 if previous_response_id is not the latest message", async () => {
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          initialMessages: [
-            { role: "user", content: "What is MongoDB?" },
-            { role: "assistant", content: "MongoDB is a document database." },
-            { role: "user", content: "What is a document database?" },
-          ],
-        });
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            initialMessages: [
+              { role: "user", content: "What is MongoDB?" },
+              { role: "assistant", content: "MongoDB is a document database." },
+              { role: "user", content: "What is a document database?" },
+            ],
+          }
+        );
 
       const previousResponseId = conversation.messages[0].id;
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: previousResponseId.toString(),
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(
-            ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
-          )
-        );
-      }
+
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: previousResponseId.toString(),
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
+        )
+      );
     });
 
     it("Should return 400 if there are too many messages in the conversation", async () => {
+      // close default test server
+      server.close();
+
+      // create proper config overrides
       const maxUserMessagesInConversation = 0;
-      overrideAppConfig = {
+
+      const overrideAppConfig = {
+        ...appConfig,
         responsesRouterConfig: {
-          ...appConfig.responsesRouterConfig,
+          ...appConfig.conversationsRouterConfig,
           createResponse: {
             ...appConfig.responsesRouterConfig.createResponse,
             maxUserMessagesInConversation,
@@ -716,93 +797,129 @@ describe("POST /responses", () => {
         },
       };
 
-      try {
-        await makeCreateResponseRequest();
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(
-            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
-          )
-        );
-      }
+      // start new test server with proper config overrides
+      ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer(
+        overrideAppConfig
+      ));
+
+      const { response } = await makeCreateResponseRequest();
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
+        )
+      );
     });
 
     it("Should return 400 if user id has changed since the conversation was created", async () => {
       const userId1 = "user1";
       const userId2 = "user2";
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          userId: userId1,
-          initialMessages: [{ role: "user", content: "What is MongoDB?" }],
-        });
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            userId: userId1,
+            initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+          }
+        );
 
       const previousResponseId = conversation.messages[0].id.toString();
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: previousResponseId,
-          user: userId2,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.CONVERSATION_USER_ID_CHANGED)
-        );
-      }
+
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: previousResponseId,
+        user: userId2,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.CONVERSATION_USER_ID_CHANGED
+        )
+      );
     });
 
     it("Should return 400 if `store: false` and `previous_response_id` is provided", async () => {
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: "123456789012123456789012",
-          store: false,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.STORE_NOT_SUPPORTED)
-        );
-      }
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: "123456789012123456789012",
+        store: false,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.STORE_NOT_SUPPORTED
+        )
+      );
     });
 
     it("Should return 400 if `store: true` and `storeMessageContent: false`", async () => {
       const conversation =
-        await appConfig.conversationsRouterConfig.conversations.create({
-          storeMessageContent: false,
-          initialMessages: [{ role: "user", content: "" }],
-        });
-
-      const previousResponseId = conversation.messages[0].id.toString();
-      try {
-        await makeCreateResponseRequest({
-          previous_response_id: previousResponseId,
-          store: true,
-        });
-        throw new Error("Should not reach this line");
-      } catch (error) {
-        expect(error instanceof APIError).toBe(true);
-        expect((error as APIError).status).toBe(400);
-        expect((error as APIError).error).toEqual(
-          badRequestError(ERR_MSG.CONVERSATION_STORE_MISMATCH)
+        await appConfig.responsesRouterConfig.createResponse.conversations.create(
+          {
+            storeMessageContent: false,
+            initialMessages: [{ role: "user", content: "What is MongoDB?" }],
+          }
         );
-      }
+      const previousResponseId = conversation.messages[0].id.toString();
+
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id: previousResponseId,
+        store: true,
+      });
+      const results = await collectStreamingResponse(response);
+
+      expect(response.status).toBe(200);
+      expect(results[0].type).toBe(ERROR_TYPE);
+      expect(results[0].data).toEqual(
+        openaiStreamErrorData(
+          400,
+          ERROR_CODE.INVALID_REQUEST_ERROR,
+          ERR_MSG.CONVERSATION_STORE_MISMATCH
+        )
+      );
     });
   });
 });
 
 // --- HELPERS ---
 
-const badRequestError = (message: string) => ({
-  type: ERROR_TYPE,
-  code: ERROR_CODE.INVALID_REQUEST_ERROR,
-  message,
+const openaiStreamErrorData = (
+  httpStatus: number,
+  code: ERROR_CODE,
+  message: string,
+  retryable = false
+) => ({
+  code,
+  message: `${httpStatus} ${message}`,
+  retryable,
 });
+
+interface TestResponsesParams {
+  responses: Array<OpenAI.Responses.ResponseStreamEvent>;
+}
+
+const testResponses = ({ responses }: TestResponsesParams) => {
+  expect(Array.isArray(responses)).toBe(true);
+  expect(responses.length).toBe(2);
+
+  expect(responses[0].type).toBe("response.created");
+  expect(responses[1].type).toBe("response.in_progress");
+
+  expect(responses[0].sequence_number).toBe(0);
+  expect(responses[1].sequence_number).toBe(1);
+};
 
 interface TestDefaultMessageContentParams {
   createdConversation: Conversation;

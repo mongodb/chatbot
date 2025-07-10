@@ -1,4 +1,5 @@
 import { strict as assert } from "assert";
+import type { Response } from "mongodb-rag-core/openai";
 import { AppConfig, makeApp } from "../app";
 import { makeDefaultConfig, memoryDb, systemPrompt } from "./testConfig";
 
@@ -86,12 +87,25 @@ export const makeTestLocalServer = async (
 /**
  Helper function to collect a full response from a stream.
  */
-export const collectStreamingResponse = async (stream: any) => {
-  let content = "";
-  for await (const chunk of stream) {
-    console.log(chunk);
-    content += chunk.choices[0]?.delta?.content ?? "";
+export const collectStreamingResponse = async (response: Response) => {
+  const content: Array<any> = [];
+
+  const reader = response.body;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const value = await reader.read();
+    if (!value) break;
+
+    let chunk = "";
+    if (typeof value === "string") chunk = value;
+    else chunk = new TextDecoder().decode(value);
+
+    // ensure the chunk string is valid JSON by always making it an array
+    const chunkArray = `[${chunk.replaceAll("}{", "},{")}]`;
+
+    content.push(...JSON.parse(chunkArray));
   }
+
   return content;
 };
 

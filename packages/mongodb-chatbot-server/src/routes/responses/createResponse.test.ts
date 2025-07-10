@@ -685,10 +685,19 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if there are too many messages in the conversation", async () => {
-      // TODO: make this work, currently broken
-      const maxUserMessagesInConversation = 0;
+      const { maxUserMessagesInConversation } =
+        appConfig.responsesRouterConfig.createResponse;
 
-      const { response } = await makeCreateResponseRequest();
+      const initialMessages = Array(maxUserMessagesInConversation).fill({
+        role: "user",
+        content: "Initial message!",
+      });
+      const { messages } = await conversations.create({ initialMessages });
+
+      const previous_response_id = messages[messages.length - 1].id.toString();
+      const { response } = await makeCreateResponseRequest({
+        previous_response_id,
+      });
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);

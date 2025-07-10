@@ -1,9 +1,6 @@
-import { makeFindContentWithMongoDbMetadata } from "./config";
-
 // Mocks
-
-jest.mock("mongodb-rag-core/mongoDbMetadata", () => {
-  const actual = jest.requireActual("mongodb-rag-core/mongoDbMetadata");
+jest.mock("./findContentWithMongoDbMetadata", () => {
+  const actual = jest.requireActual("./findContentWithMongoDbMetadata");
   return {
     ...actual,
     classifyMongoDbProgrammingLanguageAndProduct: jest.fn(),
@@ -26,9 +23,9 @@ jest.mock("mongodb-rag-core/braintrust", () => {
   };
 });
 
-import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/mongoDbMetadata";
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { classifyMongoDbProgrammingLanguageAndProduct, makeFindContentWithMongoDbMetadata } from "./findContentWithMongoDbMetadata";
 
 const mockedClassify =
   classifyMongoDbProgrammingLanguageAndProduct as jest.Mock;

@@ -1,7 +1,7 @@
 import request from "supertest";
 import { makeTestApp } from "../../test/testHelpers";
 import type { MakeContentRouterParams } from "./contentRouter";
-import type { MongoDbSearchResultsStore } from "mongodb-rag-core";
+import type { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
 const mockSearchResultsStore: MongoDbSearchResultsStore = {
@@ -15,14 +15,17 @@ const mockSearchResultsStore: MongoDbSearchResultsStore = {
   init: jest.fn()
 };
 
+const findContentMock = jest.fn().mockResolvedValue({
+  content: [],
+  queryEmbedding: [],
+}) satisfies FindContentFunc;
+
 // Helper to build contentRouterConfig for the test app
 function makeContentRouterConfig(
   overrides: Partial<MakeContentRouterParams> = {}
 ) {
   return {
-    findContent: jest
-      .fn()
-      .mockResolvedValue({ content: [], queryEmbedding: [] }),
+    findContent: findContentMock,
     searchResultsStore: mockSearchResultsStore,
     ...overrides,
   } satisfies MakeContentRouterParams;
@@ -77,7 +80,7 @@ describe("contentRouter", () => {
     expect(mockMiddleware).toHaveBeenCalled();
   });
 
-  it("should use the 'limit' parameter to not return more results than requested", async () => {
+  it("should pass the 'limit' parameter to findContent", async () => {
     const { app, origin } = await makeTestApp({
       contentRouterConfig: makeContentRouterConfig(),
     });
@@ -93,6 +96,8 @@ describe("contentRouter", () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("results");
     expect(Array.isArray(res.body.results)).toBe(true);
-    expect(res.body.results.length).toBeLessThanOrEqual(limit);
+    expect(findContentMock).toHaveBeenCalledWith(
+      expect.objectContaining({ limit })
+    );
   });
 });

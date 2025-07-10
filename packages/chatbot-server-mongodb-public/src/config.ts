@@ -32,11 +32,10 @@ import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
 import {
-  FindContentFunc,
   logger,
   makeMongoDbSearchResultsStore,
-  updateFrontMatter,
 } from "mongodb-rag-core";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -61,8 +60,7 @@ import { makeGenerateResponseWithSearchTool } from "./processors/generateRespons
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure, LanguageModel } from "mongodb-rag-core/aiSdk";
-import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/mongoDbMetadata";
+import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWithMongoDbMetadata";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -160,40 +158,6 @@ embeddedContentStore.findNearestNeighbors = wrapTraced(
   embeddedContentStore.findNearestNeighbors,
   { name: "findNearestNeighbors" }
 );
-
-export const makeFindContentWithMongoDbMetadata = ({
-  findContent,
-  classifierModel,
-}: {
-  findContent: FindContentFunc;
-  classifierModel: LanguageModel;
-}) => {
-  const wrappedFindContent: FindContentFunc = wrapTraced(
-    async ({ query, filters, limit }) => {
-      const { product, programmingLanguage } =
-        await classifyMongoDbProgrammingLanguageAndProduct(
-          classifierModel,
-          query
-        );
-
-      const preProcessedQuery = updateFrontMatter(query, {
-        ...(product ? { product } : {}),
-        ...(programmingLanguage ? { programmingLanguage } : {}),
-      });
-
-      const res = await findContent({
-        query: preProcessedQuery,
-        filters,
-        limit,
-      });
-      return res;
-    },
-    {
-      name: "makeFindContentWithMongoDbMetadata",
-    }
-  );
-  return wrappedFindContent;
-};
 
 export const findContent = wrapTraced(
   makeDefaultFindContent({

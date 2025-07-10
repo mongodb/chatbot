@@ -93,7 +93,7 @@ function mapFindContentResultToSearchContentResponseChunk(
   return {
     results: result.content.map(({ url, metadata, text }) => ({
       url,
-      title: metadata?.pageTitle || "",
+      title: metadata?.pageTitle ?? "",
       text,
       metadata,
     })),

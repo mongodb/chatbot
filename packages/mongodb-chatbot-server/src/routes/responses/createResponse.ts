@@ -297,8 +297,6 @@ export function makeCreateResponseRoute({
       dataStreamer.streamResponses({
         type: "response.completed",
       });
-
-      return res.status(200).send({ status: "ok" });
     } catch (error) {
       const standardError =
         (error as APIError)?.type === ERROR_TYPE

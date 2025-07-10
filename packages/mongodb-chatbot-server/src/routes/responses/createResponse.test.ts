@@ -337,7 +337,7 @@ describe("POST /responses", () => {
       });
     });
 
-    it.skip("Should store conversation messages when `store: true`", async () => {
+    it("Should store conversation messages when `store: true`", async () => {
       const store = true;
       const userId = "customUserId";
       const metadata = {
@@ -366,7 +366,7 @@ describe("POST /responses", () => {
       });
     });
 
-    it.skip("Should not store conversation messages when `store: false`", async () => {
+    it("Should not store conversation messages when `store: false`", async () => {
       const store = false;
       const userId = "customUserId";
       const metadata = {
@@ -395,7 +395,7 @@ describe("POST /responses", () => {
       });
     });
 
-    it.skip("Should store function_call messages when `store: true`", async () => {
+    it("Should store function_call messages when `store: true`", async () => {
       const store = true;
       const functionCallType = "function_call";
       const functionCallOutputType = "function_call_output";

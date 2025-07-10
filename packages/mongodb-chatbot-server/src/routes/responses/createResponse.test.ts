@@ -718,27 +718,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if there are too many messages in the conversation", async () => {
-      // close default test server
-      server.close();
-
-      // create proper config overrides
       const maxUserMessagesInConversation = 0;
-
-      const overrideAppConfig = {
-        ...appConfig,
-        responsesRouterConfig: {
-          ...appConfig.conversationsRouterConfig,
-          createResponse: {
-            ...appConfig.responsesRouterConfig.createResponse,
-            maxUserMessagesInConversation,
-          },
-        },
-      };
-
-      // start new test server with proper config overrides
-      ({ server, appConfig, ipAddress, origin } = await makeTestLocalServer(
-        overrideAppConfig
-      ));
 
       const { response } = await makeCreateResponseRequest();
       const results = await collectStreamingResponse(response);
@@ -837,6 +817,9 @@ const testInvalidResponses = ({
   responses,
   message,
 }: TestInvalidResponsesParams) => {
+  expect(Array.isArray(responses)).toBe(true);
+  expect(responses.length).toBe(1);
+
   expect(responses[0].type).toBe(ERROR_TYPE);
   expect(responses[0].data).toEqual(
     openaiStreamErrorData(400, ERROR_CODE.INVALID_REQUEST_ERROR, message)
@@ -849,13 +832,15 @@ interface TestResponsesParams {
 
 const testResponses = ({ responses }: TestResponsesParams) => {
   expect(Array.isArray(responses)).toBe(true);
-  expect(responses.length).toBe(2);
+  expect(responses.length).toBe(3);
 
   expect(responses[0].type).toBe("response.created");
   expect(responses[1].type).toBe("response.in_progress");
+  expect(responses[2].type).toBe("response.completed");
 
   expect(responses[0].sequence_number).toBe(0);
   expect(responses[1].sequence_number).toBe(1);
+  expect(responses[2].sequence_number).toBe(2);
 };
 
 interface TestDefaultMessageContentParams {
@@ -874,6 +859,7 @@ const testDefaultMessageContent = ({
   metadata,
 }: TestDefaultMessageContentParams) => {
   expect(createdConversation.userId).toEqual(userId);
+  expect(addedMessages.length).toEqual(3);
 
   expect(addedMessages[0].role).toBe("user");
   expect(addedMessages[1].role).toEqual("user");

@@ -1,5 +1,4 @@
 import "dotenv/config";
-import fs from "fs";
 import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import {
@@ -22,7 +21,7 @@ import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { makeFetchPageTool } from "../tools/fetchPage";
 import { makeSearchTool } from "../tools/search";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { getGenerateWithToolsEvalCasesFromYaml } from "../eval/getGenerateWithToolEvalCasesFromYaml";
+import { getGenerateWithToolsEvalCasesFromYamlFile } from "../eval/getGenerateWithToolEvalCasesFromYaml";
 
 const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
   ...CORE_OPENAI_ENV_VARS,
@@ -48,38 +47,14 @@ type GenerateResponseExpected = {
   messages: GenerateResponseExpectedMessage[];
 };
 
-/**
-  Loads eval cases from a YAML file.
-  The YAML should define a list of cases with input, expected, and metadata fields.
-*/
-export function loadEvalCasesFromYaml(
-  filePath: string
-): EvalCase<
+// Load eval cases from a YAML file.
+const evalCases: EvalCase<
   GenerateResponseInput,
   GenerateResponseExpected,
   IntermediateToolResponse
->[] {
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const rawCases = getGenerateWithToolsEvalCasesFromYaml(fileContent);
-  return rawCases.map((e) => {
-    return {
-      input: e.input,
-      expected: e.expected,
-      metadata: e.metadata,
-    };
-  });
-}
-
-const evalCases = loadEvalCasesFromYaml(
+>[] = getGenerateWithToolsEvalCasesFromYamlFile(
   require.resolve("../../evalCases/generate_response_with_tools.yml")
 );
-
-function doRolesMatch(expectedRole: string, actualRole: string): boolean {
-  if (expectedRole === "assistant-tool" && actualRole === "assistant") {
-    return true;
-  }
-  return expectedRole === actualRole;
-}
 
 /** Verify the correct tool calls were generated. */
 const ScoreCorrectToolsCalled: EvalScorer<
@@ -102,8 +77,14 @@ const ScoreCorrectToolsCalled: EvalScorer<
     const expectedMessage = expected.messages[i];
     const outputMessage = output.messages[i];
 
-    // Do the message types match?
-    if (!doRolesMatch(expectedMessage.role, outputMessage.role)) {
+    // Check if the message types match
+    if (
+      !(
+        expectedMessage.role === "assistant-tool" &&
+        outputMessage.role === "assistant"
+      ) &&
+      expectedMessage.role !== outputMessage.role
+    ) {
       return {
         name: "CorrectToolCall",
         score: 0,
@@ -115,7 +96,6 @@ const ScoreCorrectToolsCalled: EvalScorer<
 
     // Check for expected assistant tool call by matching assistant role and toolCall presence
     if (expectedMessage.role === "assistant-tool") {
-      // Type guard for AssistantMessage with toolCall
       const hasToolCall =
         "toolCall" in outputMessage &&
         outputMessage.toolCall &&
@@ -174,7 +154,7 @@ const ScoreToolsUsedCorrectly: EvalScorer<
       continue;
     }
 
-    // Other scorer checks if correct tool was called
+    // ScoreCorrectToolsCalled already checks if a tool was called, let's not duplicate that score.
     const hasToolCall =
       "toolCall" in outputMessage &&
       outputMessage.toolCall &&

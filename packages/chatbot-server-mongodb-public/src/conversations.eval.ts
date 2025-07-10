@@ -27,7 +27,7 @@ async function conversationEval() {
     )
   );
 
-  const conversationEvalCases = [...miscCases].filter((e) => {return e.tags?.includes("fetch_page")}) //, ...faqCases, ...dotComCases];
+  const conversationEvalCases = [...miscCases, ...faqCases, ...dotComCases];
 
   try {
     // Run the conversation eval

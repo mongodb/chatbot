@@ -471,14 +471,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          `Path: body.input - ${ERR_MSG.INPUT_STRING}`
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: `Path: body.input - ${ERR_MSG.INPUT_STRING}`,
+      });
     });
 
     it("Should return 400 with an empty message array", async () => {
@@ -488,14 +484,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`,
+      });
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
@@ -505,14 +497,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini")
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.MODEL_NOT_SUPPORTED("gpt-4o-mini"),
+      });
     });
 
     it("Should return 400 if stream is not true", async () => {
@@ -522,14 +510,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          `Path: body.stream - ${ERR_MSG.STREAM}`
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: `Path: body.stream - ${ERR_MSG.STREAM}`,
+      });
     });
 
     it("Should return 400 if max_output_tokens is > allowed limit", async () => {
@@ -540,14 +524,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000)
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000),
+      });
     });
 
     it("Should return 400 if metadata has too many fields", async () => {
@@ -561,14 +541,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`,
+      });
     });
 
     it("Should return 400 if metadata value is too long", async () => {
@@ -578,14 +554,11 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.metadata.key1 - String must contain at most 512 character(s)"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message:
+          "Path: body.metadata.key1 - String must contain at most 512 character(s)",
+      });
     });
 
     it("Should return 400 if temperature is not 0", async () => {
@@ -595,14 +568,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`,
+      });
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
@@ -618,14 +587,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.input - Invalid input"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: "Path: body.input - Invalid input",
+      });
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
@@ -643,14 +608,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.input - Invalid input"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: "Path: body.input - Invalid input",
+      });
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
@@ -667,14 +628,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.input - Invalid input"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: "Path: body.input - Invalid input",
+      });
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
@@ -684,14 +641,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.tool_choice - Invalid input"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: "Path: body.tool_choice - Invalid input",
+      });
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
@@ -701,14 +654,11 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          "Path: body.max_output_tokens - Number must be greater than or equal to 0"
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message:
+          "Path: body.max_output_tokens - Number must be greater than or equal to 0",
+      });
     });
 
     it("Should return 400 if previous_response_id is not a valid ObjectId", async () => {
@@ -720,14 +670,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.INVALID_OBJECT_ID(messageId)
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.INVALID_OBJECT_ID(messageId),
+      });
     });
 
     it("Should return 400 if previous_response_id is not found", async () => {
@@ -739,14 +685,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.INVALID_OBJECT_ID(messageId)
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.INVALID_OBJECT_ID(messageId),
+      });
     });
 
     it("Should return 400 if previous_response_id is not the latest message", async () => {
@@ -769,14 +711,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString())
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.MESSAGE_NOT_LATEST(previousResponseId.toString()),
+      });
     });
 
     it("Should return 400 if there are too many messages in the conversation", async () => {
@@ -806,14 +744,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation),
+      });
     });
 
     it("Should return 400 if user id has changed since the conversation was created", async () => {
@@ -836,14 +770,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.CONVERSATION_USER_ID_CHANGED
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.CONVERSATION_USER_ID_CHANGED,
+      });
     });
 
     it("Should return 400 if `store: false` and `previous_response_id` is provided", async () => {
@@ -854,14 +784,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.STORE_NOT_SUPPORTED
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.STORE_NOT_SUPPORTED,
+      });
     });
 
     it("Should return 400 if `store: true` and `storeMessageContent: false`", async () => {
@@ -881,14 +807,10 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      expect(results[0].type).toBe(ERROR_TYPE);
-      expect(results[0].data).toEqual(
-        openaiStreamErrorData(
-          400,
-          ERROR_CODE.INVALID_REQUEST_ERROR,
-          ERR_MSG.CONVERSATION_STORE_MISMATCH
-        )
-      );
+      testInvalidResponses({
+        responses: results,
+        message: ERR_MSG.CONVERSATION_STORE_MISMATCH,
+      });
     });
   });
 });
@@ -905,6 +827,21 @@ const openaiStreamErrorData = (
   message: `${httpStatus} ${message}`,
   retryable,
 });
+
+interface TestInvalidResponsesParams {
+  responses: Array<any>;
+  message: string;
+}
+
+const testInvalidResponses = ({
+  responses,
+  message,
+}: TestInvalidResponsesParams) => {
+  expect(responses[0].type).toBe(ERROR_TYPE);
+  expect(responses[0].data).toEqual(
+    openaiStreamErrorData(400, ERROR_CODE.INVALID_REQUEST_ERROR, message)
+  );
+};
 
 interface TestResponsesParams {
   responses: Array<OpenAI.Responses.ResponseStreamEvent>;

@@ -95,4 +95,20 @@ describe("makeDefaultFindContent()", () => {
     expect(content.length).toBeGreaterThan(0);
     expect(embeddingModelName).toBe(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
   });
+  test("should limit results", async () => {
+    const findContent = makeDefaultFindContent({
+      embedder,
+      store: embeddedContentStore,
+      findNearestNeighborsOptions: {
+        minScore: 0.1, // low min, should return at least one result
+      },
+    });
+    const query = "MongoDB";
+    const { content } = await findContent({
+      query,
+      limit: 1, // limit to 1, should return 1 result
+    });
+    expect(content).toBeDefined();
+    expect(content.length).toBe(1);
+  });
 });

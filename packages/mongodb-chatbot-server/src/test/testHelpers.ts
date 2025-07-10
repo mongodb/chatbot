@@ -90,20 +90,15 @@ export const makeTestLocalServer = async (
 export const collectStreamingResponse = async (response: Response) => {
   const content: Array<any> = [];
 
-  const reader = response.body;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const value = await reader.read();
-    if (!value) break;
+  const responseText = await response.text();
+  if (!responseText) return content;
 
-    let chunk = "";
-    if (typeof value === "string") chunk = value;
-    else chunk = new TextDecoder().decode(value);
+  // For streamResponses() output: consecutive JSON objects without SSE formatting
+  // Split by "}{" and reconstruct as valid JSON array
+  const jsonObjects = responseText.split(/(?<=\})(?=\{)/);
 
-    // ensure the chunk string is valid JSON by always making it an array
-    const chunkArray = `[${chunk.replaceAll("}{", "},{")}]`;
-
-    content.push(...JSON.parse(chunkArray));
+  for (const jsonStr of jsonObjects) {
+    content.push(JSON.parse(jsonStr));
   }
 
   return content;

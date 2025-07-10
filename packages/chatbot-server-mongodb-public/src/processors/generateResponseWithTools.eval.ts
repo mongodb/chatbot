@@ -160,21 +160,19 @@ const ScoreToolsUsedCorrectly: EvalScorer<
       outputMessage.toolCall &&
       typeof outputMessage.toolCall === "object" &&
       "function" in outputMessage.toolCall;
-    if (!hasToolCall) {
-      continue;
-    }
-
-    const outputArguments = JSON.parse(
-      outputMessage.toolCall?.function.arguments ?? "{}"
-    );
-    for (const [key, value] of Object.entries(expectedMessage.toolCallArgs)) {
-      totalToolArgs++;
-      if (outputArguments?.[key] && outputArguments[key] === value) {
-        totalToolArgsCorrect++;
-      } else {
-        console.log(
-          `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`
-        );
+    if (hasToolCall) {
+      const outputArguments = JSON.parse(
+        outputMessage.toolCall?.function.arguments ?? "{}"
+      );
+      for (const [key, value] of Object.entries(expectedMessage.toolCallArgs)) {
+        totalToolArgs++;
+        if (outputArguments?.[key] && outputArguments[key] === value) {
+          totalToolArgsCorrect++;
+        } else {
+          console.log(
+            `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`
+          );
+        }
       }
     }
   }

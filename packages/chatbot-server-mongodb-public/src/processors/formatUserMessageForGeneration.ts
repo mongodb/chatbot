@@ -7,13 +7,15 @@ import { originCodes } from "mongodb-chatbot-server";
 import { z } from "zod";
 import { logRequest } from "../utils";
 
-const RawCustomDataSchema = z.object({
-  origin: z.string().describe("Origin of the request"),
-  originCode: z
-    .enum(originCodes)
-    .default("OTHER")
-    .describe("Code representing the origin of the request"),
-});
+const RawCustomDataSchema = z
+  .object({
+    origin: z.string().describe("Origin of the request"),
+    originCode: z
+      .enum(originCodes)
+      .default("OTHER")
+      .describe("Code representing the origin of the request"),
+  })
+  .optional();
 
 export function formatUserMessageForGeneration(
   userMessageText: string,
@@ -32,6 +34,9 @@ export function formatUserMessageForGeneration(
 
   const frontMatter: Record<string, string> = {};
   const parsedCustomData = result.data;
+  if (!parsedCustomData) {
+    return userMessageText;
+  }
   try {
     const url = new URL(parsedCustomData.origin);
     if (

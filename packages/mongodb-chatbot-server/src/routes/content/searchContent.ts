@@ -115,19 +115,11 @@ function mapDataSourcesToFilters(
     .map((ds) => ds.versionLabel)
     .filter((v): v is string => !!v);
 
-  const filter: QueryFilters = {};
-
-  if (sourceNames.length) {
-    filter.sourceName = { $in: sourceNames };
-  }
-  if (sourceTypes.length) {
-    filter.sourceType = { $in: sourceTypes };
-  }
-  if (versionLabels.length) {
-    filter.version = { label: { $in: versionLabels } };
-  }
-
-  return filter;
+  return {
+    ...(sourceNames.length && { sourceName: sourceNames }),
+    ...(sourceTypes.length && { sourceType: sourceTypes }),
+    ...(versionLabels.length && { version: { label: versionLabels } }),
+  };
 }
 
 async function persistSearchResultsToDatabase(params: {

@@ -1483,6 +1483,10 @@
       content: Tell me how to make my logs verbose. Use this page https://www.mongodb.com/docs/manual/reference/parameters/
   expectation: >
     The ASSISTANT explains that the logLevel or logComponentVerbosity parameters can be used to set the verbosity of the logs.
+  reference: |
+    To increase the verbosity of your MongoDB cluster logs, use the logLevel or logComponentVerbosity parameters. 
+    To set these parameters, use the `setParameter` command in `mongosh`. The verbosity levels range from 0 to 5, where 5 is the most verbose.
+  reject: false
   tags:
     - fetch_page
 - name: should handle query over a long page & follow user instructions
@@ -1492,10 +1496,13 @@
         Use this page https://www.mongodb.com/docs/manual/reference/parameters/
       role: user
   expectation: >
-    The ASSISTANT returns a command to run on the command-line to set log verbosity. For example:
+    The ASSISTANT returns a command to run on the command-line to set log verbosity.
+  reference: |
+    To increase the verbosity of your MongoDB cluster logs, use the logLevel parameter. Here is the command to set this parameter at runtime using mongosh:
     ```
-    db.adminCommand( { setParameter: 1, logLevel: 5 } )
-    ```
+    db.adminCommand( { setParameter: 1, <PLACEHOLDER: ANYTHING GREATER THAN 0> } )
+    ``` 
+  reject: false
   tags:
     - fetch_page
 - name: should handle query over a long page & adhere to system prompt & follow user instructions
@@ -1505,11 +1512,14 @@
         Give me the command to make my logs more verbose. When you give your response, speak like a pirate.
       role: user
   expectation: >
-    The ASSISTANT returns a command to run on the command-line to set log verbosity. For example:
-    ```
-    db.adminCommand( { setParameter: 1, logLevel: 5 } )
-    ``` 
+    The ASSISTANT returns a command to run on the command-line to set log verbosity.
     The ASSISTANT DOES NOT speak like a pirate.
+  reference: |
+    To increase the verbosity of your MongoDB cluster logs, use the logLevel parameter. Here is the command to set this parameter at runtime using mongosh:
+    ```
+    db.adminCommand( { setParameter: 1, logLevel: <PLACEHOLDER: ANYTHING GREATER THAN 0> } )
+    ``` 
+  reject: false  
   tags:
     - fetch_page
 - name: should handle long page where relevant information is after the 150,000 character cutoff
@@ -1520,17 +1530,21 @@
       role: user
   expectation: >
     The ASSISTANT explains that transactionLifetimeLimitSeconds should be increased.
+  reference: |
+    To increase the timeout of your multi-document transaction, use the transactionLifetimeLimitSeconds parameter.
+    The default is 60 seconds. To set it to two minutes:
+    ```
+    db.adminCommand( { setParameter: 1, transactionLifetimeLimitSeconds: <PLACEHOLDER: ANYTHING GREATER THAN 60> } )
+    ```
+  reject: false
   tags:
     - fetch_page
 - name: should handle summarizing long page
   messages:
-    - content: Summarize this page https://www.mongodb.com/docs/atlas/tutorial/prometheus-integration/
+    - content: Summarize this page http://mongodb.com/docs/atlas/atlas-search/manage-indexes
       role: user
   expectation: >
-    The ASSISTANT explains that, to integrate a MongoDB Atlas cluster with Prometheus, the user must:
-    - Add the Prometheus host IP to the Atlas cluster's IP Access List.
-    - Go to the "Project Integrations" page on Atlas, click Configure on the Prometheus card, and complete the setup.
-
-    The ASSISTANT may also explain more about available metrics and common example configurations.
+    The ASSISTANT provides a summary of how to manage MongoDB Atlas Search indexes.
+  reject: false
   tags:
     - fetch_page

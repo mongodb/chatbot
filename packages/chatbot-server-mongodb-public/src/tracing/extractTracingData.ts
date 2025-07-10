@@ -9,6 +9,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
 import { SEARCH_TOOL_NAME } from "../tools/search";
+import { FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 import { logRequest } from "../utils";
 import { OriginCode } from "mongodb-chatbot-server";
 import { tagify } from "./tagify";
@@ -108,26 +109,48 @@ export function getContextsFromMessages(
   messages: Message[],
   reqId: string
 ): { text: string; url: string }[] {
-  const toolCallMessage: DbMessage<ToolMessage> | undefined = messages.find(
-    (m): m is DbMessage<ToolMessage> =>
-      m.role === "tool" && m.name === SEARCH_TOOL_NAME
+  const toolResponseMessageIdx = messages.findIndex(
+    (m): m is DbMessage<ToolMessage> => m.role === "tool"
   );
-  if (!toolCallMessage) {
+  const toolResponseMessage: DbMessage<ToolMessage> | undefined =
+    toolResponseMessageIdx !== -1
+      ? (messages[toolResponseMessageIdx] as DbMessage<ToolMessage>)
+      : undefined;
+  if (!toolResponseMessage) {
     return [];
   }
   try {
-    const { results } = JSON.parse(toolCallMessage.content);
-    const toolCallResult = results.map((cc: any) => ({
-      text: cc.text,
-      url: cc.url,
-    }));
-    return toolCallResult;
+    if (toolResponseMessage.name === SEARCH_TOOL_NAME) {
+      const toolResult = JSON.parse(toolResponseMessage.content);
+      const { results } = toolResult;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const toolCallResult = results.map((contextContent: any) => ({
+        text: contextContent.text,
+        url: contextContent.url,
+      }));
+      return toolCallResult;
+    } else if (toolResponseMessage.name === FETCH_PAGE_TOOL_NAME) {
+      // Fetch_page does not return URL in the LLM input, so get it from the tool call
+      const assistantToolCallMessage = messages[
+        toolResponseMessageIdx - 1
+      ] as DbMessage<AssistantMessage>;
+      const url = assistantToolCallMessage.toolCall?.function.arguments
+        ? JSON.parse(assistantToolCallMessage.toolCall.function.arguments)
+            .pageUrl
+        : undefined;
+
+      if (url === undefined) {
+        console.log("No page found (fallback case)");
+        return [];
+      }
+      return [{ text: toolResponseMessage.content, url }];
+    }
   } catch (e) {
     logRequest({
       reqId,
       message: `Error getting context from messages: ${e}`,
       type: "error",
     });
-    return [];
   }
+  return [];
 }

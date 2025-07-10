@@ -1,7 +1,13 @@
 import { strict as assert } from "assert";
-import type { Response } from "mongodb-rag-core/openai";
-import { AppConfig, makeApp } from "../app";
-import { makeDefaultConfig, memoryDb, systemPrompt } from "./testConfig";
+import { OpenAI, type Response } from "mongodb-rag-core/openai";
+import { AppConfig, DEFAULT_API_PREFIX, makeApp } from "../app";
+import {
+  makeDefaultConfig,
+  memoryDb,
+  systemPrompt,
+  basicResponsesRequestBody,
+} from "./testConfig";
+import type { CreateResponseRequest } from "../routes/responses/createResponse";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -82,6 +88,29 @@ export const makeTestLocalServer = async (
   });
 
   return { ...testAppResult, server };
+};
+
+export const makeOpenAiClient = (origin: string, ipAddress: string) => {
+  return new OpenAI({
+    baseURL: origin + DEFAULT_API_PREFIX,
+    apiKey: TEST_OPENAI_API_KEY,
+    defaultHeaders: {
+      Origin: origin,
+      "X-Forwarded-For": ipAddress,
+    },
+  });
+};
+
+export const makeCreateResponseRequest = (
+  openAiClient: OpenAI,
+  body?: Partial<CreateResponseRequest["body"]>
+) => {
+  return openAiClient.responses
+    .create({
+      ...basicResponsesRequestBody,
+      ...body,
+    })
+    .withResponse();
 };
 
 /**

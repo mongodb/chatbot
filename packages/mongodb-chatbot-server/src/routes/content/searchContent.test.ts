@@ -148,7 +148,7 @@ describe("makeSearchContentRoute", () => {
     expect(findContent).toHaveBeenCalledWith(
       expect.objectContaining({
         limit: 1,
-        filters: expect.objectContaining({ sourceName: { $in: ["source2"] } }),
+        filters: expect.objectContaining({ sourceName: ["source2"] }),
       })
     );
   });

@@ -6,66 +6,49 @@ import type {
   ConversationsService,
   SomeMessage,
 } from "mongodb-rag-core";
-import { DEFAULT_API_PREFIX, type AppConfig } from "../../app";
+import { type AppConfig } from "../../app";
 import {
-  TEST_OPENAI_API_KEY,
   makeTestLocalServer,
+  makeOpenAiClient,
+  makeCreateResponseRequest,
   collectStreamingResponse,
 } from "../../test/testHelpers";
-import {
-  basicResponsesRequestBody,
-  makeDefaultConfig,
-} from "../../test/testConfig";
+import { makeDefaultConfig } from "../../test/testConfig";
 import { ERROR_TYPE, ERROR_CODE } from "./errors";
 import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
 
 jest.setTimeout(100000);
 
 describe("POST /responses", () => {
-  let server: Server;
   let appConfig: AppConfig;
+  let server: Server;
   let ipAddress: string;
   let origin: string;
   let conversations: ConversationsService;
-  let conversationSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     appConfig = await makeDefaultConfig();
 
     ({ conversations } = appConfig.responsesRouterConfig.createResponse);
-    conversationSpy = jest.spyOn(conversations, "create");
 
     ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
   });
 
   afterEach(() => {
-    server.close();
+    server?.listening && server?.close();
     jest.restoreAllMocks();
   });
 
-  const makeCreateResponseRequest = (
+  const makeClientAndRequest = (
     body?: Partial<CreateResponseRequest["body"]>
   ) => {
-    const openAiClient = new OpenAI({
-      baseURL: origin + DEFAULT_API_PREFIX,
-      apiKey: TEST_OPENAI_API_KEY,
-      defaultHeaders: {
-        Origin: origin,
-        "X-Forwarded-For": ipAddress,
-      },
-    });
-
-    return openAiClient.responses
-      .create({
-        ...basicResponsesRequestBody,
-        ...body,
-      })
-      .withResponse();
+    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    return makeCreateResponseRequest(openAiClient, body);
   };
 
   describe("Valid requests", () => {
     it("Should return 200 given a string input", async () => {
-      const { response } = await makeCreateResponseRequest();
+      const { response } = await makeClientAndRequest();
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
@@ -73,7 +56,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a message array input", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
@@ -88,7 +71,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         instructions: "You are a helpful chatbot.",
       });
       const results = await collectStreamingResponse(response);
@@ -98,7 +81,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         max_output_tokens: 4000,
       });
       const results = await collectStreamingResponse(response);
@@ -108,7 +91,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid metadata", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         metadata: { key1: "value1", key2: "value2" },
       });
       const results = await collectStreamingResponse(response);
@@ -118,7 +101,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with valid temperature", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         temperature: 0,
       });
       const results = await collectStreamingResponse(response);
@@ -134,7 +117,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -152,7 +135,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -162,7 +145,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with user", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         user: "some-user-id",
       });
       const results = await collectStreamingResponse(response);
@@ -172,7 +155,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with store=false", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         store: false,
       });
       const results = await collectStreamingResponse(response);
@@ -182,7 +165,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with store=true", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         store: true,
       });
       const results = await collectStreamingResponse(response);
@@ -192,7 +175,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         tools: [
           {
             type: "function",
@@ -217,7 +200,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         tools: [
           {
             type: "function",
@@ -245,7 +228,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a message array with function_call", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -264,7 +247,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -282,7 +265,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         tool_choice: "none",
       });
       const results = await collectStreamingResponse(response);
@@ -292,7 +275,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 200 with an empty tools array", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         tools: [],
       });
       const results = await collectStreamingResponse(response);
@@ -313,7 +296,7 @@ describe("POST /responses", () => {
 
       const store = true;
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
         store,
       });
@@ -344,7 +327,7 @@ describe("POST /responses", () => {
         customMessage1: "customMessage1",
         customMessage2: "customMessage2",
       };
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         store,
         metadata,
         user: userId,
@@ -373,7 +356,7 @@ describe("POST /responses", () => {
         customMessage1: "customMessage1",
         customMessage2: "customMessage2",
       };
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         store,
         metadata,
         user: userId,
@@ -399,7 +382,7 @@ describe("POST /responses", () => {
       const store = true;
       const functionCallType = "function_call";
       const functionCallOutputType = "function_call_output";
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         store,
         input: [
           {
@@ -439,7 +422,7 @@ describe("POST /responses", () => {
 
   describe("Invalid requests", () => {
     it("Should return 400 with an empty input string", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: "",
       });
       const results = await collectStreamingResponse(response);
@@ -452,7 +435,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an empty message array", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [],
       });
       const results = await collectStreamingResponse(response);
@@ -465,7 +448,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if model is not mongodb-chat-latest", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         model: "gpt-4o-mini",
       });
       const results = await collectStreamingResponse(response);
@@ -478,7 +461,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if stream is not true", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         stream: false,
       });
       const results = await collectStreamingResponse(response);
@@ -492,7 +475,7 @@ describe("POST /responses", () => {
 
     it("Should return 400 if max_output_tokens is > allowed limit", async () => {
       const max_output_tokens = 4001;
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         max_output_tokens,
       });
       const results = await collectStreamingResponse(response);
@@ -509,7 +492,7 @@ describe("POST /responses", () => {
       for (let i = 0; i < 17; i++) {
         metadata[`key${i}`] = "value";
       }
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         metadata,
       });
       const results = await collectStreamingResponse(response);
@@ -522,7 +505,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if metadata value is too long", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         metadata: { key1: "a".repeat(513) },
       });
       const results = await collectStreamingResponse(response);
@@ -536,7 +519,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if temperature is not 0", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         temperature: 0.5 as any,
       });
       const results = await collectStreamingResponse(response);
@@ -549,7 +532,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if messages contain an invalid role", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -568,7 +551,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call has an invalid status", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           {
             type: "function_call",
@@ -589,7 +572,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if function_call_output has an invalid status", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         input: [
           {
             type: "function_call_output",
@@ -609,7 +592,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 with an invalid tool_choice string", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         tool_choice: "invalid_choice" as any,
       });
       const results = await collectStreamingResponse(response);
@@ -622,7 +605,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if max_output_tokens is negative", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         max_output_tokens: -1,
       });
       const results = await collectStreamingResponse(response);
@@ -637,7 +620,7 @@ describe("POST /responses", () => {
 
     it("Should return 400 if previous_response_id is not a valid ObjectId", async () => {
       const previous_response_id = "some-id";
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -651,7 +634,7 @@ describe("POST /responses", () => {
 
     it("Should return 400 if previous_response_id is not found", async () => {
       const previous_response_id = "123456789012123456789012";
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -672,7 +655,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[0].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -695,7 +678,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
       });
       const results = await collectStreamingResponse(response);
@@ -720,7 +703,7 @@ describe("POST /responses", () => {
       });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
         user: badUserId,
       });
@@ -734,7 +717,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return 400 if `store: false` and `previous_response_id` is provided", async () => {
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id: "123456789012123456789012",
         store: false,
       });
@@ -757,7 +740,7 @@ describe("POST /responses", () => {
       });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeCreateResponseRequest({
+      const { response } = await makeClientAndRequest({
         previous_response_id,
         store: true,
       });

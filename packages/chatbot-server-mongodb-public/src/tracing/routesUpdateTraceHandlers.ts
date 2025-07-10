@@ -62,11 +62,24 @@ export function makeAddMessageToConversationUpdateTrace({
     : undefined;
 
   return async function ({ traceId, conversation, reqId }) {
+    logRequest({
+      reqId,
+      message: `Updating trace for conversation ${conversation._id} (reqId: ${reqId})`,
+      type: "info",
+    });
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId),
       conversation._id
     );
+    logRequest({
+      reqId,
+      message: `Tracing data for conversation ${
+        conversation._id
+      } (reqId: ${reqId}): ${JSON.stringify(tracingData)}`,
+      type: "info",
+    });
+
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&
       Math.random() < llmAsAJudge.percentToJudge;
@@ -176,7 +189,7 @@ ${tracingData.assistantMessage?.content}
       } else {
         logRequest({
           reqId,
-          message: `Not sending events to Segement because no Segment configuration or ID present.`,
+          message: `Not sending events to Segment because no Segment configuration or ID present.`,
           type: "info",
         });
       }

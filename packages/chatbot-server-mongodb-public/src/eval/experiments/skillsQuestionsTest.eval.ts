@@ -10,8 +10,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "../ConversationEval";
-import { systemPrompt } from "../../systemPrompt";
-import { config, conversations } from "../../config";
+import { generateResponse } from "../../config";
 
 async function conversationEval() {
   // Get dotcom question set eval cases from YAML
@@ -22,17 +21,6 @@ async function conversationEval() {
       "utf8"
     )
   );
-
-  const generateConfig = {
-    systemPrompt,
-    llm: config.conversationsRouterConfig.llm,
-    llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
-    noRelevantContentMessage:
-      conversations.conversationConstants.NO_RELEVANT_CONTENT,
-    filterPreviousMessages:
-      config.conversationsRouterConfig.filterPreviousMessages,
-    generateUserPrompt: config.conversationsRouterConfig.generateUserPrompt,
-  };
 
   // Run the conversation eval
   makeConversationEval({
@@ -52,7 +40,7 @@ async function conversationEval() {
         apiVersion: OPENAI_API_VERSION,
       },
     },
-    generate: generateConfig,
+    generateResponse,
   });
 }
 conversationEval();

@@ -1,6 +1,5 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
@@ -14,6 +13,7 @@ import {
   MODELS,
   Experiment,
   EXPERIMENT_BASE_NAME,
+  mongoshScores,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
@@ -69,7 +69,7 @@ async function main() {
           llmOptions,
           ...experiment,
         },
-        scores: [SuccessfulExecution, ReasonableOutput],
+        scores: [mongoshScores],
       });
     });
 }

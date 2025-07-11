@@ -470,7 +470,8 @@ const saveMessagesToConversation = async ({
     ...convertInputToDBMessages(input, store, metadata),
     ...messages.map((message) => formatMessage(message, store, metadata)),
   ];
-
+  // handle setting the response id for the last message
+  // this corresponds to the response id in the response stream
   if (messagesToAdd.length > 0) {
     messagesToAdd[messagesToAdd.length - 1].id = responseId;
   }

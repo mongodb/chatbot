@@ -1,5 +1,4 @@
 import type { Server } from "http";
-import type OpenAI from "mongodb-rag-core/openai";
 import {
   makeTestLocalServer,
   makeOpenAiClient,
@@ -15,7 +14,7 @@ import {
   ERROR_CODE,
   ERROR_TYPE,
   makeBadRequestError,
-  type OpenAIStreamError,
+  type OpenAIStreamErrorInput,
 } from "./errors";
 
 jest.setTimeout(60000);
@@ -126,8 +125,7 @@ describe("Responses Router", () => {
       // should never get here
       expect(true).toBe(false);
     } catch (error) {
-      expect((error as OpenAI.APIError).type).toBe(ERROR_TYPE);
-      expect((error as OpenAI.APIError).error).toEqual({
+      expect((error as { error: OpenAIStreamErrorInput }).error).toEqual({
         type: ERROR_TYPE,
         code: ERROR_CODE.RATE_LIMIT_ERROR,
         message: rateLimitErrorMessage,
@@ -166,7 +164,7 @@ const testResponses = ({ responses }: TestResponsesParams) => {
 
 interface TestErrorResponsesParams {
   responses: Array<any>;
-  error: OpenAIStreamError["data"];
+  error: OpenAIStreamErrorInput;
 }
 
 const testErrorResponses = ({ responses, error }: TestErrorResponsesParams) => {
@@ -177,9 +175,11 @@ const testErrorResponses = ({ responses, error }: TestErrorResponsesParams) => {
   expect(responses[1].type).toBe("response.in_progress");
   expect(responses[2].type).toBe(ERROR_TYPE);
 
-  responses.forEach(({ sequence_number }, index) => {
-    expect(sequence_number).toBe(index);
-  });
+  expect(responses[0].sequence_number).toBe(0);
+  expect(responses[1].sequence_number).toBe(1);
 
-  expect(responses[2].data).toEqual(error);
+  expect(responses[2]).toEqual({
+    ...error,
+    sequence_number: 2,
+  });
 };

@@ -817,11 +817,10 @@ const testInvalidResponses = ({
 }: TestInvalidResponsesParams) => {
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(1);
-
-  expect(responses[0].type).toBe(ERROR_TYPE);
-  expect(responses[0].data).toEqual(
-    formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message)
-  );
+  expect(responses[0]).toEqual({
+    ...formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message),
+    sequence_number: 0,
+  });
 };
 
 interface TestResponsesParams {

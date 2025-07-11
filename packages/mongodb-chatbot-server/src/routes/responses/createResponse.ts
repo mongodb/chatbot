@@ -4,7 +4,7 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import { ObjectId } from "mongodb";
-import { OpenAI, type APIError } from "mongodb-rag-core/openai";
+import type { OpenAI } from "mongodb-rag-core/openai";
 import {
   type ConversationsService,
   type Conversation,
@@ -14,12 +14,13 @@ import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
 import type { GenerateResponse } from "../../processors";
 import {
-  makeOpenAIStreamError,
   makeBadRequestError,
   makeInternalServerError,
   generateZodErrorMessage,
   sendErrorResponse,
   ERROR_TYPE,
+  makeOpenAIStreamError,
+  type SomeOpenAIAPIError,
 } from "./errors";
 
 type StreamCreatedMessage = Omit<
@@ -331,8 +332,8 @@ export function makeCreateResponseRoute({
       dataStreamer.streamResponses(completedMessage);
     } catch (error) {
       const standardError =
-        (error as APIError)?.type === ERROR_TYPE
-          ? (error as APIError)
+        (error as SomeOpenAIAPIError)?.type === ERROR_TYPE
+          ? (error as SomeOpenAIAPIError)
           : makeInternalServerError({ error: error as Error, headers });
 
       if (dataStreamer.connected) {

@@ -57,6 +57,11 @@ interface StreamParams {
 
 type StreamEvent = { type: string; data: unknown };
 
+type ResponsesStreamParams = Omit<
+  OpenAI.Responses.ResponseStreamEvent,
+  "sequence_number"
+>;
+
 /**
   Event when server streams additional message response to the client.
  */
@@ -126,9 +131,7 @@ export interface DataStreamer {
   disconnect(): void;
   streamData(data: SomeStreamEvent): void;
   stream(params: StreamParams): Promise<string>;
-  streamResponses(
-    data: Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
-  ): void;
+  streamResponses(data: ResponsesStreamParams): void;
 }
 
 /**

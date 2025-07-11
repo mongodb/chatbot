@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { OpenAI, type Response } from "mongodb-rag-core/openai";
+import { OpenAI, APIError, type Response } from "mongodb-rag-core/openai";
 import { AppConfig, DEFAULT_API_PREFIX, makeApp } from "../app";
 import {
   makeDefaultConfig,
@@ -8,7 +8,10 @@ import {
   basicResponsesRequestBody,
 } from "./testConfig";
 import type { CreateResponseRequest } from "../routes/responses/createResponse";
-import type { ERROR_CODE, OpenAIStreamError } from "../routes/responses/errors";
+import {
+  type ERROR_CODE,
+  makeOpenAIStreamError,
+} from "../routes/responses/errors";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -121,12 +124,11 @@ export const formatOpenAIStreamError = (
   httpStatus: number,
   code: ERROR_CODE,
   message: string,
-  retryable = false
-): OpenAIStreamError["data"] => ({
-  code,
-  message: `${httpStatus} ${message}`,
-  retryable,
-});
+  headers?: Record<string, string>
+) => {
+  const error = new APIError(httpStatus, { code, message }, message, headers);
+  return makeOpenAIStreamError(error);
+};
 
 /**
  Helper function to collect a full response from a stream.

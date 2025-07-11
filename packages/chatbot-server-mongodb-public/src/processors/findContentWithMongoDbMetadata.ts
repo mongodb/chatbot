@@ -1,27 +1,7 @@
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import {
-  classifyMongoDbProduct,
-  classifyMongoDbProgrammingLanguage,
-} from "mongodb-rag-core/mongoDbMetadata";
-
-function nullOnErr() {
-  return null;
-}
-
-export const classifyMongoDbProgrammingLanguageAndProduct = wrapTraced(
-  async (model: LanguageModel, data: string, maxRetries?: number) => {
-    const [programmingLanguage, product] = await Promise.all([
-      classifyMongoDbProgrammingLanguage(model, data, maxRetries).catch(
-        nullOnErr
-      ),
-      classifyMongoDbProduct(model, data, maxRetries).catch(nullOnErr),
-    ]);
-    return { programmingLanguage, product };
-  },
-  { name: "classifyMongoDbProgrammingLanguageAndProduct" }
-);
+import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/mongoDbMetadata";
 
 export const makeFindContentWithMongoDbMetadata = ({
   findContent,

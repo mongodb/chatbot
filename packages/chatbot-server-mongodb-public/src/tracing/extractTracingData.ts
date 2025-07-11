@@ -9,6 +9,10 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
 import { SEARCH_TOOL_NAME } from "../tools/search";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  SEARCH_ALL_FALLBACK_TEXT,
+} from "../tools/fetchPage";
 import { logRequest } from "../utils";
 import { OriginCode } from "mongodb-chatbot-server";
 import { tagify } from "./tagify";
@@ -108,26 +112,49 @@ export function getContextsFromMessages(
   messages: Message[],
   reqId: string
 ): { text: string; url: string }[] {
-  const toolCallMessage: DbMessage<ToolMessage> | undefined = messages.find(
-    (m): m is DbMessage<ToolMessage> =>
-      m.role === "tool" && m.name === SEARCH_TOOL_NAME
-  );
-  if (!toolCallMessage) {
-    return [];
-  }
-  try {
-    const { results } = JSON.parse(toolCallMessage.content);
-    const toolCallResult = results.map((cc: any) => ({
-      text: cc.text,
-      url: cc.url,
-    }));
-    return toolCallResult;
-  } catch (e) {
-    logRequest({
-      reqId,
-      message: `Error getting context from messages: ${e}`,
-      type: "error",
-    });
-    return [];
-  }
+  const contexts: { text: string; url: string }[] = [];
+
+  messages.forEach((message, idx) => {
+    if (message.role !== "tool") return;
+    const toolResponseMessage = message as DbMessage<ToolMessage>;
+    try {
+      if (toolResponseMessage.name === SEARCH_TOOL_NAME) {
+        const toolResult = JSON.parse(toolResponseMessage.content);
+        const { results } = toolResult;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const toolCallResult = results.map((contextContent: any) => ({
+          text: contextContent.text,
+          url: contextContent.url,
+        }));
+        contexts.push(...toolCallResult);
+      } else if (toolResponseMessage.name === FETCH_PAGE_TOOL_NAME) {
+        // Fetch_page does not return URL in the LLM input, so get it from the tool call
+        const assistantToolCallMessage = messages[
+          idx - 1
+        ] as DbMessage<AssistantMessage>;
+        const url = assistantToolCallMessage?.toolCall?.function.arguments
+          ? JSON.parse(assistantToolCallMessage.toolCall.function.arguments)
+              .pageUrl
+          : undefined;
+        if (
+          url === undefined ||
+          !toolResponseMessage.content ||
+          toolResponseMessage.content === "{}" ||
+          toolResponseMessage.content === SEARCH_ALL_FALLBACK_TEXT
+        ) {
+          console.log("No context found by fetch_page tool");
+          return;
+        }
+        contexts.push({ text: toolResponseMessage.content, url });
+      }
+    } catch (e) {
+      logRequest({
+        reqId,
+        message: `Error getting context from messages: ${e}`,
+        type: "error",
+      });
+    }
+  });
+
+  return contexts;
 }

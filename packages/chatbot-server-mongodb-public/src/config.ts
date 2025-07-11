@@ -15,6 +15,7 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
+  FilterPreviousMessages,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
@@ -231,6 +232,22 @@ const inputGuardrail = wrapTraced(
   }
 );
 
+export const filterPreviousMessages: FilterPreviousMessages = async (
+  conversation
+) => {
+  return conversation.messages.filter((message) => {
+    return (
+      message.role === "user" ||
+      // Only include assistant messages that are not tool calls
+      (message.role === "assistant" && !message.toolCall)
+    );
+  });
+};
+
+export const toolChoice = "auto";
+
+export const maxSteps = 5;
+
 export const generateResponse = wrapTraced(
   makeVerifiedAnswerGenerateResponse({
     findVerifiedAnswer,
@@ -247,15 +264,7 @@ export const generateResponse = wrapTraced(
         inputGuardrail,
         llmRefusalMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        filterPreviousMessages: async (conversation) => {
-          return conversation.messages.filter((message) => {
-            return (
-              message.role === "user" ||
-              // Only include assistant messages that are not tool calls
-              (message.role === "assistant" && !message.toolCall)
-            );
-          });
-        },
+        filterPreviousMessages,
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
         searchTool: makeSearchTool({
@@ -267,8 +276,8 @@ export const generateResponse = wrapTraced(
           findContent,
           makeReferences: makeMongoDbReferences,
         }),
-        toolChoice: "auto",
-        maxSteps: 5,
+        toolChoice,
+        maxSteps,
       }),
       { name: "generateResponseWithTools" }
     ),

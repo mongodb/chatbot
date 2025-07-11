@@ -201,7 +201,7 @@ const languageModel = azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 
 // Run the eval. We recreate generateResponseWithTools each time so
 // we can pass different intermediate return values for lookup/search tools
-Eval("mongodb-chatbot-generate-w-tools", {
+Eval("mongodb-chatbot-generate-with-tools", {
   data: evalCases,
   experimentName: "mongodb-chatbot-generate-w-tools",
   maxConcurrency: 10,

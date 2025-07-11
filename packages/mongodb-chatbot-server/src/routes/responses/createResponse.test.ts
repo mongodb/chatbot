@@ -35,8 +35,12 @@ describe("POST /responses", () => {
     ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
   });
 
-  afterEach(() => {
-    server?.listening && server?.close();
+  afterEach(async () => {
+    if (server?.listening) {
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve());
+      });
+    }
     jest.restoreAllMocks();
   });
 

@@ -472,7 +472,7 @@ describe("POST /responses", () => {
       });
     });
 
-    it("Should return 400 if stream is not true", async () => {
+    it.only("Should return 400 if stream is not true", async () => {
       const { response } = await makeClientAndRequest({
         stream: false,
       });

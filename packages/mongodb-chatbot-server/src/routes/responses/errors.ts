@@ -1,5 +1,5 @@
 import {
-  APIError,
+  type APIError,
   BadRequestError,
   InternalServerError,
   NotFoundError,
@@ -43,7 +43,7 @@ export enum ERROR_CODE {
 }
 
 // --- OPENAI ERROR WRAPPERS ---
-interface OpenAIStreamError {
+export interface OpenAIStreamError {
   type: typeof ERROR_TYPE;
   data: {
     message: string;

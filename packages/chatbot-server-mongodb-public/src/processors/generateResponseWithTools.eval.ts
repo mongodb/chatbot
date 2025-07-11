@@ -131,7 +131,7 @@ const ScoreCorrectToolsCalled: EvalScorer<
 };
 
 /** Verify the correct args were generated for the tool call(s) */
-const ScoreToolsUsedCorrectly: EvalScorer<
+const ToolsUsedCorrectly: EvalScorer<
   GenerateResponseInput,
   GenerateResponseReturnValue,
   GenerateResponseExpected

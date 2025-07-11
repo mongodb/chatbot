@@ -83,9 +83,7 @@ export const makeTestLocalServer = async (
 ) => {
   const testAppResult = await makeTestApp(defaultConfigOverrides);
 
-  const server = testAppResult.app.listen(TEST_PORT, () => {
-    console.log(`Test server listening on port ${TEST_PORT}`);
-  });
+  const server = testAppResult.app.listen(TEST_PORT);
 
   return { ...testAppResult, server };
 };

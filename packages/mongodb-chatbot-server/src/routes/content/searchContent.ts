@@ -2,6 +2,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
 import {
   FindContentFunc,
   FindContentResult,
@@ -14,7 +15,8 @@ import { z } from "zod";
 
 import { SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
-import { SearchContentRouterLocals } from "./contentRouter";
+import { SearchContentCustomData, SearchContentRouterLocals } from "./contentRouter";
+import { AddCustomDataFunc } from "../../processors";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -37,6 +39,7 @@ export type SearchContentRequestBody = z.infer<typeof SearchContentRequestBody>;
 export interface MakeSearchContentRouteParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
+  addCustomData?: AddCustomDataFunc;
 }
 
 interface SearchContentResponseChunk {
@@ -58,9 +61,10 @@ interface SearchContentResponseBody {
 export function makeSearchContentRoute({
   findContent,
   searchResultsStore,
+  addCustomData
 }: MakeSearchContentRouteParams) {
   return async (
-    req: ExpressRequest<SearchContentRequest["params"]>,
+    req: ExpressRequest<ParamsDictionary>,
     res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
   ) => {
     try {
@@ -71,6 +75,8 @@ export function makeSearchContentRoute({
         limit,
       });
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
+      
+      const customData = await getCustomData(req, res, addCustomData);
       await persistSearchResultsToDatabase({
         query,
         results,
@@ -136,4 +142,23 @@ async function persistSearchResultsToDatabase(params: {
     limit: params.limit,
     createdAt: new Date(),
   });
+}
+
+
+async function getCustomData(
+  req: ExpressRequest<ParamsDictionary>,
+  res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>,
+  addCustomData?: AddCustomDataFunc
+): Promise<SearchContentCustomData | undefined> {
+  try {
+    if (addCustomData) {
+      return await addCustomData(req, res);
+    }
+  } catch (error) {
+    throw makeRequestError({
+      message: "Error parsing custom data from the request",
+      stack: (error as Error).stack,
+      httpStatus: 500,
+    });
+  }
 }

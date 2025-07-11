@@ -1,9 +1,15 @@
-import { RequestHandler, Router } from "express";
+import { NextFunction, RequestHandler, Response, Router } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
+import { ParsedQs } from "qs";
 
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { SearchContentRequest, makeSearchContentRoute } from "./searchContent";
+import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
+import { AddCustomDataFunc, addDefaultCustomData, RequestCustomData } from "../../processors";
+
+
+export type SearchContentCustomData = RequestCustomData;
 
 /**
   Middleware to put in front of all the routes in the contentRouter.
@@ -17,7 +23,7 @@ export type SearchContentMiddleware = RequestHandler<
   ParamsDictionary,
   unknown,
   unknown,
-  unknown,
+  ParsedQs,
   SearchContentRouterLocals
 >;
 
@@ -30,19 +36,36 @@ export interface SearchContentRouterLocals {
   customData: Record<string, unknown>;
 }
 
+/**
+  Express.js Response from the app's {@link ConversationsService}.
+ */
+export type SearchContentRouterResponse = Response<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  SearchContentRouterLocals
+>;
+
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
-  // TODO: Add default middleware along with customData as in conversationsRouter
+  addCustomData?: AddCustomDataFunc;
   middleware?: SearchContentMiddleware[];
 }
 
 export function makeContentRouter({
   findContent,
   searchResultsStore,
-  middleware = [],
+  addCustomData = addDefaultCustomData,
+  middleware = [requireValidIpAddress(), requireRequestOrigin()],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
+
+  // Set the customData and conversations on the response locals
+  // for use in subsequent middleware.
+  contentRouter.use(((_, res: Response, next: NextFunction) => {
+    res.locals.customData = {};
+    next();
+  }) satisfies RequestHandler);
 
   // Add middleware to the conversationsRouter.
   middleware?.forEach((middleware) => contentRouter.use(middleware));

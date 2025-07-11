@@ -22,7 +22,6 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
-  AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
 import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
@@ -31,6 +30,7 @@ import {
   GenerateResponse,
   GenerateResponseParams,
 } from "../../processors/GenerateResponse";
+import { AddCustomDataFunc } from "../../processors";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation

@@ -17,9 +17,9 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
-  AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
+import { AddCustomDataFunc } from "../../processors";
 
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest

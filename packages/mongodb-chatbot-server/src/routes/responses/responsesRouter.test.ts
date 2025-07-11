@@ -6,13 +6,17 @@ import {
   makeCreateResponseRequest,
   formatOpenAIStreamError,
   collectStreamingResponse,
-  type OpenAIStreamError,
 } from "../../test/testHelpers";
 import {
   basicResponsesRequestBody,
   makeDefaultConfig,
 } from "../../test/testConfig";
-import { ERROR_CODE, ERROR_TYPE, makeBadRequestError } from "./errors";
+import {
+  ERROR_CODE,
+  ERROR_TYPE,
+  makeBadRequestError,
+  type OpenAIStreamError,
+} from "./errors";
 
 jest.setTimeout(60000);
 

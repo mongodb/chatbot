@@ -4,7 +4,6 @@ import { References } from "../References";
 import { WithScore } from "../VectorStore";
 import { VerifiedAnswer } from "../verifiedAnswers";
 import { OpenAI } from "openai";
-import { RequestCustomData } from "mongodb-chatbot-server/src/processors";
 
 export type MessageBase = {
   /**
@@ -148,7 +147,7 @@ export type DbMessage<SomeMessage> = SomeMessage & {
 */
 export type Message = DbMessage<SomeMessage>;
 
-export type ConversationCustomData = RequestCustomData;
+export type ConversationCustomData = Record<string, unknown> | undefined;
 
 /**
   Conversation between the user and the chatbot as stored in the database.

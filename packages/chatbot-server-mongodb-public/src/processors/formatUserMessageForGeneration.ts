@@ -9,9 +9,10 @@ import { logRequest } from "../utils";
 
 const RawCustomDataSchema = z
   .object({
-    origin: z.string().describe("Origin of the request"),
+    origin: z.string().optional().describe("Origin of the request"),
     originCode: z
       .enum(originCodes)
+      .optional()
       .default("OTHER")
       .describe("Code representing the origin of the request"),
   })
@@ -37,20 +38,22 @@ export function formatUserMessageForGeneration(
   if (!parsedCustomData) {
     return userMessageText;
   }
-  try {
-    const url = new URL(parsedCustomData.origin);
-    if (
-      url.hostname === "mongodb.com" ||
-      url.hostname.endsWith(".mongodb.com")
-    ) {
-      frontMatter.pageUrl = parsedCustomData.origin;
-    }
-  } catch (e) {
-    logger.warn(
-      `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`
-    );
-  }
 
+  if (parsedCustomData.origin) {
+    try {
+      const url = new URL(parsedCustomData.origin);
+      if (
+        url.hostname === "mongodb.com" ||
+        url.hostname.endsWith(".mongodb.com")
+      ) {
+        frontMatter.pageUrl = parsedCustomData.origin;
+      }
+    } catch (e) {
+      logger.warn(
+        `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`
+      );
+    }
+  }
   if (parsedCustomData.originCode === "VSCODE") {
     frontMatter.client = "MongoDB VS Code plugin";
   } else if (parsedCustomData.originCode === "GEMINI_CODE_ASSIST") {

@@ -21,6 +21,7 @@ import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { makeFetchPageTool } from "../tools/fetchPage";
 import { makeSearchTool } from "../tools/search";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import path from "path";
 import { getGenerateWithToolsEvalCasesFromYamlFile } from "../eval/getGenerateWithToolEvalCasesFromYaml";
 
 const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
@@ -53,7 +54,13 @@ const evalCases: EvalCase<
   GenerateResponseExpected,
   IntermediateToolResponse
 >[] = getGenerateWithToolsEvalCasesFromYamlFile(
-  require.resolve("../../evalCases/generate_response_with_tools.yml")
+  path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "evalCases",
+    "generate_response_with_tools.yml"
+  )
 );
 
 /** Verify the correct tool calls were generated. */
@@ -62,11 +69,10 @@ const CorrectToolCall: EvalScorer<
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
-  const name = "CorrectToolCall"
+  const scoreName = "CorrectToolCall";
   if (output.messages.length !== expected.messages.length) {
-  // use `name` variable throughout
     return {
-      name: "CorrectToolCall",
+      name: scoreName,
       score: 0,
       metadata: {
         message: "Output and expected messages length were different",
@@ -88,7 +94,7 @@ const CorrectToolCall: EvalScorer<
       expectedMessage.role !== outputMessage.role
     ) {
       return {
-        name: "CorrectToolCall",
+        name: scoreName,
         score: 0,
         metadata: {
           message: `Role mismatch at index ${i}: Expected ${expectedMessage.role}, got ${outputMessage.role}`,
@@ -106,10 +112,11 @@ const CorrectToolCall: EvalScorer<
 
       if (!hasToolCall) {
         return {
-          name: "CorrectToolCall",
+          name: scoreName,
           score: 0,
           metadata: {
             message: `Assistant did not return a tool call where one was expected`,
+            actual: outputMessage,
           },
         };
       }
@@ -117,10 +124,11 @@ const CorrectToolCall: EvalScorer<
         expectedMessage.toolCallName !== outputMessage.toolCall?.function.name
       ) {
         return {
-          name: "CorrectToolCall",
+          name: scoreName,
           score: 0,
           metadata: {
             message: `Assistant returned the wrong tool call`,
+            actualToolCall: outputMessage.toolCall?.function.name,
           },
         };
       }
@@ -138,6 +146,7 @@ const ToolsUsedCorrectly: EvalScorer<
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
+  const scoreName = "ToolsUsedCorrectly";
   let totalToolArgsCorrect = 0;
   let totalToolArgs = 0;
   for (
@@ -181,7 +190,7 @@ const ToolsUsedCorrectly: EvalScorer<
 
   if (totalToolArgs === 0) {
     return {
-      name: "CorrectToolCallUsage",
+      name: scoreName,
       score: null,
       metadata: {
         message: "No evaluation to peform - Zero expected args passed.",
@@ -189,7 +198,7 @@ const ToolsUsedCorrectly: EvalScorer<
     };
   }
   return {
-    name: "CorrectToolCallUsage",
+    name: scoreName,
     score: totalToolArgsCorrect / totalToolArgs,
   };
 };
@@ -286,5 +295,5 @@ Eval("mongodb-chatbot-generate-with-tools", {
     });
     return result;
   },
-  scores: [ScoreCorrectToolsCalled, ScoreToolsUsedCorrectly],
+  scores: [CorrectToolCall, ToolsUsedCorrectly],
 });

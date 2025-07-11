@@ -11,6 +11,7 @@ import {
   makeTestLocalServer,
   makeOpenAiClient,
   makeCreateResponseRequest,
+  formatOpenAIStreamError,
   collectStreamingResponse,
 } from "../../test/testHelpers";
 import { makeDefaultConfig } from "../../test/testConfig";
@@ -814,20 +815,9 @@ const testInvalidResponses = ({
 
   expect(responses[0].type).toBe(ERROR_TYPE);
   expect(responses[0].data).toEqual(
-    openaiStreamErrorData(400, ERROR_CODE.INVALID_REQUEST_ERROR, message)
+    formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message)
   );
 };
-
-const openaiStreamErrorData = (
-  httpStatus: number,
-  code: ERROR_CODE,
-  message: string,
-  retryable = false
-) => ({
-  code,
-  message: `${httpStatus} ${message}`,
-  retryable,
-});
 
 interface TestResponsesParams {
   requestBody: Partial<CreateResponseRequest["body"]>;

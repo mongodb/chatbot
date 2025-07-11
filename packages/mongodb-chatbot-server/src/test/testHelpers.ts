@@ -8,6 +8,7 @@ import {
   basicResponsesRequestBody,
 } from "./testConfig";
 import type { CreateResponseRequest } from "../routes/responses/createResponse";
+import type { ERROR_CODE } from "../routes/responses/errors";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -110,6 +111,23 @@ export const makeCreateResponseRequest = (
     })
     .withResponse();
 };
+
+export interface OpenAIStreamError {
+  code: ERROR_CODE;
+  message: string;
+  retryable: boolean;
+}
+
+export const formatOpenAIStreamError = (
+  httpStatus: number,
+  code: ERROR_CODE,
+  message: string,
+  retryable = false
+): OpenAIStreamError => ({
+  code,
+  message: `${httpStatus} ${message}`,
+  retryable,
+});
 
 /**
  Helper function to collect a full response from a stream.

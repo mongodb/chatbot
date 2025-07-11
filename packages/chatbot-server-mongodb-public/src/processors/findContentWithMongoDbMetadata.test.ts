@@ -67,7 +67,7 @@ describe("makeFindContentWithMongoDbMetadata", () => {
 
     const result = await wrappedFindContent({
       query: inputQuery,
-      filters: { sourceName: { $in: ["docs"] } },
+      filters: { sourceName: ["docs"] },
       limit: 3,
     });
 
@@ -79,7 +79,7 @@ describe("makeFindContentWithMongoDbMetadata", () => {
 
     expect(findContentMock).toHaveBeenCalledWith({
       query: expectedQuery,
-      filters: { sourceName: { $in: ["docs"] } },
+      filters: { sourceName: ["docs"] },
       limit: 3,
     });
 

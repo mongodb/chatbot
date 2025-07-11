@@ -505,11 +505,20 @@ const formatMessage = (
   store: boolean,
   metadata?: Record<string, string>
 ): MessagesParam[number] => {
+  // store a placeholder string if we're not storing message data
+  const content = store ? message.content : "";
+  // handle cleaning custom data if we're not storing message data
+  const customData = {
+    ...message.customData,
+    query: store ? message.customData?.query : "",
+    reason: store ? message.customData?.reason : "",
+  };
+
   return {
     ...message,
-    // store a placeholder string if we're not storing message data
-    content: store ? message.content : "",
+    content,
     metadata,
+    customData,
   };
 };
 

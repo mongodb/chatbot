@@ -41,10 +41,11 @@ export type PartialAppConfig = Omit<
 > & {
   conversationsRouterConfig?: Partial<AppConfig["conversationsRouterConfig"]>;
   responsesRouterConfig?: Partial<AppConfig["responsesRouterConfig"]>;
+  port?: number;
 };
 
 export const TEST_PORT = 5173;
-export const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
+export const TEST_ORIGIN = `http://localhost:`;
 
 /**
   Helper function to quickly make an app for testing purposes. Can't be called
@@ -54,7 +55,7 @@ export const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
 export async function makeTestApp(defaultConfigOverrides?: PartialAppConfig) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
-  const origin = TEST_ORIGIN;
+  const origin = TEST_ORIGIN + (defaultConfigOverrides?.port ?? TEST_PORT);
 
   const { appConfig, systemPrompt, mongodb } = await makeTestAppConfig(
     defaultConfigOverrides
@@ -80,11 +81,15 @@ export const TEST_OPENAI_API_KEY = "test-api-key";
   @param defaultConfigOverrides - optional overrides for default app config
  */
 export const makeTestLocalServer = async (
-  defaultConfigOverrides?: PartialAppConfig
+  defaultConfigOverrides?: PartialAppConfig,
+  port?: number
 ) => {
-  const testAppResult = await makeTestApp(defaultConfigOverrides);
+  const testAppResult = await makeTestApp({
+    ...defaultConfigOverrides,
+    port,
+  });
 
-  const server = testAppResult.app.listen(TEST_PORT);
+  const server = testAppResult.app.listen(port ?? TEST_PORT);
 
   return { ...testAppResult, server };
 };

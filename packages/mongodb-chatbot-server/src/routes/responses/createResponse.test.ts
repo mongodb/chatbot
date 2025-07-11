@@ -32,15 +32,16 @@ describe("POST /responses", () => {
 
     ({ conversations } = appConfig.responsesRouterConfig.createResponse);
 
-    ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
+    // use a unique port so this doesn't collide with other test suites
+    const testPort = 5200;
+    ({ server, ipAddress, origin } = await makeTestLocalServer(
+      appConfig,
+      testPort
+    ));
   });
 
   afterEach(async () => {
-    if (server?.listening) {
-      await new Promise<void>((resolve) => {
-        server.close(() => resolve());
-      });
-    }
+    server?.listening && server?.close();
     jest.restoreAllMocks();
   });
 

@@ -213,10 +213,10 @@ export function makeDataStreamer(): DataStreamer {
         );
       }
       sse?.sendResponsesEvent({
-        // TODO: fix this type
-        ...(data as OpenAI.Responses.ResponseStreamEvent),
+        ...data,
         sequence_number: responseSequenceNumber,
-      });
+      } as OpenAI.Responses.ResponseStreamEvent);
+
       responseSequenceNumber++;
     },
   };

@@ -1,4 +1,8 @@
 import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
+import {
   FindContentFunc,
   FindContentResult,
   MongoDbSearchResultsStore,
@@ -6,13 +10,11 @@ import {
   SearchRecordDataSource,
   SearchRecordDataSourceSchema,
 } from "mongodb-rag-core";
-import { SomeExpressRequest } from "../../middleware";
 import { z } from "zod";
-import { ConversationsRouterLocals } from "../conversations";
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from "express";
+
+import { SomeExpressRequest } from "../../middleware";
+import { makeRequestError } from "../conversations/utils";
+import { SearchContentRouterLocals } from "./contentRouter";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -41,8 +43,8 @@ interface SearchContentResponseChunk {
   url: string;
   title: string;
   text: string;
-  metadata: {
-    sourceName: string;
+  metadata?: {
+    sourceName?: string;
     sourceType?: string;
     sourceVersionLabel?: string;
     tags?: string[];
@@ -59,7 +61,7 @@ export function makeSearchContentRoute({
 }: MakeSearchContentRouteParams) {
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
-    res: ExpressResponse<SearchContentResponseBody, ConversationsRouterLocals>
+    res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
   ) => {
     try {
       const { query, dataSources, limit } = req.body;
@@ -77,26 +79,47 @@ export function makeSearchContentRoute({
         searchResultsStore,
       });
     } catch (error) {
-      // TODO: error handling
+      throw makeRequestError({
+        httpStatus: 500,
+        message: "Unable to query search database",
+      });
     }
   };
 }
 
-// TODO: map FindContentResult to SearchContentResponseChunk
 function mapFindContentResultToSearchContentResponseChunk(
   result: FindContentResult
 ): SearchContentResponseBody {
-  // TODO:
   return {
-    results: [],
+    results: result.content.map(({ url, metadata, text }) => ({
+      url,
+      title: metadata?.pageTitle ?? "",
+      text,
+      metadata,
+    })),
   };
 }
 
 function mapDataSourcesToFilters(
-  dataSources: SearchRecordDataSource[]
+  dataSources?: SearchRecordDataSource[]
 ): QueryFilters {
-  // TODO: implement
-  return {};
+  if (!dataSources || dataSources.length === 0) {
+    return {};
+  }
+
+  const sourceNames = dataSources.map((ds) => ds.name);
+  const sourceTypes = dataSources
+    .map((ds) => ds.type)
+    .filter((t): t is string => !!t);
+  const versionLabels = dataSources
+    .map((ds) => ds.versionLabel)
+    .filter((v): v is string => !!v);
+
+  return {
+    ...(sourceNames.length && { sourceName: sourceNames }),
+    ...(sourceTypes.length && { sourceType: sourceTypes }),
+    ...(versionLabels.length && { version: { label: versionLabels } }),
+  };
 }
 
 async function persistSearchResultsToDatabase(params: {
@@ -106,5 +129,11 @@ async function persistSearchResultsToDatabase(params: {
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
 }) {
-  // TODO: implement
+  params.searchResultsStore.saveSearchResult({
+    query: params.query,
+    results: params.results.content,
+    dataSources: params.dataSources,
+    limit: params.limit,
+    createdAt: new Date(),
+  });
 }

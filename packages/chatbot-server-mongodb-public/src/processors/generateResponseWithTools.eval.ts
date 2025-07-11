@@ -1,10 +1,17 @@
 import "dotenv/config";
+import path from "path";
+import { strict as assert } from "assert";
+import {
+  getOpenAiEndpointAndApiKey,
+  models,
+  ModelConfig,
+} from "mongodb-rag-core/models";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
-import { createAzure } from "mongodb-rag-core/aiSdk";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   assertEnvVars,
   CORE_OPENAI_ENV_VARS,
-  defaultConversationConstants,
   SomeMessage,
   FindContentFunc,
   FindContentFuncArgs,
@@ -16,15 +23,19 @@ import {
   GenerateResponseReturnValue,
 } from "mongodb-chatbot-server";
 import { systemPrompt } from "../systemPrompt";
+import {
+  filterPreviousMessages,
+  conversations,
+  toolChoice,
+  maxSteps,
+} from "../config";
 import { makeGenerateResponseWithTools } from "./generateResponseWithTools";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { makeFetchPageTool } from "../tools/fetchPage";
 import { makeSearchTool } from "../tools/search";
-import { ObjectId } from "mongodb-rag-core/mongodb";
-import path from "path";
 import { getGenerateWithToolsEvalCasesFromYamlFile } from "../eval/getGenerateWithToolEvalCasesFromYaml";
 
-const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
   ...CORE_OPENAI_ENV_VARS,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
 });
@@ -203,19 +214,22 @@ const ToolsUsedCorrectly: EvalScorer<
   };
 };
 
-// Create dependencies
-const azureOpenAi = createAzure({
-  apiKey: OPENAI_API_KEY,
-  resourceName: process.env.OPENAI_RESOURCE_NAME,
-});
-const languageModel = azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
+const modelConfig: ModelConfig | undefined = models.find(
+  (m) => m.label === OPENAI_CHAT_COMPLETION_DEPLOYMENT
+);
+assert(modelConfig, `Model ${OPENAI_CHAT_COMPLETION_DEPLOYMENT} not found`);
+
+const createEvalLanguageModel = async (modelConfig: ModelConfig) => {
+  const openai = createOpenAI(await getOpenAiEndpointAndApiKey(modelConfig));
+  return openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
+};
 
 // Run the eval. We recreate generateResponseWithTools each time so
 // we can pass different intermediate return values for lookup/search tools
 Eval("mongodb-chatbot-generate-with-tools", {
   data: evalCases,
-  experimentName: "mongodb-chatbot-generate-w-tools",
-  maxConcurrency: 10,
+  experimentName: `generate-with-tools-${modelConfig.label}`,
+  maxConcurrency: modelConfig.maxConcurrency,
   async task(input, hooks) {
     // Set up the findContent and loadPage functions with the return values in the eval case.
     const mockFindContent: FindContentFunc = async (
@@ -257,19 +271,12 @@ Eval("mongodb-chatbot-generate-with-tools", {
     };
 
     const generateResponseWithTools = makeGenerateResponseWithTools({
-      languageModel,
+      languageModel: await createEvalLanguageModel(modelConfig),
       systemMessage: systemPrompt,
-      llmRefusalMessage: defaultConversationConstants.NO_RELEVANT_CONTENT,
-      filterPreviousMessages: async (conversation) => {
-        return conversation.messages.filter((message) => {
-          return (
-            message.role === "user" ||
-            // Only include assistant messages that are not tool calls
-            (message.role === "assistant" && !message.toolCall)
-          );
-        });
-      },
-      llmNotWorkingMessage: defaultConversationConstants.LLM_NOT_WORKING,
+      llmRefusalMessage:
+        conversations.conversationConstants.NO_RELEVANT_CONTENT,
+      filterPreviousMessages,
+      llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
       searchTool: makeSearchTool({
         findContent: mockFindContent,
         makeReferences: makeMongoDbReferences,
@@ -279,8 +286,8 @@ Eval("mongodb-chatbot-generate-with-tools", {
         findContent: mockFindContent,
         makeReferences: makeMongoDbReferences,
       }),
-      toolChoice: "auto",
-      maxSteps: 5,
+      toolChoice,
+      maxSteps,
     });
 
     const result = await generateResponseWithTools({

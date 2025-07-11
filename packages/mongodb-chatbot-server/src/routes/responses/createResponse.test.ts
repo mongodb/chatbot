@@ -52,62 +52,67 @@ describe("POST /responses", () => {
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody: {}, responses: results });
     });
 
     it("Should return 200 given a message array input", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
           { role: "assistant", content: "MongoDB is a document database." },
           { role: "user", content: "What is a document database?" },
         ],
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 given a valid request with instructions", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         instructions: "You are a helpful chatbot.",
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with valid max_output_tokens", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         max_output_tokens: 4000,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with valid metadata", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         metadata: { key1: "value1", key2: "value2" },
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with valid temperature", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         temperature: 0,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with previous_response_id", async () => {
@@ -117,13 +122,14 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 if previous_response_id is the latest message", async () => {
@@ -135,47 +141,51 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with user", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         user: "some-user-id",
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with store=false", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         store: false,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with store=true", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         store: true,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with tools and tool_choice", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [
           {
             type: "function",
@@ -192,15 +202,16 @@ describe("POST /responses", () => {
           },
         ],
         tool_choice: "auto",
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with a specific function tool_choice", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [
           {
             type: "function",
@@ -220,15 +231,16 @@ describe("POST /responses", () => {
           type: "function",
           name: "test-tool",
         },
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 given a message array with function_call", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -239,15 +251,16 @@ describe("POST /responses", () => {
             status: "in_progress",
           },
         ],
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 given a message array with function_call_output", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -257,31 +270,34 @@ describe("POST /responses", () => {
             status: "completed",
           },
         ],
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with tool_choice 'none'", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         tool_choice: "none",
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should return 200 with an empty tools array", async () => {
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [],
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
     });
 
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
@@ -296,10 +312,11 @@ describe("POST /responses", () => {
 
       const store = true;
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
         store,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       const updatedConversation = await conversations.findById({ _id });
@@ -308,7 +325,7 @@ describe("POST /responses", () => {
       }
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
 
       expect(updatedConversation?.storeMessageContent).toEqual(
         storeMessageContent
@@ -327,11 +344,12 @@ describe("POST /responses", () => {
         customMessage1: "customMessage1",
         customMessage2: "customMessage2",
       };
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
         metadata,
         user: userId,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       const updatedConversation = await conversations.findByMessageId({
@@ -342,7 +360,7 @@ describe("POST /responses", () => {
       }
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
 
       expect(updatedConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
@@ -360,11 +378,12 @@ describe("POST /responses", () => {
         customMessage1: "customMessage1",
         customMessage2: "customMessage2",
       };
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
         metadata,
         user: userId,
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       const updatedConversation = await conversations.findByMessageId({
@@ -375,7 +394,7 @@ describe("POST /responses", () => {
       }
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
 
       expect(updatedConversation.storeMessageContent).toEqual(store);
       testDefaultMessageContent({
@@ -390,7 +409,7 @@ describe("POST /responses", () => {
       const store = true;
       const functionCallType = "function_call";
       const functionCallOutputType = "function_call_output";
-      const { response } = await makeClientAndRequest({
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
         input: [
           {
@@ -407,7 +426,8 @@ describe("POST /responses", () => {
             status: "completed",
           },
         ],
-      });
+      };
+      const { response } = await makeClientAndRequest(requestBody);
       const results = await collectStreamingResponse(response);
 
       const updatedConversation = await conversations.findByMessageId({
@@ -418,7 +438,7 @@ describe("POST /responses", () => {
       }
 
       expect(response.status).toBe(200);
-      testResponses({ responses: results });
+      testResponses({ requestBody, responses: results });
 
       expect(updatedConversation.storeMessageContent).toEqual(store);
 
@@ -772,21 +792,13 @@ describe("POST /responses", () => {
 
 const getMessageIdFromResults = (results?: Array<any>) => {
   if (!results?.length) throw new Error("No results found");
+
   const messageId = results[results.length - 1]?.response?.id;
+
   if (typeof messageId !== "string") throw new Error("Message ID not found");
+
   return new ObjectId(messageId);
 };
-
-const openaiStreamErrorData = (
-  httpStatus: number,
-  code: ERROR_CODE,
-  message: string,
-  retryable = false
-) => ({
-  code,
-  message: `${httpStatus} ${message}`,
-  retryable,
-});
 
 interface TestInvalidResponsesParams {
   responses: Array<any>;
@@ -806,11 +818,23 @@ const testInvalidResponses = ({
   );
 };
 
+const openaiStreamErrorData = (
+  httpStatus: number,
+  code: ERROR_CODE,
+  message: string,
+  retryable = false
+) => ({
+  code,
+  message: `${httpStatus} ${message}`,
+  retryable,
+});
+
 interface TestResponsesParams {
+  requestBody: Partial<CreateResponseRequest["body"]>;
   responses: Array<any>;
 }
 
-const testResponses = ({ responses }: TestResponsesParams) => {
+const testResponses = ({ requestBody, responses }: TestResponsesParams) => {
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(3);
 
@@ -818,13 +842,66 @@ const testResponses = ({ responses }: TestResponsesParams) => {
   expect(responses[1].type).toBe("response.in_progress");
   expect(responses[2].type).toBe("response.completed");
 
-  expect(responses[0].sequence_number).toBe(0);
-  expect(responses[1].sequence_number).toBe(1);
-  expect(responses[2].sequence_number).toBe(2);
+  responses.forEach(({ response, sequence_number }, index) => {
+    // basic response properties
+    expect(sequence_number).toBe(index);
+    expect(typeof response.id).toBe("string");
+    expect(typeof response.created_at).toBe("number");
+    expect(response.object).toBe("response");
+    expect(response.error).toBeNull();
+    expect(response.incomplete_details).toBeNull();
+    expect(response.model).toBe("mongodb-chat-latest");
+    expect(response.output_text).toBe("");
+    expect(response.output).toEqual([]);
+    expect(response.parallel_tool_calls).toBe(true);
+    expect(response.temperature).toBe(0);
+    expect(response.stream).toBe(true);
+    expect(response.top_p).toBeNull();
 
-  expect(responses[0].response.id).toBeDefined();
-  expect(responses[1].response.id).toBeDefined();
-  expect(responses[2].response.id).toBeDefined();
+    // conditional upon request body properties
+    if (requestBody.instructions) {
+      expect(response.instructions).toBe(requestBody.instructions);
+    } else {
+      expect(response.instructions).toBeNull();
+    }
+    if (requestBody.max_output_tokens) {
+      expect(response.max_output_tokens).toBe(requestBody.max_output_tokens);
+    } else {
+      expect(response.max_output_tokens).toBe(1000);
+    }
+    if (requestBody.previous_response_id) {
+      expect(response.previous_response_id).toBe(
+        requestBody.previous_response_id
+      );
+    } else {
+      expect(response.previous_response_id).toBeNull();
+    }
+    if (typeof requestBody.store === "boolean") {
+      expect(response.store).toBe(requestBody.store);
+    } else {
+      expect(response.store).toBe(true);
+    }
+    if (requestBody.tool_choice) {
+      expect(response.tool_choice).toEqual(requestBody.tool_choice);
+    } else {
+      expect(response.tool_choice).toBe("auto");
+    }
+    if (requestBody.tools) {
+      expect(response.tools).toEqual(requestBody.tools);
+    } else {
+      expect(response.tools).toEqual([]);
+    }
+    if (requestBody.user) {
+      expect(response.user).toBe(requestBody.user);
+    } else {
+      expect(response.user).toBeUndefined();
+    }
+    if (requestBody.metadata) {
+      expect(response.metadata).toEqual(requestBody.metadata);
+    } else {
+      expect(response.metadata).toBeNull();
+    }
+  });
 };
 
 interface TestDefaultMessageContentParams {

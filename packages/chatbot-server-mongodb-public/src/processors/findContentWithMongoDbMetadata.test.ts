@@ -15,16 +15,7 @@ jest.mock("mongodb-rag-core", () => {
   };
 });
 
-jest.mock("mongodb-rag-core/braintrust", () => {
-  const actual = jest.requireActual("mongodb-rag-core/braintrust");
-  return {
-    ...actual,
-    wrapTraced: jest.fn(),
-  };
-});
-
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
 import {
   makeFindContentWithMongoDbMetadata,
 } from "./findContentWithMongoDbMetadata";
@@ -34,7 +25,6 @@ import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/m
 const mockedClassify =
   classifyMongoDbProgrammingLanguageAndProduct as jest.Mock;
 const mockedUpdateFrontMatter = updateFrontMatter as jest.Mock;
-const mockedWrapTraced = wrapTraced as jest.Mock;
 
 function makeMockFindContent(result: string[]): FindContentFunc {
   return jest.fn().mockResolvedValue(result);
@@ -48,10 +38,10 @@ describe("makeFindContentWithMongoDbMetadata", () => {
   test("enhances query with front matter and classification", async () => {
     const inputQuery = "How do I use MongoDB with TypeScript?";
     const expectedQuery = `---
-    product: driver
-    programmingLanguage: typescript
-    ---
-    How do I use MongoDB with TypeScript?`;
+product: driver
+programmingLanguage: typescript
+---
+How do I use MongoDB with TypeScript?`;
     const fakeResult = ["doc1", "doc2"];
 
     mockedClassify.mockResolvedValue({
@@ -59,7 +49,6 @@ describe("makeFindContentWithMongoDbMetadata", () => {
       programmingLanguage: "typescript",
     });
     mockedUpdateFrontMatter.mockReturnValue(expectedQuery);
-    mockedWrapTraced.mockImplementation((fn) => fn);
 
     const findContentMock = makeMockFindContent(fakeResult);
 

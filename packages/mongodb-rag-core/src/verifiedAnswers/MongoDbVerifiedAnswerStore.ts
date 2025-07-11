@@ -51,7 +51,6 @@ export function makeMongoDbVerifiedAnswerStore({
               path,
               limit: k,
               numCandidates: numCandidates ?? k * 15,
-              // Do I need to use handleFilters(filter) here? Now that filter could have arrays of strings?
               filter,
             },
           },

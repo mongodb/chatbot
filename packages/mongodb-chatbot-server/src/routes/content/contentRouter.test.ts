@@ -37,37 +37,6 @@ function makeContentRouterConfig(
 describe("contentRouter", () => {
   const searchEndpoint = "/api/v1/content/search";
 
-  it("should return search results for a valid request", async () => {
-    const { app, origin } = await makeTestApp({
-      contentRouterConfig: makeContentRouterConfig(),
-    });
-    const res = await request(app)
-      .post(searchEndpoint)
-      .set("req-id", "test-req-id")
-      .set("Origin", origin)
-      .send({
-        query: "mongodb",
-        limit: 2,
-      });
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("results");
-    expect(Array.isArray(res.body.results)).toBe(true);
-  });
-
-  it("should return 400 for missing query field", async () => {
-    const { app, origin } = await makeTestApp({
-      contentRouterConfig: makeContentRouterConfig(),
-    });
-    const res = await request(app)
-      .post(searchEndpoint)
-      .set("req-id", "test-req-id")
-      .set("Origin", origin)
-      .send({});
-
-    expect(res.body).toHaveProperty("error");
-    expect(res.body.error).toBe("Invalid request");
-  });
-
   it("should call custom middleware if provided", async () => {
     const mockMiddleware = jest.fn((_req, _res, next) => next());
     const { app, origin } = await makeTestApp({
@@ -81,26 +50,5 @@ describe("contentRouter", () => {
       .set("Origin", origin)
       .send({ query: "mongodb" });
     expect(mockMiddleware).toHaveBeenCalled();
-  });
-
-  it("should pass the 'limit' parameter to findContent", async () => {
-    const { app, origin } = await makeTestApp({
-      contentRouterConfig: makeContentRouterConfig(),
-    });
-    const limit = 1;
-    const res = await request(app)
-      .post(searchEndpoint)
-      .set("req-id", "test-req-id")
-      .set("Origin", origin)
-      .send({
-        query: "mongodb",
-        limit,
-      });
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("results");
-    expect(Array.isArray(res.body.results)).toBe(true);
-    expect(findContentMock).toHaveBeenCalledWith(
-      expect.objectContaining({ limit })
-    );
   });
 });

@@ -57,12 +57,14 @@ const evalCases: EvalCase<
 );
 
 /** Verify the correct tool calls were generated. */
-const ScoreCorrectToolsCalled: EvalScorer<
+const CorrectToolCall: EvalScorer<
   GenerateResponseInput,
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
+  const name = "CorrectToolCall"
   if (output.messages.length !== expected.messages.length) {
+  // use `name` variable throughout
     return {
       name: "CorrectToolCall",
       score: 0,

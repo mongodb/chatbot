@@ -1,5 +1,6 @@
 import {
-  APIError,
+  type OpenAI,
+  type APIError,
   BadRequestError,
   InternalServerError,
   NotFoundError,
@@ -43,6 +44,29 @@ export enum ERROR_CODE {
 }
 
 // --- OPENAI ERROR WRAPPERS ---
+export type OpenAIStreamError = OpenAI.Responses.ResponseErrorEvent;
+export type OpenAIStreamErrorInput = Omit<
+  OpenAI.Responses.ResponseErrorEvent,
+  "sequence_number"
+>;
+export type SomeOpenAIAPIError =
+  | APIError
+  | BadRequestError
+  | NotFoundError
+  | RateLimitError
+  | InternalServerError;
+
+export const makeOpenAIStreamError = (
+  input: SomeOpenAIAPIError
+): OpenAIStreamErrorInput => {
+  return {
+    type: ERROR_TYPE,
+    message: input.message,
+    code: input.code ?? null,
+    param: input.param ?? null,
+  };
+};
+
 interface MakeOpenAIErrorParams {
   error: Error;
   headers: Record<string, string>;
@@ -51,7 +75,7 @@ interface MakeOpenAIErrorParams {
 export const makeInternalServerError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Internal server error";
   const _error = {
     ...error,
@@ -65,7 +89,7 @@ export const makeInternalServerError = ({
 export const makeBadRequestError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Bad request";
   const _error = {
     ...error,
@@ -79,7 +103,7 @@ export const makeBadRequestError = ({
 export const makeNotFoundError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Not found";
   const _error = {
     ...error,
@@ -93,7 +117,7 @@ export const makeNotFoundError = ({
 export const makeRateLimitError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Rate limit exceeded";
   const _error = {
     ...error,

@@ -1,5 +1,8 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { makeVerifiedAnswerGenerateResponse } from "./makeVerifiedAnswerGenerateResponse";
+import {
+  makeVerifiedAnswerGenerateResponse,
+  type StreamFunction,
+} from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
 import { GenerateResponseReturnValue } from "./GenerateResponse";
 
@@ -23,6 +26,29 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       content: "Not verified!",
     },
   ] satisfies GenerateResponseReturnValue["messages"];
+
+  const streamVerifiedAnswer: StreamFunction<{
+    verifiedAnswer: VerifiedAnswer;
+  }> = async ({ dataStreamer, verifiedAnswer }) => {
+    dataStreamer.streamData({
+      type: "metadata",
+      data: {
+        verifiedAnswer: {
+          _id: verifiedAnswer._id,
+          created: verifiedAnswer.created,
+          updated: verifiedAnswer.updated,
+        },
+      },
+    });
+    dataStreamer.streamData({
+      type: "delta",
+      data: verifiedAnswer.answer,
+    });
+    dataStreamer.streamData({
+      type: "references",
+      data: verifiedAnswer.references,
+    });
+  };
 
   // Create a mock verified answer
   const createMockVerifiedAnswer = (): WithScore<VerifiedAnswer> => ({
@@ -81,10 +107,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       messages: noVerifiedAnswerFoundMessages,
     }),
     stream: {
-      onVerifiedAnswerFound: async () => ({
-        // TODO: update this
-        messages: [{ role: "assistant", content: "Verified answer found!" }],
-      }),
+      onVerifiedAnswerFound: streamVerifiedAnswer,
     },
   });
 

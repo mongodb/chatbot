@@ -31,10 +31,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import {
-  logger,
-  makeMongoDbSearchResultsStore,
-} from "mongodb-rag-core";
+import { logger, makeMongoDbSearchResultsStore } from "mongodb-rag-core";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import {
   wrapOpenAI,

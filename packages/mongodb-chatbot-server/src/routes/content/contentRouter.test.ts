@@ -1,7 +1,10 @@
 import request from "supertest";
 import { makeTestApp } from "../../test/testHelpers";
 import type { MakeContentRouterParams } from "./contentRouter";
-import type { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
+import type {
+  FindContentFunc,
+  MongoDbSearchResultsStore,
+} from "mongodb-rag-core";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
 const mockSearchResultsStore: MongoDbSearchResultsStore = {
@@ -12,7 +15,7 @@ const mockSearchResultsStore: MongoDbSearchResultsStore = {
     collectionName: "mock",
   },
   saveSearchResult: jest.fn(),
-  init: jest.fn()
+  init: jest.fn(),
 };
 
 const findContentMock = jest.fn().mockResolvedValue({

@@ -317,7 +317,9 @@ const handleFilters = (
   // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
   const { current, label } = filter.version ?? {};
   if (label) {
-    vectorSearchFilter["metadata.version.label"] = Array.isArray(label) ? { $in: label } : label;
+    vectorSearchFilter["metadata.version.label"] = Array.isArray(label)
+      ? { $in: label }
+      : label;
   }
   // Return current embeddings if either:
   // 1. current=true was explicitly requested, or

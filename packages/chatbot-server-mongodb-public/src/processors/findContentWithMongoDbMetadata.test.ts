@@ -25,7 +25,10 @@ jest.mock("mongodb-rag-core/braintrust", () => {
 
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { classifyMongoDbProgrammingLanguageAndProduct, makeFindContentWithMongoDbMetadata } from "./findContentWithMongoDbMetadata";
+import {
+  classifyMongoDbProgrammingLanguageAndProduct,
+  makeFindContentWithMongoDbMetadata,
+} from "./findContentWithMongoDbMetadata";
 
 const mockedClassify =
   classifyMongoDbProgrammingLanguageAndProduct as jest.Mock;

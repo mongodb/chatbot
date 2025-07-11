@@ -1,7 +1,10 @@
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { classifyMongoDbProduct, classifyMongoDbProgrammingLanguage } from "mongodb-rag-core/mongoDbMetadata";
+import {
+  classifyMongoDbProduct,
+  classifyMongoDbProgrammingLanguage,
+} from "mongodb-rag-core/mongoDbMetadata";
 
 function nullOnErr() {
   return null;

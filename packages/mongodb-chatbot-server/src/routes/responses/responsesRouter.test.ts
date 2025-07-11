@@ -166,7 +166,7 @@ const testResponses = ({ responses }: TestResponsesParams) => {
 
 interface TestErrorResponsesParams {
   responses: Array<any>;
-  error: OpenAIStreamError;
+  error: OpenAIStreamError["data"];
 }
 
 const testErrorResponses = ({ responses, error }: TestErrorResponsesParams) => {

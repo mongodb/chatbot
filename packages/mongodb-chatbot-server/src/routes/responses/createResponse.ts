@@ -284,7 +284,10 @@ export function makeCreateResponseRoute({
 
       // generate response id to use in conversation DB AND openai stream
       const responseId = new ObjectId();
-      const baseResponse = makeBaseResponseData({ responseId, data: req.body });
+      const baseResponse = makeBaseResponseData({
+        responseId,
+        data: data.body,
+      });
 
       const createdMessage: StreamCreatedMessage = {
         type: "response.created",

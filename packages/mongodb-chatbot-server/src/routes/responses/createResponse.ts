@@ -4,11 +4,10 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import { ObjectId } from "mongodb";
-import type { APIError } from "mongodb-rag-core/openai";
+import { OpenAI, type APIError } from "mongodb-rag-core/openai";
 import {
   type ConversationsService,
   type Conversation,
-  type SomeMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -270,15 +269,26 @@ export function makeCreateResponseRoute({
         });
       }
 
-      // TODO: stream a created message
-      dataStreamer.streamResponses({
-        type: "response.created",
-      });
+      const responseId = new ObjectId();
+      const baseResponse = {
+        id: responseId.toString(),
+      };
 
-      // TODO: stream an in progress message
-      dataStreamer.streamResponses({
+      const createdMessage: OpenAI.Responses.ResponseCreatedEvent = {
+        type: "response.created",
+        response: {
+          ...baseResponse,
+        },
+      } as any; // TODO: remove this and implement
+      dataStreamer.streamResponses(createdMessage);
+
+      const inProgressMessage: OpenAI.Responses.ResponseInProgressEvent = {
         type: "response.in_progress",
-      });
+        response: {
+          ...baseResponse,
+        },
+      } as any; // TODO: remove this and implement
+      dataStreamer.streamResponses(inProgressMessage);
 
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);
@@ -291,12 +301,16 @@ export function makeCreateResponseRoute({
         metadata,
         input,
         messages,
+        responseId,
       });
 
-      // TODO: stream a completed message
-      dataStreamer.streamResponses({
+      const completedMessage: OpenAI.Responses.ResponseCompletedEvent = {
         type: "response.completed",
-      });
+        response: {
+          ...baseResponse,
+        },
+      } as any; // TODO: remove this and implement
+      dataStreamer.streamResponses(completedMessage);
     } catch (error) {
       const standardError =
         (error as APIError)?.type === ERROR_TYPE
@@ -410,13 +424,18 @@ const hasConversationUserIdChanged = (
   return conversation.userId !== userId;
 };
 
+type MessagesParam = Parameters<
+  ConversationsService["addManyConversationMessages"]
+>[0]["messages"];
+
 interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   store: boolean;
   metadata?: Record<string, string>;
   input: CreateResponseRequest["body"]["input"];
-  messages: Array<SomeMessage>;
+  messages: MessagesParam;
+  responseId: ObjectId;
 }
 
 const saveMessagesToConversation = async ({
@@ -426,13 +445,18 @@ const saveMessagesToConversation = async ({
   metadata,
   input,
   messages,
+  responseId,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
     ...convertInputToDBMessages(input, store, metadata),
     ...messages.map((message) => formatMessage(message, store, metadata)),
   ];
 
-  await conversations.addManyConversationMessages({
+  if (messagesToAdd.length > 0) {
+    messagesToAdd[messagesToAdd.length - 1].id = responseId;
+  }
+
+  return await conversations.addManyConversationMessages({
     conversationId: conversation._id,
     messages: messagesToAdd,
   });
@@ -442,7 +466,7 @@ const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
   metadata?: Record<string, string>
-): Array<SomeMessage> => {
+): MessagesParam => {
   if (typeof input === "string") {
     return [formatMessage({ role: "user", content: input }, store, metadata)];
   }
@@ -458,10 +482,10 @@ const convertInputToDBMessages = (
 };
 
 const formatMessage = (
-  message: SomeMessage,
+  message: MessagesParam[number],
   store: boolean,
   metadata?: Record<string, string>
-): SomeMessage => {
+): MessagesParam[number] => {
   return {
     ...message,
     // store a placeholder string if we're not storing message data

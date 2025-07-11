@@ -1,6 +1,6 @@
 import "dotenv/config";
 import type { Server } from "http";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { ObjectId } from "mongodb";
 import type {
   Conversation,
   ConversationsService,
@@ -304,7 +304,7 @@ describe("POST /responses", () => {
 
       const updatedConversation = await conversations.findById({ _id });
       if (!updatedConversation) {
-        return expect(updatedConversation).toBeDefined();
+        return expect(updatedConversation).not.toBeNull();
       }
 
       expect(response.status).toBe(200);
@@ -334,8 +334,12 @@ describe("POST /responses", () => {
       });
       const results = await collectStreamingResponse(response);
 
-      // TODO: make this work, currently broken
-      const updatedConversation = await conversationSpy.mock.results[0].value;
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
 
       expect(response.status).toBe(200);
       testResponses({ responses: results });
@@ -363,8 +367,12 @@ describe("POST /responses", () => {
       });
       const results = await collectStreamingResponse(response);
 
-      // TODO: make this work, currently broken
-      const updatedConversation = await conversationSpy.mock.results[0].value;
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
 
       expect(response.status).toBe(200);
       testResponses({ responses: results });
@@ -402,8 +410,12 @@ describe("POST /responses", () => {
       });
       const results = await collectStreamingResponse(response);
 
-      // TODO: make this work, currently broken
-      const updatedConversation = await conversationSpy.mock.results[0].value;
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
 
       expect(response.status).toBe(200);
       testResponses({ responses: results });
@@ -757,6 +769,13 @@ describe("POST /responses", () => {
 
 // --- HELPERS ---
 
+const getMessageIdFromResults = (results?: Array<any>) => {
+  if (!results?.length) throw new Error("No results found");
+  const messageId = results[results.length - 1]?.response?.id;
+  if (typeof messageId !== "string") throw new Error("Message ID not found");
+  return new ObjectId(messageId);
+};
+
 const openaiStreamErrorData = (
   httpStatus: number,
   code: ERROR_CODE,
@@ -787,7 +806,7 @@ const testInvalidResponses = ({
 };
 
 interface TestResponsesParams {
-  responses: Array<OpenAI.Responses.ResponseStreamEvent>;
+  responses: Array<any>;
 }
 
 const testResponses = ({ responses }: TestResponsesParams) => {
@@ -801,6 +820,10 @@ const testResponses = ({ responses }: TestResponsesParams) => {
   expect(responses[0].sequence_number).toBe(0);
   expect(responses[1].sequence_number).toBe(1);
   expect(responses[2].sequence_number).toBe(2);
+
+  expect(responses[0].response.id).toBeDefined();
+  expect(responses[1].response.id).toBeDefined();
+  expect(responses[2].response.id).toBeDefined();
 };
 
 interface TestDefaultMessageContentParams {

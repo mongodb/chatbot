@@ -1,4 +1,5 @@
 import type { Server } from "http";
+import type OpenAI from "mongodb-rag-core/openai";
 import {
   makeTestLocalServer,
   makeOpenAiClient,
@@ -94,13 +95,13 @@ describe("Responses Router", () => {
     });
   });
 
-  it.skip("Should apply responses router rate limit and return an openai error", async () => {
+  it("Should apply responses router rate limit and return an openai error", async () => {
     const rateLimitErrorMessage = "Error: rate limit exceeded!";
 
     const appConfig = await makeDefaultConfig();
     appConfig.responsesRouterConfig.rateLimitConfig = {
       routerRateLimitConfig: {
-        windowMs: 50000, // Big window to cover test duration
+        windowMs: 500000, // Big window to cover test duration
         max: 1, // Only one request should be allowed
         message: rateLimitErrorMessage,
       },
@@ -114,34 +115,25 @@ describe("Responses Router", () => {
       .create(basicResponsesRequestBody)
       .withResponse();
 
-    const { response: rateLimitedRes } = await openAiClient.responses
-      .create(basicResponsesRequestBody)
-      .withResponse();
+    try {
+      await openAiClient.responses
+        .create(basicResponsesRequestBody)
+        .withResponse();
+      // should never get here
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as OpenAI.APIError).type).toBe(ERROR_TYPE);
+      expect((error as OpenAI.APIError).error).toEqual({
+        type: ERROR_TYPE,
+        code: ERROR_CODE.RATE_LIMIT_ERROR,
+        message: rateLimitErrorMessage,
+      });
+    }
 
     const successResults = await collectStreamingResponse(successRes);
-    const rateLimitedResults = await collectStreamingResponse(rateLimitedRes);
-
-    console.log({ successResults, rateLimitedResults });
 
     expect(successRes.status).toBe(200);
-    expect(rateLimitedRes.status).toBe(429);
-
-    testErrorResponses({
-      responses: successResults,
-      error: formatOpenAIStreamError(
-        200,
-        ERROR_CODE.SERVER_ERROR,
-        rateLimitErrorMessage
-      ),
-    });
-    testErrorResponses({
-      responses: rateLimitedResults,
-      error: formatOpenAIStreamError(
-        429,
-        ERROR_CODE.RATE_LIMIT_ERROR,
-        rateLimitErrorMessage
-      ),
-    });
+    testResponses({ responses: successResults });
   });
 });
 

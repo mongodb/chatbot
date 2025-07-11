@@ -22,6 +22,19 @@ import {
   ERROR_TYPE,
 } from "./errors";
 
+type StreamCreatedMessage = Omit<
+  OpenAI.Responses.ResponseCreatedEvent,
+  "sequence_number"
+>;
+type StreamInProgressMessage = Omit<
+  OpenAI.Responses.ResponseInProgressEvent,
+  "sequence_number"
+>;
+type StreamCompletedMessage = Omit<
+  OpenAI.Responses.ResponseCompletedEvent,
+  "sequence_number"
+>;
+
 export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
@@ -269,25 +282,26 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // generate response id to use in conversation DB AND openai stream
       const responseId = new ObjectId();
-      const baseResponse = {
-        id: responseId.toString(),
-      };
+      const baseResponse = makeBaseResponseData({ responseId, data: req.body });
 
-      const createdMessage: OpenAI.Responses.ResponseCreatedEvent = {
+      const createdMessage: StreamCreatedMessage = {
         type: "response.created",
         response: {
           ...baseResponse,
+          created_at: Date.now(),
         },
-      } as any; // TODO: remove this and implement
+      };
       dataStreamer.streamResponses(createdMessage);
 
-      const inProgressMessage: OpenAI.Responses.ResponseInProgressEvent = {
+      const inProgressMessage: StreamInProgressMessage = {
         type: "response.in_progress",
         response: {
           ...baseResponse,
+          created_at: Date.now(),
         },
-      } as any; // TODO: remove this and implement
+      };
       dataStreamer.streamResponses(inProgressMessage);
 
       // TODO: actually implement this call
@@ -304,12 +318,13 @@ export function makeCreateResponseRoute({
         responseId,
       });
 
-      const completedMessage: OpenAI.Responses.ResponseCompletedEvent = {
+      const completedMessage: StreamCompletedMessage = {
         type: "response.completed",
         response: {
           ...baseResponse,
+          created_at: Date.now(),
         },
-      } as any; // TODO: remove this and implement
+      };
       dataStreamer.streamResponses(completedMessage);
     } catch (error) {
       const standardError =
@@ -491,5 +506,34 @@ const formatMessage = (
     // store a placeholder string if we're not storing message data
     content: store ? message.content : "",
     metadata,
+  };
+};
+
+interface BaseResponseData {
+  responseId: ObjectId;
+  data: CreateResponseRequest["body"];
+}
+
+const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
+  return {
+    id: responseId.toString(),
+    object: "response" as const,
+    error: null,
+    incomplete_details: null,
+    instructions: data.instructions ?? null,
+    max_output_tokens: data.max_output_tokens ?? null,
+    model: data.model,
+    output_text: "",
+    output: [],
+    parallel_tool_calls: true,
+    previous_response_id: data.previous_response_id ?? null,
+    store: data.store,
+    temperature: data.temperature,
+    stream: data.stream,
+    tool_choice: data.tool_choice,
+    tools: data.tools ?? [],
+    top_p: null,
+    user: data.user,
+    metadata: data.metadata ?? null,
   };
 };

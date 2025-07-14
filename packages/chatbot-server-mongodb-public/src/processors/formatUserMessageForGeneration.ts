@@ -1,8 +1,4 @@
-import {
-  updateFrontMatter,
-  logger,
-  ConversationCustomData,
-} from "mongodb-rag-core";
+import { updateFrontMatter, ConversationCustomData } from "mongodb-rag-core";
 import { originCodes } from "mongodb-chatbot-server";
 import { z } from "zod";
 import { logRequest } from "../utils";
@@ -13,7 +9,6 @@ const RawCustomDataSchema = z
     originCode: z
       .enum(originCodes)
       .optional()
-      .default("OTHER")
       .describe("Code representing the origin of the request"),
   })
   .optional();
@@ -35,8 +30,12 @@ export function formatUserMessageForGeneration(
 
   const frontMatter: Record<string, string> = {};
   const parsedCustomData = result.data;
-  if (!parsedCustomData) {
-    logger.warn("Found no customData to add to front matter.");
+  if (!parsedCustomData || Object.keys(parsedCustomData).length === 0) {
+    logRequest({
+      reqId,
+      message: "Found no customData to add to front matter.",
+      type: "error",
+    });
     return userMessageText;
   }
 
@@ -50,9 +49,11 @@ export function formatUserMessageForGeneration(
         frontMatter.pageUrl = parsedCustomData.origin;
       }
     } catch (e) {
-      logger.warn(
-        `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`
-      );
+      logRequest({
+        reqId,
+        message: `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`,
+        type: "error",
+      });
     }
   }
   if (parsedCustomData.originCode === "VSCODE") {

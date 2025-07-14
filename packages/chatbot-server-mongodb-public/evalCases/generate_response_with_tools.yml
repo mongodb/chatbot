@@ -265,7 +265,7 @@
       - role: assistant
   tags:
     - fetch_page
-    - has_url
+    - implied_url
     - fallback_to_search
   metadata:
     loadPageReturnContent: | 

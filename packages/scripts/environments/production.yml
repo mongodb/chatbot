@@ -66,6 +66,8 @@ cronJobs:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
       PROFOUND_API_KEY: docs-chatbot-prod
       PROFOUND_CATALOG_ID_EDU: docs-chatbot-prod
+      BRAINTRUST_API_KEY: docs-chatbot-prod
+      BRAINTRUST_ENDPOINT: docs-chatbot-prod
     resources:
       requests:
         cpu: 100m

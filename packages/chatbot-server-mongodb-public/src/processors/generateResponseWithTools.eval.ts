@@ -6,8 +6,14 @@ import {
   models,
   ModelConfig,
 } from "mongodb-rag-core/models";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
-import { Eval, EvalCase, EvalScorer, wrapAISDKModel, wrapTraced } from "mongodb-rag-core/braintrust";
+import { AssistantMessage, createOpenAI } from "mongodb-rag-core/aiSdk";
+import {
+  Eval,
+  EvalCase,
+  EvalScorer,
+  wrapAISDKModel,
+  wrapTraced,
+} from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   assertEnvVars,
@@ -74,13 +80,16 @@ const evalCases: EvalCase<
   )
 );
 
-/** Verify the correct tool calls were generated. */
-const CorrectToolCall: EvalScorer<
+/** Verify the messages called in the correct order with the correct tool calls */
+const MessageOrderCorrect: EvalScorer<
   GenerateResponseInput,
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
-  const scoreName = "CorrectToolCall";
+  const scoreName = "MessageOrderCorrect";
+
+  // consider separate eval
+  // maybe partial credit for distance from expected
   if (output.messages.length !== expected.messages.length) {
     return {
       name: scoreName,
@@ -91,75 +100,88 @@ const CorrectToolCall: EvalScorer<
     };
   }
 
-  // Verify messages[i].toolCall is the same as expected.messages[i]
-  for (let i = 0; i < output.messages.length; i++) {
-    const expectedMessage = expected.messages[i];
-    const outputMessage = output.messages[i];
+  const score =
+    output.messages
+      .map((outputMessage, idx) => {
+        const expectedMessage = expected.messages[idx];
 
-    // Check if the message types match
-    if (
-      !(
-        expectedMessage.role === "assistant-tool" &&
-        outputMessage.role === "assistant"
-      ) &&
-      expectedMessage.role !== outputMessage.role
-    ) {
-      return {
-        name: scoreName,
-        score: 0,
-        metadata: {
-          message: `Role mismatch at index ${i}: Expected ${expectedMessage.role}, got ${outputMessage.role}`,
-        },
-      };
-    }
+        // If the expected message is undefined, score 0
+        if (!expectedMessage) {
+          return 0;
+        }
 
-    // Check for expected assistant tool call by matching assistant role and toolCall presence
-    if (expectedMessage.role === "assistant-tool") {
-      const hasToolCall =
-        "toolCall" in outputMessage &&
-        outputMessage.toolCall &&
-        typeof outputMessage.toolCall === "object" &&
-        "function" in outputMessage.toolCall;
+        const sameRole =
+          (expectedMessage.role === "assistant-tool" &&
+            outputMessage.role === "assistant") ||
+          expectedMessage.role === outputMessage.role;
 
-      if (!hasToolCall) {
-        return {
-          name: scoreName,
-          score: 0,
-          metadata: {
-            message: `Assistant did not return a tool call where one was expected`,
-            actual: outputMessage,
-          },
-        };
-      }
-      if (
-        expectedMessage.toolCallName !== outputMessage.toolCall?.function.name
-      ) {
-        return {
-          name: scoreName,
-          score: 0,
-          metadata: {
-            message: `Assistant returned the wrong tool call`,
-            actualToolCall: outputMessage.toolCall?.function.name,
-          },
-        };
-      }
-    }
-  }
+        // If different role, score 0
+        if (!sameRole) {
+          return 0;
+        }
+
+        const hasExpectedToolCall =
+          outputMessage.role === "assistant"
+            ? outputMessage.toolCall?.function.name ===
+              expectedMessage.toolCallName
+            : true;
+
+        const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
+        return messageScore;
+      })
+      .reduce((acc, score) => acc + score, 0) / output.messages.length;
+
   return {
-    name: "CorrectToolCall",
-    score: 1,
+    name: scoreName,
+    score,
+    metadata: {
+      message: `Scored ${score} based on matching roles`,
+    },
   };
 };
 
 /** Verify the correct args were generated for the tool call(s) */
-const ToolsUsedCorrectly: EvalScorer<
+const ToolsCalledCorrectly: EvalScorer<
   GenerateResponseInput,
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
-  const scoreName = "ToolsUsedCorrectly";
+  const scoreName = "ToolsCalledCorrectly";
   let totalToolArgsCorrect = 0;
   let totalToolArgs = 0;
+
+  // TODO: helen refactor this
+  const score =
+    output.messages
+      .map((outputMessage, idx) => {
+        const expectedMessage = expected.messages[idx];
+
+        // If the expected message is undefined, score 0
+        if (!expectedMessage) {
+          return 0;
+        }
+
+        const sameRole =
+          (expectedMessage.role === "assistant-tool" &&
+            outputMessage.role === "assistant") ||
+          expectedMessage.role === outputMessage.role;
+
+        // If different role, score 0
+        if (!sameRole) {
+          return 0;
+        }
+
+        const hasExpectedToolCall =
+          outputMessage.role === "assistant"
+            ? outputMessage.toolCall?.function.name ===
+              expectedMessage.toolCallName
+            : true;
+
+        const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
+        return messageScore;
+      })
+      .reduce((acc, score) => acc + score, 0) / output.messages.length;
+
   for (
     let i = 0;
     i < output.messages.length && i < expected.messages.length;
@@ -221,7 +243,9 @@ assert(modelConfig, `Model ${OPENAI_CHAT_COMPLETION_DEPLOYMENT} not found`);
 
 const createEvalLanguageModel = async (modelConfig: ModelConfig) => {
   const openai = createOpenAI(await getOpenAiEndpointAndApiKey(modelConfig));
-  return wrapAISDKModel(openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT));
+  return wrapAISDKModel(
+    openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT)
+  );
 };
 
 // Run the eval. We recreate generateResponseWithTools each time so
@@ -306,5 +330,5 @@ Eval("mongodb-chatbot-generate-with-tools", {
     });
     return result;
   },
-  scores: [CorrectToolCall, ToolsUsedCorrectly],
+  scores: [MessageOrderCorrect, ToolsCalledCorrectly],
 });

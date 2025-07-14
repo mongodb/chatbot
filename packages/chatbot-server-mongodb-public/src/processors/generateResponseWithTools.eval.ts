@@ -7,7 +7,7 @@ import {
   ModelConfig,
 } from "mongodb-rag-core/models";
 import { createOpenAI } from "mongodb-rag-core/aiSdk";
-import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
+import { Eval, EvalCase, EvalScorer, wrapAISDKModel, wrapTraced } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   assertEnvVars,
@@ -221,7 +221,7 @@ assert(modelConfig, `Model ${OPENAI_CHAT_COMPLETION_DEPLOYMENT} not found`);
 
 const createEvalLanguageModel = async (modelConfig: ModelConfig) => {
   const openai = createOpenAI(await getOpenAiEndpointAndApiKey(modelConfig));
-  return openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
+  return wrapAISDKModel(openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT));
 };
 
 // Run the eval. We recreate generateResponseWithTools each time so
@@ -270,25 +270,29 @@ Eval("mongodb-chatbot-generate-with-tools", {
       } satisfies PersistedPage;
     };
 
-    const generateResponseWithTools = makeGenerateResponseWithTools({
-      languageModel: await createEvalLanguageModel(modelConfig),
-      systemMessage: systemPrompt,
-      llmRefusalMessage:
-        conversations.conversationConstants.NO_RELEVANT_CONTENT,
-      filterPreviousMessages,
-      llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
-      searchTool: makeSearchTool({
-        findContent: mockFindContent,
-        makeReferences: makeMongoDbReferences,
+    const generateResponseWithTools = wrapTraced(
+      makeGenerateResponseWithTools({
+        languageModel: await createEvalLanguageModel(modelConfig),
+        systemMessage: systemPrompt,
+        llmRefusalMessage:
+          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+        filterPreviousMessages,
+        llmNotWorkingMessage:
+          conversations.conversationConstants.LLM_NOT_WORKING,
+        searchTool: makeSearchTool({
+          findContent: mockFindContent,
+          makeReferences: makeMongoDbReferences,
+        }),
+        fetchPageTool: makeFetchPageTool({
+          loadPage,
+          findContent: mockFindContent,
+          makeReferences: makeMongoDbReferences,
+        }),
+        toolChoice,
+        maxSteps,
       }),
-      fetchPageTool: makeFetchPageTool({
-        loadPage,
-        findContent: mockFindContent,
-        makeReferences: makeMongoDbReferences,
-      }),
-      toolChoice,
-      maxSteps,
-    });
+      { name: "generateResponseWithTools" }
+    );
 
     const result = await generateResponseWithTools({
       conversation: {

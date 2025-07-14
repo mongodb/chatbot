@@ -83,7 +83,7 @@ export function makeSearchContentRoute({
         dataSources,
         limit,
         searchResultsStore,
-        ...(customData !== undefined && { customData }),
+        customData,
       });
     } catch (error) {
       throw makeRequestError({

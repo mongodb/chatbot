@@ -6,7 +6,7 @@ import {
   models,
   ModelConfig,
 } from "mongodb-rag-core/models";
-import { AssistantMessage, createOpenAI } from "mongodb-rag-core/aiSdk";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import {
   Eval,
   EvalCase,
@@ -19,6 +19,7 @@ import {
   assertEnvVars,
   CORE_OPENAI_ENV_VARS,
   SomeMessage,
+  AssistantMessage,
   FindContentFunc,
   FindContentFuncArgs,
   MongoDbPageStore,
@@ -120,6 +121,7 @@ const MessageOrderCorrect: EvalScorer<
           return 0;
         }
 
+        // Also validate the correct tool was called (by name)
         const hasExpectedToolCall =
           outputMessage.role === "assistant"
             ? outputMessage.toolCall?.function.name ===
@@ -141,74 +143,41 @@ const MessageOrderCorrect: EvalScorer<
 };
 
 /** Verify the correct args were generated for the tool call(s) */
-const ToolsCalledCorrectly: EvalScorer<
+const ToolArgumentsCorrect: EvalScorer<
   GenerateResponseInput,
   GenerateResponseReturnValue,
   GenerateResponseExpected
 > = ({ output, expected }) => {
-  const scoreName = "ToolsCalledCorrectly";
+  const scoreName = "ToolArgumentsCorrect";
   let totalToolArgsCorrect = 0;
   let totalToolArgs = 0;
 
-  // TODO: helen refactor this
-  const score =
-    output.messages
-      .map((outputMessage, idx) => {
-        const expectedMessage = expected.messages[idx];
+  output.messages.forEach((outputMessage, idx) => {
+    const expectedMessage = expected.messages[idx];
 
-        // If the expected message is undefined, score 0
-        if (!expectedMessage) {
-          return 0;
-        }
+    // We're not expecting anything.
+    if (!expectedMessage) return;
 
-        const sameRole =
-          (expectedMessage.role === "assistant-tool" &&
-            outputMessage.role === "assistant") ||
-          expectedMessage.role === outputMessage.role;
+    const sameRole =
+      (expectedMessage.role === "assistant-tool" &&
+        outputMessage.role === "assistant") ||
+      expectedMessage.role === outputMessage.role;
 
-        // If different role, score 0
-        if (!sameRole) {
-          return 0;
-        }
+    // There's a role mismatch (already caught in MessageOrderCorrect)
+    if (!sameRole) return;
 
-        const hasExpectedToolCall =
-          outputMessage.role === "assistant"
-            ? outputMessage.toolCall?.function.name ===
-              expectedMessage.toolCallName
-            : true;
+    const hasExpectedToolCallAndArgs =
+      expectedMessage.role === "assistant-tool" &&
+      expectedMessage.toolCallArgs !== undefined;
 
-        const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
-        return messageScore;
-      })
-      .reduce((acc, score) => acc + score, 0) / output.messages.length;
-
-  for (
-    let i = 0;
-    i < output.messages.length && i < expected.messages.length;
-    i++
-  ) {
-    const expectedMessage = expected.messages[i];
-    const outputMessage = output.messages[i];
-
-    // Not expecting tool call/no expected args to validate against.
-    if (expectedMessage.role !== "assistant-tool") {
-      continue;
-    }
-    if (!expectedMessage.toolCallArgs) {
-      continue;
-    }
-
-    // ScoreCorrectToolsCalled already checks if a tool was called, let's not duplicate that score.
-    const hasToolCall =
-      "toolCall" in outputMessage &&
-      outputMessage.toolCall &&
-      typeof outputMessage.toolCall === "object" &&
-      "function" in outputMessage.toolCall;
-    if (hasToolCall) {
+    // Check the correct args were passed to the tool
+    if (hasExpectedToolCallAndArgs) {
       const outputArguments = JSON.parse(
-        outputMessage.toolCall?.function.arguments ?? "{}"
+        (outputMessage as AssistantMessage).toolCall?.function.arguments ?? "{}"
       );
-      for (const [key, value] of Object.entries(expectedMessage.toolCallArgs)) {
+      for (const [key, value] of Object.entries(
+        expectedMessage.toolCallArgs as Record<string, string>
+      )) {
         totalToolArgs++;
         if (outputArguments?.[key] && outputArguments[key] === value) {
           totalToolArgsCorrect++;
@@ -219,7 +188,7 @@ const ToolsCalledCorrectly: EvalScorer<
         }
       }
     }
-  }
+  });
 
   if (totalToolArgs === 0) {
     return {
@@ -330,5 +299,5 @@ Eval("mongodb-chatbot-generate-with-tools", {
     });
     return result;
   },
-  scores: [MessageOrderCorrect, ToolsCalledCorrectly],
+  scores: [MessageOrderCorrect, ToolArgumentsCorrect],
 });

@@ -4,7 +4,6 @@ import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
-import { makeMongoDbReferences } from "../processors/makeMongoDbReferences";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 export const SEARCH_ALL_FALLBACK_TEXT = "{fallback_to_search}";

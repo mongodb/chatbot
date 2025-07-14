@@ -1,19 +1,17 @@
-import {
-  updateFrontMatter,
-  logger,
-  ConversationCustomData,
-} from "mongodb-rag-core";
+import { updateFrontMatter, ConversationCustomData } from "mongodb-rag-core";
 import { originCodes } from "mongodb-chatbot-server";
 import { z } from "zod";
 import { logRequest } from "../utils";
 
-const RawCustomDataSchema = z.object({
-  origin: z.string().describe("Origin of the request"),
-  originCode: z
-    .enum(originCodes)
-    .default("OTHER")
-    .describe("Code representing the origin of the request"),
-});
+const RawCustomDataSchema = z
+  .object({
+    origin: z.string().optional().describe("Origin of the request"),
+    originCode: z
+      .enum(originCodes)
+      .optional()
+      .describe("Code representing the origin of the request"),
+  })
+  .optional();
 
 export function formatUserMessageForGeneration(
   userMessageText: string,
@@ -32,20 +30,32 @@ export function formatUserMessageForGeneration(
 
   const frontMatter: Record<string, string> = {};
   const parsedCustomData = result.data;
-  try {
-    const url = new URL(parsedCustomData.origin);
-    if (
-      url.hostname === "mongodb.com" ||
-      url.hostname.endsWith(".mongodb.com")
-    ) {
-      frontMatter.pageUrl = parsedCustomData.origin;
-    }
-  } catch (e) {
-    logger.warn(
-      `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`
-    );
+  if (!parsedCustomData || Object.keys(parsedCustomData).length === 0) {
+    logRequest({
+      reqId,
+      message: "Found no customData to add to front matter.",
+      type: "error",
+    });
+    return userMessageText;
   }
 
+  if (parsedCustomData.origin) {
+    try {
+      const url = new URL(parsedCustomData.origin);
+      if (
+        url.hostname === "mongodb.com" ||
+        url.hostname.endsWith(".mongodb.com")
+      ) {
+        frontMatter.pageUrl = parsedCustomData.origin;
+      }
+    } catch (e) {
+      logRequest({
+        reqId,
+        message: `Origin ${parsedCustomData.origin} malformed. Not using as URL in front matter.`,
+        type: "error",
+      });
+    }
+  }
   if (parsedCustomData.originCode === "VSCODE") {
     frontMatter.client = "MongoDB VS Code plugin";
   } else if (parsedCustomData.originCode === "GEMINI_CODE_ASSIST") {

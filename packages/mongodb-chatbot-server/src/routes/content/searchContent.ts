@@ -77,13 +77,13 @@ export function makeSearchContentRoute({
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
       
       const customData = await getCustomData(req, res, addCustomData);
-      // TODO: Save to db??
       await persistSearchResultsToDatabase({
         query,
         results,
         dataSources,
         limit,
         searchResultsStore,
+        ...(customData !== undefined && { customData }),
       });
     } catch (error) {
       throw makeRequestError({
@@ -129,19 +129,21 @@ function mapDataSourcesToFilters(
   };
 }
 
-async function persistSearchResultsToDatabase(params: {
+async function persistSearchResultsToDatabase({ query, results, dataSources, limit, searchResultsStore, customData } : {
   query: string;
   results: FindContentResult;
   dataSources: SearchRecordDataSource[];
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
+  customData?: { [k:string]: unknown; };
 }) {
-  params.searchResultsStore.saveSearchResult({
-    query: params.query,
-    results: params.results.content,
-    dataSources: params.dataSources,
-    limit: params.limit,
+  searchResultsStore.saveSearchResult({
+    query,
+    results: results.content,
+    dataSources,
+    limit,
     createdAt: new Date(),
+    ...(customData !== undefined && { customData }),
   });
 }
 

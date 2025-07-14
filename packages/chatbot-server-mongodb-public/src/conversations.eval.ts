@@ -9,7 +9,11 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
+import { getVoyageAiEvalCasesFromBraintrust } from "./eval/getVoyageAiEvalCasesFromBraintrust";
 import { closeDbConnections, config } from "./config";
+import { strict as assert } from "assert";
+
+export const CONVERSATION_EVAL_PROJECT_NAME = "mongodb-chatbot-conversations";
 
 async function conversationEval() {
   // Get all the conversation eval cases from YAML
@@ -26,14 +30,23 @@ async function conversationEval() {
       "utf8"
     )
   );
+  const voyageCases = await getVoyageAiEvalCasesFromBraintrust({
+    projectName: CONVERSATION_EVAL_PROJECT_NAME,
+  });
+  assert(voyageCases.length > 0);
 
-  const conversationEvalCases = [...miscCases, ...faqCases, ...dotComCases];
+  const conversationEvalCases = [
+    // ...miscCases,
+    // ...faqCases,
+    // ...dotComCases,
+    ...voyageCases,
+  ];
 
   try {
     // Run the conversation eval
     const evalResult = await makeConversationEval({
-      projectName: "mongodb-chatbot-conversations",
-      experimentName: "mongodb-chatbot-latest",
+      projectName: CONVERSATION_EVAL_PROJECT_NAME,
+      experimentName: "mongodb-chatbot-voyage-ai",
       metadata: {
         description:
           "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",

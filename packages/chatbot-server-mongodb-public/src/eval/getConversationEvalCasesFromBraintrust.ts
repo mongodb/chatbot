@@ -5,13 +5,13 @@ import {
 import { initDataset } from "mongodb-rag-core/braintrust";
 import { z } from "zod";
 
-export interface GetVoyageAiEvalCasesFromBraintrustParams {
+export interface GetConversationEvalCasesFromBraintrustParams {
   projectName: string;
-  datasetName?: string;
+  datasetName: string;
 }
 
 // Schema of dataset stored in Braintrust.
-const VoyageAiDatasetEntrySchema = z.object({
+const ConversationDatasetEntrySchema = z.object({
   input: ConversationEvalCaseSchema.pick({
     name: true,
     messages: true,
@@ -29,19 +29,23 @@ const VoyageAiDatasetEntrySchema = z.object({
   created: z.string().optional(),
 });
 
-type VoyageAiDatasetEntryData = z.infer<typeof VoyageAiDatasetEntrySchema>;
+type ConversationDatasetEntryData = z.infer<
+  typeof ConversationDatasetEntrySchema
+>;
 
-export async function getVoyageAiEvalCasesFromBraintrust({
+export async function getConversationEvalCasesFromBraintrust({
   projectName,
-  datasetName = "voyage-ai",
-}: GetVoyageAiEvalCasesFromBraintrustParams): Promise<ConversationEvalCase[]> {
+  datasetName,
+}: GetConversationEvalCasesFromBraintrustParams): Promise<
+  ConversationEvalCase[]
+> {
   const dataset = await initDataset({
     project: projectName,
     dataset: datasetName,
   });
-  const voyageAiEvalCases = (await dataset.fetchedData())
-    .map((d) => VoyageAiDatasetEntrySchema.parse(d))
-    .map((evalData: VoyageAiDatasetEntryData) => {
+  const ConversationEvalCases = (await dataset.fetchedData())
+    .map((d) => ConversationDatasetEntrySchema.parse(d))
+    .map((evalData: ConversationDatasetEntryData) => {
       return {
         ...evalData.input,
         ...evalData.expected,
@@ -49,5 +53,5 @@ export async function getVoyageAiEvalCasesFromBraintrust({
         tags: evalData.metadata.tags,
       } satisfies ConversationEvalCase;
     });
-  return voyageAiEvalCases;
+  return ConversationEvalCases;
 }

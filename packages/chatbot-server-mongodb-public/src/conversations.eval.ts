@@ -9,7 +9,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
-import { getVoyageAiEvalCasesFromBraintrust } from "./eval/getVoyageAiEvalCasesFromBraintrust";
+import { getConversationEvalCasesFromBraintrust } from "./eval/getConversationEvalCasesFromBraintrust";
 import { closeDbConnections, config } from "./config";
 import { strict as assert } from "assert";
 
@@ -30,8 +30,9 @@ async function conversationEval() {
       "utf8"
     )
   );
-  const voyageCases = await getVoyageAiEvalCasesFromBraintrust({
+  const voyageCases = await getConversationEvalCasesFromBraintrust({
     projectName: CONVERSATION_EVAL_PROJECT_NAME,
+    datasetName: "voyage-ai",
   });
   assert(voyageCases.length > 0);
 

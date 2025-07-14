@@ -317,6 +317,7 @@ export const config: AppConfig = {
       classifierModel: languageModel,
     }),
     searchResultsStore,
+    middleware: [requireValidIpAddress(), requireRequestOrigin()],
   },
   conversationsRouterConfig: {
     middleware: [

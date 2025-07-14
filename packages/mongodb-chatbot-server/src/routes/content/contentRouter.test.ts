@@ -1,10 +1,11 @@
+import { Express } from "express";
 import request from "supertest";
-import { makeTestApp } from "../../test/testHelpers";
-import type { MakeContentRouterParams } from "./contentRouter";
 import type {
   FindContentFunc,
   MongoDbSearchResultsStore,
 } from "mongodb-rag-core";
+import type { MakeContentRouterParams, SearchContentMiddleware } from "./contentRouter";
+import { makeTestApp } from "../../test/testHelpers";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
 const mockSearchResultsStore: MongoDbSearchResultsStore = {
@@ -23,8 +24,7 @@ const findContentMock = jest.fn().mockResolvedValue({
   queryEmbedding: [],
 }) satisfies FindContentFunc;
 
-// Helper to build contentRouterConfig for the test app
-function makeContentRouterConfig(
+function makeMockContentRouterConfig(
   overrides: Partial<MakeContentRouterParams> = {}
 ) {
   return {
@@ -35,20 +35,57 @@ function makeContentRouterConfig(
 }
 
 describe("contentRouter", () => {
+  const ipAddress = "127.0.0.1";
   const searchEndpoint = "/api/v1/content/search";
 
   it("should call custom middleware if provided", async () => {
     const mockMiddleware = jest.fn((_req, _res, next) => next());
     const { app, origin } = await makeTestApp({
-      contentRouterConfig: makeContentRouterConfig({
+      contentRouterConfig: makeMockContentRouterConfig({
         middleware: [mockMiddleware],
       }),
     });
-    await request(app)
-      .post(searchEndpoint)
-      .set("req-id", "test-req-id")
-      .set("Origin", origin)
-      .send({ query: "mongodb" });
+    await createContentReq({ app, origin, query: 'mongodb'});
     expect(mockMiddleware).toHaveBeenCalled();
   });
+
+  test("should use route middleware customData", async () => {
+    const middleware1: SearchContentMiddleware = (_, res, next) => {
+      res.locals.customData.middleware1 = true;
+      next();
+    };
+    let called = false;
+    const middleware2: SearchContentMiddleware = (_, res, next) => {
+      expect(res.locals.customData.middleware1).toBe(true);
+      called = true;
+      next();
+    };
+    const { app, origin } = await makeTestApp({
+      contentRouterConfig: makeMockContentRouterConfig({
+        middleware: [middleware1, middleware2],
+      })
+    });
+    await createContentReq({ app, origin, query: 'What is aggregation?' });
+    expect(called).toBe(true);
+  });
+
+  /**
+    Helper function to create a new content request
+   */
+  async function createContentReq({
+    app,
+    origin,
+    query,
+  }: {
+    app: Express;
+    origin: string;
+    query: string;
+  }) {
+    const createContentRes = await request(app)
+      .post(searchEndpoint)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({ query });
+    return createContentRes;
+  }
 });

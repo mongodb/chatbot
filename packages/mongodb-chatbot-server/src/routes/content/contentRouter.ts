@@ -8,7 +8,6 @@ import { SearchContentRequest, makeSearchContentRoute } from "./searchContent";
 import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
 import { AddCustomDataFunc, addDefaultCustomData, RequestCustomData } from "../../processors";
 
-
 export type SearchContentCustomData = RequestCustomData;
 
 /**
@@ -77,6 +76,7 @@ export function makeContentRouter({
     makeSearchContentRoute({
       findContent,
       searchResultsStore,
+      addCustomData,
     })
   );
 

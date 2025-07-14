@@ -9,7 +9,7 @@ function makeMockFindContent(result: FindContentResult) {
 }
 
 // Helper to create a mock MongoDbSearchResultsStore
-function makeMockMongoDbSearchResultsStore() {
+export function makeMockMongoDbSearchResultsStore() {
   return {
     drop: jest.fn(),
     close: jest.fn(),

@@ -77,6 +77,7 @@ export function makeSearchContentRoute({
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
       
       const customData = await getCustomData(req, res, addCustomData);
+      // TODO: Save to db??
       await persistSearchResultsToDatabase({
         query,
         results,

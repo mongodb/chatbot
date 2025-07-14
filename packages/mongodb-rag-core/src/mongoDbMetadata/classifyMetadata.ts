@@ -135,6 +135,20 @@ ${mongoDbTopics
 function nullOnErr() {
   return null;
 }
+
+export const classifyMongoDbProgrammingLanguageAndProduct = wrapTraced(
+  async (model: LanguageModel, data: string, maxRetries?: number) => {
+    const [programmingLanguage, product] = await Promise.all([
+      classifyMongoDbProgrammingLanguage(model, data, maxRetries).catch(
+        nullOnErr
+      ),
+      classifyMongoDbProduct(model, data, maxRetries).catch(nullOnErr),
+    ]);
+    return { programmingLanguage, product };
+  },
+  { name: "classifyMongoDbProgrammingLanguageAndProduct" }
+);
+
 export const classifyMongoDbMetadata = wrapTraced(
   async (model: LanguageModel, data: string, maxRetries?: number) => {
     const [programmingLanguage, product, topic] = await Promise.all([

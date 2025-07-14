@@ -96,12 +96,9 @@ export interface GetSourcesMatchParams {
   Filters for querying the embedded content vector store.
  */
 export type QueryFilters = {
-  sourceName?: string;
-  version?: {
-    current?: boolean;
-    label?: string;
-  };
-  sourceType?: Page["sourceType"];
+  sourceName?: string | string[];
+  version?: { current?: boolean; label?: string | string[] };
+  sourceType?: Page["sourceType"] | string[];
 };
 
 /**

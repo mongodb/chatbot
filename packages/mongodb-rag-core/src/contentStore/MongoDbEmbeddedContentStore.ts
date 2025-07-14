@@ -294,10 +294,10 @@ export function makeMongoDbEmbeddedContentStore({
 }
 
 type MongoDbAtlasVectorSearchFilter = {
-  sourceName?: string;
-  "metadata.version.label"?: string;
+  sourceName?: string | { $in: string[] };
+  "metadata.version.label"?: string | { $in: string[] };
   "metadata.version.isCurrent"?: boolean | { $ne: boolean };
-  sourceType?: string;
+  sourceType?: string | { $in: string[] };
 };
 
 const handleFilters = (
@@ -305,15 +305,21 @@ const handleFilters = (
 ): MongoDbAtlasVectorSearchFilter => {
   const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {
-    vectorSearchFilter["sourceName"] = filter.sourceName;
+    vectorSearchFilter["sourceName"] = Array.isArray(filter.sourceName)
+      ? { $in: filter.sourceName }
+      : filter.sourceName;
   }
   if (filter.sourceType) {
-    vectorSearchFilter["sourceType"] = filter.sourceType;
+    vectorSearchFilter["sourceType"] = Array.isArray(filter.sourceType)
+      ? { $in: filter.sourceType }
+      : filter.sourceType;
   }
   // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
   const { current, label } = filter.version ?? {};
   if (label) {
-    vectorSearchFilter["metadata.version.label"] = label;
+    vectorSearchFilter["metadata.version.label"] = Array.isArray(label)
+      ? { $in: label }
+      : label;
   }
   // Return current embeddings if either:
   // 1. current=true was explicitly requested, or

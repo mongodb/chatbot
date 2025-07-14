@@ -202,6 +202,7 @@ const ToolArgumentsCorrect: EvalScorer<
   return {
     name: scoreName,
     score: totalToolArgsCorrect / totalToolArgs,
+    metadata: { totalToolArgsCorrect, totalToolArgs },
   };
 };
 

@@ -296,6 +296,7 @@ Eval("mongodb-chatbot-generate-with-tools", {
       latestMessageText: input.latestMessageText,
       reqId: "mock_req_id",
       shouldStream: false,
+      customData: input.customData,
     });
     return result;
   },

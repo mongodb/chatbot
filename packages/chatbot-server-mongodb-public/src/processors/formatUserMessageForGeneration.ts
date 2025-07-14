@@ -36,6 +36,7 @@ export function formatUserMessageForGeneration(
   const frontMatter: Record<string, string> = {};
   const parsedCustomData = result.data;
   if (!parsedCustomData) {
+    logger.warn("Found no customData to add to front matter.");
     return userMessageText;
   }
 

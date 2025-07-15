@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { OpenAI, APIError, type Response } from "mongodb-rag-core/openai";
+import { OpenAI, APIError } from "mongodb-rag-core/openai";
 import { AppConfig, DEFAULT_API_PREFIX, makeApp } from "../app";
 import {
   makeDefaultConfig,
@@ -112,12 +112,10 @@ export const makeCreateResponseRequest = (
   openAiClient: OpenAI,
   body?: Partial<CreateResponseRequest["body"]>
 ) => {
-  return openAiClient.responses
-    .create({
-      ...basicResponsesRequestBody,
-      ...body,
-    })
-    .withResponse();
+  return openAiClient.responses.create({
+    ...basicResponsesRequestBody,
+    ...body,
+  });
 };
 
 export const formatOpenAIStreamError = (
@@ -128,26 +126,6 @@ export const formatOpenAIStreamError = (
 ) => {
   const error = new APIError(httpStatus, { code, message }, message, headers);
   return makeOpenAIStreamError(error);
-};
-
-/**
- Helper function to collect a full response from a stream.
- */
-export const collectStreamingResponse = async (response: Response) => {
-  const content: Array<any> = [];
-
-  const responseText = await response.text();
-  if (!responseText) return content;
-
-  // For streamResponses() output: consecutive JSON objects without SSE formatting
-  // Split by "}{" and reconstruct as valid JSON array
-  const jsonObjects = responseText.split(/(?<=\})(?=\{)/);
-
-  for (const jsonStr of jsonObjects) {
-    content.push(JSON.parse(jsonStr));
-  }
-
-  return content;
 };
 
 /**

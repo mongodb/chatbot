@@ -8,7 +8,14 @@ export const QuizQuestionDataSchema = z.object({
     .describe("The title of the content associated with the assessment"),
   title: z.string().optional().describe("The title of the assessment"),
   topicType: z.enum(["quiz", "badge"]).optional(),
-  questionType: z.enum(["multipleCorrect", "singleCorrect"]).optional(),
+  questionType: z
+    .enum([
+      "multipleCorrect",
+      "singleCorrect",
+      "multipleChoice",
+      "booleanChoice",
+    ])
+    .optional(),
   answers: z.array(
     z.object({
       answer: z.string(),

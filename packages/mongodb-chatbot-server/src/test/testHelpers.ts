@@ -108,13 +108,18 @@ export const makeOpenAiClient = (origin: string, ipAddress: string) => {
   });
 };
 
-export const makeCreateResponseRequest = (
+export type Stream = Awaited<
+  ReturnType<typeof makeCreateResponseRequestStream>
+>;
+
+export const makeCreateResponseRequestStream = (
   openAiClient: OpenAI,
-  body?: Partial<CreateResponseRequest["body"]>
+  body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
 ) => {
   return openAiClient.responses.create({
     ...basicResponsesRequestBody,
     ...body,
+    stream: true,
   });
 };
 

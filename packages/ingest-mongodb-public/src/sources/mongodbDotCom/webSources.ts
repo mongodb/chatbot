@@ -417,10 +417,7 @@ export const initialWebSources: InitialWebSource[] = [
   },
   {
     name: "web-misc",
-    urls: [
-      "https://www.mongodb.com",
-      "https://www.mongodb.com/pricing",
-    ],
+    urls: ["https://www.mongodb.com", "https://www.mongodb.com/pricing"],
     sourceType: "marketing-misc",
     staticMetadata: {
       type: "Web",
@@ -440,12 +437,10 @@ export const initialWebSources: InitialWebSource[] = [
   },
   {
     name: "mongodb-university-web",
-    urls: [
-      "https://learn.mongodb.com",
-    ],
+    urls: ["https://learn.mongodb.com"],
     sourceType: "university-content",
     staticMetadata: {
-      tags: ["MongoDB University" ],
+      tags: ["MongoDB University"],
     },
   },
   {
@@ -460,6 +455,37 @@ export const initialWebSources: InitialWebSource[] = [
     sourceType: "university-content",
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
+    },
+  },
+  {
+    name: "voyageai-blog",
+    urls: [
+      "https://blog.voyageai.com/2025/05/20/voyage-3-5/",
+      "https://blog.voyageai.com/2025/05/06/accelerating-our-mission-building-the-best-embedding-models-for-all-developers/",
+      "https://blog.voyageai.com/2025/02/24/joining-mongodb/",
+      "https://blog.voyageai.com/2025/01/07/voyage-3-large/",
+      "https://blog.voyageai.com/2024/12/04/code-retrieval-eval/",
+      "https://blog.voyageai.com/2024/12/04/voyage-code-3/",
+      "https://blog.voyageai.com/2024/11/12/voyage-multimodal-3/",
+      "https://blog.voyageai.com/2024/10/03/series-a-funding/",
+      "https://blog.voyageai.com/2024/09/30/rerank-2/",
+      "https://blog.voyageai.com/2024/09/18/voyage-3/",
+      "https://blog.voyageai.com/2024/07/31/harvey-partners-with-voyage-to-build-custom-legal-embeddings/",
+      "https://blog.voyageai.com/2024/06/10/voyage-multilingual-2-multilingual-embedding-model/",
+      "https://blog.voyageai.com/2024/06/03/domain-specific-embeddings-finance-edition-voyage-finance-2/",
+      "https://blog.voyageai.com/2024/05/30/semantic-search-with-milvus-lite-and-voyage-ai/",
+      "https://blog.voyageai.com/2024/05/29/voyage-rerank-1-cutting-edge-general-purpose-and-multilingual-reranker/",
+      "https://blog.voyageai.com/2024/05/05/voyage-large-2-instruct-instruction-tuned-and-rank-1-on-mteb/",
+      "https://blog.voyageai.com/2024/04/15/domain-specific-embeddings-and-retrieval-legal-edition-voyage-law-2/",
+      "https://blog.voyageai.com/2024/03/15/boosting-your-search-and-rag-with-voyages-rerankers/",
+      "https://blog.voyageai.com/2024/01/23/voyage-code-2-elevate-your-code-retrieval/",
+      "https://blog.voyageai.com/2023/10/29/voyage-embeddings/",
+      "https://blog.voyageai.com/2023/10/29/a-case-study-of-chat-langchain/",
+    ],
+    sourceType: "marketing",
+    staticMetadata: {
+      productName: "Voyage AI",
+      type: "Blog",
     },
   },
 ];

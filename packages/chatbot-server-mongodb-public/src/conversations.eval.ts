@@ -9,7 +9,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
-import { getConversationEvalCasesFromBraintrust } from "../../mongodb-rag-core/src/eval/getConversationEvalCasesFromBraintrust";
+import { getConversationEvalCasesFromBraintrust } from "mongodb-rag-core/eval";
 import { closeDbConnections, config } from "./config";
 import { strict as assert } from "assert";
 

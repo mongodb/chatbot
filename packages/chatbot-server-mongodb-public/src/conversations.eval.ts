@@ -37,9 +37,9 @@ async function conversationEval() {
   assert(voyageCases.length > 0);
 
   const conversationEvalCases = [
-    // ...miscCases,
-    // ...faqCases,
-    // ...dotComCases,
+    ...miscCases,
+    ...faqCases,
+    ...dotComCases,
     ...voyageCases,
   ];
 
@@ -47,7 +47,7 @@ async function conversationEval() {
     // Run the conversation eval
     const evalResult = await makeConversationEval({
       projectName: CONVERSATION_EVAL_PROJECT_NAME,
-      experimentName: "mongodb-chatbot-voyage-ai",
+      experimentName: "mongodb-chatbot-latest",
       metadata: {
         description:
           "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",

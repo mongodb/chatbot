@@ -1,4 +1,4 @@
-import { initDataset } from "mongodb-rag-core/braintrust";
+import { getDatasetFromBraintrust } from "mongodb-rag-core/braintrust";
 import { QuizQuestionDataSchema } from "./QuizQuestionData";
 import { z } from "zod";
 import { QuizQuestionEvalCase } from "./QuizQuestionEval";
@@ -12,43 +12,43 @@ const QuizQuestionDatasetEntrySchema = z.object({
   input: QuizQuestionDataSchema,
 });
 
+type QuizQuestionDatasetEntry = z.infer<typeof QuizQuestionDatasetEntrySchema>;
+
 export async function getQuizQuestionEvalCasesFromBraintrust({
   projectName,
   datasetName,
 }: GetQuizQuestionEvalCasesFromBraintrustParams): Promise<
   QuizQuestionEvalCase[]
 > {
-  const dataset = await initDataset({
-    project: projectName,
-    dataset: datasetName,
+  const datasetRows = await getDatasetFromBraintrust<QuizQuestionDatasetEntry>({
+    projectName,
+    datasetName,
+    datasetRowSchema: QuizQuestionDatasetEntrySchema,
   });
-  const quizQuestionData = (await dataset.fetchedData())
-    .map((d) => QuizQuestionDatasetEntrySchema.parse(d).input)
-    .map((qq) => {
-      const tags: string[] = [];
-      if (qq.topicType) {
-        tags.push(qq.topicType);
-      }
-      if (qq.questionType) {
-        tags.push(qq.questionType);
-      }
-      if (qq.tags) {
-        tags.push(...qq.tags);
-      }
-      return {
-        input: {
-          questionText: qq.questionText,
-          answers: qq.answers,
-          questionType: qq.questionType,
-        },
-        tags: tags.length > 0 ? tags : undefined,
-        expected: quizQuestionToHelmAnswer(qq),
-        metadata: {
-          contentTitle: qq.contentTitle,
-          explanation: qq.explanation,
-          title: qq.title,
-        },
-      } satisfies QuizQuestionEvalCase;
-    });
-  return quizQuestionData;
+  return datasetRows.map(({ input: qq }) => {
+    const tags: string[] = [];
+    if (qq.topicType) {
+      tags.push(qq.topicType);
+    }
+    if (qq.questionType) {
+      tags.push(qq.questionType);
+    }
+    if (qq.tags) {
+      tags.push(...qq.tags);
+    }
+    return {
+      input: {
+        questionText: qq.questionText,
+        answers: qq.answers,
+        questionType: qq.questionType,
+      },
+      tags: tags.length > 0 ? tags : undefined,
+      expected: quizQuestionToHelmAnswer(qq),
+      metadata: {
+        contentTitle: qq.contentTitle,
+        explanation: qq.explanation,
+        title: qq.title,
+      },
+    } satisfies QuizQuestionEvalCase;
+  });
 }

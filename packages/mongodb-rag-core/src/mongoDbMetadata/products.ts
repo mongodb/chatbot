@@ -159,7 +159,7 @@ export const mongodbDrivers = [
 export const mongoDbProducts = [
   {
     id: "voyage_ai",
-    name: "Voyage AI Embeddings",
+    name: "Voyage AI",
     description:
       "Voyage AI embeddings models (prefixed with 'voyage-') and Voyage API.",
   },

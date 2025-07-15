@@ -1,8 +1,8 @@
 import {
   ConversationEvalCase,
   ConversationEvalCaseSchema,
-} from "mongodb-rag-core/eval";
-import { initDataset } from "mongodb-rag-core/braintrust";
+} from "./getConversationEvalCasesFromYaml";
+import { getDatasetFromBraintrust } from "../braintrust";
 import { z } from "zod";
 
 export interface GetConversationEvalCasesFromBraintrustParams {
@@ -39,19 +39,18 @@ export async function getConversationEvalCasesFromBraintrust({
 }: GetConversationEvalCasesFromBraintrustParams): Promise<
   ConversationEvalCase[]
 > {
-  const dataset = await initDataset({
-    project: projectName,
-    dataset: datasetName,
-  });
-  const ConversationEvalCases = (await dataset.fetchedData())
-    .map((d) => ConversationDatasetEntrySchema.parse(d))
-    .map((evalData: ConversationDatasetEntryData) => {
-      return {
-        ...evalData.input,
-        ...evalData.expected,
-        name: evalData.input.name ?? evalData.input.messages[0].content,
-        tags: evalData.metadata.tags,
-      } satisfies ConversationEvalCase;
+  const datasetRows =
+    await getDatasetFromBraintrust<ConversationDatasetEntryData>({
+      projectName,
+      datasetName,
+      datasetRowSchema: ConversationDatasetEntrySchema,
     });
-  return ConversationEvalCases;
+  return datasetRows.map((evalData: ConversationDatasetEntryData) => {
+    return {
+      ...evalData.input,
+      ...evalData.expected,
+      name: evalData.input?.name ?? evalData.input.messages[0].content,
+      tags: evalData.metadata.tags,
+    } satisfies ConversationEvalCase;
+  });
 }

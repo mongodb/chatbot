@@ -1,4 +1,5 @@
 import type { Server } from "http";
+import type { Response } from "mongodb-rag-core/openai";
 import {
   makeTestLocalServer,
   makeOpenAiClient,
@@ -33,18 +34,16 @@ describe("Responses Router", () => {
     jest.clearAllMocks();
   });
 
-  it("should return 200 given a valid request", async () => {
+  it("should return responses given a valid request", async () => {
     ({ server, ipAddress, origin } = await makeTestLocalServer());
 
     const openAiClient = makeOpenAiClient(origin, ipAddress);
     const { response } = await makeCreateResponseRequest(openAiClient);
-    const results = await collectStreamingResponse(response);
 
-    expect(response.status).toBe(200);
-    testResponses({ responses: results });
+    await expectValidResponses({ response });
   });
 
-  it("should return 500 when handling an unknown error", async () => {
+  it("should return an openai error when handling an unknown error", async () => {
     const errorMessage = "Unknown error";
 
     const appConfig = await makeDefaultConfig();
@@ -56,11 +55,9 @@ describe("Responses Router", () => {
 
     const openAiClient = makeOpenAiClient(origin, ipAddress);
     const { response } = await makeCreateResponseRequest(openAiClient);
-    const results = await collectStreamingResponse(response);
 
-    expect(response.status).toBe(200);
-    testErrorResponses({
-      responses: results,
+    await expectInvalidResponses({
+      response,
       error: formatOpenAIStreamError(
         500,
         ERROR_CODE.SERVER_ERROR,
@@ -85,11 +82,9 @@ describe("Responses Router", () => {
 
     const openAiClient = makeOpenAiClient(origin, ipAddress);
     const { response } = await makeCreateResponseRequest(openAiClient);
-    const results = await collectStreamingResponse(response);
 
-    expect(response.status).toBe(200);
-    testErrorResponses({
-      responses: results,
+    await expectInvalidResponses({
+      response,
       error: formatOpenAIStreamError(
         400,
         ERROR_CODE.INVALID_REQUEST_ERROR,
@@ -98,7 +93,7 @@ describe("Responses Router", () => {
     });
   });
 
-  it("Should apply responses router rate limit and return an openai error", async () => {
+  it("Should return an openai error when rate limit is hit", async () => {
     const rateLimitErrorMessage = "Error: rate limit exceeded!";
 
     const appConfig = await makeDefaultConfig();
@@ -114,7 +109,7 @@ describe("Responses Router", () => {
 
     const openAiClient = makeOpenAiClient(origin, ipAddress);
 
-    const { response: successRes } = await openAiClient.responses
+    const { response } = await openAiClient.responses
       .create(basicResponsesRequestBody)
       .withResponse();
 
@@ -132,20 +127,22 @@ describe("Responses Router", () => {
       });
     }
 
-    const successResults = await collectStreamingResponse(successRes);
-
-    expect(successRes.status).toBe(200);
-    testResponses({ responses: successResults });
+    await expectValidResponses({ response });
   });
 });
 
 // --- HELPERS ---
 
-interface TestResponsesParams {
-  responses: Array<any>;
+interface ExpectValidResponsesParams {
+  response: Response;
 }
 
-const testResponses = ({ responses }: TestResponsesParams) => {
+const expectValidResponses = async ({
+  response,
+}: ExpectValidResponsesParams) => {
+  const responses = await collectStreamingResponse(response);
+
+  expect(response.status).toBe(200);
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(3);
 
@@ -162,12 +159,18 @@ const testResponses = ({ responses }: TestResponsesParams) => {
   });
 };
 
-interface TestErrorResponsesParams {
-  responses: Array<any>;
+interface ExpectInvalidResponsesParams {
+  response: Response;
   error: OpenAIStreamErrorInput;
 }
 
-const testErrorResponses = ({ responses, error }: TestErrorResponsesParams) => {
+const expectInvalidResponses = async ({
+  response,
+  error,
+}: ExpectInvalidResponsesParams) => {
+  const responses = await collectStreamingResponse(response);
+
+  expect(response.status).toBe(200);
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(3);
 

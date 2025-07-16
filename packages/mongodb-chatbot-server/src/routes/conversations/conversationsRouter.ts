@@ -193,7 +193,7 @@ export function makeConversationsRouter({
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
   rateLimitConfig,
-  middleware = [requireValidIpAddress(), requireRequestOrigin()],
+  middleware = [requireValidIpAddress<ConversationsRouterLocals>(), requireRequestOrigin<ConversationsRouterLocals>()],
   createConversationCustomData = addDefaultCustomData,
   addMessageToConversationCustomData = addDefaultCustomData,
   addMessageToConversationUpdateTrace,

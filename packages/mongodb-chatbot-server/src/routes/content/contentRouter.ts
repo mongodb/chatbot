@@ -55,7 +55,7 @@ export function makeContentRouter({
   findContent,
   searchResultsStore,
   addCustomData = addDefaultCustomData,
-  middleware = [requireValidIpAddress(), requireRequestOrigin()],
+  middleware = [requireValidIpAddress<SearchContentRouterLocals>(), requireRequestOrigin<SearchContentRouterLocals>()],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
 

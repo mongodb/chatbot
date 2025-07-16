@@ -1,9 +1,33 @@
+type NormalizeUrlParams = {
+  url: string;
+  removeHash?: boolean;
+  removeQueryString?: boolean;
+};
+
+// Regex used to get just the "front part" of a URL
+const optionalRegex = {
+  REMOVE_HASH: /^[^#]+/,
+  REMOVE_QUERY: /^[^?]+/,
+  REMOVE_BOTH: /^[^?#]+/,
+};
+
 /**
   Utility function that normalizes a URL.
   Removes http/s protocol, www, trailing backslashes.
-  DOES NOT remove query string and anchor tag.
+  Also removes query string and hash fragment (optional behavior).
 */
-export function normalizeUrl(url: string): string {
+export function normalizeUrl({
+  url,
+  removeHash = true,
+  removeQueryString = true,
+}: NormalizeUrlParams): string {
+  if (removeHash && removeQueryString) {
+    url = (url.match(optionalRegex.REMOVE_BOTH) ?? [url])[0];
+  } else if (removeHash) {
+    url = (url.match(optionalRegex.REMOVE_HASH) ?? [url])[0];
+  } else if (removeQueryString) {
+    url = (url.match(optionalRegex.REMOVE_QUERY) ?? [url])[0];
+  }
   return url
     .replace(/^https?:\/\//i, "")
     .replace(/^www\./, "")

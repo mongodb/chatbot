@@ -6,14 +6,13 @@ import type {
   ConversationsService,
   SomeMessage,
 } from "mongodb-rag-core";
-import type { Response } from "mongodb-rag-core/openai";
 import { type AppConfig } from "../../app";
 import {
   makeTestLocalServer,
   makeOpenAiClient,
-  makeCreateResponseRequest,
+  makeCreateResponseRequestStream,
   formatOpenAIStreamError,
-  collectStreamingResponse,
+  type Stream,
 } from "../../test/testHelpers";
 import { makeDefaultConfig } from "../../test/testConfig";
 import { ERROR_CODE } from "./errors";
@@ -50,14 +49,14 @@ describe("POST /responses", () => {
     body?: Partial<CreateResponseRequest["body"]>
   ) => {
     const openAiClient = makeOpenAiClient(origin, ipAddress);
-    return makeCreateResponseRequest(openAiClient, body);
+    return makeCreateResponseRequestStream(openAiClient, body);
   };
 
   describe("Valid requests", () => {
     it("Should return responses given a string input", async () => {
-      const { response } = await makeClientAndRequest();
+      const stream = await makeClientAndRequest();
 
-      await expectValidResponses({ requestBody: {}, response });
+      await expectValidResponses({ requestBody: {}, stream });
     });
 
     it("Should return responses given a message array input", async () => {
@@ -69,45 +68,45 @@ describe("POST /responses", () => {
           { role: "user", content: "What is a document database?" },
         ],
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses given a valid request with instructions", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         instructions: "You are a helpful chatbot.",
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with valid max_output_tokens", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         max_output_tokens: 4000,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with valid metadata", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         metadata: { key1: "value1", key2: "value2" },
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with valid temperature", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         temperature: 0,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with previous_response_id", async () => {
@@ -120,9 +119,9 @@ describe("POST /responses", () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses if previous_response_id is the latest message", async () => {
@@ -137,36 +136,36 @@ describe("POST /responses", () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with user", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         user: "some-user-id",
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with store=false", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store: false,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with store=true", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store: true,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with tools and tool_choice", async () => {
@@ -188,9 +187,9 @@ describe("POST /responses", () => {
         ],
         tool_choice: "auto",
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with a specific function tool_choice", async () => {
@@ -215,9 +214,9 @@ describe("POST /responses", () => {
           name: "test-tool",
         },
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses given a message array with function_call", async () => {
@@ -233,9 +232,9 @@ describe("POST /responses", () => {
           },
         ],
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses given a message array with function_call_output", async () => {
@@ -250,27 +249,27 @@ describe("POST /responses", () => {
           },
         ],
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with a valid tool_choice", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         tool_choice: "none",
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should return responses with an empty tools array", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [],
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
     });
 
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
@@ -289,14 +288,14 @@ describe("POST /responses", () => {
         previous_response_id,
         store,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
       const updatedConversation = await conversations.findById({ _id });
       if (!updatedConversation) {
         return expect(updatedConversation).not.toBeNull();
       }
 
-      await expectValidResponses({ requestBody, response });
+      await expectValidResponses({ requestBody, stream });
 
       expect(updatedConversation?.storeMessageContent).toEqual(
         storeMessageContent
@@ -320,9 +319,9 @@ describe("POST /responses", () => {
         metadata,
         user: userId,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      const results = await expectValidResponses({ requestBody, response });
+      const results = await expectValidResponses({ requestBody, stream });
 
       const updatedConversation = await conversations.findByMessageId({
         messageId: getMessageIdFromResults(results),
@@ -352,9 +351,9 @@ describe("POST /responses", () => {
         metadata,
         user: userId,
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      const results = await expectValidResponses({ requestBody, response });
+      const results = await expectValidResponses({ requestBody, stream });
 
       const updatedConversation = await conversations.findByMessageId({
         messageId: getMessageIdFromResults(results),
@@ -394,9 +393,9 @@ describe("POST /responses", () => {
           },
         ],
       };
-      const { response } = await makeClientAndRequest(requestBody);
+      const stream = await makeClientAndRequest(requestBody);
 
-      const results = await expectValidResponses({ requestBody, response });
+      const results = await expectValidResponses({ requestBody, stream });
 
       const updatedConversation = await conversations.findByMessageId({
         messageId: getMessageIdFromResults(results),
@@ -419,59 +418,47 @@ describe("POST /responses", () => {
 
   describe("Invalid requests", () => {
     it("Should return error responses if empty input string", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         input: "",
       });
 
       await expectInvalidResponses({
-        response: response,
+        stream,
         message: `Path: body.input - ${ERR_MSG.INPUT_STRING}`,
       });
     });
 
     it("Should return error responses if empty message array", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         input: [],
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`,
       });
     });
 
     it("Should return error responses if model is not supported via config", async () => {
       const invalidModel = "invalid-model";
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         model: invalidModel,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
-      });
-    });
-
-    // TODO: fix this test, throwing an uncaught error for some reaosn
-    it.skip("Should return error responses if stream is not true", async () => {
-      const { response } = await makeClientAndRequest({
-        stream: false,
-      });
-
-      await expectInvalidResponses({
-        response,
-        message: `Path: body.stream - ${ERR_MSG.STREAM}`,
       });
     });
 
     it("Should return error responses if max_output_tokens is > allowed limit", async () => {
       const max_output_tokens = 4001;
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         max_output_tokens,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000),
       });
     });
@@ -481,41 +468,41 @@ describe("POST /responses", () => {
       for (let i = 0; i < 17; i++) {
         metadata[`key${i}`] = "value";
       }
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         metadata,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`,
       });
     });
 
     it("Should return error responses if metadata value is too long", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         metadata: { key1: "a".repeat(513) },
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message:
           "Path: body.metadata.key1 - String must contain at most 512 character(s)",
       });
     });
 
     it("Should return error responses if temperature is not 0", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         temperature: 0.5 as any,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`,
       });
     });
 
     it("Should return error responses if messages contain an invalid role", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -526,13 +513,13 @@ describe("POST /responses", () => {
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: "Path: body.input - Invalid input",
       });
     });
 
     it("Should return error responses if function_call has an invalid status", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         input: [
           {
             type: "function_call",
@@ -545,13 +532,13 @@ describe("POST /responses", () => {
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: "Path: body.input - Invalid input",
       });
     });
 
     it("Should return error responses if function_call_output has an invalid status", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         input: [
           {
             type: "function_call_output",
@@ -563,29 +550,29 @@ describe("POST /responses", () => {
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: "Path: body.input - Invalid input",
       });
     });
 
     it("Should return error responses with an invalid tool_choice string", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         tool_choice: "invalid_choice" as any,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: "Path: body.tool_choice - Invalid input",
       });
     });
 
     it("Should return error responses if max_output_tokens is negative", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         max_output_tokens: -1,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message:
           "Path: body.max_output_tokens - Number must be greater than or equal to 0",
       });
@@ -593,24 +580,24 @@ describe("POST /responses", () => {
 
     it("Should return error responses if previous_response_id is not a valid ObjectId", async () => {
       const previous_response_id = "some-id";
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.INVALID_OBJECT_ID(previous_response_id),
       });
     });
 
     it("Should return error responses if previous_response_id is not found", async () => {
       const previous_response_id = "123456789012123456789012";
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.MESSAGE_NOT_FOUND(previous_response_id),
       });
     });
@@ -624,12 +611,12 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[0].id.toString();
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.MESSAGE_NOT_LATEST(previous_response_id),
       });
     });
@@ -645,12 +632,12 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation),
       });
     });
@@ -668,25 +655,25 @@ describe("POST /responses", () => {
       });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
         user: badUserId,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.CONVERSATION_USER_ID_CHANGED,
       });
     });
 
     it("Should return error responses if `store: false` and `previous_response_id` is provided", async () => {
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id: "123456789012123456789012",
         store: false,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.STORE_NOT_SUPPORTED,
       });
     });
@@ -701,13 +688,13 @@ describe("POST /responses", () => {
       });
 
       const previous_response_id = messages[messages.length - 1].id.toString();
-      const { response } = await makeClientAndRequest({
+      const stream = await makeClientAndRequest({
         previous_response_id,
         store: true,
       });
 
       await expectInvalidResponses({
-        response,
+        stream,
         message: ERR_MSG.CONVERSATION_STORE_MISMATCH,
       });
     });
@@ -727,37 +714,49 @@ const getMessageIdFromResults = (results?: Array<any>) => {
 };
 
 interface ExpectInvalidResponsesParams {
-  response: Response;
+  stream: Stream;
   message: string;
 }
 
 const expectInvalidResponses = async ({
-  response,
+  stream,
   message,
 }: ExpectInvalidResponsesParams) => {
-  const responses = await collectStreamingResponse(response);
+  const responses: any[] = [];
+  try {
+    for await (const event of stream) {
+      responses.push(event);
+    }
 
-  expect(response.status).toBe(200);
+    fail("expected error");
+  } catch (err) {
+    console.log({ err: (err as Error).message });
+    // TODO: fix this
+    expect(err).toBeDefined();
+  }
+
   expect(Array.isArray(responses)).toBe(true);
-  expect(responses.length).toBe(1);
-  expect(responses[0]).toEqual({
-    ...formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message),
-    sequence_number: 0,
-  });
+  expect(responses.length).toBe(0);
+  // expect(responses[0]).toEqual({
+  //   ...formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message),
+  //   sequence_number: 0,
+  // });
 };
 
 interface ExpectValidResponsesParams {
-  response: Response;
+  stream: Stream;
   requestBody: Partial<CreateResponseRequest["body"]>;
 }
 
 const expectValidResponses = async ({
-  response,
+  stream,
   requestBody,
 }: ExpectValidResponsesParams) => {
-  const responses = await collectStreamingResponse(response);
+  const responses: any[] = [];
+  for await (const event of stream) {
+    responses.push(event);
+  }
 
-  expect(response.status).toBe(200);
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(3);
 

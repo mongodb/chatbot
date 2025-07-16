@@ -81,7 +81,10 @@ export type AddDefinedCustomDataFunc = (
   ...args: Parameters<AddCustomDataFunc>
 ) => Promise<Exclude<RequestCustomData, undefined>>;
 
-export const addDefaultCustomData: AddDefinedCustomDataFunc = async (req, res) => {
+export const addDefaultCustomData: AddDefinedCustomDataFunc = async (
+  req,
+  res
+) => {
   return {
     ...(await addIpToCustomData(req, res)),
     ...(await addOriginToCustomData(req, res)),

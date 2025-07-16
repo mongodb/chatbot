@@ -7,9 +7,9 @@ export type RequestCustomData = Record<string, unknown> | undefined;
   Has access to the Express.js request and response plus the values
   from the {@link Response.locals} object.
  */
-export type AddCustomDataFunc<Req extends Request = Request, Res extends Response = Response> = (
-  request: Req,
-  response: Res
+export type AddCustomDataFunc = (
+  request: Request,
+  response: Response
 ) => Promise<RequestCustomData>;
 
 const addIpToCustomData: AddCustomDataFunc = async (req) =>

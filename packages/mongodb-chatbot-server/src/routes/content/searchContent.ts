@@ -13,7 +13,7 @@ import {
 } from "mongodb-rag-core";
 import { z } from "zod";
 
-import { SomeExpressRequest } from "../../middleware";
+import { generateZodErrorMessage, SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
 import { SearchContentCustomData, SearchContentRouterLocals } from "./contentRouter";
 import { AddCustomDataFunc } from "../../processors";
@@ -64,10 +64,19 @@ export function makeSearchContentRoute({
   addCustomData
 }: MakeSearchContentRouteParams) {
   return async (
-    req: ExpressRequest<ParamsDictionary>,
+    req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
   ) => {
     try {
+      // --- INPUT VALIDATION ---
+      const { error } = SearchContentRequestBody.safeParse(req.body);
+      if (error) {
+        throw makeRequestError({
+          httpStatus: 500,
+          message: generateZodErrorMessage(error),
+        });
+      }
+
       const { query, dataSources, limit } = req.body;
       const results = await findContent({
         query,
@@ -75,7 +84,7 @@ export function makeSearchContentRoute({
         limit,
       });
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
-      
+
       const customData = await getCustomData(req, res, addCustomData);
       await persistSearchResultsToDatabase({
         query,
@@ -149,7 +158,7 @@ async function persistSearchResultsToDatabase({ query, results, dataSources, lim
 
 
 async function getCustomData(
-  req: ExpressRequest<ParamsDictionary>,
+  req: ExpressRequest,
   res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>,
   addCustomData?: AddCustomDataFunc
 ): Promise<SearchContentCustomData | undefined> {
@@ -159,9 +168,8 @@ async function getCustomData(
     }
   } catch (error) {
     throw makeRequestError({
-      message: "Error parsing custom data from the request",
-      stack: (error as Error).stack,
       httpStatus: 500,
+      message: "Error parsing custom data from the request",
     });
   }
 }

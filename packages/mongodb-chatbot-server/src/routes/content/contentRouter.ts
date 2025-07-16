@@ -6,7 +6,11 @@ import { ParsedQs } from "qs";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { SearchContentRequest, makeSearchContentRoute } from "./searchContent";
 import { requireRequestOrigin, requireValidIpAddress } from "../../middleware";
-import { AddCustomDataFunc, addDefaultCustomData, RequestCustomData } from "../../processors";
+import {
+  AddCustomDataFunc,
+  addDefaultCustomData,
+  RequestCustomData,
+} from "../../processors";
 
 export type SearchContentCustomData = RequestCustomData;
 
@@ -55,7 +59,10 @@ export function makeContentRouter({
   findContent,
   searchResultsStore,
   addCustomData = addDefaultCustomData,
-  middleware = [requireValidIpAddress<SearchContentRouterLocals>(), requireRequestOrigin<SearchContentRouterLocals>()],
+  middleware = [
+    requireValidIpAddress<SearchContentRouterLocals>(),
+    requireRequestOrigin<SearchContentRouterLocals>(),
+  ],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
 

@@ -4,7 +4,10 @@ import type {
   FindContentFunc,
   MongoDbSearchResultsStore,
 } from "mongodb-rag-core";
-import type { MakeContentRouterParams, SearchContentMiddleware } from "./contentRouter";
+import type {
+  MakeContentRouterParams,
+  SearchContentMiddleware,
+} from "./contentRouter";
 import { makeTestApp } from "../../test/testHelpers";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
@@ -45,7 +48,7 @@ describe("contentRouter", () => {
         middleware: [mockMiddleware],
       }),
     });
-    await createContentReq({ app, origin, query: 'mongodb'});
+    await createContentReq({ app, origin, query: "mongodb" });
     expect(mockMiddleware).toHaveBeenCalled();
   });
 
@@ -63,9 +66,9 @@ describe("contentRouter", () => {
     const { app, origin } = await makeTestApp({
       contentRouterConfig: makeMockContentRouterConfig({
         middleware: [middleware1, middleware2],
-      })
+      }),
     });
-    await createContentReq({ app, origin, query: 'What is aggregation?' });
+    await createContentReq({ app, origin, query: "What is aggregation?" });
     expect(called).toBe(true);
   });
 

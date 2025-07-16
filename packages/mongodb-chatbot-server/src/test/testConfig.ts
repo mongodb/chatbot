@@ -175,7 +175,6 @@ export const MONGO_CHAT_MODEL = "mongodb-chat-latest";
 
 export const basicResponsesRequestBody = {
   model: MONGO_CHAT_MODEL,
-  stream: true,
   input: "What is MongoDB?",
 };
 

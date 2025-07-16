@@ -1,4 +1,8 @@
-import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
+import {
+  VerifiedAnswer,
+  FindVerifiedAnswerFunc,
+  DataStreamer,
+} from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
   GenerateResponse,
@@ -17,7 +21,39 @@ export interface MakeVerifiedAnswerGenerateResponseParams {
   onVerifiedAnswerFound?: (verifiedAnswer: VerifiedAnswer) => VerifiedAnswer;
 
   onNoVerifiedAnswerFound: GenerateResponse;
+
+  stream?: {
+    onVerifiedAnswerFound: StreamFunction<{ verifiedAnswer: VerifiedAnswer }>;
+  };
 }
+
+export type StreamFunction<Params> = (
+  params: { dataStreamer: DataStreamer } & Params
+) => void;
+
+export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
+  {
+    onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      dataStreamer.streamData({
+        type: "metadata",
+        data: {
+          verifiedAnswer: {
+            _id: verifiedAnswer._id,
+            created: verifiedAnswer.created,
+            updated: verifiedAnswer.updated,
+          },
+        },
+      });
+      dataStreamer.streamData({
+        type: "delta",
+        data: verifiedAnswer.answer,
+      });
+      dataStreamer.streamData({
+        type: "references",
+        data: verifiedAnswer.references,
+      });
+    },
+  };
 
 /**
   Searches for verified answers for the user query.
@@ -28,6 +64,7 @@ export const makeVerifiedAnswerGenerateResponse = ({
   findVerifiedAnswer,
   onVerifiedAnswerFound,
   onNoVerifiedAnswerFound,
+  stream,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
     const { latestMessageText, shouldStream, dataStreamer } = args;
@@ -54,17 +91,11 @@ export const makeVerifiedAnswerGenerateResponse = ({
 
     if (shouldStream) {
       assert(dataStreamer, "Must have dataStreamer if shouldStream=true");
-      dataStreamer.streamData({
-        type: "metadata",
-        data: metadata,
-      });
-      dataStreamer.streamData({
-        type: "delta",
-        data: answer,
-      });
-      dataStreamer.streamData({
-        type: "references",
-        data: references,
+      assert(stream, "Must have stream if shouldStream=true");
+
+      stream.onVerifiedAnswerFound({
+        dataStreamer,
+        verifiedAnswer,
       });
     }
 

@@ -1,5 +1,5 @@
 import {
-  APIError,
+  type APIError,
   BadRequestError,
   InternalServerError,
   NotFoundError,
@@ -43,6 +43,13 @@ export enum ERROR_CODE {
 }
 
 // --- OPENAI ERROR WRAPPERS ---
+export type SomeOpenAIAPIError =
+  | APIError
+  | BadRequestError
+  | NotFoundError
+  | RateLimitError
+  | InternalServerError;
+
 interface MakeOpenAIErrorParams {
   error: Error;
   headers: Record<string, string>;
@@ -51,7 +58,7 @@ interface MakeOpenAIErrorParams {
 export const makeInternalServerError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Internal server error";
   const _error = {
     ...error,
@@ -65,7 +72,7 @@ export const makeInternalServerError = ({
 export const makeBadRequestError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Bad request";
   const _error = {
     ...error,
@@ -79,7 +86,7 @@ export const makeBadRequestError = ({
 export const makeNotFoundError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Not found";
   const _error = {
     ...error,
@@ -93,7 +100,7 @@ export const makeNotFoundError = ({
 export const makeRateLimitError = ({
   error,
   headers,
-}: MakeOpenAIErrorParams): APIError => {
+}: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Rate limit exceeded";
   const _error = {
     ...error,

@@ -1,131 +1,189 @@
-import type { Express } from "express";
-import request from "supertest";
-import { AppConfig } from "../../app";
-import { DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../test/testHelpers";
-import { makeTestAppConfig } from "../../test/testHelpers";
-import { basicResponsesRequestBody } from "../../test/testConfig";
-import { ERROR_TYPE, ERROR_CODE, makeBadRequestError } from "./errors";
-import { CreateResponseRequest } from "./createResponse";
+import type { Server } from "http";
+import {
+  makeTestLocalServer,
+  makeOpenAiClient,
+  makeCreateResponseRequestStream,
+  type Stream,
+} from "../../test/testHelpers";
+import { makeDefaultConfig } from "../../test/testConfig";
+import {
+  ERROR_CODE,
+  ERROR_TYPE,
+  makeBadRequestError,
+  type SomeOpenAIAPIError,
+} from "./errors";
 
 jest.setTimeout(60000);
 
 describe("Responses Router", () => {
-  const ipAddress = "127.0.0.1";
-  const responsesEndpoint = DEFAULT_API_PREFIX + "/responses";
-  let appConfig: AppConfig;
+  let server: Server;
+  let ipAddress: string;
+  let origin: string;
 
-  beforeAll(async () => {
-    ({ appConfig } = await makeTestAppConfig());
+  afterEach(async () => {
+    if (server?.listening) {
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve());
+      });
+    }
+    jest.clearAllMocks();
   });
 
-  const makeCreateResponseRequest = (
-    app: Express,
-    origin: string,
-    body?: Partial<CreateResponseRequest["body"]>
-  ) => {
-    return request(app)
-      .post(responsesEndpoint)
-      .set("X-Forwarded-For", ipAddress)
-      .set("Origin", origin)
-      .send({ ...basicResponsesRequestBody, ...body });
-  };
+  it("should return responses given a valid request", async () => {
+    ({ server, ipAddress, origin } = await makeTestLocalServer());
 
-  it("should return 200 given a valid request", async () => {
-    const { app, origin } = await makeTestApp(appConfig);
+    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const stream = await makeCreateResponseRequestStream(openAiClient);
 
-    const res = await makeCreateResponseRequest(app, origin);
-
-    expect(res.status).toBe(200);
+    await expectValidResponses({ stream });
   });
 
-  it("should return 500 when handling an unknown error", async () => {
+  it("should return an OpenAI error when handling an unknown error", async () => {
     const errorMessage = "Unknown error";
-    const { app, origin } = await makeTestApp({
-      ...appConfig,
-      responsesRouterConfig: {
-        ...appConfig.responsesRouterConfig,
-        createResponse: {
-          ...appConfig.responsesRouterConfig.createResponse,
-          generateResponse: () => Promise.reject(new Error(errorMessage)),
-        },
+
+    const appConfig = await makeDefaultConfig();
+    appConfig.responsesRouterConfig.createResponse.generateResponse = () => {
+      throw new Error(errorMessage);
+    };
+
+    ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
+
+    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const stream = await makeCreateResponseRequestStream(openAiClient);
+
+    await expectInvalidResponses({
+      stream,
+      error: {
+        type: ERROR_TYPE,
+        code: ERROR_CODE.SERVER_ERROR,
+        message: errorMessage,
       },
-    });
-
-    const res = await makeCreateResponseRequest(app, origin);
-
-    expect(res.status).toBe(500);
-    expect(res.body.type).toBe(ERROR_TYPE);
-    expect(res.body.code).toBe(ERROR_CODE.SERVER_ERROR);
-    expect(res.body.error).toEqual({
-      type: ERROR_TYPE,
-      code: ERROR_CODE.SERVER_ERROR,
-      message: errorMessage,
     });
   });
 
-  it("should return the openai error when service throws an openai error", async () => {
+  it("should return the OpenAI error when service throws an OpenAI error", async () => {
     const errorMessage = "Bad request input";
-    const { app, origin } = await makeTestApp({
-      ...appConfig,
-      responsesRouterConfig: {
-        ...appConfig.responsesRouterConfig,
-        createResponse: {
-          ...appConfig.responsesRouterConfig.createResponse,
-          generateResponse: () =>
-            Promise.reject(
-              makeBadRequestError({
-                error: new Error(errorMessage),
-                headers: {},
-              })
-            ),
-        },
+
+    const appConfig = await makeDefaultConfig();
+    appConfig.responsesRouterConfig.createResponse.generateResponse = () =>
+      Promise.reject(
+        makeBadRequestError({
+          error: new Error(errorMessage),
+          headers: {},
+        })
+      );
+
+    ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
+
+    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const stream = await makeCreateResponseRequestStream(openAiClient);
+
+    await expectInvalidResponses({
+      stream,
+      error: {
+        type: ERROR_TYPE,
+        code: ERROR_CODE.INVALID_REQUEST_ERROR,
+        message: errorMessage,
       },
-    });
-
-    const res = await makeCreateResponseRequest(app, origin);
-
-    expect(res.status).toBe(400);
-    expect(res.body.type).toBe(ERROR_TYPE);
-    expect(res.body.code).toBe(ERROR_CODE.INVALID_REQUEST_ERROR);
-    expect(res.body.error).toEqual({
-      type: ERROR_TYPE,
-      code: ERROR_CODE.INVALID_REQUEST_ERROR,
-      message: errorMessage,
     });
   });
 
-  test("Should apply responses router rate limit and return an openai error", async () => {
+  it("Should return an OpenAI error when rate limit is hit", async () => {
     const rateLimitErrorMessage = "Error: rate limit exceeded!";
 
-    const { app, origin } = await makeTestApp({
-      responsesRouterConfig: {
-        rateLimitConfig: {
-          routerRateLimitConfig: {
-            windowMs: 50000, // Big window to cover test duration
-            max: 1, // Only one request should be allowed
-            message: rateLimitErrorMessage,
-          },
-        },
+    const appConfig = await makeDefaultConfig();
+    appConfig.responsesRouterConfig.rateLimitConfig = {
+      routerRateLimitConfig: {
+        windowMs: 500000, // Big window to cover test duration
+        max: 1, // Only one request should be allowed
+        message: rateLimitErrorMessage,
       },
-    });
+    };
 
-    const successRes = await makeCreateResponseRequest(app, origin);
-    const rateLimitedRes = await makeCreateResponseRequest(app, origin);
+    ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));
 
-    expect(successRes.status).toBe(200);
-    expect(successRes.error).toBeFalsy();
+    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const stream = await makeCreateResponseRequestStream(openAiClient);
 
-    expect(rateLimitedRes.status).toBe(429);
-    expect(rateLimitedRes.error).toBeTruthy();
-    expect(rateLimitedRes.body.type).toBe(ERROR_TYPE);
-    expect(rateLimitedRes.body.code).toBe(ERROR_CODE.RATE_LIMIT_ERROR);
-    expect(rateLimitedRes.body.error).toEqual({
-      type: ERROR_TYPE,
-      code: ERROR_CODE.RATE_LIMIT_ERROR,
-      message: rateLimitErrorMessage,
-    });
-    expect(rateLimitedRes.body.headers["x-forwarded-for"]).toBe(ipAddress);
-    expect(rateLimitedRes.body.headers["origin"]).toBe(origin);
+    try {
+      await makeCreateResponseRequestStream(openAiClient);
+
+      fail("expected rate limit error");
+    } catch (error) {
+      expect((error as SomeOpenAIAPIError).status).toBe(429);
+      expect((error as SomeOpenAIAPIError).error).toEqual({
+        type: ERROR_TYPE,
+        code: ERROR_CODE.RATE_LIMIT_ERROR,
+        message: rateLimitErrorMessage,
+      });
+    }
+
+    await expectValidResponses({ stream });
   });
 });
+
+// --- HELPERS ---
+
+interface ExpectValidResponsesParams {
+  stream: Stream;
+}
+
+const expectValidResponses = async ({ stream }: ExpectValidResponsesParams) => {
+  const responses: any[] = [];
+  for await (const event of stream) {
+    responses.push(event);
+  }
+
+  expect(Array.isArray(responses)).toBe(true);
+  expect(responses.length).toBe(3);
+
+  expect(responses[0].type).toBe("response.created");
+  expect(responses[1].type).toBe("response.in_progress");
+  expect(responses[2].type).toBe("response.completed");
+
+  responses.forEach(({ sequence_number, response }, index) => {
+    expect(sequence_number).toBe(index);
+    expect(typeof response.id).toBe("string");
+    expect(response.object).toBe("response");
+    expect(response.error).toBeNull();
+    expect(response.model).toBe("mongodb-chat-latest");
+  });
+};
+
+interface ExpectInvalidResponsesParams {
+  stream: Stream;
+  error: {
+    type: string;
+    code: string;
+    message: string;
+  };
+}
+
+const expectInvalidResponses = async ({
+  stream,
+  error,
+}: ExpectInvalidResponsesParams) => {
+  const responses: any[] = [];
+  try {
+    for await (const event of stream) {
+      responses.push(event);
+    }
+
+    fail("expected error");
+  } catch (err: any) {
+    expect(err.type).toBe(error.type);
+    expect(err.code).toBe(error.code);
+    expect(err.error.type).toBe(error.type);
+    expect(err.error.code).toBe(error.code);
+    expect(err.error.message).toBe(error.message);
+  }
+
+  expect(Array.isArray(responses)).toBe(true);
+  expect(responses.length).toBe(2);
+
+  expect(responses[0].type).toBe("response.created");
+  expect(responses[1].type).toBe("response.in_progress");
+
+  expect(responses[0].sequence_number).toBe(0);
+  expect(responses[1].sequence_number).toBe(1);
+};

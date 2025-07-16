@@ -4,11 +4,11 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import { ObjectId } from "mongodb";
-import type { APIError } from "mongodb-rag-core/openai";
-import type {
-  ConversationsService,
-  Conversation,
-  SomeMessage,
+import type { OpenAI } from "mongodb-rag-core/openai";
+import {
+  type ConversationsService,
+  type Conversation,
+  makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId } from "../../utils";
@@ -19,7 +19,21 @@ import {
   generateZodErrorMessage,
   sendErrorResponse,
   ERROR_TYPE,
+  type SomeOpenAIAPIError,
 } from "./errors";
+
+type StreamCreatedMessage = Omit<
+  OpenAI.Responses.ResponseCreatedEvent,
+  "sequence_number"
+>;
+type StreamInProgressMessage = Omit<
+  OpenAI.Responses.ResponseInProgressEvent,
+  "sequence_number"
+>;
+type StreamCompletedMessage = Omit<
+  OpenAI.Responses.ResponseCompletedEvent,
+  "sequence_number"
+>;
 
 export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
@@ -64,10 +78,7 @@ const CreateResponseRequestBodySchema = z.object({
           // function tool call
           z.object({
             type: z.literal("function_call"),
-            id: z
-              .string()
-              .optional()
-              .describe("Unique ID of the function tool call"),
+            call_id: z.string().describe("Unique ID of the function tool call"),
             name: z.string().describe("Name of the function tool to call"),
             arguments: z
               .string()
@@ -123,11 +134,11 @@ const CreateResponseRequestBodySchema = z.object({
     .default(0),
   tool_choice: z
     .union([
-      z.enum(["none", "only", "auto"]),
+      z.enum(["none", "auto", "required"]),
       z
         .object({
-          name: z.string(),
           type: z.literal("function"),
+          name: z.string(),
         })
         .describe("Function tool choice"),
     ])
@@ -137,6 +148,8 @@ const CreateResponseRequestBodySchema = z.object({
   tools: z
     .array(
       z.object({
+        type: z.literal("function"),
+        strict: z.boolean(),
         name: z.string(),
         description: z.string().optional(),
         parameters: z
@@ -184,8 +197,11 @@ export function makeCreateResponseRoute({
   ) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
+    const dataStreamer = makeDataStreamer();
 
     try {
+      dataStreamer.connect(res);
+
       // --- INPUT VALIDATION ---
       const { error, data } = CreateResponseRequestSchema.safeParse(req);
       if (error) {
@@ -266,6 +282,31 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // generate responseId to use in conversation DB AND Responses API stream
+      const responseId = new ObjectId();
+      const baseResponse = makeBaseResponseData({
+        responseId,
+        data: data.body,
+      });
+
+      const createdMessage: StreamCreatedMessage = {
+        type: "response.created",
+        response: {
+          ...baseResponse,
+          created_at: Date.now(),
+        },
+      };
+      dataStreamer.streamResponses(createdMessage);
+
+      const inProgressMessage: StreamInProgressMessage = {
+        type: "response.in_progress",
+        response: {
+          ...baseResponse,
+          created_at: Date.now(),
+        },
+      };
+      dataStreamer.streamResponses(inProgressMessage);
+
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);
 
@@ -277,20 +318,39 @@ export function makeCreateResponseRoute({
         metadata,
         input,
         messages,
+        responseId,
       });
 
-      return res.status(200).send({ status: "ok" });
+      const completedMessage: StreamCompletedMessage = {
+        type: "response.completed",
+        response: {
+          ...baseResponse,
+          created_at: Date.now(),
+        },
+      };
+      dataStreamer.streamResponses(completedMessage);
     } catch (error) {
       const standardError =
-        (error as APIError)?.type === ERROR_TYPE
-          ? (error as APIError)
+        (error as SomeOpenAIAPIError)?.type === ERROR_TYPE
+          ? (error as SomeOpenAIAPIError)
           : makeInternalServerError({ error: error as Error, headers });
 
-      sendErrorResponse({
-        res,
-        reqId,
-        error: standardError,
-      });
+      if (dataStreamer.connected) {
+        dataStreamer.streamResponses({
+          ...standardError,
+          type: ERROR_TYPE,
+        });
+      } else {
+        sendErrorResponse({
+          res,
+          reqId,
+          error: standardError,
+        });
+      }
+    } finally {
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
     }
   };
 }
@@ -385,13 +445,18 @@ const hasConversationUserIdChanged = (
   return conversation.userId !== userId;
 };
 
+type MessagesParam = Parameters<
+  ConversationsService["addManyConversationMessages"]
+>[0]["messages"];
+
 interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
   store: boolean;
   metadata?: Record<string, string>;
   input: CreateResponseRequest["body"]["input"];
-  messages: Array<SomeMessage>;
+  messages: MessagesParam;
+  responseId: ObjectId;
 }
 
 const saveMessagesToConversation = async ({
@@ -401,13 +466,19 @@ const saveMessagesToConversation = async ({
   metadata,
   input,
   messages,
+  responseId,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
     ...convertInputToDBMessages(input, store, metadata),
     ...messages.map((message) => formatMessage(message, store, metadata)),
   ];
+  // handle setting the response id for the last message
+  // this corresponds to the response id in the response stream
+  if (messagesToAdd.length > 0) {
+    messagesToAdd[messagesToAdd.length - 1].id = responseId;
+  }
 
-  await conversations.addManyConversationMessages({
+  return await conversations.addManyConversationMessages({
     conversationId: conversation._id,
     messages: messagesToAdd,
   });
@@ -417,7 +488,7 @@ const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
   metadata?: Record<string, string>
-): Array<SomeMessage> => {
+): MessagesParam => {
   if (typeof input === "string") {
     return [formatMessage({ role: "user", content: input }, store, metadata)];
   }
@@ -433,14 +504,52 @@ const convertInputToDBMessages = (
 };
 
 const formatMessage = (
-  message: SomeMessage,
+  message: MessagesParam[number],
   store: boolean,
   metadata?: Record<string, string>
-): SomeMessage => {
+): MessagesParam[number] => {
+  // store a placeholder string if we're not storing message data
+  const content = store ? message.content : "";
+  // handle cleaning custom data if we're not storing message data
+  const customData = {
+    ...message.customData,
+    query: store ? message.customData?.query : "",
+    reason: store ? message.customData?.reason : "",
+  };
+
   return {
     ...message,
-    // store a placeholder string if we're not storing message data
-    content: store ? message.content : "",
+    content,
     metadata,
+    customData,
+  };
+};
+
+interface BaseResponseData {
+  responseId: ObjectId;
+  data: CreateResponseRequest["body"];
+}
+
+const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
+  return {
+    id: responseId.toString(),
+    object: "response" as const,
+    error: null,
+    incomplete_details: null,
+    instructions: data.instructions ?? null,
+    max_output_tokens: data.max_output_tokens ?? null,
+    model: data.model,
+    output_text: "",
+    output: [],
+    parallel_tool_calls: true,
+    previous_response_id: data.previous_response_id ?? null,
+    store: data.store,
+    temperature: data.temperature,
+    stream: data.stream,
+    tool_choice: data.tool_choice,
+    tools: data.tools ?? [],
+    top_p: null,
+    user: data.user,
+    metadata: data.metadata ?? null,
   };
 };

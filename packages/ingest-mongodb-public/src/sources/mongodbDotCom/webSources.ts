@@ -437,7 +437,10 @@ export const initialWebSources: InitialWebSource[] = [
   },
   {
     name: "mongodb-university-web",
-    urls: ["https://learn.mongodb.com"],
+    urls: [
+      "https://learn.mongodb.com",
+      "https://learn.mongodb.com/pages/instructor-led-training-schedule",
+    ],
     sourceType: "university-content",
     staticMetadata: {
       tags: ["MongoDB University"],

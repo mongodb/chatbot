@@ -134,7 +134,7 @@ const CreateResponseRequestBodySchema = z.object({
     .default(0),
   tool_choice: z
     .union([
-      z.enum(["none", "auto"]),
+      z.enum(["none", "auto", "required"]),
       z
         .object({
           type: z.literal("function"),

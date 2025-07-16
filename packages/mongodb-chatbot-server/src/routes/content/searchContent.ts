@@ -2,7 +2,6 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
 import {
   FindContentFunc,
   FindContentResult,
@@ -15,8 +14,12 @@ import { z } from "zod";
 
 import { generateZodErrorMessage, SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
-import { SearchContentCustomData, SearchContentRouterLocals } from "./contentRouter";
+import {
+  SearchContentCustomData,
+  SearchContentRouterLocals,
+} from "./contentRouter";
 import { AddCustomDataFunc } from "../../processors";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -61,8 +64,9 @@ interface SearchContentResponseBody {
 export function makeSearchContentRoute({
   findContent,
   searchResultsStore,
-  addCustomData
+  addCustomData,
 }: MakeSearchContentRouteParams) {
+  const tracedFindContent = wrapTraced(findContent, { name: "searchContent" });
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
@@ -78,7 +82,7 @@ export function makeSearchContentRoute({
       }
 
       const { query, dataSources, limit } = req.body;
-      const results = await findContent({
+      const results = await tracedFindContent({
         query,
         filters: mapDataSourcesToFilters(dataSources),
         limit,
@@ -138,13 +142,20 @@ function mapDataSourcesToFilters(
   };
 }
 
-async function persistSearchResultsToDatabase({ query, results, dataSources, limit, searchResultsStore, customData } : {
+async function persistSearchResultsToDatabase({
+  query,
+  results,
+  dataSources,
+  limit,
+  searchResultsStore,
+  customData,
+}: {
   query: string;
   results: FindContentResult;
   dataSources: SearchRecordDataSource[];
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
-  customData?: { [k:string]: unknown; };
+  customData?: { [k: string]: unknown };
 }) {
   searchResultsStore.saveSearchResult({
     query,
@@ -155,7 +166,6 @@ async function persistSearchResultsToDatabase({ query, results, dataSources, lim
     ...(customData !== undefined && { customData }),
   });
 }
-
 
 async function getCustomData(
   req: ExpressRequest,

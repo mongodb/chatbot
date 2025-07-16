@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { OpenAI, APIError } from "mongodb-rag-core/openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { AppConfig, DEFAULT_API_PREFIX, makeApp } from "../app";
 import {
   makeDefaultConfig,
@@ -8,7 +8,6 @@ import {
   basicResponsesRequestBody,
 } from "./testConfig";
 import type { CreateResponseRequest } from "../routes/responses/createResponse";
-import { type ERROR_CODE } from "../routes/responses/errors";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -118,15 +117,6 @@ export const makeCreateResponseRequestStream = (
     ...body,
     stream: true,
   });
-};
-
-export const formatOpenAIStreamError = (
-  httpStatus: number,
-  code: ERROR_CODE,
-  message: string,
-  headers?: Record<string, string>
-) => {
-  return new APIError(httpStatus, { code, message }, message, headers);
 };
 
 /**

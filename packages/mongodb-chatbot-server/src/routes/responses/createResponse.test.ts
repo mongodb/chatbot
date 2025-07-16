@@ -11,12 +11,11 @@ import {
   makeTestLocalServer,
   makeOpenAiClient,
   makeCreateResponseRequestStream,
-  formatOpenAIStreamError,
   type Stream,
 } from "../../test/testHelpers";
 import { makeDefaultConfig } from "../../test/testConfig";
-import { ERROR_CODE } from "./errors";
 import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
+import { ERROR_CODE, ERROR_TYPE } from "./errors";
 
 jest.setTimeout(100000);
 
@@ -729,18 +728,16 @@ const expectInvalidResponses = async ({
     }
 
     fail("expected error");
-  } catch (err) {
-    console.log({ err: (err as Error).message });
-    // TODO: fix this
-    expect(err).toBeDefined();
+  } catch (err: any) {
+    expect(err.type).toBe(ERROR_TYPE);
+    expect(err.code).toBe(ERROR_CODE.INVALID_REQUEST_ERROR);
+    expect(err.error.type).toBe(ERROR_TYPE);
+    expect(err.error.code).toBe(ERROR_CODE.INVALID_REQUEST_ERROR);
+    expect(err.error.message).toBe(message);
   }
 
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBe(0);
-  // expect(responses[0]).toEqual({
-  //   ...formatOpenAIStreamError(400, ERROR_CODE.INVALID_REQUEST_ERROR, message),
-  //   sequence_number: 0,
-  // });
 };
 
 interface ExpectValidResponsesParams {

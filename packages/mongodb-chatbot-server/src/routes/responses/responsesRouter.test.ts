@@ -3,7 +3,6 @@ import {
   makeTestLocalServer,
   makeOpenAiClient,
   makeCreateResponseRequestStream,
-  formatOpenAIStreamError,
   type Stream,
 } from "../../test/testHelpers";
 import { makeDefaultConfig } from "../../test/testConfig";
@@ -12,7 +11,6 @@ import {
   ERROR_TYPE,
   makeBadRequestError,
   type SomeOpenAIAPIError,
-  type OpenAIStreamErrorInput,
 } from "./errors";
 
 jest.setTimeout(60000);
@@ -55,11 +53,11 @@ describe("Responses Router", () => {
 
     await expectInvalidResponses({
       stream,
-      error: formatOpenAIStreamError(
-        500,
-        ERROR_CODE.SERVER_ERROR,
-        errorMessage
-      ),
+      error: {
+        type: ERROR_TYPE,
+        code: ERROR_CODE.SERVER_ERROR,
+        message: errorMessage,
+      },
     });
   });
 
@@ -82,11 +80,11 @@ describe("Responses Router", () => {
 
     await expectInvalidResponses({
       stream,
-      error: formatOpenAIStreamError(
-        400,
-        ERROR_CODE.INVALID_REQUEST_ERROR,
-        errorMessage
-      ),
+      error: {
+        type: ERROR_TYPE,
+        code: ERROR_CODE.INVALID_REQUEST_ERROR,
+        message: errorMessage,
+      },
     });
   });
 
@@ -154,7 +152,11 @@ const expectValidResponses = async ({ stream }: ExpectValidResponsesParams) => {
 
 interface ExpectInvalidResponsesParams {
   stream: Stream;
-  error: OpenAIStreamErrorInput;
+  error: {
+    type: string;
+    code: string;
+    message: string;
+  };
 }
 
 const expectInvalidResponses = async ({
@@ -168,10 +170,12 @@ const expectInvalidResponses = async ({
     }
 
     fail("expected error");
-  } catch (err) {
-    // TODO: fix this
-    console.log({ error: error.code });
-    expect(err).toBeDefined();
+  } catch (err: any) {
+    expect(err.type).toBe(error.type);
+    expect(err.code).toBe(error.code);
+    expect(err.error.type).toBe(error.type);
+    expect(err.error.code).toBe(error.code);
+    expect(err.error.message).toBe(error.message);
   }
 
   expect(Array.isArray(responses)).toBe(true);

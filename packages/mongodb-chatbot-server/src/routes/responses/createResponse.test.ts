@@ -114,7 +114,7 @@ describe("POST /responses", () => {
       ];
       const { messages } = await conversations.create({ initialMessages });
 
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
       };
@@ -131,7 +131,7 @@ describe("POST /responses", () => {
       ];
       const { messages } = await conversations.create({ initialMessages });
 
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
       };
@@ -282,7 +282,7 @@ describe("POST /responses", () => {
       });
 
       const store = true;
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
         store,
@@ -630,7 +630,7 @@ describe("POST /responses", () => {
       });
       const { messages } = await conversations.create({ initialMessages });
 
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const stream = await makeClientAndRequest({
         previous_response_id,
       });
@@ -653,7 +653,7 @@ describe("POST /responses", () => {
         initialMessages,
       });
 
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const stream = await makeClientAndRequest({
         previous_response_id,
         user: badUserId,
@@ -686,7 +686,7 @@ describe("POST /responses", () => {
         initialMessages,
       });
 
-      const previous_response_id = messages[messages.length - 1].id.toString();
+      const previous_response_id = messages.at(-1)?.id.toString();
       const stream = await makeClientAndRequest({
         previous_response_id,
         store: true,
@@ -705,7 +705,7 @@ describe("POST /responses", () => {
 const getMessageIdFromResults = (results?: Array<any>) => {
   if (!results?.length) throw new Error("No results found");
 
-  const messageId = results[results.length - 1]?.response?.id;
+  const messageId = results.at(-1)?.response?.id;
 
   if (typeof messageId !== "string") throw new Error("Message ID not found");
 

@@ -38,7 +38,7 @@ describe("Responses Router", () => {
     await expectValidResponses({ stream });
   });
 
-  it("should return an openai error when handling an unknown error", async () => {
+  it("should return an OpenAI error when handling an unknown error", async () => {
     const errorMessage = "Unknown error";
 
     const appConfig = await makeDefaultConfig();
@@ -61,7 +61,7 @@ describe("Responses Router", () => {
     });
   });
 
-  it("should return the openai error when service throws an openai error", async () => {
+  it("should return the OpenAI error when service throws an OpenAI error", async () => {
     const errorMessage = "Bad request input";
 
     const appConfig = await makeDefaultConfig();
@@ -88,7 +88,7 @@ describe("Responses Router", () => {
     });
   });
 
-  it("Should return an openai error when rate limit is hit", async () => {
+  it("Should return an OpenAI error when rate limit is hit", async () => {
     const rateLimitErrorMessage = "Error: rate limit exceeded!";
 
     const appConfig = await makeDefaultConfig();

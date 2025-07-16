@@ -282,7 +282,7 @@ export function makeCreateResponseRoute({
         });
       }
 
-      // generate response id to use in conversation DB AND openai stream
+      // generate responseId to use in conversation DB AND Responses API stream
       const responseId = new ObjectId();
       const baseResponse = makeBaseResponseData({
         responseId,

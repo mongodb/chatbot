@@ -58,7 +58,7 @@ interface StreamParams {
 
 type StreamEvent = { type: string; data: unknown };
 
-type ResponsesStreamParams =
+export type ResponsesStreamParams =
   | Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
   | Omit<OpenAI.Responses.ResponseErrorEvent, "sequence_number">;
 

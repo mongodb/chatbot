@@ -4,13 +4,16 @@ import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 import { Response } from "express";
 
-let res: ReturnType<typeof createResponse> & Response;
-const dataStreamer = makeDataStreamer();
 describe("Data Streaming", () => {
+  let dataStreamer: DataStreamer;
+  let res: ReturnType<typeof createResponse> & Response;
+
+  beforeAll(() => {
+    dataStreamer = makeDataStreamer();
+  });
+
   beforeEach(() => {
-    res = createResponse({
-      eventEmitter: EventEmitter,
-    });
+    res = createResponse({ eventEmitter: EventEmitter });
     dataStreamer.connect(res);
   });
 

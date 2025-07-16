@@ -85,7 +85,7 @@ describe("SnootyDataSource", () => {
         body: firstPageText,
       });
       for (const page of pages) {
-        expect(page.url).toBe(normalizeUrl(page.url));
+        expect(page.url).toBe(normalizeUrl({ url: page.url }));
       }
     });
     it("should skip inactive branches", async () => {

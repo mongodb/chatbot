@@ -9,8 +9,8 @@ export function fuzzyLinkMatch(expected: string, actual: string) {
     return cleanActualPath.endsWith(cleanExpectedPath);
   } else {
     // compare normalized full URLs
-    const normalizedActual = normalizeUrl(actual);
-    const normalizedExpected = normalizeUrl(expected);
+    const normalizedActual = normalizeUrl({ url: actual });
+    const normalizedExpected = normalizeUrl({ url: expected });
     return normalizedActual === normalizedExpected;
   }
 }

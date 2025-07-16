@@ -35,7 +35,7 @@ export function makeWebDataSource({
           });
           if (content) {
             pages.push({
-              url: normalizeUrl(url),
+              url: normalizeUrl({ url }),
               format: "md",
               sourceName: name,
               sourceType,

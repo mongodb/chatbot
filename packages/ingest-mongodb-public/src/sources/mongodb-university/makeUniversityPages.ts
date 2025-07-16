@@ -195,9 +195,9 @@ function makeUniversityPageUrl({
   sectionSlug: string;
   lessonSlug: string;
 }) {
-  return normalizeUrl(
-    `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`
-  );
+  return normalizeUrl({
+    url: `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`,
+  });
 }
 
 /**
@@ -205,7 +205,9 @@ function makeUniversityPageUrl({
   This is used for Learning Paths and Courses that have nested content.
  */
 function makeUniversityHighLevelCourseUrl(catalogItemSlug: string) {
-  return normalizeUrl(`${UNI_BASE_URL}/learning-paths/${catalogItemSlug}`);
+  return normalizeUrl({
+    url: `${UNI_BASE_URL}/learning-paths/${catalogItemSlug}`,
+  });
 }
 
 /**

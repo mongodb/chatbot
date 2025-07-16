@@ -133,12 +133,12 @@ export function makeDevCenterPageBody({
 }
 
 function makeDevCenterPageUrl(calculated_slug: string, baseUrl: string) {
-  return normalizeUrl(
-    /^https?:\/\//.test(calculated_slug)
+  return normalizeUrl({
+    url: /^https?:\/\//.test(calculated_slug)
       ? calculated_slug
       : new URL(
           calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
           baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
-        ).toString()
-  );
+        ).toString(),
+  });
 }

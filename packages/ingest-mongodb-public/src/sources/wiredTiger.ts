@@ -27,7 +27,7 @@ const extractMetadata = (domDoc: Document) => {
 };
 const htmlParserOptions: Omit<HandleHtmlPageFuncOptions, "sourceName"> = {
   pathToPageUrl: (pathInRepo: string) =>
-    normalizeUrl(`https://source.wiredtiger.com${pathInRepo}`),
+    normalizeUrl({ url: `https://source.wiredtiger.com${pathInRepo}` }),
   removeElements,
   extractTitle,
   extractMetadata,

@@ -80,14 +80,14 @@ async function main({ urlListFilePath }: { urlListFilePath: string }) {
   });
   const urlsNotIngested = await pageStore.getMissingPagesByUrl({
     expectedUrls: urlList,
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   // look for urls that redirect
   const { noRedirect, redirectTo } = await getUrlRedirects(urlsNotIngested);
   // check if the pages we are redirecting to are in the pages collection again
   const urlsNotIngestedOfRedirectTo = await pageStore.getMissingPagesByUrl({
     expectedUrls: Array.from(redirectTo),
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   // the urls we need to ingest are the ones that don't redirect (no-redirect) and the urls we redirect-to
   const urlsToIngest = new Set([...noRedirect, ...urlsNotIngestedOfRedirectTo]);

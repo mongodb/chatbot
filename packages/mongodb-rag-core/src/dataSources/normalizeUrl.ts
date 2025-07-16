@@ -26,7 +26,10 @@ export function normalizeUrl({
   } else if (removeHash) {
     url = (url.match(optionalRegex.REMOVE_HASH) ?? [url])[0];
   } else if (removeQueryString) {
-    url = (url.match(optionalRegex.REMOVE_QUERY) ?? [url])[0];
+    // Splitting on hash so we retain the hash fragment
+    const [frontUrl, hashFragment] = url.split("#");
+    url = (frontUrl.match(optionalRegex.REMOVE_QUERY) ?? [url])[0];
+    url += hashFragment ? `#${hashFragment}` : "";
   }
   return url
     .replace(/^https?:\/\//i, "")

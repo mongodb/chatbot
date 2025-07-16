@@ -1,15 +1,8 @@
 import { normalizeUrl, ensureProtocol } from "./normalizeUrl";
 
 describe("normalizeUrl", () => {
-  const baseParams = {
-    url: "example.com",
-    removeHash: false,
-    removeQueryString: false,
-  };
-
   it("should handle URLs with https:// domain", () => {
     const params = {
-      ...baseParams,
       url: "https://example.com",
     };
     expect(normalizeUrl(params)).toBe("example.com");
@@ -17,14 +10,12 @@ describe("normalizeUrl", () => {
 
   it("should handle URLs with https:// domain", () => {
     const params = {
-      ...baseParams,
       url: "http://example.com",
     };
     expect(normalizeUrl(params)).toBe("example.com");
   });
   it("should remove www prefix", () => {
     const params = {
-      ...baseParams,
       url: "www.example.com/path",
     };
     expect(normalizeUrl(params)).toBe("example.com/path");
@@ -32,7 +23,6 @@ describe("normalizeUrl", () => {
 
   it("should remove trailing slashes", () => {
     const params = {
-      ...baseParams,
       url: "example.com/path/",
     };
     expect(normalizeUrl(params)).toBe("example.com/path");
@@ -40,7 +30,6 @@ describe("normalizeUrl", () => {
 
   it("should handle URLs with a domain and a trailing slash", () => {
     const params = {
-      ...baseParams,
       url: "https://example.com/",
     };
     expect(normalizeUrl(params)).toBe("example.com");
@@ -48,7 +37,6 @@ describe("normalizeUrl", () => {
 
   it("should handle URLs with https://www. prefix", () => {
     const params = {
-      ...baseParams,
       url: "https://www.example.com/path",
     };
     expect(normalizeUrl(params)).toBe("example.com/path");
@@ -56,7 +44,6 @@ describe("normalizeUrl", () => {
 
   it("should handle URLs with http://www. prefix", () => {
     const params = {
-      ...baseParams,
       url: "http://www.example.com/path",
     };
     expect(normalizeUrl(params)).toBe("example.com/path");
@@ -64,7 +51,6 @@ describe("normalizeUrl", () => {
 
   it("should handle complex URLs with many normalizations needed", () => {
     const params = {
-      ...baseParams,
       url: "http://www.example.com/path/to/resource/",
     };
     expect(normalizeUrl(params)).toBe("example.com/path/to/resource");
@@ -72,7 +58,6 @@ describe("normalizeUrl", () => {
 
   it("should not remove hash fragment if removeHash=false", () => {
     const params = {
-      ...baseParams,
       url: "https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/#why-use-rag-",
       removeHash: false,
     };
@@ -83,7 +68,6 @@ describe("normalizeUrl", () => {
 
   it("should remove hash fragment if removeHash=true", () => {
     const params = {
-      ...baseParams,
       url: "https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/#why-use-rag-",
       removeHash: true,
     };
@@ -94,7 +78,6 @@ describe("normalizeUrl", () => {
 
   it("should not remove query string if removeQueryString=false", () => {
     const params = {
-      ...baseParams,
       url: "https://learn.mongodb.com/skills?openTab=query",
       removeQueryString: false,
     };
@@ -103,7 +86,6 @@ describe("normalizeUrl", () => {
 
   it("should remove query string if removeQueryString=true", () => {
     const params = {
-      ...baseParams,
       url: "https://learn.mongodb.com/skills?openTab=query",
       removeQueryString: true,
     };
@@ -121,9 +103,52 @@ describe("normalizeUrl", () => {
     );
   });
 
+  it("should not remove both query string & hash if both false", () => {
+    const params = {
+      url: "https://www.mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference",
+      removeHash: false,
+      removeQueryString: false,
+    };
+    expect(normalizeUrl(params)).toBe(
+      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference"
+    );
+  });
+
+  it("should only remove query string", () => {
+    const params = {
+      url: "https://www.mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference",
+      removeHash: false,
+      removeQueryString: true,
+    };
+    expect(normalizeUrl(params)).toBe(
+      "mongodb.com/docs/manual/core/read-preference/#configure-read-preference"
+    );
+  });
+
+  it("should only remove query string (no hash fragment in URL)", () => {
+    const params = {
+      url: "https://www.mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot",
+      removeHash: false,
+      removeQueryString: true,
+    };
+    expect(normalizeUrl(params)).toBe(
+      "mongodb.com/docs/manual/core/read-preference"
+    );
+  });
+
+  it("should only remove hash fragment", () => {
+    const params = {
+      url: "https://www.mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference",
+      removeHash: true,
+      removeQueryString: false,
+    };
+    expect(normalizeUrl(params)).toBe(
+      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot"
+    );
+  });
+
   it("should return the URL unchanged if it is already normalized", () => {
     const params = {
-      ...baseParams,
       url: "example.com/path/to/resource",
     };
     expect(normalizeUrl(params)).toBe(params.url);

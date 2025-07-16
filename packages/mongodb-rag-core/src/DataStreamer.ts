@@ -58,10 +58,9 @@ interface StreamParams {
 
 type StreamEvent = { type: string; data: unknown };
 
-type ResponsesStreamParams = Omit<
-  OpenAI.Responses.ResponseStreamEvent,
-  "sequence_number"
->;
+type ResponsesStreamParams =
+  | Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
+  | Omit<OpenAI.Responses.ResponseErrorEvent, "sequence_number">;
 
 /**
   Event when server streams additional message response to the client.

@@ -8,10 +8,7 @@ import {
   basicResponsesRequestBody,
 } from "./testConfig";
 import type { CreateResponseRequest } from "../routes/responses/createResponse";
-import {
-  type ERROR_CODE,
-  makeOpenAIStreamError,
-} from "../routes/responses/errors";
+import { type ERROR_CODE } from "../routes/responses/errors";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -129,8 +126,7 @@ export const formatOpenAIStreamError = (
   message: string,
   headers?: Record<string, string>
 ) => {
-  const error = new APIError(httpStatus, { code, message }, message, headers);
-  return makeOpenAIStreamError(error);
+  return new APIError(httpStatus, { code, message }, message, headers);
 };
 
 /**

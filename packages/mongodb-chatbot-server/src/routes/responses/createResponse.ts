@@ -19,7 +19,6 @@ import {
   generateZodErrorMessage,
   sendErrorResponse,
   ERROR_TYPE,
-  makeOpenAIStreamError,
   type SomeOpenAIAPIError,
 } from "./errors";
 
@@ -337,7 +336,10 @@ export function makeCreateResponseRoute({
           : makeInternalServerError({ error: error as Error, headers });
 
       if (dataStreamer.connected) {
-        dataStreamer.streamResponses(makeOpenAIStreamError(standardError));
+        dataStreamer.streamResponses({
+          ...standardError,
+          type: ERROR_TYPE,
+        });
       } else {
         sendErrorResponse({
           res,

@@ -26,6 +26,12 @@ export type InitialWebSource = {
    Optional additional metadata determined by the web source.
    */
   staticMetadata?: Record<string, string | string[]>;
+
+  /**
+    URL normalization options for this source.
+    */
+  removeHash?: boolean;
+  removeQueryString?: boolean;
 };
 
 export const initialWebSources: InitialWebSource[] = [
@@ -459,6 +465,7 @@ export const initialWebSources: InitialWebSource[] = [
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
     },
+    removeQueryString: false,
   },
 ];
 
@@ -474,7 +481,12 @@ export async function getUrlsFromSitemap(
 
 export type WebSource = Pick<
   InitialWebSource,
-  "name" | "sourceType" | "staticMetadata" | "urls"
+  | "name"
+  | "sourceType"
+  | "staticMetadata"
+  | "urls"
+  | "removeHash"
+  | "removeQueryString"
 >;
 
 type PrepareWebSourcesParams = {
@@ -493,7 +505,8 @@ export const prepareWebSources = async ({
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
   for (const initialWebSource of initialWebSources) {
-    const { name, staticMetadata, sourceType } = initialWebSource;
+    const { name, staticMetadata, sourceType, removeHash, removeQueryString } =
+      initialWebSource;
     let urls = initialWebSource.urls || [];
     if (initialWebSource.directoryUrls?.length) {
       for (const directoryUrl of initialWebSource.directoryUrls) {
@@ -508,6 +521,8 @@ export const prepareWebSources = async ({
       staticMetadata,
       urls,
       sourceType,
+      removeHash,
+      removeQueryString,
     });
   }
   return webSources;

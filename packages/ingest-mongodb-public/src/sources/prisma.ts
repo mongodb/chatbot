@@ -54,7 +54,7 @@ export const prismaSourceConstructor = async () => {
       if (frontMatter?.dbSwitcher) {
         url += "-mongodb";
       }
-      return normalizeUrl(url);
+      return normalizeUrl({ url });
     },
     extractTitle(_pageContent, frontMatter) {
       // metaTitle is more descriptive

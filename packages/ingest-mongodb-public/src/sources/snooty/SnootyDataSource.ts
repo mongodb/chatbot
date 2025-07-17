@@ -461,7 +461,7 @@ function makeUrl(pagePath: string, baseUrl: string): string {
 
   // Handle empty pagePath or root path
   if (!pagePath || pagePath === "/") {
-    return normalizeUrl(baseUrlTrailingSlash);
+    return normalizeUrl({ url: baseUrlTrailingSlash });
   }
 
   // For non-empty paths, remove leading slash and ensure trailing slash
@@ -470,5 +470,5 @@ function makeUrl(pagePath: string, baseUrl: string): string {
     .replace(/\/?$/, "/"); // Ensure trailing slash
 
   // Concatenate the base URL with the clean page path
-  return normalizeUrl(baseUrlTrailingSlash + cleanPagePath);
+  return normalizeUrl({ url: baseUrlTrailingSlash + cleanPagePath });
 }

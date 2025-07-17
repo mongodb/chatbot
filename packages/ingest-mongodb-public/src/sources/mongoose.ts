@@ -21,11 +21,11 @@ export const mongooseSourceConstructor = async () => {
     repoLoaderOptions,
     name: "mongoose",
     pathToPageUrl(path) {
-      return normalizeUrl(
-        path
+      return normalizeUrl({
+        url: path
           .replace(/^\/docs\//, "https://mongoosejs.com/docs/")
-          .replace(/\.md$/, ".html")
-      );
+          .replace(/\.md$/, ".html"),
+      });
     },
     testFileLoaderOptions,
     acquitCodeBlockLanguageReplacement: "javascript",

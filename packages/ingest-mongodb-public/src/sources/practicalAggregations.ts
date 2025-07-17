@@ -14,10 +14,11 @@ export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams<SourceT
       ignoreFiles: [/^(?!^\/src\/).*/, /^(\/src\/SUMMARY\.md)$/],
     },
     pathToPageUrl(pathInRepo) {
-      return normalizeUrl(
-        "https://www.practical-mongodb-aggregations.com" +
-          pathInRepo.replace(/^\/src\//, "/").replace(/\.md$/, "")
-      );
+      return normalizeUrl({
+        url:
+          "https://www.practical-mongodb-aggregations.com" +
+          pathInRepo.replace(/^\/src\//, "/").replace(/\.md$/, ""),
+      });
     },
     sourceType: "book-external",
     metadata: {

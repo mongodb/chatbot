@@ -75,6 +75,8 @@ cronJobs:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
       PROFOUND_API_KEY: docs-chatbot-staging
       PROFOUND_CATALOG_ID_EDU: docs-chatbot-staging
+      BRAINTRUST_API_KEY: docs-chatbot-staging
+      BRAINTRUST_ENDPOINT: docs-chatbot-staging
     resources:
       requests:
         cpu: 100m

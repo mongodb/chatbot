@@ -19,6 +19,7 @@ import {
   SearchContentRouterLocals,
 } from "./contentRouter";
 import { AddCustomDataFunc } from "../../processors";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -65,6 +66,7 @@ export function makeSearchContentRoute({
   searchResultsStore,
   addCustomData,
 }: MakeSearchContentRouteParams) {
+  const tracedFindContent = wrapTraced(findContent, { name: "searchContent" });
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
@@ -80,7 +82,7 @@ export function makeSearchContentRoute({
       }
 
       const { query, dataSources, limit } = req.body;
-      const results = await findContent({
+      const results = await tracedFindContent({
         query,
         filters: mapDataSourcesToFilters(dataSources),
         limit,

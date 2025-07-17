@@ -325,6 +325,23 @@ async function main() {
       },
       tags: [],
     },
+    {
+      name: "should identify voyage ai",
+      input: "What does Voyage AI do",
+      expected: {
+        product: "voyage_ai",
+      },
+      tags: ["voyage_ai"],
+    },
+    {
+      name: "should not confuse atlas vector search and voyage ai products",
+      input:
+        "which search similarity function should I use with voyage embeddings?",
+      expected: {
+        product: "voyage_ai",
+      },
+      tags: ["voyage_ai"],
+    },
   ];
 
   const ProductNameCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (

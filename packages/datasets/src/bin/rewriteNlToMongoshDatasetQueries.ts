@@ -23,9 +23,10 @@ async function runRewriteNlQueryToMongoshDataset(config: {
   const rewriteNlQueryPrompt = makeRewriteNlQueryPrompt(model);
 
   const dataOutDir = path.join(__dirname, "..", "..", "dataOut");
+  // rewriting the latest rewrite
   const datasetInPath = path.join(
     dataOutDir,
-    "atlas-sample-dataset-claude.json"
+    "atlas-sample-dataset-claude-rewritten.v1.json"
   );
 
   const intermediateDatasetOutPath = path.join(
@@ -63,7 +64,10 @@ async function runRewriteNlQueryToMongoshDataset(config: {
       console.log(`Processing entry ${start++}/${datasetEntries.length}.
 Entry NL query: ${entry.input.nlQuery}`);
       const result = await rewriteNlQueryPrompt(entry);
-      fs.appendFileSync(intermediateDatasetOutPath, yaml.stringify([result]));
+      fs.appendFileSync(
+        intermediateDatasetOutPath,
+        yaml.stringify([result.datasetEntry])
+      );
       return result;
     });
 
@@ -76,7 +80,14 @@ Entry NL query: ${entry.input.nlQuery}`);
   );
 
   console.log("Writing full dataset to", datasetOutPath);
-  fs.writeFileSync(datasetOutPath, JSON.stringify(results, null, 2));
+  fs.writeFileSync(
+    datasetOutPath,
+    JSON.stringify(
+      results.map((r) => r.datasetEntry),
+      null,
+      2
+    )
+  );
 }
 
 function shuffle<T>(items: T[]) {

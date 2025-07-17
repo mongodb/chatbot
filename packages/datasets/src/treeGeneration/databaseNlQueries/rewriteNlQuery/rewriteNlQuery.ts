@@ -228,9 +228,9 @@ If you need to rewrite a natural language query, keep the following in mind:
 
 **Quality standards for rewrites**:
 - The rewritten query should be natural and readable, not overly technical
-- Include all necessary details but avoid unnecessary verbosity  
+- The rewritten query should be fully specified for the given Mongosh query and output. Include all necessary details but avoid unnecessary verbosity.
 - Use domain-appropriate terminology (e.g., "health inspection scores" rather than just "scores")
-- Ensure the rewrite would lead any reasonable person to write the same MongoDB query
+- Ensure the rewrite would lead any reasonable person to write the same MongoDB query. Query specifificity is important for this, especially with respect to the \`$project\` stage.
 </guidelines-for-rewriting-natural-language-queries>
 
 <rewrite-natural-language-query-style>
@@ -338,7 +338,11 @@ export function makeRewriteNlQueryPrompt(model: LanguageModel) {
         },
         {
           role: "user",
-          content: JSON.stringify(datasetEntry, null, 2),
+          content: `Here is a dataset entry:
+
+<dataset-entry>
+${JSON.stringify(datasetEntry, null, 2)}
+</dataset-entry>`,
         },
       ],
     });

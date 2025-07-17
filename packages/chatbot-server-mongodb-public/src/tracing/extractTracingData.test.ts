@@ -34,7 +34,7 @@ describe("extractTracingData", () => {
     id: new ObjectId(),
   };
 
-  const basefetchPageToolCallMessage: Message = {
+  const baseFetchPageToolCallMessage: Message = {
     role: "assistant",
     content: "",
     toolCall: {
@@ -48,7 +48,7 @@ describe("extractTracingData", () => {
     createdAt: new Date(),
     id: new ObjectId(),
   };
-  const fetchPageToolCallMessage = { ...basefetchPageToolCallMessage };
+  const fetchPageToolCallMessage = { ...baseFetchPageToolCallMessage };
   assert(fetchPageToolCallMessage.toolCall);
   fetchPageToolCallMessage.toolCall.function.arguments =
     '{"pageUrl":"https://mongodb.com/docs/page","query":"rephrased user query"}';
@@ -146,7 +146,7 @@ describe("extractTracingData", () => {
   test("should get number of retrieved chunks in fetch_page tool", () => {
     const messagesNoContext: Message[] = [
       baseUserMessage,
-      basefetchPageToolCallMessage,
+      baseFetchPageToolCallMessage,
       { ...baseFetchPageToolMessage, content: SEARCH_ALL_FALLBACK_TEXT },
       baseAssistantResponseMessage,
     ];

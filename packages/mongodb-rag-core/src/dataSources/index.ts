@@ -10,3 +10,4 @@ export * from "./removeMarkdownFileExtension";
 export * from "./MarkdownUrlDataSource";
 export * from "./LangchainDocumentLoaderDataSource";
 export * from "./CodeOnGithubTextDataSource";
+export * from "./normalizeUrl";

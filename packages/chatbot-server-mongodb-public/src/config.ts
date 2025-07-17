@@ -15,6 +15,7 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
+  FilterPreviousMessages,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
@@ -31,7 +32,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -40,7 +41,6 @@ import {
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  ANALYZER_ENV_VARS,
   AZURE_OPENAI_ENV_VARS,
   PREPROCESSOR_ENV_VARS,
   TRACING_ENV_VARS,
@@ -53,11 +53,12 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
-import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import { makeGenerateResponseWithTools } from "./processors/generateResponseWithTools";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeFetchPageTool } from "./tools/fetchPage";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -190,6 +191,15 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const loadPage = wrapTraced(pageStore.loadPage, {
+  name: "loadPageFromStore",
+});
+
 export const preprocessorOpenAiClient = wrapOpenAI(
   new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
@@ -222,6 +232,22 @@ const inputGuardrail = wrapTraced(
   }
 );
 
+export const filterPreviousMessages: FilterPreviousMessages = async (
+  conversation
+) => {
+  return conversation.messages.filter((message) => {
+    return (
+      message.role === "user" ||
+      // Only include assistant messages that are not tool calls
+      (message.role === "assistant" && !message.toolCall)
+    );
+  });
+};
+
+export const toolChoice = "auto";
+
+export const maxSteps = 5;
+
 export const generateResponse = wrapTraced(
   makeVerifiedAnswerGenerateResponse({
     findVerifiedAnswer,
@@ -232,29 +258,28 @@ export const generateResponse = wrapTraced(
       };
     },
     onNoVerifiedAnswerFound: wrapTraced(
-      makeGenerateResponseWithSearchTool({
+      makeGenerateResponseWithTools({
         languageModel,
         systemMessage: systemPrompt,
-        makeReferenceLinks: makeMongoDbReferences,
         inputGuardrail,
         llmRefusalMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        filterPreviousMessages: async (conversation) => {
-          return conversation.messages.filter((message) => {
-            return (
-              message.role === "user" ||
-              // Only include assistant messages that are not tool calls
-              (message.role === "assistant" && !message.toolCall)
-            );
-          });
-        },
+        filterPreviousMessages,
         llmNotWorkingMessage:
           conversations.conversationConstants.LLM_NOT_WORKING,
-        searchTool: makeSearchTool(findContent),
-        toolChoice: "auto",
-        maxSteps: 5,
+        searchTool: makeSearchTool({
+          findContent,
+          makeReferences: makeMongoDbReferences,
+        }),
+        fetchPageTool: makeFetchPageTool({
+          loadPage,
+          findContent,
+          makeReferences: makeMongoDbReferences,
+        }),
+        toolChoice,
+        maxSteps,
       }),
-      { name: "generateResponseWithSearchTool" }
+      { name: "generateResponseWithTools" }
     ),
   }),
   {
@@ -300,6 +325,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export async function closeDbConnections() {
   await mongodb.close();
+  await pageStore.close();
   await verifiedAnswerStore.close();
   await embeddedContentStore.close();
 }

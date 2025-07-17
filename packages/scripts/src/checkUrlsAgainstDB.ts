@@ -11,6 +11,7 @@
 
 import fs from "fs";
 import { assertEnvVars, makeMongoDbPageStore } from "mongodb-rag-core";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 
 import "dotenv/config";
 
@@ -65,15 +66,6 @@ const getUrlRedirects = async (
   };
 };
 
-/**
- Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
- normalizeUrl('https://www.example.com') // returns 'example.com'
- normalizeUrl('http://example.com') // returns 'example.com'
- */
-function normalizeUrl(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/i, "");
-}
-
 async function main({ urlListFilePath }: { urlListFilePath: string }) {
   let urlList = JSON.parse(fs.readFileSync(urlListFilePath, "utf-8"));
   // if urlList is an array of objects, convert it to an array of strings
@@ -88,14 +80,14 @@ async function main({ urlListFilePath }: { urlListFilePath: string }) {
   });
   const urlsNotIngested = await pageStore.getMissingPagesByUrl({
     expectedUrls: urlList,
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   // look for urls that redirect
   const { noRedirect, redirectTo } = await getUrlRedirects(urlsNotIngested);
   // check if the pages we are redirecting to are in the pages collection again
   const urlsNotIngestedOfRedirectTo = await pageStore.getMissingPagesByUrl({
     expectedUrls: Array.from(redirectTo),
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   // the urls we need to ingest are the ones that don't redirect (no-redirect) and the urls we redirect-to
   const urlsToIngest = new Set([...noRedirect, ...urlsNotIngestedOfRedirectTo]);

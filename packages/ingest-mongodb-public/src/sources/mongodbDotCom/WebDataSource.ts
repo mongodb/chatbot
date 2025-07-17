@@ -18,6 +18,8 @@ export function makeWebDataSource({
   urls,
   sourceType,
   staticMetadata,
+  removeHash,
+  removeQueryString,
   makeBrowser,
 }: WebSourceParams): DataSource {
   return {
@@ -35,7 +37,7 @@ export function makeWebDataSource({
           });
           if (content) {
             pages.push({
-              url: normalizeUrl({ url }),
+              url: normalizeUrl({ url, removeHash, removeQueryString }),
               format: "md",
               sourceName: name,
               sourceType,

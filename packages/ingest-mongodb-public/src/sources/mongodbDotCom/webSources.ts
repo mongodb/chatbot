@@ -26,6 +26,12 @@ export type InitialWebSource = {
    Optional additional metadata determined by the web source.
    */
   staticMetadata?: Record<string, string | string[]>;
+
+  /**
+    URL normalization options for this source.
+    */
+  removeHash?: boolean;
+  removeQueryString?: boolean;
 };
 
 export const initialWebSources: InitialWebSource[] = [
@@ -459,6 +465,7 @@ export const initialWebSources: InitialWebSource[] = [
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
     },
+    removeQueryString: false,
   },
 ];
 
@@ -474,7 +481,12 @@ export async function getUrlsFromSitemap(
 
 export type WebSource = Pick<
   InitialWebSource,
-  "name" | "sourceType" | "staticMetadata" | "urls"
+  | "name"
+  | "sourceType"
+  | "staticMetadata"
+  | "urls"
+  | "removeHash"
+  | "removeQueryString"
 >;
 
 type PrepareWebSourcesParams = {

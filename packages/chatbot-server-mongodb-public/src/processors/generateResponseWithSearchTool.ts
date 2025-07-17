@@ -6,6 +6,7 @@ import {
   AssistantMessage,
   ToolMessage,
 } from "mongodb-rag-core";
+import type { OpenAI } from "mongodb-rag-core/openai";
 import {
   CoreAssistantMessage,
   CoreMessage,
@@ -88,20 +89,56 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
     },
   };
 
-// TODO: implement this
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
-    onLlmNotWorking() {
-      throw new Error("not yet implemented");
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } as OpenAI.Responses.ResponseTextDoneEvent);
     },
-    onLlmRefusal() {
-      throw new Error("not yet implemented");
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } as OpenAI.Responses.ResponseTextDoneEvent);
     },
-    onReferenceLinks() {
-      throw new Error("not yet implemented");
+    onReferenceLinks({ dataStreamer, references }) {
+      let annotationIndex = 0;
+      for (const reference of references) {
+        dataStreamer?.streamResponses({
+          type: "response.output_text_annotation.added",
+          annotation: {
+            type: "url_citation",
+            url: reference.url,
+            title: reference.title,
+            start_index: 0,
+            end_index: 0,
+          } satisfies OpenAI.Responses.ResponseOutputText.URLCitation,
+          annotation_index: annotationIndex++,
+          content_index: 0,
+          output_index: 0,
+          item_id: "",
+        } as OpenAI.Responses.ResponseOutputTextAnnotationAddedEvent);
+      }
     },
-    onTextDelta() {
-      throw new Error("not yet implemented");
+    onTextDelta({ dataStreamer, delta }) {
+      // only stream delta here, allow "done" to be streamed elsewhere
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } as OpenAI.Responses.ResponseTextDeltaEvent);
     },
   };
 

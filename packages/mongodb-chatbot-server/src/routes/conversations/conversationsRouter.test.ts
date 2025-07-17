@@ -1,14 +1,12 @@
 import request from "supertest";
 import { Express } from "express";
 import { AppConfig } from "../../app";
-import {
-  ConversationsMiddleware,
-  rateLimitResponse,
-} from "./conversationsRouter";
+import { ConversationsMiddleware } from "./conversationsRouter";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { defaultRateLimitResponse } from "../../middleware/rateLimit";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {
@@ -37,7 +35,7 @@ describe("Conversations Router", () => {
     const rateLimitedRes = await createConversationReq({ app, origin });
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
-    expect(rateLimitedRes.body).toStrictEqual(rateLimitResponse);
+    expect(rateLimitedRes.body).toStrictEqual(defaultRateLimitResponse);
   });
   test("Should apply add message endpoint rate limit", async () => {
     const { app, origin } = await makeTestApp({
@@ -68,7 +66,7 @@ describe("Conversations Router", () => {
     expect(successRes.error).toBeFalsy();
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
-    expect(rateLimitedRes.body).toStrictEqual(rateLimitResponse);
+    expect(rateLimitedRes.body).toStrictEqual(defaultRateLimitResponse);
   });
   test("Should apply global slow down", async () => {
     let limitReached = false;

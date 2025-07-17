@@ -1,4 +1,4 @@
-import { models } from "mongodb-rag-core/models";
+import { MODELS } from "../benchmarkModels";
 import path from "path";
 import "dotenv/config";
 import PromisePool from "@supercharge/promise-pool";
@@ -13,14 +13,12 @@ async function main() {
 
   const { RUN_ID } = process.env;
 
-  const temperatures = [0.0, 0.5, 1.0];
-  const maxTokensOut = [100, 500, 1000];
+  const temperatures = [0.5];
+  const maxTokensOut = [4000];
   const iterations = 5;
   const projectName = "discovery-benchmark";
-  const modelExperiments = models
-
-    .filter((m) => m.authorized === true)
-    .map((modelInfo) => {
+  const modelExperiments = MODELS.filter((m) => m.authorized === true).map(
+    (modelInfo) => {
       const modelExperiments = [];
       for (const temperature of temperatures) {
         for (const maxTokens of maxTokensOut) {
@@ -32,7 +30,8 @@ async function main() {
         }
       }
       return modelExperiments;
-    });
+    }
+  );
   // Process models in parallel
   await PromisePool.for(modelExperiments)
     .withConcurrency(3)

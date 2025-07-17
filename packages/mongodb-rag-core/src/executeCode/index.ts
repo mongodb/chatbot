@@ -1,4 +1,5 @@
 export * from "./computeNormalizedLogisticalExecutionTime";
+export * from "./computeNormalizedLogarithmicQueryEfficiency";
 export * from "./DatabaseExecutionResult";
 export * from "./databaseMetadata";
 export * from "./executeNodeJsDriverCode";
@@ -10,4 +11,5 @@ export * from "./redactMongoDbConnectionUri";
 export * from "./isNonMutativeOperation";
 export * from "./isReasonableResult";
 export * from "./prettyPrintMongoDbDocument";
+export * from "./profileMongoshQuery";
 export * from "./truncateDbOperationOutputForLlm";

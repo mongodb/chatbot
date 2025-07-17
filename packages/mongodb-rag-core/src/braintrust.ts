@@ -1,4 +1,5 @@
 import { DatasetRecord, initDataset, initLogger, Logger } from "braintrust";
+import { z } from "zod";
 
 export * from "braintrust";
 
@@ -31,4 +32,23 @@ export async function uploadDatasetToBraintrust({
   dataset.forEach((d) => btDataset.insert(d));
   const res = await btDataset.summarize();
   return res;
+}
+
+export async function getDatasetFromBraintrust<SchemaReturnType>({
+  datasetName,
+  projectName,
+  datasetRowSchema,
+}: {
+  datasetName: string;
+  projectName: string;
+  datasetRowSchema: z.ZodSchema;
+}): Promise<SchemaReturnType[]> {
+  const dataset = await initDataset({
+    project: projectName,
+    dataset: datasetName,
+  });
+  const datasetRows = (await dataset.fetchedData()).map((d) =>
+    datasetRowSchema.parse(d)
+  );
+  return datasetRows;
 }

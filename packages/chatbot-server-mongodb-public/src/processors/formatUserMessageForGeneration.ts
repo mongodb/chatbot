@@ -13,11 +13,17 @@ const RawCustomDataSchema = z
   })
   .optional();
 
-export function formatUserMessageForGeneration(
-  userMessageText: string,
-  reqId: string,
-  customData: ConversationCustomData
-): string {
+type FormatUserMessageForGenerationParams = {
+  userMessageText: string;
+  reqId: string;
+  customData: ConversationCustomData;
+};
+
+export function formatUserMessageForGeneration({
+  userMessageText,
+  reqId,
+  customData,
+}: FormatUserMessageForGenerationParams): string {
   const result = RawCustomDataSchema.safeParse(customData);
   if (!result.success) {
     logRequest({

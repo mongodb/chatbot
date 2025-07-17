@@ -175,6 +175,18 @@ describe("WebDataSource", () => {
     const pages = await source.fetchPages();
     expect(pages.length).toBe(0);
   });
+  it("handles url normalization options", async () => {
+    const urlWithQueryString = "https://www.mongodb.com/company?q=val";
+    const source = await makeWebDataSource({
+      name: "mongodb-dot-com",
+      urls: [urlWithQueryString],
+      removeQueryString: false,
+      makeBrowser: async () => mockBrowser,
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(1);
+    expect(pages[0].url).toEqual("mongodb.com/company?q=val");
+  });
   it("handles valid urls", async () => {
     const source = await makeWebDataSource({
       name: "valid-source",

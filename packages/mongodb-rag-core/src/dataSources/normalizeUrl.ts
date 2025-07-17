@@ -14,7 +14,7 @@ const optionalRegex = {
 /**
   Utility function that normalizes a URL.
   Removes http/s protocol, www, trailing backslashes.
-  Also removes query string and hash fragment (optional behavior).
+  Optionally removes query string and hash fragment.
 */
 export function normalizeUrl({
   url,

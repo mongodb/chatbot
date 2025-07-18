@@ -194,14 +194,13 @@ const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
   },
 });
 
-const makeMakeGenerateResponseWithSearchToolArgs = () =>
-  ({
-    languageModel: makeMockLanguageModel(),
-    llmNotWorkingMessage: mockLlmNotWorkingMessage,
-    llmRefusalMessage: mockLlmRefusalMessage,
-    systemMessage: mockSystemMessage,
-    searchTool: mockSearchTool,
-  } satisfies Partial<GenerateResponseWithSearchToolParams>);
+const generateResponseWithSearchToolArgs = {
+  languageModel: makeMockLanguageModel(),
+  llmNotWorkingMessage: mockLlmNotWorkingMessage,
+  llmRefusalMessage: mockLlmRefusalMessage,
+  systemMessage: mockSystemMessage,
+  searchTool: mockSearchTool,
+} satisfies Partial<GenerateResponseWithSearchToolParams>;
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -221,7 +220,7 @@ describe("generateResponseWithSearchTool", () => {
 
   describe("makeGenerateResponseWithSearchTool", () => {
     const generateResponse = makeGenerateResponseWithSearchTool(
-      makeMakeGenerateResponseWithSearchToolArgs()
+      generateResponseWithSearchToolArgs
     );
     it("should return a function", () => {
       expect(typeof generateResponse).toBe("function");
@@ -234,7 +233,7 @@ describe("generateResponseWithSearchTool", () => {
           Promise.resolve([])
         ) as FilterPreviousMessages;
       const generateResponse = makeGenerateResponseWithSearchTool({
-        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        ...generateResponseWithSearchToolArgs,
         filterPreviousMessages: mockFilterPreviousMessages,
       });
 
@@ -250,7 +249,7 @@ describe("generateResponseWithSearchTool", () => {
 
     it("should make reference links", async () => {
       const generateResponse = makeGenerateResponseWithSearchTool(
-        makeMakeGenerateResponseWithSearchToolArgs()
+        generateResponseWithSearchToolArgs
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
@@ -262,7 +261,7 @@ describe("generateResponseWithSearchTool", () => {
 
     it("should add custom data to the user message", async () => {
       const generateResponse = makeGenerateResponseWithSearchTool(
-        makeMakeGenerateResponseWithSearchToolArgs()
+        generateResponseWithSearchToolArgs
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
@@ -274,7 +273,7 @@ describe("generateResponseWithSearchTool", () => {
     });
     it("should not generate until guardrail has resolved (reject)", async () => {
       const generateResponse = makeGenerateResponseWithSearchTool({
-        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        ...generateResponseWithSearchToolArgs,
         inputGuardrail: async () => {
           // sleep for 2 seconds
           await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -288,7 +287,7 @@ describe("generateResponseWithSearchTool", () => {
     });
     it("should not generate until guardrail has resolved (pass)", async () => {
       const generateResponse = makeGenerateResponseWithSearchTool({
-        ...makeMakeGenerateResponseWithSearchToolArgs(),
+        ...generateResponseWithSearchToolArgs,
         inputGuardrail: async () => {
           // sleep for 2 seconds
           await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -303,7 +302,7 @@ describe("generateResponseWithSearchTool", () => {
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool(
-          makeMakeGenerateResponseWithSearchToolArgs()
+          generateResponseWithSearchToolArgs
         );
 
         const result = await generateResponse(generateResponseBaseArgs);
@@ -313,7 +312,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle guardrail rejection", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           inputGuardrail: makeMockGuardrail(false),
         });
 
@@ -324,7 +323,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle guardrail pass", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           inputGuardrail: makeMockGuardrail(true),
         });
 
@@ -335,7 +334,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle error in language model", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           languageModel: mockThrowingLanguageModel,
         });
 
@@ -374,7 +373,7 @@ describe("generateResponseWithSearchTool", () => {
       test("should handle successful streaming", async () => {
         const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithSearchTool(
-          makeMakeGenerateResponseWithSearchToolArgs()
+          generateResponseWithSearchToolArgs
         );
 
         const result = await generateResponse({
@@ -397,7 +396,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle successful generation with guardrail", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           inputGuardrail: makeMockGuardrail(true),
         });
         const mockDataStreamer = makeMockDataStreamer();
@@ -423,7 +422,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle streaming with guardrail rejection", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           inputGuardrail: makeMockGuardrail(false),
         });
         const mockDataStreamer = makeMockDataStreamer();
@@ -444,7 +443,7 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle error in language model", async () => {
         const generateResponse = makeGenerateResponseWithSearchTool({
-          ...makeMakeGenerateResponseWithSearchToolArgs(),
+          ...generateResponseWithSearchToolArgs,
           languageModel: mockThrowingLanguageModel,
         });
 

@@ -16,9 +16,10 @@ import {
   requireRequestOrigin,
   AddCustomDataFunc,
   makeDefaultFindVerifiedAnswer,
-  defaultCreateConversationCustomData,
-  defaultAddMessageToConversationCustomData,
   makeVerifiedAnswerGenerateResponse,
+  addDefaultCustomData,
+  ConversationsRouterLocals,
+  SearchContentRouterLocals,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -269,7 +270,7 @@ export const generateResponse = wrapTraced(
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
-    const customData = await defaultCreateConversationCustomData(req, res);
+    const customData = await addDefaultCustomData(req, res);
     if (req.cookies.auth_user) {
       customData.authUser = req.cookies.auth_user;
     }
@@ -318,12 +319,13 @@ export const config: AppConfig = {
       classifierModel: languageModel,
     }),
     searchResultsStore,
+    middleware: [requireValidIpAddress<SearchContentRouterLocals>(), requireRequestOrigin<SearchContentRouterLocals>()],
   },
   conversationsRouterConfig: {
     middleware: [
       blockGetRequests,
-      requireValidIpAddress(),
-      requireRequestOrigin(),
+      requireValidIpAddress<ConversationsRouterLocals>(),
+      requireRequestOrigin<ConversationsRouterLocals>(),
       useSegmentIds(),
       redactConnectionUri(),
       cookieParser(),
@@ -332,10 +334,7 @@ export const config: AppConfig = {
       ? createConversationCustomDataWithAuthUser
       : undefined,
     addMessageToConversationCustomData: async (req, res) => {
-      const defaultCustomData = await defaultAddMessageToConversationCustomData(
-        req,
-        res
-      );
+      const defaultCustomData = await addDefaultCustomData(req, res);
       const customData = {
         ...defaultCustomData,
       };

@@ -31,7 +31,7 @@ export const makeFindContentWithMongoDbMetadata = ({
       return res;
     },
     {
-      name: "makeFindContentWithMongoDbMetadata",
+      name: "findContentWithMongoDbMetadata",
     }
   );
   return wrappedFindContent;

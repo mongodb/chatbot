@@ -9,3 +9,4 @@ export * from "./InputGuardrail";
 export * from "./makeVerifiedAnswerGenerateResponse";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./GenerateResponse";
+export * from "./addCustomData";

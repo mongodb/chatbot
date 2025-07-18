@@ -47,6 +47,7 @@ export const SearchResultRecordSchema = z.object({
   dataSources: z.array(SearchRecordDataSourceSchema).optional(),
   limit: z.number().optional(),
   createdAt: z.date(),
+  customData: z.object({}).passthrough().optional(),
 });
 
 export interface SearchResultRecord {
@@ -55,6 +56,7 @@ export interface SearchResultRecord {
   dataSources?: SearchRecordDataSource[];
   limit?: number;
   createdAt: Date;
+  customData?: Record<string, unknown>;
 }
 
 export type MongoDbSearchResultsStore = DatabaseConnection & {

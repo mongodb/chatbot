@@ -20,7 +20,9 @@ paths:
   /content/search:
     post:
       operationId: searchContent
-      summary: Execute a search query
+      tags:
+        - Content
+      summary: Search content
       requestBody:
         required: true
         content:
@@ -90,6 +92,8 @@ paths:
   /conversations:
     post:
       operationId: createConversation
+      tags:
+        - Conversations
       summary: Start new conversation
       responses:
         200:
@@ -106,6 +110,8 @@ paths:
   /conversations/{conversationId}/messages:
     post:
       operationId: addMessage
+      tags:
+        - Conversations
       summary: Add message to the conversation
       description: |
         Add a message to the conversation and get a response back from chatbot.
@@ -191,6 +197,8 @@ paths:
   # /conversations/{conversationId}:
   #   get:
   #     operationId: getConversation
+  #     tags:
+  #       - Conversations
   #     summary: Get a conversation
   #     parameters:
   #       - $ref: "#/components/parameters/conversationId"
@@ -210,6 +218,8 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
+      tags:
+        - Conversations
       summary: Rate message
       parameters:
         - $ref: "#/components/parameters/conversationId"
@@ -232,6 +242,8 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
       operationId: commentMessage
+      tags:
+        - Conversations
       summary: Add comment to assistant message
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
@@ -496,3 +508,19 @@ components:
       schema:
         type: string
       description: The unique identifier for a message.
+
+tags:
+  - name: Content
+    x-displayName: Search Content
+    description: Search MongoDB content
+  - name: Conversations
+    x-displayName: Conversations
+    description: Interact with MongoDB Chatbot
+
+x-tagGroups:
+  - name: Content
+    tags:
+      - Content
+  - name: Conversations
+    tags:
+      - Conversations

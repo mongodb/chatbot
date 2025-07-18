@@ -14,7 +14,7 @@ import {
 import { DatabaseInfo } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { openAiClient } from "../../../openAi";
+import { makeOpenAiClient } from "../../../openAi";
 
 export interface MakeGenerateNaturalLanguageQueryPromptParams {
   numChildren: number;
@@ -203,7 +203,7 @@ export const nlQueryResponseSchema = {
 
 export const generateNaturalLanguageQueries = wrapTraced(
   makeGenerateChildrenWithOpenAi<UseCaseNode, DatabaseNlQueryNode>({
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     makePromptMessages: async (
       {
         data: useCase,

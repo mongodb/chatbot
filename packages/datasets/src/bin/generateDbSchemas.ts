@@ -8,7 +8,7 @@ import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { prettyPrintMongoDbDocument } from "mongodb-rag-core/executeCode";
-import { openAiClient } from "../openAi";
+import { makeOpenAiClient } from "../openAi";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 
@@ -39,7 +39,7 @@ async function generateDbSchema(mongoClient: MongoClient, dbName: string) {
       temperature: 0,
       max_completion_tokens: 2000,
     },
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
   });
 
   fs.writeFileSync(

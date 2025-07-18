@@ -5,7 +5,7 @@ import {
   RewriteClassification,
 } from "./rewriteNlQuery";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
-import { openAiProvider } from "../../../openAi";
+import { makeOpenAiProvider } from "../../../openAi";
 import { models } from "mongodb-rag-core/models";
 
 type RewriteNlQueryInput = DatabaseNlQueryDatasetEntryBraintrust;
@@ -414,6 +414,6 @@ const dataset: RewriteNlQueryDatasetEntry[] = [
 const modelDeployment: (typeof models)[number]["deployment"] =
   "claude-opus-4-20250514";
 runRewriteNlQueryEval({
-  model: wrapAISDKModel(openAiProvider(modelDeployment)),
+  model: wrapAISDKModel(makeOpenAiProvider()(modelDeployment)),
   dataset,
 });

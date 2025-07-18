@@ -8,7 +8,7 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
-import { openAiClient } from "../openAi";
+import { makeOpenAiClient } from "../openAi";
 import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
@@ -113,7 +113,7 @@ async function generateMongoshDataset({
     mongoDb: dataset,
     llmOptions: llmConfigs.database.llmConfig,
     latestDate: dataset.latestDate,
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
   });
   await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
 

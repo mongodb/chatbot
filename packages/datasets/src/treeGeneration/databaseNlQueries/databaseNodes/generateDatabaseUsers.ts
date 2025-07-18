@@ -5,11 +5,11 @@ import {
   DatabaseUserNode,
   DatabaseUserSchema,
 } from "./nodeTypes";
-import { openAiClient } from "../../../openAi";
+import { makeOpenAiClient } from "../../../openAi";
 
 export const generateDatabaseUsers = wrapTraced(
   makeGenerateChildrenWithOpenAi<DatabaseInfoNode, DatabaseUserNode>({
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     childType: "database_user",
     makePromptMessages: async (parent, numChildren) => [
       {

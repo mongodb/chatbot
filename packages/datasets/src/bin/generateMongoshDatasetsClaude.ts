@@ -20,7 +20,7 @@ import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDat
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import { initLogger } from "mongodb-rag-core/braintrust";
-import { openAiClient } from "../openAi";
+import { makeOpenAiClient } from "../openAi";
 import { GenerateChildrenLlmOptions } from "../treeGeneration/generateChildren";
 
 const DEFAULT_CONCURRENCY = 16;
@@ -115,7 +115,7 @@ async function generateMongoshDataset({
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
     llmOptions: llmConfigs.database.llmConfig,
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     latestDate: dataset.latestDate,
   });
   await nodeStore.storeNodes({ nodes: [databaseInfoNode] });

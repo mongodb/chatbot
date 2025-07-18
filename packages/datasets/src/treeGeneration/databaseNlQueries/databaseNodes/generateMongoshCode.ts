@@ -10,7 +10,7 @@ import {
   makePromptNaturalLanguageQueryInfo,
 } from "./makePromptComponents";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { openAiClient } from "../../../openAi";
+import { makeOpenAiClient } from "../../../openAi";
 
 const abstractOutputExample: DatabaseCode = {
   queryPlan: "<query plan here>",
@@ -79,7 +79,7 @@ function markdownList(items: string[]) {
 }
 export const generateMongoshCode = wrapTraced(
   makeGenerateNChoiceChildrenWithOpenAi<DatabaseNlQueryNode, DatabaseCodeNode>({
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     childType: "database_code",
     makePromptMessages: async ({
       data: naturalLanguageQuery,

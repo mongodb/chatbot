@@ -1,5 +1,5 @@
 import { makeRewriteNlQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteNlQuery";
-import { openAiProvider } from "../openAi";
+import { makeOpenAiProvider } from "../openAi";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import { models } from "mongodb-rag-core/models";
 import { DatabaseNlQueryDatasetEntryBraintrustSchema } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
@@ -18,7 +18,7 @@ async function runRewriteNlQueryToMongoshDataset(config: {
   // Note: maybe switch to Opus for the real run
   const modelDeployment = config.modelDeployment;
 
-  const model = wrapAISDKModel(openAiProvider(modelDeployment));
+  const model = wrapAISDKModel(makeOpenAiProvider()(modelDeployment));
 
   const rewriteNlQueryPrompt = makeRewriteNlQueryPrompt(model);
 

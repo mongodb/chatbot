@@ -6,11 +6,11 @@ import {
 } from "./nodeTypes";
 import { makePromptDbInfo, makePromptDbUserInfo } from "./makePromptComponents";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { openAiClient } from "../../../openAi";
+import { makeOpenAiClient } from "../../../openAi";
 
 export const generateDatabaseUseCases = wrapTraced(
   makeGenerateChildrenWithOpenAi<DatabaseUserNode, UseCaseNode>({
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     makePromptMessages: async (
       { data: user, parent: { data: databaseInfo } },
       numMessages

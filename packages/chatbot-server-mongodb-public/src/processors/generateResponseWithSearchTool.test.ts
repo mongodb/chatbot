@@ -384,8 +384,14 @@ describe("generateResponseWithSearchTool", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        // Note: In the actual implementation, streaming callbacks should be called
-        // but the mock setup might not be triggering them correctly
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          delta: expect.any(String),
+        });
+        expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          references: expect.any(Array),
+        });
 
         expectSuccessfulResult(result);
       });
@@ -403,8 +409,14 @@ describe("generateResponseWithSearchTool", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        // Note: In the actual implementation, streaming callbacks should be called
-        // but the mock setup might not be triggering them correctly
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          delta: expect.any(String),
+        });
+        expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          references: expect.any(Array),
+        });
 
         expectSuccessfulResult(result);
       });
@@ -422,8 +434,10 @@ describe("generateResponseWithSearchTool", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        // Note: In the actual implementation, streaming callbacks should be called
-        // but the mock setup might not be triggering them correctly
+        expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          refusalMessage: mockLlmRefusalMessage,
+        });
 
         expectGuardrailRejectResult(result);
       });
@@ -441,8 +455,10 @@ describe("generateResponseWithSearchTool", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        // Note: In the actual implementation, streaming callbacks should be called
-        // but the mock setup might not be triggering them correctly
+        expect(mockStreamConfig.onLlmNotWorking).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          notWorkingMessage: mockLlmNotWorkingMessage,
+        });
 
         expect(result.messages[0].role).toBe("user");
         expect(result.messages[0].content).toBe(latestMessageText);

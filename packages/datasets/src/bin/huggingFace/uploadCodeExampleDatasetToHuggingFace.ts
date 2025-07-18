@@ -16,7 +16,7 @@ import { uploadDatasetToHuggingFace } from "../../uploadDatasetToHuggingFace";
 import { HUGGINGFACE, HUGGINGFACE_DOCS_CODE_EXAMPLES } from "../../EnvVars";
 import path from "path";
 import { makeTranformPageToAnnotatedCodeExamples } from "../../codeExampleDataset/transformPageToAnnotatedCodeExamples";
-import { model, openAiClient } from "../../openAi";
+import { model, makeOpenAiClient } from "../../openAi";
 import { CodeExampleDatasetEntry } from "../../codeExampleDataset/createCodeExampleDatasetEntry";
 import { Filter } from "mongodb-rag-core/mongodb";
 
@@ -49,7 +49,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   const MAX_PAGE_TRANSFORM_CONCURRENCY = 8;
 
   const transformPage = await makeTranformPageToAnnotatedCodeExamples(
-    openAiClient,
+    makeOpenAiClient(),
     model,
     MAX_PAGE_TRANSFORM_CONCURRENCY
   );

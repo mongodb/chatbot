@@ -4,16 +4,18 @@ import { NlPromptResponseEvalTask } from "./NlQuestionAnswerEval";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 interface MakeNlPromptCompletionTaskParams {
+  openAiClient: OpenAI;
   llmOptions: LlmOptions;
   initialMessages?: OpenAI.Chat.ChatCompletionMessageParam[];
 }
 
 export function makeNlPromptCompletionTask({
+  openAiClient,
   llmOptions,
   initialMessages,
 }: MakeNlPromptCompletionTaskParams): NlPromptResponseEvalTask {
   return async function (input) {
-    const { openAiClient, ...llmConfig } = llmOptions;
+    const { ...llmConfig } = llmOptions;
     const res = await openAiClient.chat.completions.create({
       messages: [...(initialMessages ?? []), ...input.messages],
       stream: false,

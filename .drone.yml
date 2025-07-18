@@ -39,6 +39,7 @@ steps:
       OPENAI_API_VERSION: "2024-06-01"
       OPENAI_RESOURCE_NAME: "docs-ai-chatbot-useast2resource-sandbox"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
+      BRAINTRUST_ENDPOINT: "<placeholder>" # need placeholder for test suite to pass
       BRAINTRUST_API_KEY:
         from_secret: braintrust_api_key
       MONGODB_CONNECTION_URI:

@@ -8,7 +8,7 @@ import "dotenv/config";
 import yaml from "yaml";
 import { appendLlmMetadata } from "../codeExampleDataset/appendLlmMetadata.js";
 import { PersistedPage } from "mongodb-rag-core";
-import { model, openAiClient } from "../openAi.js";
+import { model, makeOpenAiClient } from "../openAi.js";
 
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
@@ -67,7 +67,7 @@ async function main(): Promise<void> {
       pages,
       codeExamples: codeExamples.slice(i, i + BATCH_SIZE),
       batchSize: 5,
-      openAiClient,
+      openAiClient: makeOpenAiClient(),
       model,
     });
     console.log(

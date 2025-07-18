@@ -60,21 +60,24 @@ export async function runNlPromptResponseBenchmark({
     "At least one judge model must be configured in 'judgeModelsConfig'. Check your model labels in 'globalConfig.ts'."
   );
 
-  const judgeClients = await Promise.all(
+  const judgeConfigs = await Promise.all(
     judgeModelsConfig.map(async (m) => {
       const endpointAndKey = await getOpenAiEndpointAndApiKey(m);
       console.log(`Judge model: ${m.label}`);
       return {
         openAiClient: new OpenAI(endpointAndKey),
-        model: m.deployment,
-        temperature: 0,
-        label: m.label,
+        config: {
+          model: m.deployment,
+          temperature: 0,
+          label: m.label,
+        },
       };
     })
   );
-  const judgeMetrics = judgeClients.map(({ label, ...config }) =>
-    makeReferenceAlignment(config, label)
-  );
+  const judgeMetrics = judgeConfigs.map(({ openAiClient, config }) => {
+    const { label, ...llmOptions } = config;
+    return makeReferenceAlignment(openAiClient, llmOptions, label);
+  });
 
   await PromisePool.for(models)
     .withConcurrency(maxConcurrentExperiments)
@@ -121,6 +124,7 @@ export async function runNlPromptResponseBenchmark({
           ...staticLlmOptions,
         },
         task: makeNlPromptCompletionTask({
+          openAiClient,
           llmOptions,
           initialMessages: [systemMessage],
         }),

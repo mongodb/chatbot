@@ -8,7 +8,7 @@ import "dotenv/config";
 import yaml from "yaml";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeClassifyIsUsefulCodeBlockForTraining } from "../codeExampleDataset/classifyIsUsefulCodeBlockForTraining.js";
-import { openAiClient, model } from "../openAi.js";
+import { makeOpenAiClient, model } from "../openAi.js";
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const pathOut = path.resolve(
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
   const classifyIsUsefulCodeBlockForTraining =
     makeClassifyIsUsefulCodeBlockForTraining({
-      openAiClient,
+      openAiClient: makeOpenAiClient(),
       model,
     });
 

@@ -115,7 +115,7 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       let annotationIndex = 0;
       for (const reference of references) {
         dataStreamer?.streamResponses({
-          type: "response.output_text_annotation.added",
+          type: "response.output_text.annotation.added",
           annotation: {
             type: "url_citation",
             url: reference.url,

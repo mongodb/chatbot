@@ -200,7 +200,35 @@ const generateResponseWithSearchToolArgs = {
   llmRefusalMessage: mockLlmRefusalMessage,
   systemMessage: mockSystemMessage,
   searchTool: mockSearchTool,
-} satisfies Partial<GenerateResponseWithSearchToolParams>;
+} satisfies GenerateResponseWithSearchToolParams;
+
+const makeMockStreamConfig = (dataStreamer: DataStreamer) =>
+  ({
+    onLlmNotWorking: jest.fn().mockImplementation(() => {
+      dataStreamer.streamData({
+        type: "delta",
+        data: mockLlmNotWorkingMessage,
+      });
+    }),
+    onLlmRefusal: jest.fn().mockImplementation(() => {
+      dataStreamer.streamData({
+        type: "delta",
+        data: mockLlmRefusalMessage,
+      });
+    }),
+    onReferenceLinks: jest.fn().mockImplementation(() => {
+      dataStreamer.streamData({
+        type: "references",
+        data: mockReferences,
+      });
+    }),
+    onTextDelta: jest.fn().mockImplementation(() => {
+      dataStreamer.streamData({
+        type: "delta",
+        data: mockLlmNotWorkingMessage,
+      });
+    }),
+  } satisfies GenerateResponseWithSearchToolParams["stream"]);
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -372,9 +400,10 @@ describe("generateResponseWithSearchTool", () => {
       };
       test("should handle successful streaming", async () => {
         const mockDataStreamer = makeMockDataStreamer();
-        const generateResponse = makeGenerateResponseWithSearchTool(
-          generateResponseWithSearchToolArgs
-        );
+        const generateResponse = makeGenerateResponseWithSearchTool({
+          ...generateResponseWithSearchToolArgs,
+          ...makeMockStreamConfig(mockDataStreamer),
+        });
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -395,11 +424,12 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle successful generation with guardrail", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithSearchTool({
           ...generateResponseWithSearchToolArgs,
+          ...makeMockStreamConfig(mockDataStreamer),
           inputGuardrail: makeMockGuardrail(true),
         });
-        const mockDataStreamer = makeMockDataStreamer();
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -421,11 +451,12 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle streaming with guardrail rejection", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithSearchTool({
           ...generateResponseWithSearchToolArgs,
+          ...makeMockStreamConfig(mockDataStreamer),
           inputGuardrail: makeMockGuardrail(false),
         });
-        const mockDataStreamer = makeMockDataStreamer();
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -442,12 +473,13 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle error in language model", async () => {
+        const dataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithSearchTool({
           ...generateResponseWithSearchToolArgs,
+          ...makeMockStreamConfig(dataStreamer),
           languageModel: mockThrowingLanguageModel,
         });
 
-        const dataStreamer = makeMockDataStreamer();
         const result = await generateResponse({
           ...generateResponseBaseArgs,
           shouldStream: true,

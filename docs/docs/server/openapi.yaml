@@ -17,9 +17,83 @@ servers:
 security:
   - CustomHeaderAuth: []
 paths:
+  /content/search:
+    post:
+      operationId: searchContent
+      tags:
+        - Content
+      summary: Search content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: The search query string.
+                dataSources:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      type:
+                        type: string
+                      versionLabel:
+                        type: string
+                    required: [name]
+                  description: An array of data sources to search. If not provided, latest version of all data sources will be searched.
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 5
+                  description: The maximum number of results to return.
+            required:
+              - query
+      responses:
+        200:
+          description: OK
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        400:
+          description: Bad Request
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/BadRequest"
+        500:
+          description: Internal Server Error
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/InternalServerError"
+
   /conversations:
     post:
       operationId: createConversation
+      tags:
+        - Conversations
       summary: Start new conversation
       responses:
         200:
@@ -36,6 +110,8 @@ paths:
   /conversations/{conversationId}/messages:
     post:
       operationId: addMessage
+      tags:
+        - Conversations
       summary: Add message to the conversation
       description: |
         Add a message to the conversation and get a response back from chatbot.
@@ -121,6 +197,8 @@ paths:
   # /conversations/{conversationId}:
   #   get:
   #     operationId: getConversation
+  #     tags:
+  #       - Conversations
   #     summary: Get a conversation
   #     parameters:
   #       - $ref: "#/components/parameters/conversationId"
@@ -140,6 +218,8 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
+      tags:
+        - Conversations
       summary: Rate message
       parameters:
         - $ref: "#/components/parameters/conversationId"
@@ -162,6 +242,8 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
       operationId: commentMessage
+      tags:
+        - Conversations
       summary: Add comment to assistant message
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
@@ -379,6 +461,38 @@ components:
             Set to `true` if the user liked the message, `false` if the user didn't like the message.
     ErrorResponse:
       type: object
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chunk"
+    Chunk:
+      type: object
+      properties:
+        url:
+          type: string
+          description: The URL of the search result.
+        title:
+          type: string
+          description: Title of the search result.
+        text:
+          type: string
+          description: Chunk text
+        metadata:
+          type: object
+          properties:
+            sourceName:
+              type: string
+              description: The name of the source.
+            sourceType:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+          additionalProperties: true
   parameters:
     conversationId:
       name: conversationId
@@ -394,3 +508,19 @@ components:
       schema:
         type: string
       description: The unique identifier for a message.
+
+tags:
+  - name: Content
+    x-displayName: Search Content
+    description: Search MongoDB content
+  - name: Conversations
+    x-displayName: Conversations
+    description: Interact with MongoDB Chatbot
+
+x-tagGroups:
+  - name: Content
+    tags:
+      - Content
+  - name: Conversations
+    tags:
+      - Conversations

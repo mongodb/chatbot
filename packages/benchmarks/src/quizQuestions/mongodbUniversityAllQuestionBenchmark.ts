@@ -6,14 +6,12 @@ import { runQuizQuestionEval } from "./QuizQuestionEval";
 import { getQuizQuestionEvalCasesFromBraintrust } from "./getQuizQuestionEvalCasesFromBraintrust";
 import { mongoDbQuizQuestionExamples } from "./mongoDbQuizQuestionExamples";
 import { OpenAI } from "mongodb-rag-core/openai";
+import { datasetName, projectName } from "./config";
 
 async function main() {
   const DEFAULT_MAX_CONCURRENCY = 15;
 
   const { RUN_ID } = process.env;
-
-  const projectName = "mongodb-multiple-choice";
-  const datasetName = "university-quiz-badge-questions";
 
   const data = await getQuizQuestionEvalCasesFromBraintrust({
     projectName,

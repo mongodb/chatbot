@@ -181,10 +181,7 @@ export function makeCreateResponseRoute({
   maxOutputTokens,
   maxUserMessagesInConversation,
 }: CreateResponseRouteParams) {
-  return async (
-    req: ExpressRequest,
-    res: ExpressResponse<{ status: string }, any> // TODO: fix type
-  ) => {
+  return async (req: ExpressRequest, res: ExpressResponse) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
     const dataStreamer = makeDataStreamer();

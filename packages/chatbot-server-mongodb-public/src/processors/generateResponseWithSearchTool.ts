@@ -60,6 +60,7 @@ export interface GenerateResponseWithSearchToolParams {
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
     onReferenceLinks: StreamFunction<{ references: References }>;
     onTextDelta: StreamFunction<{ delta: string }>;
+    onTextDone?: StreamFunction<{ text: string }>;
   };
 }
 
@@ -141,6 +142,15 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
         output_index: 0,
         item_id: "",
       } satisfies ResponseStreamOutputTextDelta);
+    },
+    onTextDone({ dataStreamer, text }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
   };
 
@@ -276,6 +286,14 @@ export function makeGenerateResponseWithSearchTool({
                   stream.onTextDelta({
                     dataStreamer,
                     delta: chunk.textDelta,
+                  });
+                }
+                break;
+              case "finish":
+                if (streamingModeActive) {
+                  stream.onTextDone?.({
+                    dataStreamer,
+                    text: chunk.finishReason,
                   });
                 }
                 break;

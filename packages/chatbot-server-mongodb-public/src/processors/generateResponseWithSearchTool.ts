@@ -5,8 +5,10 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  type ResponseStreamOutputTextDone,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
 } from "mongodb-rag-core";
-import type { OpenAI } from "mongodb-rag-core/openai";
 import {
   CoreAssistantMessage,
   CoreMessage,
@@ -99,7 +101,7 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
         content_index: 0,
         output_index: 0,
         item_id: "",
-      } as OpenAI.Responses.ResponseTextDoneEvent);
+      } satisfies ResponseStreamOutputTextDone);
     },
     onLlmRefusal({ dataStreamer, refusalMessage }) {
       // only stream "done" here since it's one message
@@ -109,7 +111,7 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
         content_index: 0,
         output_index: 0,
         item_id: "",
-      } as OpenAI.Responses.ResponseTextDoneEvent);
+      } satisfies ResponseStreamOutputTextDone);
     },
     onReferenceLinks({ dataStreamer, references }) {
       let annotationIndex = 0;
@@ -122,12 +124,12 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
             title: reference.title,
             start_index: 0,
             end_index: 0,
-          } satisfies OpenAI.Responses.ResponseOutputText.URLCitation,
+          },
           annotation_index: annotationIndex++,
           content_index: 0,
           output_index: 0,
           item_id: "",
-        } as OpenAI.Responses.ResponseOutputTextAnnotationAddedEvent);
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
       }
     },
     onTextDelta({ dataStreamer, delta }) {
@@ -138,7 +140,7 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
         content_index: 0,
         output_index: 0,
         item_id: "",
-      } as OpenAI.Responses.ResponseTextDeltaEvent);
+      } satisfies ResponseStreamOutputTextDelta);
     },
   };
 

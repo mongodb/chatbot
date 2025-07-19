@@ -66,7 +66,7 @@ export const makeInternalServerError = ({
     code: ERROR_CODE.SERVER_ERROR,
     message,
   };
-  return new InternalServerError(500, _error, message, headers);
+  return new InternalServerError(500, _error, message, new Headers(headers));
 };
 
 export const makeBadRequestError = ({
@@ -80,7 +80,7 @@ export const makeBadRequestError = ({
     code: ERROR_CODE.INVALID_REQUEST_ERROR,
     message,
   };
-  return new BadRequestError(400, _error, message, headers);
+  return new BadRequestError(400, _error, message, new Headers(headers));
 };
 
 export const makeNotFoundError = ({
@@ -94,7 +94,7 @@ export const makeNotFoundError = ({
     code: ERROR_CODE.NOT_FOUND_ERROR,
     message,
   };
-  return new NotFoundError(404, _error, message, headers);
+  return new NotFoundError(404, _error, message, new Headers(headers));
 };
 
 export const makeRateLimitError = ({
@@ -108,7 +108,7 @@ export const makeRateLimitError = ({
     code: ERROR_CODE.RATE_LIMIT_ERROR,
     message,
   };
-  return new RateLimitError(429, _error, message, headers);
+  return new RateLimitError(429, _error, message, new Headers(headers));
 };
 
 // --- ZOD VALIDATION ERROR MESSAGE GENERATION ---

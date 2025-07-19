@@ -91,19 +91,19 @@ describe("Data Streaming", () => {
     dataStreamer.streamResponses({
       type: "response.created",
       id: "test1",
-    } as ResponsesStreamParams);
+    } as unknown as ResponsesStreamParams);
     dataStreamer.streamResponses({
       type: "response.in_progress",
       id: "test2",
-    } as ResponsesStreamParams);
+    } as unknown as ResponsesStreamParams);
     dataStreamer.streamResponses({
       type: "response.output_text.delta",
       id: "test3",
-    } as ResponsesStreamParams);
+    } as unknown as ResponsesStreamParams);
     dataStreamer.streamResponses({
       type: "response.completed",
       id: "test4",
-    } as ResponsesStreamParams);
+    } as unknown as ResponsesStreamParams);
 
     const data = res._getData();
     expect(data).toBe(

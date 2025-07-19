@@ -58,9 +58,45 @@ interface StreamParams {
 
 type StreamEvent = { type: string; data: unknown };
 
+export type ResponseStreamCreated = Omit<
+  OpenAI.Responses.ResponseCreatedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamInProgress = Omit<
+  OpenAI.Responses.ResponseInProgressEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputTextDelta = Omit<
+  OpenAI.Responses.ResponseTextDeltaEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputTextAnnotationAdded = Omit<
+  OpenAI.Responses.ResponseOutputTextAnnotationAddedEvent,
+  "sequence_number" | "annotation"
+> & {
+  annotation: OpenAI.Responses.ResponseOutputText.URLCitation;
+};
+export type ResponseStreamOutputTextDone = Omit<
+  OpenAI.Responses.ResponseTextDoneEvent,
+  "sequence_number"
+>;
+export type ResponseStreamCompleted = Omit<
+  OpenAI.Responses.ResponseCompletedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamError = Omit<
+  OpenAI.Responses.ResponseErrorEvent,
+  "sequence_number"
+>;
+
 export type ResponsesStreamParams =
-  | Omit<OpenAI.Responses.ResponseStreamEvent, "sequence_number">
-  | Omit<OpenAI.Responses.ResponseErrorEvent, "sequence_number">;
+  | ResponseStreamCreated
+  | ResponseStreamInProgress
+  | ResponseStreamOutputTextDelta
+  | ResponseStreamOutputTextAnnotationAdded
+  | ResponseStreamOutputTextDone
+  | ResponseStreamCompleted
+  | ResponseStreamError;
 
 /**
   Event when server streams additional message response to the client.
@@ -218,7 +254,7 @@ export function makeDataStreamer(): DataStreamer {
       sse?.sendResponsesEvent({
         ...data,
         sequence_number: responseSequenceNumber,
-      } as OpenAI.Responses.ResponseStreamEvent);
+      } satisfies OpenAI.Responses.ResponseStreamEvent);
 
       responseSequenceNumber++;
     },

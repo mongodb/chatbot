@@ -5,6 +5,9 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  type ResponseStreamOutputTextDone,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
 } from "mongodb-rag-core";
 import {
   CoreAssistantMessage,
@@ -57,6 +60,7 @@ export interface GenerateResponseWithSearchToolParams {
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
     onReferenceLinks: StreamFunction<{ references: References }>;
     onTextDelta: StreamFunction<{ delta: string }>;
+    onTextDone?: StreamFunction<{ text: string }>;
   };
 }
 
@@ -88,20 +92,65 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
     },
   };
 
-// TODO: implement this
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
-    onLlmNotWorking() {
-      throw new Error("not yet implemented");
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
-    onLlmRefusal() {
-      throw new Error("not yet implemented");
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
-    onReferenceLinks() {
-      throw new Error("not yet implemented");
+    onReferenceLinks({ dataStreamer, references }) {
+      let annotationIndex = 0;
+      for (const reference of references) {
+        dataStreamer?.streamResponses({
+          type: "response.output_text.annotation.added",
+          annotation: {
+            type: "url_citation",
+            url: reference.url,
+            title: reference.title,
+            start_index: 0,
+            end_index: 0,
+          },
+          annotation_index: annotationIndex++,
+          content_index: 0,
+          output_index: 0,
+          item_id: "",
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
+      }
     },
-    onTextDelta() {
-      throw new Error("not yet implemented");
+    onTextDelta({ dataStreamer, delta }) {
+      // only stream delta here, allow "done" to be streamed elsewhere
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+    },
+    onTextDone({ dataStreamer, text }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
   };
 
@@ -237,6 +286,14 @@ export function makeGenerateResponseWithSearchTool({
                   stream.onTextDelta({
                     dataStreamer,
                     delta: chunk.textDelta,
+                  });
+                }
+                break;
+              case "finish":
+                if (streamingModeActive) {
+                  stream.onTextDone?.({
+                    dataStreamer,
+                    text: chunk.finishReason,
                   });
                 }
                 break;

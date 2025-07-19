@@ -4,10 +4,13 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import { ObjectId } from "mongodb";
-import type { OpenAI } from "mongodb-rag-core/openai";
 import {
   type ConversationsService,
   type Conversation,
+  type ResponseStreamCreated,
+  type ResponseStreamInProgress,
+  type ResponseStreamCompleted,
+  type ResponseStreamError,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -21,19 +24,6 @@ import {
   ERROR_TYPE,
   type SomeOpenAIAPIError,
 } from "./errors";
-
-type StreamCreatedMessage = Omit<
-  OpenAI.Responses.ResponseCreatedEvent,
-  "sequence_number"
->;
-type StreamInProgressMessage = Omit<
-  OpenAI.Responses.ResponseInProgressEvent,
-  "sequence_number"
->;
-type StreamCompletedMessage = Omit<
-  OpenAI.Responses.ResponseCompletedEvent,
-  "sequence_number"
->;
 
 export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
@@ -191,10 +181,7 @@ export function makeCreateResponseRoute({
   maxOutputTokens,
   maxUserMessagesInConversation,
 }: CreateResponseRouteParams) {
-  return async (
-    req: ExpressRequest,
-    res: ExpressResponse<{ status: string }, any> // TODO: fix type
-  ) => {
+  return async (req: ExpressRequest, res: ExpressResponse) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
     const dataStreamer = makeDataStreamer();
@@ -289,23 +276,21 @@ export function makeCreateResponseRoute({
         data: data.body,
       });
 
-      const createdMessage: StreamCreatedMessage = {
+      dataStreamer.streamResponses({
         type: "response.created",
         response: {
           ...baseResponse,
           created_at: Date.now(),
         },
-      };
-      dataStreamer.streamResponses(createdMessage);
+      } satisfies ResponseStreamCreated);
 
-      const inProgressMessage: StreamInProgressMessage = {
+      dataStreamer.streamResponses({
         type: "response.in_progress",
         response: {
           ...baseResponse,
           created_at: Date.now(),
         },
-      };
-      dataStreamer.streamResponses(inProgressMessage);
+      } satisfies ResponseStreamInProgress);
 
       // TODO: actually implement this call
       const { messages } = await generateResponse({} as any);
@@ -321,14 +306,13 @@ export function makeCreateResponseRoute({
         responseId,
       });
 
-      const completedMessage: StreamCompletedMessage = {
+      dataStreamer.streamResponses({
         type: "response.completed",
         response: {
           ...baseResponse,
           created_at: Date.now(),
         },
-      };
-      dataStreamer.streamResponses(completedMessage);
+      } satisfies ResponseStreamCompleted);
     } catch (error) {
       const standardError =
         (error as SomeOpenAIAPIError)?.type === ERROR_TYPE
@@ -339,7 +323,9 @@ export function makeCreateResponseRoute({
         dataStreamer.streamResponses({
           ...standardError,
           type: ERROR_TYPE,
-        });
+          code: standardError.code ?? null,
+          param: standardError.param ?? null,
+        } satisfies ResponseStreamError);
       } else {
         sendErrorResponse({
           res,

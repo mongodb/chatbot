@@ -9,8 +9,6 @@ import {
 import {
   CoreAssistantMessage,
   CoreMessage,
-  LanguageModel,
-  streamText,
   ToolCallPart,
   ToolChoice,
   ToolSet,
@@ -34,13 +32,18 @@ import {
   SEARCH_TOOL_NAME,
   SearchTool,
 } from "../tools/search";
+// Using v5-beta version of ai-sdk for new functionality.
+// Refer to annoucement for more info https://v5.ai-sdk.dev/docs/announcing-ai-sdk-5-beta#announcing-ai-sdk-5-beta
+// Specifically, the new stopWhen option is useful
+import { streamText, LanguageModel, hasToolCall } from "ai";
 
+export type MakeSystemPrompt = (customSystemPrompt?: string) => SystemMessage;
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
-  systemMessage: SystemMessage;
+  systemMessage: MakeSystemPrompt;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
     Required tool for performing content search and gathering {@link References}
@@ -131,6 +134,8 @@ export function makeGenerateResponseWithSearchTool({
     reqId,
     dataStreamer,
     request,
+    customSystemPrompt,
+    tools,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -152,12 +157,13 @@ export function makeGenerateResponseWithSearchTool({
       const toolSet = {
         [SEARCH_TOOL_NAME]: searchTool,
         ...(additionalTools ?? {}),
+        // TODO: get the client-defined tools into here
       } satisfies ToolSet;
 
       const generationArgs = {
         model: languageModel,
         messages: [
-          systemMessage,
+          systemMessage(customSystemPrompt),
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies CoreMessage[],
@@ -176,6 +182,8 @@ export function makeGenerateResponseWithSearchTool({
             reqId,
             dataStreamer,
             request,
+            tools,
+            customSystemPrompt,
           })
         : undefined;
 
@@ -201,6 +209,11 @@ export function makeGenerateResponseWithSearchTool({
           const result = streamText({
             ...generationArgs,
             abortSignal: generationController.signal,
+            // Something like this. refer to https://v5.ai-sdk.dev/docs/announcing-ai-sdk-5-beta#announcing-ai-sdk-5-beta
+            // Want to stop the generation after the client-defined tool is called
+            // But continue after the search tool
+            stopWhen: tools.map((tool) => hasToolCall(tool.name)),
+
             onStepFinish: async ({ toolResults, toolCalls }) => {
               toolCalls?.forEach((toolCall) => {
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {

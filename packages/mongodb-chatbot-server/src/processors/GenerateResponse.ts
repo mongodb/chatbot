@@ -7,6 +7,7 @@ import {
   UserMessage,
 } from "mongodb-rag-core";
 import { Request as ExpressRequest } from "express";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export type ClientContext = Record<string, unknown>;
 
@@ -19,6 +20,8 @@ export interface GenerateResponseParams {
   reqId: string;
   conversation: Conversation;
   request?: ExpressRequest;
+  customSystemPrompt?: string;
+  toolDefinitions?: OpenAI.FunctionDefinition[];
 }
 
 export interface GenerateResponseReturnValue {

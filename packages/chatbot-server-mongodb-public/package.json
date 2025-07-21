@@ -27,9 +27,11 @@
     "generate-eval-cases": "ts-node src/eval/bin/generateEvalCasesYamlFromCSV.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.0-beta.11",
     "@segment/analytics-node": "^2.2.1",
     "@slack/web-api": "^7.8.0",
     "ahocorasick": "^1.0.2",
+    "ai": "^5.0.0-beta.25",
     "common-tags": "^1.8.2",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",

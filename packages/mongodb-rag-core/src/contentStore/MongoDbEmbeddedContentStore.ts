@@ -288,7 +288,7 @@ export function makeMongoDbEmbeddedContentStore({
           {
             $project: {
               _id: 0,
-              sourceName: "$_id",
+              id: "$_id",
               version: {
                 $filter: {
                   input: "$version",
@@ -296,7 +296,7 @@ export function makeMongoDbEmbeddedContentStore({
                   cond: { $ne: ["$$v", null] },
                 },
               },
-              sourceType: {
+              type: {
                 $arrayElemAt: [
                   {
                     $filter: {
@@ -314,10 +314,10 @@ export function makeMongoDbEmbeddedContentStore({
         .toArray();
 
       // Explicitly map to DataSourceMetadata
-      return result.map(({ sourceName, version, sourceType }) => ({
-        sourceName,
+      return result.map(({ id, version, type }) => ({
+        id,
         version,
-        sourceType,
+        type,
       }));
     },
 

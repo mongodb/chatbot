@@ -105,9 +105,9 @@ export type QueryFilters = {
   Metadata of data source
 */
 export type DataSourceMetadata = {
-  sourceName: string;
+  id: string;
   version?: string[];
-  sourceType?: string;
+  type?: string;
 }
 
 /**

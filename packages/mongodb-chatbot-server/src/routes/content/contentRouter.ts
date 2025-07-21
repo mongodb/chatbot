@@ -90,7 +90,7 @@ export function makeContentRouter({
     })
   );
 
-  contentRouter.get("/sources", validateRequestSchema(GetDataSourcesRequest), makeListDataSourcesRoute({ embeddedContentStore, addCustomData }));
+  contentRouter.get("/sources", validateRequestSchema(GetDataSourcesRequest), makeListDataSourcesRoute({ embeddedContentStore }));
 
   return contentRouter;
 }

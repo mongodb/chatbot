@@ -1,0 +1,72 @@
+import type { MongoDbEmbeddedContentStore, DataSourceMetadata } from "mongodb-rag-core";
+import { createRequest, createResponse } from "node-mocks-http";
+import { makeListDataSourcesRoute } from "./listDataSources";
+
+function makeMockEmbeddedContentStore(dataSources: DataSourceMetadata[]) {
+  return {
+    listDataSources: jest.fn().mockResolvedValue(dataSources),
+  } as unknown as MongoDbEmbeddedContentStore;
+}
+
+describe("makeListDataSourcesRoute", () => {
+  const mockDataSources: DataSourceMetadata[] = [
+    { id: "source1", version: ["current", "v6.0"], type: "docs" },
+    { id: "source2", version: ["v2.11"], type: "university-content" },
+  ];
+
+  it("should return data sources for a valid request", async () => {
+    const embeddedContentStore = makeMockEmbeddedContentStore(mockDataSources);
+    const handler = makeListDataSourcesRoute({ embeddedContentStore });
+
+    const req = createRequest({
+      headers: { "req-id": "test-req-id" },
+    });
+    const res = createResponse();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req, res as any);
+
+    const data = res._getJSONData();
+    expect(data).toHaveProperty("dataSources");
+    expect(Array.isArray(data.dataSources)).toBe(true);
+    expect(data.dataSources.length).toBe(2);
+    expect(data.dataSources[0].id).toBe("source1");
+  });
+
+  it("should handle errors from embeddedContentStore and throw", async () => {
+    const embeddedContentStore = {
+      listDataSources: jest.fn().mockRejectedValue(new Error("fail")),
+    } as unknown as MongoDbEmbeddedContentStore;
+    const handler = makeListDataSourcesRoute({ embeddedContentStore });
+
+    const req = createRequest({
+      headers: { "req-id": "test-req-id" },
+    });
+    const res = createResponse();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(handler(req, res as any)).rejects.toMatchObject({
+      message: "Unable to list data sources",
+      httpStatus: 500,
+      name: "RequestError",
+    });
+  });
+
+  it("should return an empty array if no data sources are found", async () => {
+    const embeddedContentStore = makeMockEmbeddedContentStore([]);
+    const handler = makeListDataSourcesRoute({ embeddedContentStore });
+
+    const req = createRequest({
+      headers: { "req-id": "test-req-id" },
+    });
+    const res = createResponse();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req, res as any);
+
+    const data = res._getJSONData();
+    expect(data).toHaveProperty("dataSources");
+    expect(Array.isArray(data.dataSources)).toBe(true);
+    expect(data.dataSources.length).toBe(0);
+  });
+});

@@ -56,7 +56,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
   tasks: {
     completion: {
       description: "Standard 1-shot completion task",
-      taskFunc: (modelProvider: ModelProvider, deployment: string) => {
+      taskFunc: (modelProvider, modelConfig) => {
         return makeNlPromptCompletionTask({
           llmOptions: {
             openAiClient: wrapOpenAI(
@@ -65,7 +65,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
                 apiKey: modelProvider.apiKey,
               })
             ),
-            model: deployment,
+            model: modelConfig.deployment,
             temperature: 0,
           },
           initialMessages: [systemMessage],

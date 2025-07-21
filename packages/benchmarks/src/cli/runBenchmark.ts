@@ -101,7 +101,7 @@ export async function runBenchmark(
             dataset: datasetName,
             taskConcurrency,
           },
-          task: taskToRun.taskFunc(config.modelProvider, model.deployment),
+          task: taskToRun.taskFunc(config.modelProvider, model),
           scores,
         });
 

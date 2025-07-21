@@ -30,7 +30,7 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
   },
   tasks: {
     default: {
-      taskFunc: (provider, deployment) => {
+      taskFunc: (provider, config) => {
         const openAiClient = wrapOpenAI(
           new OpenAI({
             baseURL: provider.baseUrl,
@@ -39,7 +39,7 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
         );
         return makeDiscoveryTask({
           openaiClient: openAiClient,
-          model: deployment,
+          model: config.deployment,
           llmOptions: {
             temperature: 0,
           },

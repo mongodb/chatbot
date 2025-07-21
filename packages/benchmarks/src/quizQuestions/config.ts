@@ -35,7 +35,7 @@ export const multipleChoiceBenchmarkConfig: BenchmarkConfig<
   tasks: {
     answer_question: {
       description: "Answer multiple choice questions about MongoDB",
-      taskFunc: (modelProvider: ModelProvider, deployment: string) => {
+      taskFunc: (modelProvider, modelConfig) => {
         const openaiClient = wrapOpenAI(
           new OpenAI({
             baseURL: modelProvider.baseUrl,
@@ -47,17 +47,13 @@ export const multipleChoiceBenchmarkConfig: BenchmarkConfig<
           quizQuestionExamples: mongoDbQuizQuestionExamples,
         };
         const llmOptions = {
-          max_tokens: deployment.includes("gemini-2.5") ? undefined : 100,
-          reasoning_enabled: deployment.includes("gemini-2.5")
-            ? true
-            : undefined,
-          reasoning_budget: deployment.includes("gemini-2.5")
-            ? 1024
-            : undefined,
+          max_tokens: modelConfig.reasoning ? undefined : 100,
+          reasoning_enabled: modelConfig.reasoning ? true : undefined,
+          reasoning_budget: modelConfig.reasoning ? 1024 : undefined,
         };
         return makeQuizQuestionTask({
           openaiClient,
-          model: deployment,
+          model: modelConfig.deployment,
           llmOptions,
           promptOptions,
         });

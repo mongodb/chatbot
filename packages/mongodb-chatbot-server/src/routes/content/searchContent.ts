@@ -73,7 +73,7 @@ export function makeSearchContentRoute({
   ) => {
     try {
       // --- INPUT VALIDATION ---
-      const { error } = SearchContentRequestBody.safeParse(req.body);
+      const { error, data } = SearchContentRequestBody.safeParse(req.body);
       if (error) {
         throw makeRequestError({
           httpStatus: 500,
@@ -81,7 +81,7 @@ export function makeSearchContentRoute({
         });
       }
 
-      const { query, dataSources, limit } = req.body;
+      const { query, dataSources, limit } = data;
       const results = await tracedFindContent({
         query,
         filters: mapDataSourcesToFilters(dataSources),
@@ -145,14 +145,14 @@ function mapDataSourcesToFilters(
 async function persistSearchResultsToDatabase({
   query,
   results,
-  dataSources,
+  dataSources = [],
   limit,
   searchResultsStore,
   customData,
 }: {
   query: string;
   results: FindContentResult;
-  dataSources: SearchRecordDataSource[];
+  dataSources?: SearchRecordDataSource[];
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
   customData?: { [k: string]: unknown };

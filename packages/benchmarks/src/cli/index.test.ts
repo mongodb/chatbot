@@ -297,15 +297,17 @@ describe("createBenchmarkCli", () => {
             {
               type: "test-benchmark",
               description: "Test benchmark",
-              datasets: [
-                { name: "dataset1", description: "Test dataset 1" },
-                { name: "dataset2", description: "Test dataset 2" },
-              ],
-              tasks: [
-                { name: "task1", description: "Test task 1" },
-                { name: "task2", description: "Test task 2" },
-              ],
-              scorers: [{ name: "scorer1", description: "Test scorer 1" }],
+              datasets: {
+                dataset1: "Test dataset 1",
+                dataset2: "Test dataset 2",
+              },
+              tasks: {
+                task1: "Test task 1",
+                task2: "Test task 2",
+              },
+              scorers: {
+                scorer1: "Test scorer 1",
+              },
             },
           ],
           null,

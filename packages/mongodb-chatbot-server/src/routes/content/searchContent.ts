@@ -12,9 +12,14 @@ import {
 } from "mongodb-rag-core";
 import { z } from "zod";
 
-import { SomeExpressRequest } from "../../middleware";
+import { generateZodErrorMessage, SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
-import { SearchContentRouterLocals } from "./contentRouter";
+import {
+  SearchContentCustomData,
+  SearchContentRouterLocals,
+} from "./contentRouter";
+import { AddCustomDataFunc } from "../../processors";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const SearchContentRequestBody = z.object({
   query: z.string(),
@@ -37,6 +42,7 @@ export type SearchContentRequestBody = z.infer<typeof SearchContentRequestBody>;
 export interface MakeSearchContentRouteParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
+  addCustomData?: AddCustomDataFunc;
 }
 
 interface SearchContentResponseChunk {
@@ -58,25 +64,39 @@ interface SearchContentResponseBody {
 export function makeSearchContentRoute({
   findContent,
   searchResultsStore,
+  addCustomData,
 }: MakeSearchContentRouteParams) {
+  const tracedFindContent = wrapTraced(findContent, { name: "searchContent" });
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
     res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
   ) => {
     try {
-      const { query, dataSources, limit } = req.body;
-      const results = await findContent({
+      // --- INPUT VALIDATION ---
+      const { error, data } = SearchContentRequestBody.safeParse(req.body);
+      if (error) {
+        throw makeRequestError({
+          httpStatus: 500,
+          message: generateZodErrorMessage(error),
+        });
+      }
+
+      const { query, dataSources, limit } = data;
+      const results = await tracedFindContent({
         query,
         filters: mapDataSourcesToFilters(dataSources),
         limit,
       });
       res.json(mapFindContentResultToSearchContentResponseChunk(results));
+
+      const customData = await getCustomData(req, res, addCustomData);
       await persistSearchResultsToDatabase({
         query,
         results,
         dataSources,
         limit,
         searchResultsStore,
+        customData,
       });
     } catch (error) {
       throw makeRequestError({
@@ -122,18 +142,44 @@ function mapDataSourcesToFilters(
   };
 }
 
-async function persistSearchResultsToDatabase(params: {
+async function persistSearchResultsToDatabase({
+  query,
+  results,
+  dataSources = [],
+  limit,
+  searchResultsStore,
+  customData,
+}: {
   query: string;
   results: FindContentResult;
-  dataSources: SearchRecordDataSource[];
+  dataSources?: SearchRecordDataSource[];
   limit: number;
   searchResultsStore: MongoDbSearchResultsStore;
+  customData?: { [k: string]: unknown };
 }) {
-  params.searchResultsStore.saveSearchResult({
-    query: params.query,
-    results: params.results.content,
-    dataSources: params.dataSources,
-    limit: params.limit,
+  searchResultsStore.saveSearchResult({
+    query,
+    results: results.content,
+    dataSources,
+    limit,
     createdAt: new Date(),
+    ...(customData !== undefined && { customData }),
   });
+}
+
+async function getCustomData(
+  req: ExpressRequest,
+  res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>,
+  addCustomData?: AddCustomDataFunc
+): Promise<SearchContentCustomData | undefined> {
+  try {
+    if (addCustomData) {
+      return await addCustomData(req, res);
+    }
+  } catch (error) {
+    throw makeRequestError({
+      httpStatus: 500,
+      message: "Error parsing custom data from the request",
+    });
+  }
 }

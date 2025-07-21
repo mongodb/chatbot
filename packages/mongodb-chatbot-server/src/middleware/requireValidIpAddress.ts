@@ -1,8 +1,12 @@
+import { RequestHandler } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
-import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
 import { isValidIp } from "../routes/conversations/utils";
 
-export function requireValidIpAddress(): ConversationsMiddleware {
+export function requireValidIpAddress<
+  Locals extends Record<string, any>
+>(): RequestHandler<ParamsDictionary, unknown, unknown, ParsedQs, Locals> {
   return (req, res, next) => {
     const reqId = getRequestId(req);
 

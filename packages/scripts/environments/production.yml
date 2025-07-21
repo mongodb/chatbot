@@ -62,12 +62,12 @@ cronJobs:
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-prod
       PROFOUND_API_URL: https://api.tryprofound.com/v1
+      BRAINTRUST_ENDPOINT: https://api.braintrust.dev/v1/proxy
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
       PROFOUND_API_KEY: docs-chatbot-prod
       PROFOUND_CATALOG_ID_EDU: docs-chatbot-prod
       BRAINTRUST_API_KEY: docs-chatbot-prod
-      BRAINTRUST_ENDPOINT: docs-chatbot-prod
     resources:
       requests:
         cpu: 100m

@@ -1,6 +1,6 @@
 import { NextFunction, RequestHandler, Response, Router } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
-import { FindContentFunc, MongoDbSearchResultsStore } from "mongodb-rag-core";
+import { FindContentFunc, MongoDbEmbeddedContentStore, MongoDbSearchResultsStore } from "mongodb-rag-core";
 import { ParsedQs } from "qs";
 
 import validateRequestSchema from "../../middleware/validateRequestSchema";
@@ -11,6 +11,7 @@ import {
   addDefaultCustomData,
   RequestCustomData,
 } from "../../processors";
+import { GetDataSourcesRequest, makeListDataSourcesRoute } from "./listDataSources";
 
 export type SearchContentCustomData = RequestCustomData;
 
@@ -27,7 +28,7 @@ export type SearchContentMiddleware = RequestHandler<
   unknown,
   unknown,
   ParsedQs,
-  SearchContentRouterLocals
+  ContentRouterLocals
 >;
 
 /**
@@ -35,7 +36,7 @@ export type SearchContentMiddleware = RequestHandler<
  
   Keeps track of data for authentication or dynamic data validation.
  */
-export interface SearchContentRouterLocals {
+export interface ContentRouterLocals {
   customData: Record<string, unknown>;
 }
 
@@ -45,12 +46,13 @@ export interface SearchContentRouterLocals {
 export type SearchContentRouterResponse = Response<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
-  SearchContentRouterLocals
+  ContentRouterLocals
 >;
 
 export interface MakeContentRouterParams {
   findContent: FindContentFunc;
   searchResultsStore: MongoDbSearchResultsStore;
+  embeddedContentStore: MongoDbEmbeddedContentStore;
   addCustomData?: AddCustomDataFunc;
   middleware?: SearchContentMiddleware[];
 }
@@ -58,10 +60,11 @@ export interface MakeContentRouterParams {
 export function makeContentRouter({
   findContent,
   searchResultsStore,
+  embeddedContentStore,
   addCustomData = addDefaultCustomData,
   middleware = [
-    requireValidIpAddress<SearchContentRouterLocals>(),
-    requireRequestOrigin<SearchContentRouterLocals>(),
+    requireValidIpAddress<ContentRouterLocals>(),
+    requireRequestOrigin<ContentRouterLocals>(),
   ],
 }: MakeContentRouterParams) {
   const contentRouter = Router();
@@ -86,6 +89,8 @@ export function makeContentRouter({
       addCustomData,
     })
   );
+
+  contentRouter.get("/sources", validateRequestSchema(GetDataSourcesRequest), makeListDataSourcesRoute({ embeddedContentStore, addCustomData }));
 
   return contentRouter;
 }

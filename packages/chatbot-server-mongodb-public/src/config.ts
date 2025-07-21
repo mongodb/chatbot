@@ -19,7 +19,7 @@ import {
   makeVerifiedAnswerGenerateResponse,
   addDefaultCustomData,
   ConversationsRouterLocals,
-  SearchContentRouterLocals,
+  ContentRouterLocals,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -319,7 +319,8 @@ export const config: AppConfig = {
       classifierModel: languageModel,
     }),
     searchResultsStore,
-    middleware: [requireValidIpAddress<SearchContentRouterLocals>(), requireRequestOrigin<SearchContentRouterLocals>()],
+    embeddedContentStore,
+    middleware: [requireValidIpAddress<ContentRouterLocals>(), requireRequestOrigin<ContentRouterLocals>()],
   },
   conversationsRouterConfig: {
     middleware: [

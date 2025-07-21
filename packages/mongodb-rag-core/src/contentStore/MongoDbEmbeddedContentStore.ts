@@ -1,6 +1,7 @@
 import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
+  DataSourceMetadata,
   EmbeddedContent,
   EmbeddedContentStore,
   GetSourcesMatchParams,
@@ -272,6 +273,52 @@ export function makeMongoDbEmbeddedContentStore({
           throw error;
         }
       }
+    },
+
+    async listDataSources(): Promise<DataSourceMetadata[]> {
+      const result = await embeddedContentCollection
+        .aggregate([
+          {
+            $group: {
+              _id: "$sourceName",
+              version: { $addToSet: "$metadata.version.label" },
+              sourceType: { $addToSet: "$sourceType" },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              sourceName: "$_id",
+              version: {
+                $filter: {
+                  input: "$version",
+                  as: "v",
+                  cond: { $ne: ["$$v", null] },
+                },
+              },
+              sourceType: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$sourceType",
+                      as: "t",
+                      cond: { $ne: ["$$t", null] },
+                    },
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+        ])
+        .toArray();
+
+      // Explicitly map to DataSourceMetadata
+      return result.map(({ sourceName, version, sourceType }) => ({
+        sourceName,
+        version,
+        sourceType,
+      }));
     },
 
     async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {

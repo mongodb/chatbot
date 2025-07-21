@@ -3,7 +3,6 @@ import { Factuality, Score, AnswerCorrectness } from "autoevals";
 import { strict as assert } from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { openAi } from "mongodb-rag-core/langchain";
 
 export const makeReferenceAlignment: (
   openAiClient: OpenAI,

@@ -195,6 +195,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
             reference: currentCase?.expected ?? "",
             links: [], // TODO: update with links from currentCase if defined
           },
+          metadata: {},
         })) as {
           score: number | null;
           name: string;

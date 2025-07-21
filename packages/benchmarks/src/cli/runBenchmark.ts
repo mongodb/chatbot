@@ -50,7 +50,7 @@ export async function runBenchmark(
   console.log(`Running benchmark: ${type}`);
   console.log(`Model(s): ${models.map((m) => m.label).join(", ")}`);
   console.log(`Dataset(s): ${datasetsToRun.map(([name]) => name).join(", ")}`);
-  console.log(`Task: ${taskToRun}`);
+  console.log(`Task: ${task}`);
   console.log(`Model concurrency: ${modelConcurrency}`);
 
   // Run benchmarks with model concurrency
@@ -106,7 +106,7 @@ export async function runBenchmark(
         });
 
         console.log(`✓ Completed experiment: ${experimentName}`);
-        return evalResult;
+        return { evalResult, dataset, experimentName };
       } catch (error) {
         console.error(`✗ Failed experiment: ${experimentName}`, error);
       }

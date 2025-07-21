@@ -24,7 +24,7 @@
     "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
     "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
     "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js",
-    "benchmark:cli": "npm run build && node ./build/cli/bin.js"
+    "benchmark:cli": "node ./build/bin/mongoDbBenchmarkCli.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

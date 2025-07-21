@@ -5,6 +5,8 @@ import { MODELS } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { multipleChoiceBenchmarkConfig } from "../quizQuestions/config";
 import { nlPromptResponseBenchmark } from "../nlPromptResponse/config";
+import { discoveryBenchmarkConfig } from "../discovery/config";
+import { nlToMongoshBenchmarkConfig } from "../textToDriver/config";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
@@ -15,26 +17,11 @@ const config: BenchmarkCliConfig = {
     baseUrl: BRAINTRUST_ENDPOINT,
     apiKey: BRAINTRUST_API_KEY,
   },
-
   benchmarks: {
     multiple_choice: multipleChoiceBenchmarkConfig,
     nl_prompt_response: nlPromptResponseBenchmark,
-    // TODO: resume here...
-    discovery: {
-      projectName: "TODO:...",
-      datasets: {},
-      tasks: {},
-      scorers: {},
-      description:
-        "Discovery benchmark checks if MongoDB is mentioned in response",
-    },
-    nl_to_driver: {
-      projectName: "TODO:...",
-      datasets: {},
-      tasks: {},
-      scorers: {},
-      description: "Natural language to driver (or Mongosh) code generation",
-    },
+    discovery: discoveryBenchmarkConfig,
+    nl_to_mongosh: nlToMongoshBenchmarkConfig,
   },
 };
 

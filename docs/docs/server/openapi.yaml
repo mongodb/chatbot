@@ -89,6 +89,27 @@ paths:
               schema:
                 $ref: "#/components/responses/InternalServerError"
 
+  /content/sources:
+    get:
+      operationId: listDataSources
+      tags:
+        - Content
+      summary: List available data sources
+      description: Returns metadata about all available data sources.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListDataSourcesResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /conversations:
     post:
       operationId: createConversation
@@ -493,6 +514,27 @@ components:
               items:
                 type: string
           additionalProperties: true
+    ListDataSourcesResponse:
+      type: object
+      properties:
+        dataSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataSourceMetadata"
+    DataSourceMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The name of the data source.
+        version:
+          type: array
+          items:
+            type: string
+          description: List of version labels for this data source.
+        type:
+          type: string
+          description: The type of the data source.
   parameters:
     conversationId:
       name: conversationId

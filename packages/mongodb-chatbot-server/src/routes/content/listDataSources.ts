@@ -13,7 +13,6 @@ import { makeRequestError } from "../conversations/utils";
 import {
   ContentRouterLocals,
 } from "./contentRouter";
-import { AddCustomDataFunc } from "../../processors";
 
 export type GetDataSourcesRequest = z.infer<typeof GetDataSourcesRequest>;
 

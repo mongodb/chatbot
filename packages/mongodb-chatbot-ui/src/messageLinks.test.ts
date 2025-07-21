@@ -51,25 +51,30 @@ describe("formatReferences", () => {
       {
         href: "https://mongodb.com/developer/products/atlas/foobar",
         children: "Some MongoDB Developer Center Article",
+        onLinkClick: expect.any(Function),
         variant: "Article",
       },
       {
         href: "https://mongodb.com/docs/manual",
         children: "MongoDB Manual",
+        onLinkClick: expect.any(Function),
         variant: "Docs",
       },
       {
         href: "https://www.example123.com",
         children: "Example 123",
+        onLinkClick: expect.any(Function),
       },
       {
         href: "https://mongodb.com/docs/atlas",
         children: "MongoDB Atlas Docs",
+        onLinkClick: expect.any(Function),
         variant: "Docs",
       },
       {
         href: "https://www.example.com",
         children: "Example",
+        onLinkClick: expect.any(Function),
       },
     ]);
   });

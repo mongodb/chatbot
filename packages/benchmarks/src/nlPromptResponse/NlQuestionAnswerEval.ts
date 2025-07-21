@@ -1,9 +1,4 @@
-import {
-  Eval,
-  EvalCase,
-  EvalScorer,
-  EvalTask,
-} from "mongodb-rag-core/braintrust";
+import { EvalCase, EvalScorer, EvalTask } from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 
@@ -48,37 +43,3 @@ export type NlPromptResponseEvalScorer = EvalScorer<
   NlPromptResponseTaskExpected,
   NlPromptResponseMetadata
 >;
-
-export interface RunNlPromptResponseEvalParams {
-  data: NlPromptResponseEvalCase[];
-  projectName: string;
-  experimentName: string;
-  additionalMetadata?: Record<string, unknown>;
-  maxConcurrency?: number;
-  task: NlPromptResponseEvalTask;
-  scorers: NlPromptResponseEvalScorer[];
-}
-
-export function runNlPromptResponseEval({
-  data,
-  projectName,
-  experimentName,
-  additionalMetadata,
-  task,
-  maxConcurrency,
-  scorers,
-}: RunNlPromptResponseEvalParams) {
-  return Eval<
-    NlPromptResponseEvalCaseInput,
-    NlPromptResponseTaskOutput,
-    NlPromptResponseTaskExpected,
-    NlPromptResponseMetadata
-  >(projectName, {
-    data,
-    experimentName,
-    maxConcurrency,
-    metadata: additionalMetadata,
-    task,
-    scores: scorers,
-  });
-}

@@ -1,26 +1,31 @@
 import assert from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { NlPromptResponseEvalTask } from "./NlQuestionAnswerEval";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { LanguageModel, generateText, CoreMessage } from "ai";
 
 interface MakeNlPromptCompletionTaskParams {
-  llmOptions: LlmOptions;
-  initialMessages?: OpenAI.Chat.ChatCompletionMessageParam[];
+  llmOptions: Omit<LlmOptions, "openAiClient" | "model">;
+  languageModel: LanguageModel;
+  initialMessages?: CoreMessage[];
 }
 
 export function makeNlPromptCompletionTask({
   llmOptions,
+  languageModel,
   initialMessages,
 }: MakeNlPromptCompletionTaskParams): NlPromptResponseEvalTask {
   return async function (input) {
-    const { openAiClient, ...llmConfig } = llmOptions;
-    const res = await openAiClient.chat.completions.create({
+    const { ...llmConfig } = llmOptions;
+    const { text } = await generateText({
+      // ...llmConfig,
       messages: [...(initialMessages ?? []), ...input.messages],
-      stream: false,
-      ...llmConfig,
+      model: languageModel,
+      temperature: llmConfig.temperature ?? undefined,
+      maxTokens:
+        llmConfig.max_completion_tokens ?? llmConfig.max_tokens ?? undefined,
+      seed: llmConfig.seed ?? undefined,
     });
-    const { content } = res.choices[0].message;
-    assert(content, "No content found in response");
-    return { response: content };
+    assert(text, "No content found in response");
+    return { response: text };
   };
 }

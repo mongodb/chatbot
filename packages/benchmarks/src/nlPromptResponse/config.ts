@@ -1,4 +1,8 @@
-import { initDataset, wrapOpenAI } from "mongodb-rag-core/braintrust";
+import {
+  initDataset,
+  wrapAISDKModel,
+  wrapOpenAI,
+} from "mongodb-rag-core/braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeNlPromptCompletionTask } from "./nlPromptCompletionTask";
 import {
@@ -8,11 +12,18 @@ import {
   NlPromptResponseMetadata,
   NlPromptResponseEvalCase,
 } from "./NlQuestionAnswerEval";
-import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
+import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import { makeReferenceAlignment } from "./metrics";
 import { getModelsFromLabels } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { systemMessage } from "./runNlPromptResponseBenchmark";
+import { createOpenAI } from "@ai-sdk/openai";
+import { CoreMessage } from "ai";
+
+export const systemMessage = {
+  role: "system",
+  content:
+    "You are a helpful MongoDB assistant. Answer the user's question directly, completely, and concisely.",
+} satisfies CoreMessage;
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
   ...BRAINTRUST_ENV_VARS,
@@ -57,17 +68,17 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
     completion: {
       description: "Standard 1-shot completion task",
       taskFunc: (modelProvider, modelConfig) => {
+        const model = wrapAISDKModel(
+          createOpenAI({
+            apiKey: modelProvider.apiKey,
+            baseURL: modelProvider.baseUrl,
+          }).chat(modelConfig.deployment)
+        );
         return makeNlPromptCompletionTask({
           llmOptions: {
-            openAiClient: wrapOpenAI(
-              new OpenAI({
-                baseURL: modelProvider.baseUrl,
-                apiKey: modelProvider.apiKey,
-              })
-            ),
-            model: modelConfig.deployment,
             temperature: 0,
           },
+          languageModel: model,
           initialMessages: [systemMessage],
         });
       },

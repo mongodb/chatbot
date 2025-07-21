@@ -171,6 +171,23 @@ export const Message = ({
             />
           ) : null}
         </Suspense>
+        {showRating && (
+          <div
+            className={css`
+              display: flex;
+              justify-content: flex-end;
+              margin-top: 10px;
+            `}
+          >
+            <button
+              onClick={() => {
+                console.log("whatup");
+              }}
+            >
+              Reference
+            </button>
+          </div>
+        )}
       </LGMessage>
       <Suspense fallback={null}>
         {showSuggestedPrompts && (

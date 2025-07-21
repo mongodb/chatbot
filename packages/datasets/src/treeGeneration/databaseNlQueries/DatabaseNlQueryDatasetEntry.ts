@@ -78,7 +78,7 @@ export const DatabaseNlQueryDatasetEntryBraintrustSchema = z.object({
 
     executionTimeMs: z.number().nullable(),
   }),
-  tags: z.array(z.string()),
+  tags: z.array(z.string()).nullable(),
   metadata: z.object({
     methods: z.array(z.string()).optional(),
     queryOperators: z.array(z.string()).optional(),

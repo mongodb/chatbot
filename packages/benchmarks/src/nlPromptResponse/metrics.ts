@@ -2,11 +2,13 @@ import { NlPromptResponseEvalScorer } from "./NlQuestionAnswerEval";
 import { Factuality, Score, AnswerCorrectness } from "autoevals";
 import { strict as assert } from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const makeReferenceAlignment: (
+  openAiClient: OpenAI,
   llmOptions: LlmOptions,
   name_postfix?: string
-) => NlPromptResponseEvalScorer = (llmOptions, name_postfix) =>
+) => NlPromptResponseEvalScorer = (openAiClient, llmOptions, name_postfix) =>
   async function ({ input, output, expected }) {
     const { response } = output;
     const { reference } = expected;
@@ -29,7 +31,7 @@ export const makeReferenceAlignment: (
       // Note: need to do the funky casting here
       // b/c of different `OpenAI` client typing
       // that is not relevant here.
-      client: llmOptions.openAiClient as unknown as Parameters<
+      client: openAiClient as unknown as Parameters<
         typeof Factuality
       >[0]["client"],
       model: llmOptions.model,
@@ -62,9 +64,10 @@ function inflateFactualityScore(score: number | null | undefined) {
 }
 
 export const makeAnswerCorrectness: (
+  openAiClient: OpenAI,
   llmOptions: LlmOptions,
   name_postfix?: string
-) => NlPromptResponseEvalScorer = (llmOptions, name_postfix) =>
+) => NlPromptResponseEvalScorer = (openAiClient, llmOptions, name_postfix) =>
   async function ({ input, output, expected }) {
     const { response } = output;
     const { reference } = expected;
@@ -89,7 +92,7 @@ export const makeAnswerCorrectness: (
       // b/c of different `OpenAI` client typing
       // that is not relevant here.
 
-      client: llmOptions.openAiClient as unknown as Parameters<
+      client: openAiClient as unknown as Parameters<
         typeof Factuality
       >[0]["client"],
       model: llmOptions.model,
@@ -101,11 +104,12 @@ export const makeAnswerCorrectness: (
   };
 
 export const makeReferenceAlignmentCouncil: (
+  openAiClient: OpenAI,
   llmOptions: LlmOptions[]
-) => NlPromptResponseEvalScorer = (llmOptions) => {
+) => NlPromptResponseEvalScorer = (openAiClient, llmOptions) => {
   assert(llmOptions.length > 0, "At least one LLM must be provided");
   const factualityMetrics = llmOptions.map((llmOption) =>
-    makeReferenceAlignment(llmOption)
+    makeReferenceAlignment(openAiClient, llmOption)
   );
   return async function ({ input, output, expected }) {
     const name = "ReferenceAlignmentCouncil";

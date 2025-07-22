@@ -37,6 +37,7 @@
     "lerna": "^5.6.2"
   },
   "dependencies": {
+    "@opendocsg/pdf2md": "^0.2.1",
     "csv-writer": "^1.6.0"
   }
 }

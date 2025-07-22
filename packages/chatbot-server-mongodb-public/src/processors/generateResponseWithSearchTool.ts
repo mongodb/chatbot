@@ -189,7 +189,6 @@ export function makeGenerateResponseWithSearchTool({
     shouldStream,
     reqId,
     dataStreamer,
-    request,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -234,7 +233,6 @@ export function makeGenerateResponseWithSearchTool({
             shouldStream,
             reqId,
             dataStreamer,
-            request,
           })
         : undefined;
 

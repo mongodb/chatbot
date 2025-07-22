@@ -272,16 +272,10 @@ describe("createBenchmarkCli", () => {
 
       const cli = createBenchmarkCli(mockConfig);
 
-      await cli.parse([
-        "run",
-        "--type",
-        "test-benchmark",
-        "--dataset",
-        "dataset1",
-      ]);
-
-      // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Expect the process.exit call and catch the thrown error
+      await expect(
+        cli.parse(["run", "--type", "test-benchmark", "--dataset", "dataset1"])
+      ).rejects.toThrow("process.exit called");
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error running benchmark:",

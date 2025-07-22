@@ -866,7 +866,7 @@ const expectDefaultMessageContent = ({
   expect(firstMessage.metadata).toEqual(metadata);
 
   expect(secondMessage.role).toEqual("user");
-  expect(secondMessage.content).toBeFalsy();
+  expect(secondMessage.content).toBe(store ? "What is MongoDB?" : "");
   expect(secondMessage.metadata).toEqual(metadata);
 
   expect(thirdMessage.role).toEqual("assistant");

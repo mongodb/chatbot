@@ -171,6 +171,36 @@ export const mockGenerateResponse: GenerateResponse = async ({
   };
 };
 
+export const mockGenerateResponsesStream: GenerateResponse = async ({
+  dataStreamer,
+}) => {
+  dataStreamer?.streamResponses({
+    type: "response.output_text.delta",
+    delta: "Streaming a messaage!",
+  } as any);
+  dataStreamer?.streamResponses({
+    type: "response.output_text.annotation.added",
+    annotation: {
+      type: "url_citation",
+      url: "https://mongodb.com",
+    },
+  } as any);
+  dataStreamer?.streamResponses({
+    type: "response.output_text.done",
+    text: "Streaming a messaage!",
+  } as any);
+
+  return {
+    messages: [
+      {
+        role: "user" as const,
+        content: "What is MongoDB?",
+      },
+      { ...mockAssistantResponse },
+    ],
+  };
+};
+
 export const MONGO_CHAT_MODEL = "mongodb-chat-latest";
 
 export const basicResponsesRequestBody = {
@@ -188,7 +218,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
     responsesRouterConfig: {
       createResponse: {
         conversations,
-        generateResponse: mockGenerateResponse,
+        generateResponse: mockGenerateResponsesStream,
         supportedModels: [MONGO_CHAT_MODEL],
         maxOutputTokens: 4000,
         maxUserMessagesInConversation: 6,

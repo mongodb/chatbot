@@ -43,6 +43,12 @@ const judgeOpenAiClient = wrapOpenAI(
     apiKey: BRAINTRUST_API_KEY,
   })
 );
+async function getTopQuestionDatasetDataset() {
+  return initDataset(projectName, {
+    apiKey: BRAINTRUST_API_KEY,
+    dataset: datasetName,
+  }).fetchedData() as unknown as NlPromptResponseEvalCase[];
+}
 export const nlPromptResponseBenchmark: BenchmarkConfig<
   NlPromptResponseEvalCaseInput,
   NlPromptResponseTaskOutput,
@@ -56,10 +62,40 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
     top_questions: {
       description: "Top human-curation questions from MongoDB documentation",
       async getDataset() {
-        return initDataset(projectName, {
-          apiKey: BRAINTRUST_API_KEY,
-          dataset: datasetName,
-        }).fetchedData() as unknown as NlPromptResponseEvalCase[];
+        return await getTopQuestionDatasetDataset();
+      },
+    },
+    product_knowledge: {
+      description:
+        "Product knowledge questions from MongoDB Product Maangement team",
+      async getDataset() {
+        return (await getTopQuestionDatasetDataset()).filter((d) =>
+          d.tags.includes("product_knowledge")
+        );
+      },
+    },
+    tech_support: {
+      description: "Tech support questions provided by Technical Services team",
+      async getDataset() {
+        return (await getTopQuestionDatasetDataset()).filter((d) =>
+          d.tags.includes("tech_support")
+        );
+      },
+    },
+    marketing: {
+      description: "Marketing questions provided by Marketing team",
+      async getDataset() {
+        return (await getTopQuestionDatasetDataset()).filter((d) =>
+          d.tags.includes("marketing")
+        );
+      },
+    },
+    docs: {
+      description: "100 questions from MongoDB Documentation team",
+      async getDataset() {
+        return (await getTopQuestionDatasetDataset()).filter((d) =>
+          d.tags.includes("docs_100")
+        );
       },
     },
   },

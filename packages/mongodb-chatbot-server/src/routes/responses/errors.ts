@@ -61,10 +61,12 @@ export const makeInternalServerError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Internal server error";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.SERVER_ERROR,
     message,
+    // Only include safe, serializable properties
+    name: error.name,
+    stack: error.stack,
   };
   return new InternalServerError(500, _error, message, new Headers(headers));
 };
@@ -75,10 +77,12 @@ export const makeBadRequestError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Bad request";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.INVALID_REQUEST_ERROR,
     message,
+    // Only include safe, serializable properties
+    name: error.name,
+    stack: error.stack,
   };
   return new BadRequestError(400, _error, message, new Headers(headers));
 };
@@ -89,10 +93,12 @@ export const makeNotFoundError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Not found";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.NOT_FOUND_ERROR,
     message,
+    // Only include safe, serializable properties
+    name: error.name,
+    stack: error.stack,
   };
   return new NotFoundError(404, _error, message, new Headers(headers));
 };
@@ -103,10 +109,12 @@ export const makeRateLimitError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Rate limit exceeded";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.RATE_LIMIT_ERROR,
     message,
+    // Only include safe, serializable properties
+    name: error.name,
+    stack: error.stack,
   };
   return new RateLimitError(429, _error, message, new Headers(headers));
 };

@@ -2,6 +2,27 @@ import { References } from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 
 /**
+  Checks if a URL string has a protocol (http:// or https://)
+  @param url The URL string to check
+  @returns boolean indicating whether the URL has a protocol
+ */
+function hasProtocol(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
+
+/**
+  Ensures a URL has a protocol by adding https:// if missing
+  @param url The URL string to normalize
+  @returns A URL string with protocol
+ */
+function ensureProtocol(url: string): string {
+  if (!hasProtocol(url)) {
+    return `https://${url}`;
+  }
+  return url;
+}
+
+/**
   The default reference format returns the following for chunks from _unique_ pages:
 
   ```js
@@ -23,7 +44,9 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   });
 
   return uniqueReferenceChunks.map((chunk) => {
-    const url = new URL(chunk.url).href;
+    // Ensure URL has a protocol before creating URL object
+    const normalizedUrl = ensureProtocol(chunk.url);
+    const url = new URL(normalizedUrl).href;
     // Ensure title is always a string by checking its type
     const pageTitle = chunk.metadata?.pageTitle;
     const title = typeof pageTitle === "string" ? pageTitle : url;

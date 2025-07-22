@@ -293,10 +293,10 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      const latestMessageText = conversation.messages.at(-1)?.content ?? "";
+      // Convert input to latestMessageText format
+      const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({
-        ...data.body,
         shouldStream: stream,
         latestMessageText,
         // TODO: fix these
@@ -305,7 +305,6 @@ export function makeCreateResponseRoute({
         conversation,
         dataStreamer,
         reqId,
-        request: req,
       });
 
       // --- STORE MESSAGES IN CONVERSATION ---
@@ -480,6 +479,30 @@ const saveMessagesToConversation = async ({
   return await conversations.addManyConversationMessages({
     conversationId: conversation._id,
     messages: messagesToAdd,
+  });
+};
+
+const convertInputToLatestMessageText = (
+  input: CreateResponseRequest["body"]["input"],
+  headers: Record<string, string>
+): string => {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  // Find the last user message in the input array
+  for (let i = input.length - 1; i >= 0; i--) {
+    const message = input[i];
+    if (message.type === "message" || !message.type) {
+      if (message.role === "user" && message.content) {
+        return message.content;
+      }
+    }
+  }
+
+  throw makeBadRequestError({
+    error: new Error("No user message found in input"),
+    headers,
   });
 };
 

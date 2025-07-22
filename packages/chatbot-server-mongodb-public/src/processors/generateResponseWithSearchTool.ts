@@ -95,7 +95,13 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
     onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
-      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
       dataStreamer?.streamResponses({
         type: "response.output_text.done",
         text: notWorkingMessage,
@@ -105,6 +111,13 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       } satisfies ResponseStreamOutputTextDone);
     },
     onLlmRefusal({ dataStreamer, refusalMessage }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
       // only stream "done" here since it's one message
       dataStreamer?.streamResponses({
         type: "response.output_text.done",
@@ -178,7 +191,6 @@ export function makeGenerateResponseWithSearchTool({
     shouldStream,
     reqId,
     dataStreamer,
-    request,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -223,7 +235,6 @@ export function makeGenerateResponseWithSearchTool({
             shouldStream,
             reqId,
             dataStreamer,
-            request,
           })
         : undefined;
 
@@ -324,6 +335,7 @@ export function makeGenerateResponseWithSearchTool({
 
           return result;
         } catch (error: unknown) {
+          console.error(error);
           // If aborted due to guardrail, return null
           if (generationController.signal.aborted && guardrailRejected) {
             return null;

@@ -95,24 +95,29 @@ describe("getMessageLinks", () => {
         href: "https://mongodb.com/developer/products/atlas/foobar",
         children: "Some MongoDB Developer Center Article",
         variant: "Article",
+        onLinkClick: expect.any(Function),
       },
       {
         href: "https://mongodb.com/docs/manual",
         children: "MongoDB Manual",
         variant: "Docs",
+        onLinkClick: expect.any(Function),
       },
       {
         href: "https://www.example123.com",
         children: "Example 123",
+        onLinkClick: expect.any(Function),
       },
       {
         href: "https://mongodb.com/docs/atlas",
         children: "MongoDB Atlas Docs",
         variant: "Docs",
+        onLinkClick: expect.any(Function),
       },
       {
         href: "https://www.example.com",
         children: "Example",
+        onLinkClick: expect.any(Function),
       },
     ]);
   });

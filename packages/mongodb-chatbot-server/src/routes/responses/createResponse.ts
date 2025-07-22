@@ -308,6 +308,7 @@ export function makeCreateResponseRoute({
       dataStreamer.streamResponses(inProgressMessage);
 
       // TODO: actually implement this call
+      // Also pass the toolDefinitions and customSystemPrompt
       const { messages } = await generateResponse({} as any);
 
       // --- STORE MESSAGES IN CONVERSATION ---

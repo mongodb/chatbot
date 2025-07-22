@@ -206,12 +206,20 @@ ${JSON.stringify(examplePair.output, null, 2)}
 export interface MakeUserMessageMongoDbGuardrailParams {
   model: LanguageModelV1;
 }
+// TODO: will need to evalute this new flow works as expected
 export const makeMongoDbInputGuardrail = ({
   model,
 }: MakeUserMessageMongoDbGuardrailParams) => {
   const userMessageMongoDbGuardrail: InputGuardrail = async ({
     latestMessageText,
+    customSystemPrompt,
+    tools,
   }) => {
+    const userMessage = makeInputGuardrailUserMessage({
+      latestMessageText,
+      customSystemPrompt,
+      tools,
+    });
     const {
       object: { type, reasoning },
     } = await generateObject({
@@ -219,10 +227,7 @@ export const makeMongoDbInputGuardrail = ({
       schema: UserMessageMongoDbGuardrailFunctionSchema,
       schemaDescription: inputGuardrailMetadata.description,
       schemaName: inputGuardrailMetadata.name,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user" as const, content: latestMessageText },
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       mode: "json",
     });
     const rejected = type === "irrelevant" || type === "inappropriate";
@@ -234,3 +239,28 @@ export const makeMongoDbInputGuardrail = ({
   };
   return userMessageMongoDbGuardrail;
 };
+
+function makeInputGuardrailUserMessage({
+  latestMessageText,
+  customSystemPrompt,
+  tools,
+}: Pick<
+  GenerateResponseParams,
+  "latestMessageText" | "customSystemPrompt" | "tools"
+>) {
+  if (!customSystemPrompt && !tools) {
+    return {
+      role: "user" as const,
+      content: latestMessageText,
+    };
+  } else {
+    return {
+      role: "user" as const,
+      content: `<latest-user-message>${latestMessageText}</latest-user-message>${
+        customSystemPrompt
+          ? `<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>`
+          : ""
+      }${tools ? `<tools>${tools}</tools>` : ""}`,
+    };
+  }
+}

@@ -196,7 +196,7 @@ const generateResponseWithSearchToolArgs = {
   languageModel: makeMockLanguageModel(),
   llmNotWorkingMessage: mockLlmNotWorkingMessage,
   llmRefusalMessage: mockLlmRefusalMessage,
-  systemMessage: mockSystemMessage,
+  makeSystemPrompt: () => mockSystemMessage,
   searchTool: mockSearchTool,
   stream: mockStreamConfig,
 } satisfies GenerateResponseWithSearchToolParams;

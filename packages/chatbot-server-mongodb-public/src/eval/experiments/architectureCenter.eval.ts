@@ -10,7 +10,8 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "../ConversationEval";
-import { generateResponse } from "../../config";
+import { makeGenerateResponse } from "../../config";
+import { addMessageToConversationStream } from "../../processors/generateResponseWithSearchTool";
 
 async function conversationEval() {
   // Get ONLY architecture center conversations
@@ -37,7 +38,7 @@ async function conversationEval() {
         apiVersion: OPENAI_API_VERSION,
       },
     },
-    generateResponse,
+    generateResponse: makeGenerateResponse(addMessageToConversationStream),
   });
 }
 conversationEval();

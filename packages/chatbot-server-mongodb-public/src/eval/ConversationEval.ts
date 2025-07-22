@@ -20,10 +20,12 @@ import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
 import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";
 import { extractTracingData } from "../tracing/extractTracingData";
+import { closeDbConnections } from "../config";
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
   latestMessageText: string;
+  customSystemPrompt?: string;
 }
 
 type ConversationEvalCaseExpected = {
@@ -229,6 +231,7 @@ export async function makeConversationEval({
               _id: new ObjectId(),
               createdAt: new Date(),
             },
+            customSystemPrompt: evalCase.customSystemPrompt,
           },
           expected: {
             expectation: evalCase.expectation,
@@ -253,6 +256,7 @@ export async function makeConversationEval({
               latestMessageText: input.latestMessageText,
               reqId: id.toHexString(),
               shouldStream: false,
+              customSystemPrompt: input.customSystemPrompt,
             }),
           {
             name: "generateResponse",

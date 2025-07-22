@@ -63,6 +63,7 @@ import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -236,7 +237,7 @@ export const makeGenerateResponse = (
       onNoVerifiedAnswerFound: wrapTraced(
         makeGenerateResponseWithSearchTool({
           languageModel,
-          systemMessage: systemPrompt,
+          makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
           makeReferenceLinks: makeMongoDbReferences,
           inputGuardrail,
           llmRefusalMessage:

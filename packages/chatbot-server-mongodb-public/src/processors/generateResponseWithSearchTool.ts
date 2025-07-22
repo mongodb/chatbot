@@ -38,12 +38,14 @@ import {
   SearchTool,
 } from "../tools/search";
 
+export type MakeSystemPrompt = (customSystemPrompt?: string) => SystemMessage;
+
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
-  systemMessage: SystemMessage;
+  makeSystemPrompt: MakeSystemPrompt;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
     Required tool for performing content search and gathering {@link References}
@@ -174,7 +176,7 @@ export function makeGenerateResponseWithSearchTool({
   llmNotWorkingMessage,
   llmRefusalMessage,
   inputGuardrail,
-  systemMessage,
+  makeSystemPrompt,
   filterPreviousMessages,
   additionalTools,
   makeReferenceLinks = makeDefaultReferenceLinks,
@@ -191,6 +193,7 @@ export function makeGenerateResponseWithSearchTool({
     shouldStream,
     reqId,
     dataStreamer,
+    customSystemPrompt,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -217,7 +220,7 @@ export function makeGenerateResponseWithSearchTool({
       const generationArgs = {
         model: languageModel,
         messages: [
-          systemMessage,
+          makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies CoreMessage[],

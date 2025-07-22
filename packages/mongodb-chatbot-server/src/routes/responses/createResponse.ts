@@ -208,6 +208,7 @@ export function makeCreateResponseRoute({
           user,
           input,
           stream,
+          instructions,
         },
       } = data;
 
@@ -299,6 +300,7 @@ export function makeCreateResponseRoute({
       const { messages } = await generateResponse({
         shouldStream: stream,
         latestMessageText,
+        customSystemPrompt: instructions,
         // TODO: fix these
         // clientContext ??
         // customData ??

@@ -19,6 +19,7 @@ export interface GenerateResponseParams {
   reqId: string;
   conversation: Conversation;
   request?: ExpressRequest;
+  customSystemPrompt?: string;
 }
 
 export interface GenerateResponseReturnValue {

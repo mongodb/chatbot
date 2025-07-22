@@ -539,8 +539,8 @@ components:
                 description: Version label
               isCurrent:
                 type: boolean
-                description: Whether this version is current active version
-          description: List of version objects for this data source.
+                description: Whether this version is current active version.
+          description: List of versions for this data source.
         type:
           type: string
           description: The type of the data source.

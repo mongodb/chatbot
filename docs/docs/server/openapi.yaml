@@ -209,7 +209,9 @@ paths:
 
         You can rate or comment on a message using the [rateMessage](#operation/rateMessage) and [commentMessage](#operation/commentMessage) endpoints.
 
-        Example usage with OpenAI client:
+        ### Basic Example Usage
+
+        Example usage with OpenAI client `openai`:
         ```ts
         import { OpenAI } from "openai";
 
@@ -231,6 +233,36 @@ paths:
           console.log(event);
         }
         ```
+
+        ### Features
+
+        #### Retrieval-Informed Answers
+
+        By default, the API performs retrieval augmented generation under the hood
+        to generate accurate and up-to-date responses about MongoDB products.
+        If you provide custom tools to the API via the `tools` parameter,
+        the API will choose to use the tool or the retrieval tool based on the `tool_choice` parameter.
+
+        Default behavior is to allow the model to choose the tool to use.
+
+        #### Personality
+
+        The AI API has the personality of a helpful MongoDB assistant. You cannot change this core personality.
+
+        You can augment the personality via the `instructions` parameter. (E.g. "You are a technical services engineer at MongoDB. Use that as context to inform your response.")
+
+        #### Guardrail
+
+        The API features a guardrail that helps ensure the input is appropriate for a MongoDB assistant.
+        This helps ensure the API isn't used for irrelevant or malicious purposes.
+
+        #### Tracing and Storage
+
+        All messages to the chatbot are traced and stored if `store: true`.
+        
+        For access to chatbot data, reach out to the Education AI team (`#ask-education-ai` on Slack).
+
+        All data retention is in line with MongoDB data retention policies.
 
       tags:
         - Responses
@@ -340,14 +372,35 @@ components:
             type: string
             maxLength: 512
           maxProperties: 16
-          description: Additional metadata with max 16 fields, each value max 512 chars
+          description: Additional metadata with max 16 fields, each value max 512 chars. These are stored in the database.
         previous_response_id:
           type: string
-          description: The unique ID of the previous response to the model
+          description: |
+            The unique ID of the previous response to the model.
+            Including `previous_response_id` in the request causes the model
+            to use the previous response as context.
+
+            Usage notes:
+            - You can only use `previous_response_id` if `store: true`. 
+            - All requests on the same conversation must have the same `user` ID leave it undefined.
         store:
           type: boolean
           default: true
-          description: Whether to store the response in the conversation
+          description: |
+            Whether to store the response in the database.
+            
+            If store is `true`:
+
+            - The response is stored in the database.
+            - You may use the `previous_response_id` to statefully append new messages to the conversation.
+            - The response is traced and annotated with metadata.
+
+            If store is `false`:
+            
+            - Only metadata about the response is stored in the database.
+            - The response is not traced.
+            - You cannot add staefully interact with the converastion via `previous_response_id`.
+            
         stream:
           type: boolean
           enum: [true]
@@ -395,7 +448,11 @@ components:
           description: Tools for the model to use
         user:
           type: string
-          description: The user ID of the user
+          description: |
+            The user ID of the user. Can be any arbitrary string.
+            
+            If used in combination with `previous_response_id`, the value for `user` must be the same for all requests on the same conversation.
+            
     Conversation:
       type: object
       required:

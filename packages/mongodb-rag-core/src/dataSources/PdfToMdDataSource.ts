@@ -3,7 +3,7 @@ import { Page, PageMetadata } from "../contentStore";
 import { DataSource } from "./DataSource";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 
-export type GetPdfBufferFunc = (url: string) => Buffer;
+export type GetPdfBufferFunc = (url: string) => Promise<Buffer>;
 
 export type GetTitleFromPdfFunc = (pdfMdContent: string) => string | undefined;
 
@@ -65,7 +65,7 @@ export function makePdfToMarkdownDataSource<
       const pages: (Page<SourceType> | undefined)[] = await Promise.all(
         urls.map(async (url) => {
           try {
-            const buffer = getPdfBuffer(url);
+            const buffer = await getPdfBuffer(url);
             const mdContent = await pdf2md(buffer);
             const page: Page<SourceType> = {
               url: transformPageUrl(url),

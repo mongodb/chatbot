@@ -26,7 +26,7 @@ describe("PdfToMdDataSource", () => {
     const params = {
       ...baseParams,
       urls: ["https://mongodb.com/some-page.pdf"],
-      getPdfBuffer: (_url) => Buffer.from("string"),
+      getPdfBuffer: (_url) => Promise.resolve(Buffer.from("string")),
       getTitleFromContent: () => "My Custom Title",
       transformPageUrl: (url) => url.replace(".pdf", ""),
     } as MakePdfToMarkdownDataSourceArgs;
@@ -53,10 +53,8 @@ describe("PdfToMdDataSource", () => {
       // For the first call, return buffer. For the second call, raise error.
       getPdfBuffer: jest
         .fn()
-        .mockReturnValueOnce(Buffer.from("string"))
-        .mockImplementationOnce(() => {
-          throw new Error("Mock Error");
-        }),
+        .mockResolvedValueOnce(Buffer.from("string"))
+        .mockRejectedValueOnce(new Error("Mock Error")),
     } as MakePdfToMarkdownDataSourceArgs;
 
     jest.spyOn(console, "warn"); //.mockImplementationOnce(() => "warned");

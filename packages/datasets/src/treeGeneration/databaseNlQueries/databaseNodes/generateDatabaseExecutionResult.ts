@@ -5,6 +5,7 @@ import {
   extractMongoDbMethods,
   extractMongoDbQueryOperators,
 } from "mongodb-rag-core/executeCode";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export interface ExecuteGeneratedQueryParams {
   generatedQuery: DatabaseCodeNode;
@@ -18,31 +19,36 @@ export interface ExecuteGeneratedQueryParams {
 /**
   Execute the generated query.
  */
-export async function generateDatabaseExecutionResult({
-  generatedQuery,
-  database,
-  executor,
-}: ExecuteGeneratedQueryParams): Promise<DatabaseExecutionResultNode> {
-  const query = generatedQuery.data.code;
-  const { uri, name: databaseName } = database;
+export const generateDatabaseExecutionResult = wrapTraced(
+  async function ({
+    generatedQuery,
+    database,
+    executor,
+  }: ExecuteGeneratedQueryParams): Promise<DatabaseExecutionResultNode> {
+    const query = generatedQuery.data.code;
+    const { uri, name: databaseName } = database;
 
-  const executionResult = await executor({
-    query,
-    uri,
-    databaseName,
-  });
+    const executionResult = await executor({
+      query,
+      uri,
+      databaseName,
+    });
 
-  const metadata = {
-    queryOperators: extractMongoDbQueryOperators(query),
-    methods: extractMongoDbMethods(query),
-  };
+    const metadata = {
+      queryOperators: extractMongoDbQueryOperators(query),
+      methods: extractMongoDbMethods(query),
+    };
 
-  const data = { ...executionResult, ...metadata };
-  return {
-    _id: new ObjectId(),
-    parent: generatedQuery,
-    type: "database_execution_result",
-    updated: new Date(),
-    data,
-  };
-}
+    const data = { ...executionResult, ...metadata };
+    return {
+      _id: new ObjectId(),
+      parent: generatedQuery,
+      type: "database_execution_result",
+      updated: new Date(),
+      data,
+    };
+  },
+  {
+    name: "generateDatabaseExecutionResult",
+  }
+);

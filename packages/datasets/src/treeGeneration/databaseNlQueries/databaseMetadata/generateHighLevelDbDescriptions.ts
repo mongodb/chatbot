@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { DatabaseMetadata } from "./getDatabaseMetadata";
-import { LlmOptions } from "../databaseNodes/LlmOptions";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
 import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
+import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions.
@@ -53,7 +53,8 @@ function createHighLevelDbDescriptionsSchema(
  */
 export async function generateHighLevelDbDescriptions(
   databaseMetadata: DatabaseMetadata,
-  llmOptions: LlmOptions
+  llmOptions: LlmOptions,
+  openAiClient: OpenAI
 ) {
   const schema = createHighLevelDbDescriptionsSchema(databaseMetadata);
 
@@ -69,6 +70,7 @@ ${prettyPrintMongoDbDocument(databaseMetadata)}`,
     },
   ] satisfies OpenAI.ChatCompletionMessageParam[];
   return await getOpenAiFunctionResponse({
+    openAiClient,
     messages,
     llmOptions,
     schema,

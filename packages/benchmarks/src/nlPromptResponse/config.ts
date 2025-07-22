@@ -58,13 +58,13 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
       description: "Standard 1-shot completion task",
       taskFunc: (modelProvider: ModelProvider, deployment: string) => {
         return makeNlPromptCompletionTask({
+          openAiClient: wrapOpenAI(
+            new OpenAI({
+              baseURL: modelProvider.baseUrl,
+              apiKey: modelProvider.apiKey,
+            })
+          ),
           llmOptions: {
-            openAiClient: wrapOpenAI(
-              new OpenAI({
-                baseURL: modelProvider.baseUrl,
-                apiKey: modelProvider.apiKey,
-              })
-            ),
             model: deployment,
             temperature: 0,
           },
@@ -78,8 +78,8 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
     reference_alignment: {
       description: `Reference alignment scoring using judge model ${judgeModelConfig.label} (our rebrand of OpenAI's Factuality)`,
       scorerFunc: makeReferenceAlignment(
+        judgeOpenAiClient,
         {
-          openAiClient: judgeOpenAiClient,
           model: judgeModelConfig.deployment,
           temperature: 0,
         },

@@ -79,6 +79,9 @@ function App() {
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          onReferenceClick={(reference) => {
+            console.log("Reference clicked", reference);
+          }}
           onSuggestedPromptClick={(prompt) => {
             console.log("Suggested prompt clicked", prompt);
           }}
@@ -103,6 +106,9 @@ function App() {
           }}
           onClose={() => {
             console.log("Dev Center Chatbot closed");
+          }}
+          onReferenceClick={(reference) => {
+            console.log("Reference clicked", reference);
           }}
           onSuggestedPromptClick={(prompt) => {
             console.log("Suggested prompt clicked", prompt);

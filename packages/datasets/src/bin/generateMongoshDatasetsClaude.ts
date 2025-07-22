@@ -3,13 +3,11 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   executeMongoshQuery,
   isReasonableResult,
-  LlmOptions,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
-import { makeOpenAiClient } from "../openAi";
-import { assertEnvVars } from "mongodb-rag-core";
+import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
@@ -21,8 +19,11 @@ import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import { initLogger } from "mongodb-rag-core/braintrust";
+import { makeOpenAiClient } from "../openAi";
+import { GenerateChildrenLlmOptions } from "../treeGeneration/generateChildren";
 
-const DEFAULT_CONCURRENCY = 10;
+const DEFAULT_CONCURRENCY = 16;
 
 /**
   Magic number to specify the max results array size to evaluate.
@@ -31,25 +32,25 @@ const MAX_RESULT_ARRAY_SIZE = 20;
 
 type LlmGenerationConfig = {
   database: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
   };
   users: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   useCases: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   nlQueries: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
   dbQueries: {
-    llmConfig: LlmOptions;
+    llmConfig: GenerateChildrenLlmOptions;
     numGenerations: number;
     concurrency: number;
   };
@@ -76,6 +77,7 @@ interface GenerateMongoshDatasetParams {
     dataOutDir: string;
   };
   maxResultsArraySize?: number;
+  minClusterSize?: number;
 }
 
 async function generateMongoshDataset({
@@ -85,6 +87,7 @@ async function generateMongoshDataset({
   datasetUuid,
   writeToFile,
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
+  minClusterSize,
 }: GenerateMongoshDatasetParams) {
   console.log(`Generating dataset for database ${dataset.databaseName}`);
   const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
@@ -112,8 +115,8 @@ async function generateMongoshDataset({
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
     llmOptions: llmConfigs.database.llmConfig,
-    latestDate: dataset.latestDate,
     openAiClient: makeOpenAiClient(),
+    latestDate: dataset.latestDate,
   });
   await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
 
@@ -126,7 +129,14 @@ async function generateMongoshDataset({
   );
   await nodeStore.storeNodes({ nodes: userNodes });
 
-  console.log(`Generated ${userNodes.length} database users`);
+  console.log(`Generated ${userNodes.length} database users:`);
+  console.log(
+    JSON.stringify(
+      userNodes.map(({ data }) => data),
+      null,
+      2
+    )
+  );
 
   // Generate use cases for each user
   console.log("Generating use cases for each user...");
@@ -141,6 +151,12 @@ async function generateMongoshDataset({
       await nodeStore.storeNodes({ nodes: useCases });
       console.log(
         `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
+      );
+      console.log(
+        useCases.map(
+          ({ data }, i) =>
+            `${i + 1}: ${data.title}: ${data.description.slice(0, 20)}...`
+        )
       );
       return useCases;
     });
@@ -229,7 +245,8 @@ async function generateMongoshDataset({
       // Find the most frequent and performant database execution result
       const { fastestMostFrequentIndex } =
         findMostFrequentAndPerformantDatabaseExecutionResult(
-          dbExecutions.map((node) => node.data)
+          dbExecutions.map((node) => node.data),
+          minClusterSize
         );
       if (
         fastestMostFrequentIndex !== null &&
@@ -272,8 +289,15 @@ async function generateMongoshDataset({
 
 async function main() {
   // Set up
-  const { MONGODB_TEXT_TO_CODE_CONNECTION_URI } = assertEnvVars({
-    ...DATABASE_NL_QUERIES,
+  const { BRAINTRUST_API_KEY, MONGODB_TEXT_TO_CODE_CONNECTION_URI } =
+    assertEnvVars({
+      ...BRAINTRUST_ENV_VARS,
+      ...DATABASE_NL_QUERIES,
+    });
+
+  initLogger({
+    projectName: "generate-mongosh-dataset-claude",
+    apiKey: BRAINTRUST_API_KEY,
   });
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
 
@@ -285,8 +309,8 @@ async function main() {
     console.log(`Created directory: ${dataOutDir}`);
   }
 
-  const defaultLlmConfig: LlmOptions = {
-    model: "gpt-4o",
+  const defaultLlmConfig: GenerateChildrenLlmOptions = {
+    model: "claude-4-opus-20250514",
     temperature: 0.7,
     seed: 42,
   };
@@ -297,25 +321,32 @@ async function main() {
     database: {
       llmConfig: {
         ...defaultLlmConfig,
-        temperature: 0,
-        model: "gpt-4o",
+        temperature: 0, // Make this one deterministic
       },
     },
-    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 8 },
+    users: {
+      numGenerations: 8,
+      llmConfig: defaultLlmConfig,
+      concurrency: DEFAULT_CONCURRENCY,
+    },
     useCases: {
       numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 10,
+      concurrency: DEFAULT_CONCURRENCY,
     },
     nlQueries: {
       numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 10,
+      concurrency: DEFAULT_CONCURRENCY,
     },
     dbQueries: {
       numGenerations: 8,
-      llmConfig: defaultLlmConfig,
-      concurrency: 10,
+      llmConfig: {
+        ...defaultLlmConfig,
+        __claudeMaxConcurrency: 1,
+        __claudeTemperatureVariation: 0.01,
+      },
+      concurrency: DEFAULT_CONCURRENCY,
     },
     dbExecutions: {
       concurrency: 20,
@@ -326,7 +357,8 @@ async function main() {
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases.reverse()) {
+    // TODO: 2nd dataset, weather data throwing err. need to investigate
+    for (const db of datasetDatabases) {
       await generateMongoshDataset({
         persistence: {
           mongoClient,
@@ -347,6 +379,8 @@ async function main() {
         writeToFile: {
           dataOutDir,
         },
+        // If we have 10 generations, we want to find the most frequent and performant result that has at least 4 generations
+        minClusterSize: Math.ceil(config.dbQueries.numGenerations / 3),
       });
     }
   } finally {

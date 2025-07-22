@@ -115,8 +115,7 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       } satisfies ResponseStreamOutputTextDone);
     },
     onReferenceLinks({ dataStreamer, references }) {
-      let annotationIndex = 0;
-      for (const reference of references) {
+      references.forEach((reference, index) => {
         dataStreamer?.streamResponses({
           type: "response.output_text.annotation.added",
           annotation: {
@@ -126,12 +125,12 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
             start_index: 0,
             end_index: 0,
           },
-          annotation_index: annotationIndex++,
+          annotation_index: index,
           content_index: 0,
           output_index: 0,
           item_id: "",
         } satisfies ResponseStreamOutputTextAnnotationAdded);
-      }
+      });
     },
     onTextDelta({ dataStreamer, delta }) {
       // only stream delta here, allow "done" to be streamed elsewhere

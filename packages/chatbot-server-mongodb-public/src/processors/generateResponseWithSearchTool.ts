@@ -272,6 +272,7 @@ export function makeGenerateResponseWithSearchTool({
             },
           });
 
+          let fullStreamText = "";
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -282,6 +283,7 @@ export function makeGenerateResponseWithSearchTool({
             switch (chunk.type) {
               case "text-delta":
                 if (streamingModeActive) {
+                  fullStreamText += chunk.textDelta;
                   stream.onTextDelta({
                     dataStreamer,
                     delta: chunk.textDelta,
@@ -292,7 +294,7 @@ export function makeGenerateResponseWithSearchTool({
                 if (streamingModeActive) {
                   stream.onTextDone?.({
                     dataStreamer,
-                    text: chunk.finishReason,
+                    text: fullStreamText,
                   });
                 }
                 break;

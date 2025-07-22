@@ -15,7 +15,7 @@ describe("makeListDataSourcesRoute", () => {
   const mockDataSources: DataSourceMetadata[] = [
     {
       id: "source1",
-      version: [
+      versions: [
         { label: "current", isCurrent: true },
         { label: "v6.0", isCurrent: false },
       ],
@@ -23,7 +23,7 @@ describe("makeListDataSourcesRoute", () => {
     },
     {
       id: "source2",
-      version: [{ label: "v2.11", isCurrent: false }],
+      versions: [{ label: "v2.11", isCurrent: false }],
       type: "university-content",
     },
   ];

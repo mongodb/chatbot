@@ -281,7 +281,7 @@ export function makeMongoDbEmbeddedContentStore({
           {
             $group: {
               _id: "$sourceName",
-              version: {
+              versions: {
                 $addToSet: {
                   label: "$metadata.version.label",
                   isCurrent: "$metadata.version.isCurrent",
@@ -294,11 +294,11 @@ export function makeMongoDbEmbeddedContentStore({
             $project: {
               _id: 0,
               id: "$_id",
-              version: {
+              versions: {
                 $map: {
                   input: {
                     $filter: {
-                      input: "$version",
+                      input: "$versions",
                       as: "v",
                       cond: { $ne: ["$$v.label", null] },
                     },

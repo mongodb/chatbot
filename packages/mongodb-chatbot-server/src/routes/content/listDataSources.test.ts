@@ -1,4 +1,7 @@
-import type { MongoDbEmbeddedContentStore, DataSourceMetadata } from "mongodb-rag-core";
+import type {
+  MongoDbEmbeddedContentStore,
+  DataSourceMetadata,
+} from "mongodb-rag-core";
 import { createRequest, createResponse } from "node-mocks-http";
 import { makeListDataSourcesRoute } from "./listDataSources";
 
@@ -10,8 +13,19 @@ function makeMockEmbeddedContentStore(dataSources: DataSourceMetadata[]) {
 
 describe("makeListDataSourcesRoute", () => {
   const mockDataSources: DataSourceMetadata[] = [
-    { id: "source1", version: ["current", "v6.0"], type: "docs" },
-    { id: "source2", version: ["v2.11"], type: "university-content" },
+    {
+      id: "source1",
+      version: [
+        { label: "current", isCurrent: true },
+        { label: "v6.0", isCurrent: false },
+      ],
+      type: "docs",
+    },
+    {
+      id: "source2",
+      version: [{ label: "v2.11", isCurrent: false }],
+      type: "university-content",
+    },
   ];
 
   it("should return data sources for a valid request", async () => {

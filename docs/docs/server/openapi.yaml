@@ -523,6 +523,8 @@ components:
             $ref: "#/components/schemas/DataSourceMetadata"
     DataSourceMetadata:
       type: object
+      required:
+        - id
       properties:
         id:
           type: string
@@ -530,8 +532,15 @@ components:
         version:
           type: array
           items:
-            type: string
-          description: List of version labels for this data source.
+            type: object
+            properties:
+              label:
+                type: string
+                description: Version label
+              isCurrent:
+                type: boolean
+                description: Whether this version is current active version
+          description: List of version objects for this data source.
         type:
           type: string
           description: The type of the data source.

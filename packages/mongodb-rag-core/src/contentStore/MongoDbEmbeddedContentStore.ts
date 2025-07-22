@@ -276,12 +276,17 @@ export function makeMongoDbEmbeddedContentStore({
     },
 
     async listDataSources(): Promise<DataSourceMetadata[]> {
-      const result = await embeddedContentCollection
-        .aggregate([
+      return await embeddedContentCollection
+        .aggregate<DataSourceMetadata>([
           {
             $group: {
               _id: "$sourceName",
-              version: { $addToSet: "$metadata.version.label" },
+              version: {
+                $addToSet: {
+                  label: "$metadata.version.label",
+                  isCurrent: "$metadata.version.isCurrent",
+                },
+              },
               sourceType: { $addToSet: "$sourceType" },
             },
           },
@@ -290,10 +295,19 @@ export function makeMongoDbEmbeddedContentStore({
               _id: 0,
               id: "$_id",
               version: {
-                $filter: {
-                  input: "$version",
+                $map: {
+                  input: {
+                    $filter: {
+                      input: "$version",
+                      as: "v",
+                      cond: { $ne: ["$$v.label", null] },
+                    },
+                  },
                   as: "v",
-                  cond: { $ne: ["$$v", null] },
+                  in: {
+                    label: "$$v.label",
+                    isCurrent: { $ifNull: ["$$v.isCurrent", false] },
+                  },
                 },
               },
               type: {
@@ -312,13 +326,6 @@ export function makeMongoDbEmbeddedContentStore({
           },
         ])
         .toArray();
-
-      // Explicitly map to DataSourceMetadata
-      return result.map(({ id, version, type }) => ({
-        id,
-        version,
-        type,
-      }));
     },
 
     async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {

@@ -106,7 +106,7 @@ export type QueryFilters = {
 */
 export type DataSourceMetadata = {
   id: string;
-  version?: string[];
+  version?: { label: string, isCurrent: boolean; }[];
   type?: string;
 }
 

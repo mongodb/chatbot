@@ -135,13 +135,21 @@ const expectValidResponses = async ({ stream }: ExpectValidResponsesParams) => {
   }
 
   expect(Array.isArray(responses)).toBe(true);
-  expect(responses.length).toBe(3);
+  expect(responses.length).toBe(6);
 
   expect(responses[0].type).toBe("response.created");
   expect(responses[1].type).toBe("response.in_progress");
-  expect(responses[2].type).toBe("response.completed");
+  expect(responses[2].type).toBe("response.output_text.delta");
+  expect(responses[3].type).toBe("response.output_text.annotation.added");
+  expect(responses[4].type).toBe("response.output_text.done");
+  expect(responses[5].type).toBe("response.completed");
+
+  // skip mock events that don't have the extra data
+  const skipIndexes = [2, 3, 4];
 
   responses.forEach(({ sequence_number, response }, index) => {
+    if (skipIndexes.includes(index)) return;
+
     expect(sequence_number).toBe(index);
     expect(typeof response.id).toBe("string");
     expect(response.object).toBe("response");

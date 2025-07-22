@@ -207,6 +207,7 @@ export function makeCreateResponseRoute({
           metadata,
           user,
           input,
+          stream,
         },
       } = data;
 
@@ -292,8 +293,20 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      // TODO: actually implement this call
-      const { messages } = await generateResponse({} as any);
+      const latestMessageText = conversation.messages.at(-1)?.content ?? "";
+
+      const { messages } = await generateResponse({
+        ...data.body,
+        shouldStream: stream,
+        latestMessageText,
+        // TODO: fix these
+        // clientContext ??
+        // customData ??
+        conversation,
+        dataStreamer,
+        reqId,
+        request: req,
+      });
 
       // --- STORE MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({

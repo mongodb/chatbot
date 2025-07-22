@@ -95,7 +95,13 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
     onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
-      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
       dataStreamer?.streamResponses({
         type: "response.output_text.done",
         text: notWorkingMessage,
@@ -105,7 +111,13 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       } satisfies ResponseStreamOutputTextDone);
     },
     onLlmRefusal({ dataStreamer, refusalMessage }) {
-      // only stream "done" here since it's one message
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
       dataStreamer?.streamResponses({
         type: "response.output_text.done",
         text: refusalMessage,
@@ -133,7 +145,6 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       });
     },
     onTextDelta({ dataStreamer, delta }) {
-      // only stream delta here, allow "done" to be streamed elsewhere
       dataStreamer?.streamResponses({
         type: "response.output_text.delta",
         delta,

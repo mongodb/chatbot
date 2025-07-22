@@ -111,7 +111,7 @@ export const makeReferenceAlignmentCouncil: (
   const factualityMetrics = llmOptions.map((llmOption) =>
     makeReferenceAlignment(openAiClient, llmOption)
   );
-  return async function ({ input, output, expected }) {
+  return async function ({ input, output, expected, metadata: _metadata }) {
     const name = "ReferenceAlignmentCouncil";
     const { reference } = expected;
     // Do not calculate factuality if there's no reference answer
@@ -126,7 +126,9 @@ export const makeReferenceAlignmentCouncil: (
     )?.content;
     assert(userMessage, "No user message found");
     const factualityResults = (await Promise.all(
-      factualityMetrics.map((metric) => metric({ input, output, expected }))
+      factualityMetrics.map((metric) =>
+        metric({ input, output, expected, metadata: _metadata })
+      )
     )) as Score[];
 
     // Filter out null scores and calculate average

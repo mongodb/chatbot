@@ -50,7 +50,7 @@ interface MakeQuizQuestionTaskParams {
   promptOptions: QuizQuestionPromptOptions;
 }
 
-function makeQuizQuestionTask({
+export function makeQuizQuestionTask({
   openaiClient,
   model,
   llmOptions,

@@ -43,3 +43,40 @@ export type NlPromptResponseEvalScorer = EvalScorer<
   NlPromptResponseTaskExpected,
   NlPromptResponseMetadata
 >;
+<<<<<<< HEAD
+=======
+
+export interface RunNlPromptResponseEvalParams {
+  data: NlPromptResponseEvalCase[];
+  projectName: string;
+  experimentName: string;
+  additionalMetadata?: Record<string, unknown>;
+  maxConcurrency?: number;
+  task: NlPromptResponseEvalTask;
+  scorers: NlPromptResponseEvalScorer[];
+}
+
+export function runNlPromptResponseEval({
+  data,
+  projectName,
+  experimentName,
+  additionalMetadata,
+  task,
+  maxConcurrency,
+  scorers,
+}: RunNlPromptResponseEvalParams) {
+  return Eval<
+    NlPromptResponseEvalCaseInput,
+    NlPromptResponseTaskOutput,
+    NlPromptResponseTaskExpected,
+    NlPromptResponseMetadata
+  >(projectName, {
+    data,
+    experimentName,
+    maxConcurrency,
+    metadata: additionalMetadata,
+    task,
+    scores: scorers,
+  });
+}
+>>>>>>> upstream/main

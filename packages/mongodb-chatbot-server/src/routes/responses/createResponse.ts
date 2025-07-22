@@ -11,6 +11,7 @@ import {
   type ResponseStreamInProgress,
   type ResponseStreamCompleted,
   type ResponseStreamError,
+  type UserMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -293,19 +294,16 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      const latestMessageText = conversation.messages.at(-1)?.content ?? "";
+      const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({
-        ...data.body,
+        // TODO: handle adding more input options here
+        // TODO: handle passing customData
         shouldStream: stream,
         latestMessageText,
-        // TODO: fix these
-        // clientContext ??
-        // customData ??
         conversation,
         dataStreamer,
         reqId,
-        request: req,
       });
 
       // --- STORE MESSAGES IN CONVERSATION ---
@@ -551,4 +549,29 @@ const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
     user: data.user,
     metadata: data.metadata ?? null,
   };
+};
+
+const convertInputToLatestMessageText = (
+  input: CreateResponseRequest["body"]["input"],
+  headers: Record<string, string>
+): string => {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  const lastUserMessageString = input.findLast(
+    (message): message is UserMessage =>
+      (message.type === "message" || !message.type) &&
+      message.role === "user" &&
+      !!message.content
+  )?.content;
+
+  if (!lastUserMessageString) {
+    throw makeBadRequestError({
+      error: new Error("No user message found in input"),
+      headers,
+    });
+  }
+
+  return lastUserMessageString;
 };

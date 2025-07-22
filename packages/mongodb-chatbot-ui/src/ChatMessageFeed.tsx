@@ -43,6 +43,7 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
     canSubmit,
     conversation,
     handleSubmit,
+    onReferenceClick,
     onSuggestedPromptClick,
   } = useChatbotContext();
 
@@ -92,6 +93,7 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
               // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
               isInitialMessage && conversation.messages.length === 0
             }
+            onReferenceClick={onReferenceClick}
             onSuggestedPromptClick={(prompt) => {
               onSuggestedPromptClick?.(prompt);
               handleSubmit(prompt);

@@ -127,17 +127,17 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
             description: benchmarkConfig.description,
             datasets: Object.entries(benchmarkConfig.datasets)
               .map(([name, dataset]) => ({
-                [name]: dataset.description,
+                [name]: dataset.description ?? "",
               }))
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
             tasks: Object.entries(benchmarkConfig.tasks)
               .map(([name, task]) => ({
-                [name]: task.description,
+                [name]: task.description ?? "",
               }))
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
             scorers: Object.entries(benchmarkConfig.scorers)
               .map(([name, scorer]) => ({
-                [name]: scorer.description,
+                [name]: scorer.description ?? "",
               }))
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
           })),

@@ -166,5 +166,6 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
     .help()
     .alias("h", "help")
     .version("1.0.0")
-    .alias("v", "version");
+    .alias("v", "version")
+    .scriptName("benchmark");
 }

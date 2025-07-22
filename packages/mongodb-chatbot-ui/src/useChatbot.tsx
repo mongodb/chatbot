@@ -1,5 +1,6 @@
 import { startTransition, useRef, useState } from "react";
 import { useConversation, type UseConversationParams } from "./useConversation";
+import { Reference } from "./references";
 
 export type OpenCloseHandlers = {
   onOpen?: () => void;
@@ -11,6 +12,7 @@ export type UseChatbotProps = OpenCloseHandlers &
     chatbotName?: string;
     maxInputCharacters?: number;
     maxCommentCharacters?: number;
+    onReferenceClick?: (reference: Reference) => void;
     onSuggestedPromptClick?: (prompt: string) => void;
   };
 
@@ -29,6 +31,7 @@ export type ChatbotData = {
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
+  onReferenceClick?: (reference: Reference) => void;
   onSuggestedPromptClick?: (prompt: string) => void;
 };
 
@@ -38,6 +41,7 @@ export function useChatbot({
   chatbotName,
   maxInputCharacters,
   maxCommentCharacters,
+  onReferenceClick,
   onSuggestedPromptClick,
   ...useConversationArgs
 }: UseChatbotProps): ChatbotData {
@@ -131,6 +135,7 @@ export function useChatbot({
     open,
     openChat,
     setInputText,
+    onReferenceClick,
     onSuggestedPromptClick,
   };
 }

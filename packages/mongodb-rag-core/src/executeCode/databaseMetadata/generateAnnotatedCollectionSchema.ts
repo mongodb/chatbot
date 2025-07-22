@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
 import { prettyPrintMongoDbDocument } from "../prettyPrintMongoDbDocument";
 import { LlmOptions } from "./LlmOptions";
+import { wrapTraced } from "braintrust";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions and an annotated schema for the specified collection. The descriptions that you generate will be used in the prompt of a LLM for performing database-related tasks.
 
@@ -57,36 +58,43 @@ interface GenerateAnnotatedCollectionSchemaParams {
   llm: LlmOptions;
 }
 
-export async function generateAnnotatedCollectionSchema({
-  collectionMetadata,
-  databaseMetadata,
-  llm: llmOptions,
-}: GenerateAnnotatedCollectionSchemaParams): Promise<DetailedCollectionDescriptions> {
-  const messages = [
-    {
-      role: "system",
-      content: systemPrompt,
-    },
-    {
-      role: "user",
-      content: `Analyze the following collection: '${
-        collectionMetadata.collectionName
-      }'.
+export const makeGenerateAnnotatedCollectionSchema = (openAiClient: OpenAI) =>
+  wrapTraced(
+    async function generateAnnotatedCollectionSchema({
+      collectionMetadata,
+      databaseMetadata,
+      llm: llmOptions,
+    }: GenerateAnnotatedCollectionSchemaParams): Promise<DetailedCollectionDescriptions> {
+      const messages = [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: `Analyze the following collection: '${
+            collectionMetadata.collectionName
+          }'.
 
 Database metadata:
 ${prettyPrintMongoDbDocument(databaseMetadata)}
         
 Again, analyze the collection named '${collectionMetadata.collectionName}'.`,
+        },
+      ] satisfies OpenAI.ChatCompletionMessageParam[];
+
+      const result = await getOpenAiFunctionResponse({
+        messages,
+        llmOptions,
+        schema: makeDetailedCollectionDescriptionSchema(collectionMetadata),
+        functionName,
+        functionDescription,
+        openAiClient,
+      });
+
+      return result;
     },
-  ] satisfies OpenAI.ChatCompletionMessageParam[];
-
-  const result = await getOpenAiFunctionResponse({
-    messages,
-    llmOptions,
-    schema: makeDetailedCollectionDescriptionSchema(collectionMetadata),
-    functionName,
-    functionDescription,
-  });
-
-  return result;
-}
+    {
+      name: "generateAnnotatedCollectionSchema",
+    }
+  );

@@ -17,7 +17,6 @@ export function makeNlPromptCompletionTask({
   return async function (input) {
     const { ...llmConfig } = llmOptions;
     const { text } = await generateText({
-      // ...llmConfig,
       messages: [...(initialMessages ?? []), ...input.messages],
       model: languageModel,
       temperature: llmConfig.temperature ?? undefined,

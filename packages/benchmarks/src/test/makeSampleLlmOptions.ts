@@ -4,6 +4,5 @@ export const makeSampleLlmOptions = () => {
   return {
     model: "gpt-4o",
     temperature: 0,
-    openAiClient: {} as any,
   } satisfies LlmOptions;
 };

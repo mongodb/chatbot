@@ -4,7 +4,12 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationNode, WithParentNode } from "./GenerationNode";
-import { LlmOptions } from "./databaseNlQueries/databaseNodes/LlmOptions";
+import { LlmOptions } from "mongodb-rag-core/executeCode";
+
+export type GenerateChildrenLlmOptions = LlmOptions & {
+  __claudeMaxConcurrency?: number;
+  __claudeTemperatureVariation?: number;
+};
 
 export type GenerateChildren<
   ParentNode extends GenerationNode<unknown, string | undefined> | null,
@@ -14,7 +19,7 @@ export type GenerateChildren<
   >
 > = (
   parent: ParentNode,
-  llmOptions: LlmOptions,
+  llmOptions: GenerateChildrenLlmOptions,
   numChildren: number
 ) => Promise<ChildNode[]>;
 
@@ -59,6 +64,7 @@ export interface MakeGenerateChildrenWithOpenAiParams<
      */
     concurrency?: number;
   };
+  openAiClient: OpenAI;
 
   /**
     Name for child type.
@@ -77,6 +83,7 @@ export function makeGenerateChildrenWithOpenAi<
   response,
   filterNodes,
   childType,
+  openAiClient,
 }: MakeGenerateChildrenWithOpenAiParams<
   ParentNode,
   ChildNode
@@ -91,7 +98,7 @@ export function makeGenerateChildrenWithOpenAi<
     const responseSchema = z.object({
       items: z.array(response.schema),
     });
-    const { openAiClient, ...clientConfig } = llmOptions;
+    const { ...clientConfig } = llmOptions;
 
     // Loop running tool calls to generate
     // exactly the correct amount of children.
@@ -152,6 +159,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   response,
   filterNodes,
   childType,
+  openAiClient,
 }: Omit<
   MakeGenerateChildrenWithOpenAiParams<ParentNode, ChildNode>,
   "response"
@@ -159,20 +167,75 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   response: ResponseFunction;
 }): GenerateChildren<ParentNode, ChildNode> {
   return async function generateNChoiceChildrenWithOpenAI(
-    parent: ParentNode,
-    llmOptions: LlmOptions,
-    numChildren: number
+    parent,
+    llmOptions,
+    numChildren
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent, numChildren);
-    const { openAiClient, ...clientConfig } = llmOptions;
-
-    const completion = await getCompletions({
-      openAiClient,
-      ...clientConfig,
-      messages,
-      response,
-      numCompletions: numChildren,
-    });
+    const { ...clientConfig } = llmOptions;
+    let completion: OpenAI.Chat.Completions.ChatCompletion & {
+      _request_id?: string | null;
+    } = {
+      choices: [],
+      id: "",
+      created: 0,
+      model: "",
+      object: "chat.completion",
+    };
+    if (llmOptions.model.includes("claude")) {
+      const defaultTemperatureVariation = 0.01;
+      const defaultMaxConcurrency = 1;
+      const defaultTemperature = llmOptions.temperature ?? 0.5;
+      const variedTemperatures = Array.from({ length: numChildren }).map(
+        (_, index) => {
+          // Offset by the temperature variation in a symmetrical manner
+          // E.g. if temperature is .5 and variation is .01,
+          // then the temperatures should be .5, .49, .51, .48, .52, etc.
+          // This is so we can still use the Braintrust cache.
+          const isEven = index % 2 === 0;
+          const offset = Math.floor(index / 2) + (isEven ? 0 : 1);
+          const claudeVariationOffset =
+            llmOptions.__claudeTemperatureVariation ??
+            defaultTemperatureVariation;
+          const variation = isEven
+            ? -offset * claudeVariationOffset
+            : offset * claudeVariationOffset;
+          return Math.round((variation + defaultTemperature) * 100) / 100;
+        }
+      );
+      const { results: choices } = await PromisePool.for(variedTemperatures)
+        .withConcurrency(
+          llmOptions.__claudeMaxConcurrency ?? defaultMaxConcurrency
+        )
+        .handleError((error) => {
+          console.error("Error generating children", error);
+        })
+        .process(async (variedTemperature) => {
+          clientConfig.temperature = variedTemperature;
+          const {
+            choices: [choice],
+          } = await getCompletions({
+            openAiClient,
+            ...clientConfig,
+            messages,
+            response,
+            numCompletions: numChildren,
+          });
+          return choice;
+        });
+      completion.choices = choices;
+    }
+    // For other models where we can generate all completions at once
+    // using the N candidates generation pattern (see https://community.openai.com/t/how-does-n-parameter-work-in-chat-completions/288725/2)
+    else {
+      completion = await getCompletions({
+        openAiClient,
+        ...clientConfig,
+        messages,
+        response,
+        numCompletions: numChildren,
+      });
+    }
 
     let children: ChildNode["data"][] = completion.choices
       .map((choice) => choice.message.tool_calls?.[0].function.arguments)
@@ -192,11 +255,14 @@ async function getCompletions({
   messages,
   response,
   numCompletions,
+  __claudeMaxConcurrency,
+  __claudeTemperatureVariation,
   ...clientConfig
-}: LlmOptions & {
+}: GenerateChildrenLlmOptions & {
   messages: OpenAI.ChatCompletionMessageParam[];
   numCompletions?: number;
   response: ResponseFunction;
+  openAiClient: OpenAI;
 }) {
   const completion = await openAiClient.chat.completions.create({
     ...clientConfig,

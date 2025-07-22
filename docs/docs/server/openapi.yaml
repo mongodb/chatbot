@@ -449,7 +449,7 @@ components:
         user:
           type: string
           description: |
-            The user ID of the user. Can be any arbitrary string.
+            The ID of the user. Can be any arbitrary string.
             
             If used in combination with `previous_response_id`, the value for `user` must be the same for all requests on the same conversation.
             

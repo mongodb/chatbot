@@ -3,7 +3,7 @@ import { Page, PageMetadata } from "../contentStore";
 import { DataSource } from "./DataSource";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 
-export type GetPdfBufferFunc = (url: string) => Buffer[];
+export type GetPdfBufferFunc = (url: string) => Buffer;
 
 export type GetTitleFromPdfFunc = (pdfMdContent: string) => string | undefined;
 

@@ -3,7 +3,7 @@ import type {
   DataSourceMetadata,
 } from "mongodb-rag-core";
 import { createRequest, createResponse } from "node-mocks-http";
-import { makeListDataSourcesRoute } from "./listDataSources";
+import { ERROR_MESSAGES, makeListDataSourcesRoute } from "./listDataSources";
 
 function makeMockEmbeddedContentStore(dataSources: DataSourceMetadata[]) {
   return {
@@ -60,7 +60,7 @@ describe("makeListDataSourcesRoute", () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(handler(req, res as any)).rejects.toMatchObject({
-      message: "Unable to list data sources",
+      message: ERROR_MESSAGES.UNABLE_TO_LIST_DATA_SOURCES,
       httpStatus: 500,
       name: "RequestError",
     });

@@ -463,3 +463,101 @@ describe("initialized DB", () => {
     expect(filterPaths).toContain("sourceType");
   });
 });
+
+describe("listDataSources", () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  let mongoClient: MongoClient | undefined;
+  beforeEach(async () => {
+    store = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGO_MEMORY_REPLICA_SET_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: { embeddingName: "test-embedding" },
+    });
+    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  });
+
+  afterEach(async () => {
+    assert(store);
+    assert(mongoClient);
+    await store.drop();
+    await store.close();
+    await mongoClient.close();
+  });
+
+  it("returns grouped data sources with correct versions and type", async () => {
+    const docs: EmbeddedContent[] = [
+      {
+        sourceName: "solutions",
+        url: "/foo",
+        text: "foo",
+        tokenCount: 1,
+        embeddings: { test: [0.1] },
+        updated: new Date(),
+        sourceType: "docs",
+        metadata: { version: { label: "v1.0", isCurrent: true } },
+      },
+      {
+        sourceName: "solutions",
+        url: "/bar",
+        text: "bar",
+        tokenCount: 1,
+        embeddings: { test: [0.2] },
+        updated: new Date(),
+        sourceType: "docs",
+        metadata: { version: { label: "v2.0", isCurrent: false } },
+      },
+      {
+        sourceName: "mongodb-university",
+        url: "/baz",
+        text: "baz",
+        tokenCount: 1,
+        embeddings: { test: [0.3] },
+        updated: new Date(),
+        sourceType: "web",
+        metadata: { version: { label: "v1.0", isCurrent: false } },
+      },
+      {
+        sourceName: "mongoid",
+        url: "/boop",
+        text: "boop",
+        tokenCount: 1,
+        embeddings: { test: [0.4] },
+        updated: new Date(),
+        sourceType: "blog",
+        metadata: {}, // no version
+      },
+    ];
+
+    assert(store);
+    await store.init();
+
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<EmbeddedContent>(store.metadata.collectionName);
+    await coll?.insertMany(docs);
+
+    const result = await store!.listDataSources();
+    expect(Array.isArray(result)).toBe(true);
+
+    // solutions should have two versions
+    const sourceA = result.find((ds) => ds.id === "solutions");
+    expect(sourceA).toBeDefined();
+    expect(sourceA!.type).toBe("docs");
+    expect(sourceA!.versions).toEqual(
+      expect.arrayContaining([
+        { label: "v1.0", isCurrent: true },
+        { label: "v2.0", isCurrent: false },
+      ])
+    );
+    // mongodb-university should have one version
+    const sourceB = result.find((ds) => ds.id === "mongodb-university");
+    expect(sourceB).toBeDefined();
+    expect(sourceB!.type).toBe("web");
+    expect(sourceB!.versions).toEqual([{ label: "v1.0", isCurrent: true }]);
+    // mongoid should have empty versions array
+    const sourceC = result.find((ds) => ds.id === "mongoid");
+    expect(sourceC).toBeDefined();
+    expect(sourceC!.type).toBe("blog");
+    expect(sourceC!.versions).toEqual([]);
+  });
+});

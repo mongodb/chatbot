@@ -60,7 +60,7 @@ interface MakeDiscoveryTaskParams {
   model: string;
   iterations: number;
 }
-function makeDiscoveryTask({
+export function makeDiscoveryTask({
   openaiClient,
   model,
   llmOptions,

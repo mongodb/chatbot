@@ -181,13 +181,13 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
 
   // get reference alignment scores for answers
   const endpointAndKey = await getOpenAiEndpointAndApiKey(model);
+  const openAiClient = new OpenAI(endpointAndKey);
   const config = {
-    openAiClient: new OpenAI(endpointAndKey),
     model: model.deployment,
     temperature: 0,
     label: model.label,
   };
-  const referenceAlignmentFn = makeReferenceAlignment(config);
+  const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
@@ -227,6 +227,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
             reference: currentCase?.expected ?? "",
             links: [], // TODO: update with links from currentCase if defined
           },
+          metadata: {},
         })) as {
           score: number | null;
           name: string;

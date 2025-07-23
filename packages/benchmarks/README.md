@@ -15,12 +15,12 @@ npm run build
 
 Choose which models to run the benchmarks for by updating `MODELS` in `src/benchmarkModels.ts`. 
 
-To run the benchmarks:
+To run the benchmarks, use the CLI:
 
-* Discovery: `npx tsx src/discovery/mongoDbDiscoveryBenchmark.ts`
-* Top Questions Prompt Completion: `npx tsx src/nlPromptResponse/bin/topQuestions/topQuestionPromptCompletionBenchmark.ts`
-* Multiple Choice Quiz Questions: `npx tsx src/quizQuestions/mongodbUniversityAllQuestionBenchmark.ts`
-* Natural Language to Mongosh: Under src/textToDriver/bin/mongoshBenchmarks, run all of the following:
-    * agentic.ts 
-    * promptCompletionAllVersions.ts 
-    * toolCallAllVersions.ts 
+```sh
+# Get started
+npm run benchmark:cli -- --help
+
+# Run a benchmark
+npm run benchmark:cli -- run --type nl_prompt_response --model gpt-4.1-nano --dataset top_questions
+```

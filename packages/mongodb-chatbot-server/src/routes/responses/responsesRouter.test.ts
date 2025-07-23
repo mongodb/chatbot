@@ -112,6 +112,7 @@ describe("Responses Router", () => {
     } catch (error) {
       expect((error as SomeOpenAIAPIError).status).toBe(429);
       expect((error as SomeOpenAIAPIError).error).toEqual({
+        name: "Error",
         type: ERROR_TYPE,
         code: ERROR_CODE.RATE_LIMIT_ERROR,
         message: rateLimitErrorMessage,

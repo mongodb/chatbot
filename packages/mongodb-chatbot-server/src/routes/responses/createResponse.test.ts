@@ -390,6 +390,10 @@ describe("POST /responses", () => {
             output: `{"result": "success"}`,
             status: "completed",
           },
+          {
+            role: "user",
+            content: "What is MongoDB?",
+          },
         ],
       };
       const stream = await makeClientAndRequest(requestBody);

@@ -1,8 +1,9 @@
 import "dotenv/config";
 import type { Server } from "http";
-import { OpenAI, OpenAIError } from "mongodb-rag-core/openai";
+import type { Express } from "express";
 import type { ConversationsService, SomeMessage } from "mongodb-rag-core";
 import type { CreateResponseRequest } from "mongodb-chatbot-server/src/routes/responses/createResponse";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
 
 jest.setTimeout(100000);
@@ -13,7 +14,7 @@ const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
 const API_PREFIX = "/api/v1";
 
 describe("Responses API with OpenAI Client", () => {
-  let app: any;
+  let app: Express;
   let server: Server;
   let ipAddress: string;
   let origin: string;
@@ -21,17 +22,14 @@ describe("Responses API with OpenAI Client", () => {
   let openAiClient: OpenAI;
 
   beforeAll(async () => {
-    // Create test app using existing test helpers
     const testAppResult = await makeTestApp();
     app = testAppResult.app;
     conversations = testAppResult.conversations;
     ipAddress = testAppResult.ipAddress;
     origin = TEST_ORIGIN;
 
-    // Start the server
     server = app.listen(TEST_PORT);
 
-    // Create OpenAI client that points to our test server
     openAiClient = new OpenAI({
       baseURL: origin + API_PREFIX,
       apiKey: TEST_OPENAI_API_KEY,
@@ -111,13 +109,11 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with previous_response_id", async () => {
-      // First create a conversation with just a user message
       const initialMessages: Array<SomeMessage> = [
         { role: "user", content: "Initial message!" },
       ];
       const conversation = await conversations.create({ initialMessages });
 
-      // Use the user message ID as the previous_response_id
       const previous_response_id = conversation.messages.at(-1)?.id?.toString();
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         previous_response_id,
@@ -262,13 +258,11 @@ describe("Responses API with OpenAI Client", () => {
 
   describe("Real OpenAI integration", () => {
     it("Should handle actual conversation flow", async () => {
-      // Create initial conversation with just a user message
       const initialMessages: Array<SomeMessage> = [
         { role: "user", content: "Hello, can you tell me about MongoDB?" },
       ];
       const conversation = await conversations.create({ initialMessages });
 
-      // Get response using previous_response_id
       const previous_response_id = conversation.messages.at(-1)?.id.toString();
       const stream = await createResponseRequestStream({
         previous_response_id,
@@ -313,14 +307,12 @@ const expectValidResponses = async ({
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBeGreaterThan(0);
 
-  // Check for required response types
   const responseTypes = responses.map((r) => r.type);
   expect(responseTypes).toContain("response.created");
   expect(responseTypes).toContain("response.in_progress");
   expect(responseTypes).toContain("response.completed");
 
-  // Validate response structure
-  responses.forEach(({ response, sequence_number }, index) => {
+  responses.forEach(({ response }) => {
     if (response) {
       expect(typeof response.id).toBe("string");
       expect(typeof response.created_at).toBe("number");
@@ -330,7 +322,6 @@ const expectValidResponses = async ({
       expect(response.stream).toBe(true);
       expect(response.temperature).toBe(0);
 
-      // Check conditional properties based on request body
       if (requestBody.instructions) {
         expect(response.instructions).toBe(requestBody.instructions);
       }
@@ -353,13 +344,12 @@ async function expectInvalidResponses(args: ExpectInvalidResponsesArgs) {
   try {
     const stream = await args.stream;
     for await (const _ of stream) {
-      // Just iterating until gets to error.
+      // iterate until gets to error
       continue;
     }
-    throw new Error("Expected request to throw an error but it didn't");
+    fail("Expected request to throw an error but it didn't");
   } catch (error: any) {
     expect(error).toBeInstanceOf(Error);
-    // The error message format may vary, so let's be more flexible
     const errorMessage = error.message ?? error.toString();
     expect(errorMessage).toContain(args.errorMessage);
   }

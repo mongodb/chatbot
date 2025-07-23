@@ -57,7 +57,7 @@ describe("PdfToMdDataSource", () => {
         .mockRejectedValueOnce(new Error("Mock Error")),
     } as MakePdfToMarkdownDataSourceArgs;
 
-    jest.spyOn(console, "warn"); //.mockImplementationOnce(() => "warned");
+    jest.spyOn(console, "warn");
 
     const dataSource = makePdfToMarkdownDataSource(params);
 

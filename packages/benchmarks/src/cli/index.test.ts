@@ -73,9 +73,13 @@ describe("createBenchmarkCli", () => {
 
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
-    processExitSpy = jest.spyOn(process, "exit").mockImplementation(() => {
-      throw new Error("process.exit called");
-    });
+    processExitSpy = jest
+      .spyOn(process, "exit")
+      .mockImplementation((code?: number) => {
+        // Don't throw an error that crashes Jest workers
+        // Instead, just record that process.exit was called
+        return undefined as never;
+      });
 
     mockRunBenchmark.mockResolvedValue([]);
   });
@@ -93,109 +97,105 @@ describe("createBenchmarkCli", () => {
     it("should validate required options", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse(["run"]);
-      }).toThrow("process.exit called");
+      cli.parse(["run"]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate unknown benchmark type", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "unknown-benchmark",
-          "--dataset",
-          "dataset1",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "unknown-benchmark",
+        "--dataset",
+        "dataset1",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate unknown task", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--task",
-          "unknown-task",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--task",
+        "unknown-task",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate unknown dataset", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "unknown-dataset",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "unknown-dataset",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate taskConcurrency range", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--taskConcurrency",
-          "0",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--taskConcurrency",
+        "0",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--taskConcurrency",
-          "51",
-        ]);
-      }).toThrow("process.exit called");
+      processExitSpy.mockClear();
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--taskConcurrency",
+        "51",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate modelConcurrency range", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--modelConcurrency",
-          "0",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--modelConcurrency",
+        "0",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--modelConcurrency",
-          "6",
-        ]);
-      }).toThrow("process.exit called");
+      processExitSpy.mockClear();
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--modelConcurrency",
+        "6",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should successfully run benchmark with valid arguments", async () => {
@@ -273,7 +273,7 @@ describe("createBenchmarkCli", () => {
       const cli = createBenchmarkCli(mockConfig);
 
       // Parse the CLI arguments (this is synchronous)
-      const result = cli.parse([
+      const result = await cli.parse([
         "run",
         "--type",
         "test-benchmark",
@@ -364,25 +364,22 @@ describe("createBenchmarkCli", () => {
     it("should require a command", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([]);
-      }).toThrow("process.exit called");
+      cli.parse([]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should have help alias", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse(["--help"]);
-      }).toThrow("process.exit called");
+      cli.parse(["--help"]);
+      expect(processExitSpy).toHaveBeenCalled();
     });
 
     it("should have version alias", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse(["--version"]);
-      }).toThrow("process.exit called");
+      cli.parse(["--version"]);
+      expect(processExitSpy).toHaveBeenCalled();
     });
   });
 
@@ -396,41 +393,38 @@ describe("createBenchmarkCli", () => {
 
       const cli = createBenchmarkCli(emptyConfig);
 
-      expect(() => {
-        cli.parse(["run", "--type", "any-type", "--dataset", "any-dataset"]);
-      }).toThrow("process.exit called");
+      cli.parse(["run", "--type", "any-type", "--dataset", "any-dataset"]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate non-integer taskConcurrency", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--taskConcurrency",
-          "2.5",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--taskConcurrency",
+        "2.5",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate non-integer modelConcurrency", async () => {
       const cli = createBenchmarkCli(mockConfig);
 
-      expect(() => {
-        cli.parse([
-          "run",
-          "--type",
-          "test-benchmark",
-          "--dataset",
-          "dataset1",
-          "--modelConcurrency",
-          "1.5",
-        ]);
-      }).toThrow("process.exit called");
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--modelConcurrency",
+        "1.5",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
   });
 });

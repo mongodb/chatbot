@@ -50,10 +50,10 @@ describe("Responses API with OpenAI Client", () => {
     }
   });
 
-  const createResponseRequestStream = (
+  const createResponseRequestStream = async (
     body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
   ) => {
-    return openAiClient.responses.create({
+    return await openAiClient.responses.create({
       model: "mongodb-chat-latest",
       input: "What is MongoDB?",
       stream: true,
@@ -258,7 +258,7 @@ describe("Responses API with OpenAI Client", () => {
 
     it("Should return error responses if stream is false", async () => {
       // Override the default stream: true
-      const stream = openAiClient.responses.create({
+      const stream = await openAiClient.responses.create({
         model: "mongodb-chat-latest",
         input: "What is MongoDB?",
         stream: false,

@@ -13,6 +13,11 @@ const TEST_PORT = 5200;
 const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
 const API_PREFIX = "/api/v1";
 
+// Response event types
+const DELTA_EVENT = "response.output_text.delta";
+const ANNOTATION_EVENT = "response.output_text.annotation.added";
+const DONE_EVENT = "response.output_text.done";
+
 describe("Responses API with OpenAI Client", () => {
   let app: Express;
   let server: Server;
@@ -269,7 +274,20 @@ describe("Responses API with OpenAI Client", () => {
         input: "Tell me more about MongoDB Atlas",
       });
 
-      await expectValidResponses({ stream });
+      const responses = await expectValidResponses({ stream });
+
+      const events = responses.map((r) => r.type);
+      expect(events).toContain(DELTA_EVENT);
+      expect(events).toContain(DONE_EVENT);
+
+      const deltaCount = events.filter((t) => t === DELTA_EVENT).length;
+      const doneCount = events.filter((t) => t === DONE_EVENT).length;
+
+      // 3 lifecycle events are validated in the expectValidResponses function above
+      // 3 lifecycle events + 21 delta events + 1 done event = 25 events
+      expect(responses.length).toBe(25);
+      expect(deltaCount).toBe(21);
+      expect(doneCount).toBe(1);
     });
 
     it("Should handle concurrent requests", async () => {
@@ -282,10 +300,43 @@ describe("Responses API with OpenAI Client", () => {
         }),
       ]);
 
-      await Promise.all([
+      const [responses1, responses2] = await Promise.all([
         expectValidResponses({ stream: stream1 }),
         expectValidResponses({ stream: stream2 }),
       ]);
+
+      const events1 = responses1.map((r) => r.type);
+      const events2 = responses2.map((r) => r.type);
+
+      expect(events1).toContain(DELTA_EVENT);
+      expect(events1).toContain(ANNOTATION_EVENT);
+      expect(events1).toContain(DONE_EVENT);
+
+      expect(events2).toContain(DELTA_EVENT);
+      expect(events2).toContain(ANNOTATION_EVENT);
+      expect(events2).toContain(DONE_EVENT);
+
+      const deltaCount1 = events1.filter((t) => t === DELTA_EVENT).length;
+      const annotation1 = events1.filter((t) => t === ANNOTATION_EVENT).length;
+      const doneCount1 = events1.filter((t) => t === DONE_EVENT).length;
+
+      // 3 lifecycle events are validated in the expectValidResponses function above
+      // 3 lifecycle events + 1 delta events + 5 annotation event + 1 done event = 10 events
+      expect(responses1.length).toBe(10);
+      expect(deltaCount1).toBe(1);
+      expect(annotation1).toBe(5);
+      expect(doneCount1).toBe(1);
+
+      const deltaCount2 = events2.filter((t) => t === DELTA_EVENT).length;
+      const annotation2 = events2.filter((t) => t === ANNOTATION_EVENT).length;
+      const doneCount2 = events2.filter((t) => t === DONE_EVENT).length;
+
+      // 3 lifecycle events are validated in the expectValidResponses function above
+      // 3 lifecycle events + 1 delta events + 5 annotation event + 1 done event = 10 events
+      expect(responses2.length).toBe(10);
+      expect(deltaCount2).toBe(1);
+      expect(annotation2).toBe(5);
+      expect(doneCount2).toBe(1);
     });
   });
 });
@@ -333,6 +384,8 @@ const expectValidResponses = async ({
       }
     }
   });
+
+  return responses;
 };
 
 interface ExpectInvalidResponsesArgs {

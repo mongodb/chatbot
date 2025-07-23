@@ -3,7 +3,7 @@ import { hideBin } from "yargs/helpers";
 import { BenchmarkCliConfig } from "./BenchmarkConfig";
 import { runBenchmark, RunBenchmarkArgs } from "./runBenchmark";
 
-export function createBenchmarkCli(config: BenchmarkCliConfig) {
+export function makeBenchmarkCli(config: BenchmarkCliConfig) {
   return yargs(hideBin(process.argv))
     .command(
       "run",

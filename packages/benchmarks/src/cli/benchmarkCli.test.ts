@@ -1,5 +1,5 @@
 import yargs from "yargs";
-import { createBenchmarkCli } from "./index";
+import { makeBenchmarkCli } from "./benchmarkCli";
 import { runBenchmark } from "./runBenchmark";
 import { BenchmarkCliConfig } from "./BenchmarkConfig";
 
@@ -9,7 +9,7 @@ const mockRunBenchmark = runBenchmark as jest.MockedFunction<
   typeof runBenchmark
 >;
 
-describe("createBenchmarkCli", () => {
+describe("makeBenchmarkCli", () => {
   let mockConfig: BenchmarkCliConfig;
   let consoleLogSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
@@ -90,19 +90,19 @@ describe("createBenchmarkCli", () => {
 
   describe("run command", () => {
     it("should create a yargs CLI with run command", () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
       expect(cli).toBeDefined();
     });
 
     it("should validate required options", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse(["run"]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate unknown benchmark type", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -115,7 +115,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should validate unknown task", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -130,7 +130,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should validate unknown dataset", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -143,7 +143,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should validate taskConcurrency range", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -171,7 +171,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should validate modelConcurrency range", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -199,7 +199,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should successfully run benchmark with valid arguments", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       await cli.parse([
         "run",
@@ -221,7 +221,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should use default values when optional arguments not provided", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       await cli.parse([
         "run",
@@ -241,7 +241,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should handle multiple datasets and models", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       await cli.parse([
         "run",
@@ -270,7 +270,7 @@ describe("createBenchmarkCli", () => {
     it("should handle benchmark execution errors", async () => {
       mockRunBenchmark.mockRejectedValueOnce(new Error("Benchmark failed"));
 
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       // Parse the CLI arguments (this is synchronous)
       const result = await cli.parse([
@@ -301,7 +301,7 @@ describe("createBenchmarkCli", () => {
 
   describe("list command", () => {
     it("should list all available benchmarks", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse(["list"]);
 
@@ -333,7 +333,7 @@ describe("createBenchmarkCli", () => {
 
   describe("models list command", () => {
     it("should list all available models", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse(["models", "list"]);
 
@@ -362,21 +362,21 @@ describe("createBenchmarkCli", () => {
 
   describe("help and version", () => {
     it("should require a command", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should have help alias", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse(["--help"]);
       expect(processExitSpy).toHaveBeenCalled();
     });
 
     it("should have version alias", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse(["--version"]);
       expect(processExitSpy).toHaveBeenCalled();
@@ -391,14 +391,14 @@ describe("createBenchmarkCli", () => {
         benchmarks: {},
       };
 
-      const cli = createBenchmarkCli(emptyConfig);
+      const cli = makeBenchmarkCli(emptyConfig);
 
       cli.parse(["run", "--type", "any-type", "--dataset", "any-dataset"]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should validate non-integer taskConcurrency", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",
@@ -413,7 +413,7 @@ describe("createBenchmarkCli", () => {
     });
 
     it("should validate non-integer modelConcurrency", async () => {
-      const cli = createBenchmarkCli(mockConfig);
+      const cli = makeBenchmarkCli(mockConfig);
 
       cli.parse([
         "run",

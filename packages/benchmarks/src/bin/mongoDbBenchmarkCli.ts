@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createBenchmarkCli } from "../cli/index";
+import { makeBenchmarkCli } from "../cli/benchmarkCli";
 import { BenchmarkCliConfig } from "../cli/BenchmarkConfig";
 import { MODELS } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
@@ -26,7 +26,7 @@ const config: BenchmarkCliConfig = {
 };
 
 // Create and run the CLI
-const cli = createBenchmarkCli(config);
+const cli = makeBenchmarkCli(config);
 
 // Make it executable
 cli.parse();

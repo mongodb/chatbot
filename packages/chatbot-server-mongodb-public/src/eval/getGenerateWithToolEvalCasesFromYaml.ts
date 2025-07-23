@@ -49,6 +49,7 @@ export const GenerateWithToolsEvalCaseSchema = z.object({
         "fetch_page",
         "search_content",
         "has_url",
+        "multi_url",
         "implied_url",
         "fallback_to_search",
       ])

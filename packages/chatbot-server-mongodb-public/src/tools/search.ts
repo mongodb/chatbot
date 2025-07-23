@@ -3,6 +3,7 @@ import {
   FindContentFunc,
   updateFrontMatter,
   Reference,
+  logger,
 } from "mongodb-rag-core";
 import {
   Tool,
@@ -108,6 +109,9 @@ export function makeSearchTool({
           results: content.content.map(embeddedContentToSearchResult),
           references: makeReferences(content.content),
         };
+        logger.info(
+          `${SEARCH_TOOL_NAME} found ${content.content.length} search results for query "${queryWithMetadata}"`
+        );
 
         return result;
       },

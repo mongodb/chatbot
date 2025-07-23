@@ -142,7 +142,11 @@ export function getContextsFromMessages(
           toolResponseMessage.content === "{}" ||
           toolResponseMessage.content === SEARCH_ALL_FALLBACK_TEXT
         ) {
-          console.log("No context found by fetch_page tool");
+          logRequest({
+            reqId,
+            message: `No context found by ${FETCH_PAGE_TOOL_NAME} tool`,
+            type: "info",
+          });
           return;
         }
         contexts.push({ text: toolResponseMessage.content, url });

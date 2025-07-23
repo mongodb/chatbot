@@ -7,7 +7,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
       - role: tool
@@ -31,12 +31,12 @@
   input:
     latestMessageText: I'm following this tutorial https://www.mongodb.com/docs/drivers/java/sync/current/get-started/ but I got a SSL error how to fix it?
     customData:
-      origin: google-gemini-code-assist
+      origin: https://www.mongodb.com/docs/drivers/java/sync/current/connection/
   expected: 
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
       - role: tool
@@ -58,6 +58,100 @@
 
       JDK 11.0.7  JDK 13.0.3  JDK 14.0.2
 
+- name: should call fetch_page tool for a user-provided URL when origin is different 2
+  input:
+    latestMessageText: I'm following this tutorial https://www.mongodb.com/docs/drivers/java/sync/current/get-started/ but I got a SSL error how to fix it?
+    customData:
+      origin: google-gemini-code-assist
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+      - role: tool
+      - role: assistant
+  tags:
+    - fetch_page
+    - has_url
+  metadata:
+    loadPageReturnContent: |
+      Run your Java application
+      Run your application in your IDE or your shell. Your output contains details about the retrieved movie document.
+
+      Important
+      TLS v1.3 Connection Error
+      If your application generates an error that resembles the following code, you might need to update your JDK to the latest patch release:
+
+      javax.net.ssl.SSLHandshakeException: extension (5) should not be presented in certificate_request
+      This exception is a known issue when using the TLS 1.3 protocol with some JDK versions. To resolve the error, update your JDK to one of the following versions, or a newer version:
+
+      JDK 11.0.7  JDK 13.0.3  JDK 14.0.2
+
+- name: should call fetch_page tool for a user-provided URL when origin is different 3
+  input:
+    latestMessageText: Summarize this page https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/
+    customData:
+      origin: https://www.mongodb.com/docs/atlas/getting-started/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page
+        toolCallArgs:
+          pageUrl: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/
+      - role: tool
+      - role: assistant
+  tags:
+    - fetch_page
+    - has_url
+  metadata:
+    loadPageReturnContent: |
+      # How to Index Fields for Vector Search
+      
+      You can use the vectorSearch type to index fields for running $vectorSearch queries. You can use the Atlas UI, Atlas Administration API, Atlas CLI, mongosh, or a supported MongoDB Driver to create your Atlas Vector Search index.
+
+- name: Calls fetch_page for each provided URL (x3)
+  input:
+    latestMessageText: Summarize across these URLs about preventing slow searches https://www.mongodb.com/docs/atlas/atlas-vector-search/improve-accuracy/, https://www.mongodb.com/docs/atlas/atlas-vector-search/benchmark/, https://www.mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/
+    customData:
+      origin: https://www.mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page
+      - role: tool
+      - role: assistant-tool
+        toolCallName: fetch_page
+      - role: tool
+      - role: assistant-tool
+        toolCallName: fetch_page
+      - role: tool
+      - role: assistant
+  tags:
+    - fetch_page
+    - multi_url
+
+- name: Calls fetch_page for each provided URL (x2), including for external URL
+  input:
+    latestMessageText: Use these as documentation https://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
+    origin: https://www.mongodb.com/docs/manual/core/schema-validation/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page
+      - role: tool
+      - role: assistant-tool
+        toolCallName: fetch_page
+      - role: tool
+      - role: assistant
+  tags:
+    - fetch_page
+    - multi_url
+
 - name: should call fetch_page tool for implied on-page use
   input:
     latestMessageText: Summarize the page I am on
@@ -67,7 +161,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
       - role: tool
@@ -96,7 +190,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
       - role: tool
@@ -125,7 +219,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
       - role: tool
@@ -165,7 +259,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://en.wikipedia.org/wiki/MongoDB
       - role: tool
@@ -191,6 +285,32 @@
       Cost-effective
       Full technical support and documentation  
 
+- name: falls back to search tool if there's no content for the URL 2 
+  input:
+    latestMessageText: How do I turn off the query profiler? Reference this page https://studio3t.com/knowledge-base/articles/mongodb-query-performance/
+    customData:
+      origin: https://www.mongodb.com/docs/atlas/tutorial/query-profiler/
+  expected: 
+    messages:
+      - role: user
+      - role: assistant-tool
+        toolCallName: fetch_page
+        toolCallArgs:
+          pageUrl: https://studio3t.com/knowledge-base/articles/mongodb-query-performance/
+      - role: tool
+      - role: assistant-tool
+        toolCallName: search_content 
+      - role: tool
+      - role: assistant
+  tags:
+    - fetch_page
+    - has_url
+    - fallback_to_search
+  metadata:
+    findContentReturnContent: |
+      ### Disable the Query Profiler.
+      In the Database Monitoring Tools section, toggle Performance Advisor and Profiler to Off.
+
 - name: fall back to search tool if answer is not on the page
   input:
     latestMessageText: I'm following this tutorial https://www.mongodb.com/docs/drivers/java/sync/current/get-started/ How do I insert a document instead of searching
@@ -200,7 +320,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
       - role: tool
@@ -255,7 +375,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
       - role: tool
@@ -310,7 +430,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/atlas-search/accuracy/
       - role: tool
@@ -384,7 +504,7 @@
     messages:
       - role: user
       - role: assistant-tool
-        toolCallName: fetch_page 
+        toolCallName: fetch_page
         toolCallArgs:
           pageUrl: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/
       - role: tool

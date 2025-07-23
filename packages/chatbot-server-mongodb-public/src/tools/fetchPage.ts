@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FindContentFunc, MongoDbPageStore, Reference } from "mongodb-rag-core";
+import { FindContentFunc, logger, MongoDbPageStore, Reference } from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
@@ -99,8 +99,12 @@ async function getPageContent(
 }> {
   if (page === null) {
     // Fall back - no page for this URL
+    logger.info(
+      `${FETCH_PAGE_TOOL_NAME} did not find a page for URL ${normalizedUrl}, falling back to search tool`
+    );
     return { text: searchFallbackText };
   }
+  logger.info(`${FETCH_PAGE_TOOL_NAME} found a page for URL ${normalizedUrl}.`);
   if (page.body.length < pageLengthCutoff) {
     // Page content is short enough, return it directly
     return {
@@ -109,6 +113,9 @@ async function getPageContent(
     };
   }
   // Page content is too long, do truncate-search
+  logger.info(
+    `Page for ${normalizedUrl} is very long, truncating and searching for most relevant content`
+  );
   const references = makeReferences([page]);
   const mostRelevantChunks = await findContent({
     query: query,

@@ -6,7 +6,7 @@ import type { CreateResponseRequest } from "mongodb-chatbot-server/src/routes/re
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
 
-jest.setTimeout(100000);
+jest.setTimeout(10 * 1000); // 10 seconds
 
 const TEST_OPENAI_API_KEY = "test-api-key";
 const TEST_PORT = 5200;

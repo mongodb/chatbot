@@ -272,11 +272,25 @@ describe("createBenchmarkCli", () => {
 
       const cli = createBenchmarkCli(mockConfig);
 
-      // Expect the process.exit call and catch the thrown error
-      await expect(
-        cli.parse(["run", "--type", "test-benchmark", "--dataset", "dataset1"])
-      ).rejects.toThrow("process.exit called");
+      // Parse the CLI arguments (this is synchronous)
+      const result = cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+      ]);
 
+      // The result should be the parsed arguments object
+      expect(result).toMatchObject({
+        type: "test-benchmark",
+        dataset: ["dataset1"],
+      });
+
+      // Wait a bit for the async handler to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Check that error handling was called
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error running benchmark:",
         expect.any(Error)

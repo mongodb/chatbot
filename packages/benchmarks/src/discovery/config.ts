@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { wrapAISDKModel, wrapOpenAI } from "mongodb-rag-core/braintrust";
-=======
-import { wrapOpenAI } from "mongodb-rag-core/braintrust";
->>>>>>> upstream/main
+import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import {
   DiscoveryEvalCaseInput,
@@ -11,12 +7,8 @@ import {
   makeDiscoveryTask,
   makeMatchScorers,
 } from "./DiscoveryEval";
-import { OpenAI } from "mongodb-rag-core/openai";
 import path from "path";
-<<<<<<< HEAD
-import { createOpenAI, openai } from "@ai-sdk/openai";
-=======
->>>>>>> upstream/main
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 
 export const discoveryBenchmarkConfig: BenchmarkConfig<
   DiscoveryEvalCaseInput,
@@ -38,7 +30,6 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
   },
   tasks: {
     default: {
-<<<<<<< HEAD
       taskFunc: (provider, config) => {
         const model = wrapAISDKModel(
           createOpenAI({
@@ -48,18 +39,6 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
         );
         return makeDiscoveryTask({
           model,
-=======
-      taskFunc: (provider, deployment) => {
-        const openAiClient = wrapOpenAI(
-          new OpenAI({
-            baseURL: provider.baseUrl,
-            apiKey: provider.apiKey,
-          })
-        );
-        return makeDiscoveryTask({
-          openaiClient: openAiClient,
-          model: deployment,
->>>>>>> upstream/main
           llmOptions: {
             temperature: 0,
           },

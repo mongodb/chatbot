@@ -51,12 +51,7 @@ interface MakeQuizQuestionTaskParams {
 }
 
 export function makeQuizQuestionTask({
-<<<<<<< HEAD
   languageModel,
-=======
-  openaiClient,
-  model,
->>>>>>> upstream/main
   llmOptions,
   promptOptions,
 }: MakeQuizQuestionTaskParams): QuizQuestionEvalTask {

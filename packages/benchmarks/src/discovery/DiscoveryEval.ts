@@ -61,10 +61,6 @@ interface MakeDiscoveryTaskParams {
   iterations: number;
 }
 export function makeDiscoveryTask({
-<<<<<<< HEAD
-=======
-  openaiClient,
->>>>>>> upstream/main
   model,
   llmOptions,
   iterations,

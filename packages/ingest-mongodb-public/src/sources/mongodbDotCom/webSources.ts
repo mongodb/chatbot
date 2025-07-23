@@ -484,6 +484,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://blog.voyageai.com/2024/01/23/voyage-code-2-elevate-your-code-retrieval/",
       "https://blog.voyageai.com/2023/10/29/voyage-embeddings/",
       "https://blog.voyageai.com/2023/10/29/a-case-study-of-chat-langchain/",
+      "https://blog.voyageai.com/2025/07/23/voyage-context-3/",
     ],
     sourceType: "marketing",
     staticMetadata: {

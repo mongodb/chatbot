@@ -1,6 +1,8 @@
 import { strict as assert } from "assert";
 import {
   DataSource,
+  MakeGitHubDataSourceArgs,
+  makeGitHubDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   makeMarkdownUrlDataSource,
@@ -15,7 +17,6 @@ import {
   snootyDataApiBaseUrl,
   snootyProjectConfig,
 } from "./snootySources";
-
 import { assertEnvVars } from "mongodb-rag-core";
 import { PUBLIC_INGEST_ENV_VARS } from "../PublicIngestEnvVars";
 import {
@@ -193,9 +194,13 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
     "https://docs.voyageai.com/sitemap.xml"
   );
 
+  // The Voyage API reference (/reference/~ path) is ingested from their Github
+  // as yaml, so we exclude it here
   return makeMarkdownUrlDataSource<SourceTypeName>({
     sourceName: "voyageai-docs",
-    markdownUrls: sitemapUrls.map((url) => url + ".md"),
+    markdownUrls: sitemapUrls
+      .filter((url) => /docs.voyageai.com\/reference\//.test(url))
+      .map((url) => url + ".md"),
     sourceType: "tech-docs",
     metadata: {
       productName: "Voyage AI",
@@ -203,6 +208,33 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
     },
     markdownUrlToPageUrl: removeMarkdownFileExtension,
   });
+};
+
+const voyageAiApiParams: MakeGitHubDataSourceArgs<SourceTypeName> = {
+  name: "voyageai-api-spec",
+  repoUrl: "https://github.com/voyage-ai/openapi",
+  repoLoaderOptions: {
+    branch: "main",
+    recursive: false,
+  },
+  filter: (path) => /voyage-openapi\.yml$/.test(path),
+  handleDocumentInRepo: async (document) => {
+    const page = {
+      url: "https://github.com/voyage-ai/openapi/voyage-openapi.yml",
+      body: document.pageContent,
+      format: "openapi-yaml" as const,
+      sourceType: "tech-docs" as const,
+      metadata: {
+        productName: "Voyage AI",
+        tags: ["docs", "voyageai"],
+      },
+    };
+    return page;
+  },
+};
+
+const voyageAiApiDataSourceConstructor = async (): Promise<DataSource> => {
+  return makeGitHubDataSource(voyageAiApiParams);
 };
 
 /**
@@ -221,4 +253,5 @@ export const sourceConstructors: SourceConstructor[] = [
   terraformProviderDataSource,
   wiredTigerSourceConstructor,
   voyageAiDocsDataSourceConstructor,
+  voyageAiApiDataSourceConstructor,
 ];

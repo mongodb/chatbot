@@ -199,7 +199,7 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
   return makeMarkdownUrlDataSource<SourceTypeName>({
     sourceName: "voyageai-docs",
     markdownUrls: sitemapUrls
-      .filter((url) => /docs.voyageai.com\/reference\//.test(url))
+      .filter((url) => !/docs.voyageai.com\/reference\//.test(url))
       .map((url) => url + ".md"),
     sourceType: "tech-docs",
     metadata: {

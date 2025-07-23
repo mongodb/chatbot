@@ -70,6 +70,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
         chunks.push(
           ...stringChunks.map((stringChunk) => {
             const metadata = {
+              productName: page?.metadata?.productName,
               resourceName,
               openApiSpec: true,
               apiName: apiName.trim(),

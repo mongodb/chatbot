@@ -283,8 +283,14 @@ export function makeMongoDbEmbeddedContentStore({
               _id: "$sourceName",
               versions: {
                 $addToSet: {
-                  label: "$metadata.version.label",
-                  isCurrent: "$metadata.version.isCurrent",
+                  $cond: [
+                    { $ifNull: ["$metadata.version.label", false] },
+                    {
+                      label: "$metadata.version.label",
+                      isCurrent: "$metadata.version.isCurrent",
+                    },
+                    "$$REMOVE",
+                  ],
                 },
               },
               sourceType: { $addToSet: "$sourceType" },

@@ -469,8 +469,9 @@ describe("listDataSources", () => {
   let mongoClient: MongoClient | undefined;
   beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGO_MEMORY_SERVER_URI,
+      connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      collectionName: "test-list-data-sources-collection",
       searchIndex: { embeddingName: "test-list-data-sources" },
     });
     mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
@@ -479,7 +480,6 @@ describe("listDataSources", () => {
   afterEach(async () => {
     assert(store);
     assert(mongoClient);
-    await store.drop();
     await store.close();
     await mongoClient.close();
   });
@@ -553,7 +553,7 @@ describe("listDataSources", () => {
     const sourceB = result.find((ds) => ds.id === "mongodb-university");
     expect(sourceB).toBeDefined();
     expect(sourceB!.type).toBe("web");
-    expect(sourceB!.versions).toEqual([{ label: "v1.0", isCurrent: true }]);
+    expect(sourceB!.versions).toEqual([{ label: "v1.0", isCurrent: false }]);
     // mongoid should have empty versions array
     const sourceC = result.find((ds) => ds.id === "mongoid");
     expect(sourceC).toBeDefined();

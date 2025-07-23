@@ -40,7 +40,7 @@ export function makeListDataSourcesRoute({
   embeddedContentStore,
 }: MakeListDataSourcesRouteParams) {
   return async (
-    req: ExpressRequest,
+    _req: ExpressRequest,
     res: ExpressResponse<ListDataSourcesResponseBody, ContentRouterLocals>
   ) => {
     try {

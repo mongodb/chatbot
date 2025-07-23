@@ -471,7 +471,7 @@ describe("listDataSources", () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGO_MEMORY_REPLICA_SET_URI,
       databaseName: MONGODB_DATABASE_NAME,
-      searchIndex: { embeddingName: "test-embedding" },
+      searchIndex: { embeddingName: "test-list-data-sources" },
     });
     mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
   });

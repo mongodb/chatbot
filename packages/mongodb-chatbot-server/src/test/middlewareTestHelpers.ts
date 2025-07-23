@@ -2,6 +2,7 @@ import { Request } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { createRequest, createResponse } from "node-mocks-http";
 import { ConversationsService } from "mongodb-rag-core";
+import { ParsedQs } from "qs";
 import {
   ConversationsRouterLocals,
   ConversationsRouterResponse,
@@ -13,7 +14,7 @@ export const createConversationsMiddlewareReq = () =>
       ParamsDictionary,
       unknown,
       unknown,
-      unknown,
+      ParsedQs,
       ConversationsRouterLocals
     >
   >();

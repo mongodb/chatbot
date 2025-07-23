@@ -3,6 +3,7 @@ import {
   createConversationsMiddlewareReq,
   createConversationsMiddlewareRes,
 } from "../test/middlewareTestHelpers";
+import { ConversationsRouterLocals } from "../routes";
 
 const baseReq = {
   body: { message: "Hello, world!" },
@@ -18,7 +19,7 @@ describe("requireValidIpAddress", () => {
     const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
-    const middleware = requireValidIpAddress();
+    const middleware = requireValidIpAddress<ConversationsRouterLocals>();
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
@@ -39,7 +40,7 @@ describe("requireValidIpAddress", () => {
     const next = jest.fn();
 
     const invalidIpAddress = "not-an-ip-address";
-    const middleware = requireValidIpAddress();
+    const middleware = requireValidIpAddress<ConversationsRouterLocals>();
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
@@ -59,7 +60,7 @@ describe("requireValidIpAddress", () => {
     const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
-    const middleware = requireValidIpAddress();
+    const middleware = requireValidIpAddress<ConversationsRouterLocals>();
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;

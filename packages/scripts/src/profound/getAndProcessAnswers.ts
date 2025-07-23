@@ -75,6 +75,9 @@ interface CaseByProfoundPromptId {
     expected: string;
     tags: string[];
     caseId: ObjectId;
+    metadata: {
+      category: string;
+    }
   };
 }
 const casesByPromptId = async (
@@ -86,6 +89,7 @@ const casesByPromptId = async (
       expected: doc.expected,
       tags: doc.tags,
       caseId: doc._id,
+      metadata: doc.metadata,
     };
     return map;
   }, {} as CaseByProfoundPromptId);
@@ -189,6 +193,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   };
   const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
+  const answerRecordsWithNoAssociatedCase = new Set()
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
     .process(async (currentAnswer) => {
@@ -204,7 +209,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentPromptId = currentAnswer.prompt_id;
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
-        console.log(`No case found for ${currentPrompt}`);
+        answerRecordsWithNoAssociatedCase.add(`${currentPromptId} - ${currentPrompt}`);
       }
 
       // calculate reference alignment score
@@ -239,8 +244,8 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       } catch (err) {
         console.error("Error in referenceAlignmentFn:", {
           prompt: currentAnswer.prompt,
-          response: currentAnswer.response,
-          expected: currentCase?.expected,
+          profoundPromptId: currentAnswer.prompt_id,
+          profoundRunId: currentAnswer.run_id,
           error: err,
         });
         referenceAlignment = {
@@ -283,12 +288,17 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         expectedResponse: currentCase?.expected,
         profoundPromptId: currentAnswer.prompt_id,
         profoundRunId: currentAnswer.run_id,
-        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null
+        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null,
+        category: currentCase ? currentCase.metadata.category : null
       };
       answerRecords.push(answerEngineRecord);
       return answerEngineRecord;
     });
 
+  console.log(`No cases found for ${answerRecordsWithNoAssociatedCase.size} prompts:`)
+  answerRecordsWithNoAssociatedCase.forEach((promptInfo: any) => {
+    console.log(` - ${promptInfo}`);
+  });
   // update the llm_answers collection
   if (answerRecords.length > 0) {
     const bulkOps = answerRecords.map((record) => ({
@@ -306,7 +316,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const inserted = result.upsertedCount || 0;
       const updated = result.modifiedCount || 0;
       console.log(
-        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records).`
+        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start.toISOString()} and ${end.toISOString()}).`
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);

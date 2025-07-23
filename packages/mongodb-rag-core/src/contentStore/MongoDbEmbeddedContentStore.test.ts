@@ -12,7 +12,7 @@ import {
 } from "./MongoDbEmbeddedContentStore";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
-import { MONGO_MEMORY_REPLICA_SET_URI } from "../test/constants";
+import { MONGO_MEMORY_REPLICA_SET_URI, MONGO_MEMORY_SERVER_URI } from "../test/constants";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -469,7 +469,7 @@ describe("listDataSources", () => {
   let mongoClient: MongoClient | undefined;
   beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGO_MEMORY_REPLICA_SET_URI,
+      connectionUri: MONGO_MEMORY_SERVER_URI,
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: { embeddingName: "test-list-data-sources" },
     });

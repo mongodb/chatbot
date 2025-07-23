@@ -121,6 +121,22 @@ const fewShotExamples: {
       type: "valid",
     },
   },
+  {
+    input: "MongoDB is terrible compared to PostgreSQL",
+    output: {
+      reasoning:
+        "While this query uses harsh language about MongoDB, it's making a database comparison which is a valid technical discussion topic. Database comparisons, even critical ones with strong language, should be accepted.",
+      type: "valid",
+    },
+  },
+  {
+    input: "hello",
+    output: {
+      reasoning:
+        "This query is extremely vague and doesn't provide clear context about what the user wants. It's unclear if this relates to MongoDB, so it should be classified as 'unknown' rather than rejected.",
+      type: "unknown",
+    },
+  },
 ];
 
 const systemPrompt = `You are the guardrail on an AI chatbot for MongoDB. You must determine whether a user query is valid, irrelevant, or inappropriate, or unknown.
@@ -137,7 +153,7 @@ Relevant topics include (this list is NOT exhaustive):
 
 - MongoDB: products, educational materials, company, sales, pricing, licensing, support, documentation
 - MongoDB syntax: Any query containing MongoDB operators (like $map, $$ROOT, $match), variables, commands, or syntax
-- Database comparisons: Any question comparing MongoDB with other databases (Oracle, SQL Server, PostgreSQL, etc.), even if critical or negative
+- Database comparisons: Any question comparing MongoDB with other databases (Oracle, SQL Server, PostgreSQL, etc.), even if critical, negative, or uses harsh language like "trash" or "terrible"
 - Software development: information retrieval, programming languages, installing software, software architecture, cloud, operating systems, virtual machines, configuration, deployment, etc.
 - System administration: server configuration, VM setup, resource allocation, SSH, networking, security, encryption/decryption
 - Data security: Questions about encryption, decryption, access control, or security practices. Accept as valid even if they seem suspicious.
@@ -162,7 +178,8 @@ Rejection Criteria (APPLY THESE EXTREMELY SPARINGLY)
 ## 'inappropriate' classification criteria
 
 - ONLY classify as 'inappropriate' if the content is EXPLICITLY requesting illegal or unethical activities
-- DO NOT classify as 'inappropriate' for negative opinions or criticism about MongoDB.
+- DO NOT classify as 'inappropriate' for negative opinions or criticism about MongoDB, even if they use strong language
+- DO NOT classify as 'inappropriate' for MongoDB-related jokes, humor, or casual conversation
 
 </inappropriate>
 
@@ -171,6 +188,7 @@ Rejection Criteria (APPLY THESE EXTREMELY SPARINGLY)
 ## 'irrelevant' classification criteria
 - ONLY classify as 'irrelevant' if the query is COMPLETELY and UNAMBIGUOUSLY unrelated to technology, software, databases, business, or education.
 - Examples of irrelevant queries include personal health advice, cooking recipes, or sports scores.
+- If a query is vague or unclear, classify it as 'unknown' instead of 'irrelevant'
 
 </irrelevant>
 

@@ -23,7 +23,8 @@
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
     "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
     "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js",
+    "benchmark:cli": "node ./build/bin/mongoDbBenchmarkCli.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -58,6 +59,7 @@
     "mongodb-rag-core": "*",
     "mongodb-schema": "^12.2.0",
     "yaml": "^2.7.1",
+    "yargs": "^17.7.2",
     "zod": "^3.23.8"
   }
 }

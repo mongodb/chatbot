@@ -98,6 +98,35 @@ const platformsByName = async (): Promise<Record<string, string>> => {
   );
 };
 
+interface DatasetByTag {
+  [key: string]: {
+    name: string;
+    slug: string;
+  };
+}
+const datasetsByTag = async (
+  collection: Collection
+): Promise<DatasetByTag> => {
+  const documents = await collection.find().toArray();
+  return documents.reduce((map, doc) => {
+    map[doc.query.tags] = {
+      name: doc.name,
+      slug: doc.slug,
+    };
+    return map;
+  }, {} as DatasetByTag);
+};
+
+const getDataset = (tags: string[], datasetsByTagMap: DatasetByTag): { name: string; slug: string; } | null => {
+  for (const tag of tags) {
+    if (datasetsByTagMap[tag]) {
+      return datasetsByTagMap[tag];
+    }
+  }
+  console.error('No matching dataset found for tags:', tags);
+  return null;
+}
+
 const model: ModelConfig = {
   label: "gpt-4.1",
   deployment: "gpt-4.1",
@@ -131,10 +160,13 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   const db = client.db(MONGODB_DATABASE_NAME);
   const answersCollection = db.collection("llm_answers");
   const casesCollection = db.collection("llm_cases");
+  const reportsCollection = db.collection("llm_reports");
   // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
   const casesByPromptMap = await casesByPromptId(casesCollection);
   // create a hashmap of all platforms, where the key is the platform name and the value is the platform id
   const platformsByNameMap = await platformsByName();
+  // create a hashmap of all dataset tags, where the key is the tag and the value is the dataset name and slug
+  const datasetsByTagMap = await datasetsByTag(reportsCollection);
   // END set up
 
   const answers = await getAnswers({
@@ -149,13 +181,13 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
 
   // get reference alignment scores for answers
   const endpointAndKey = await getOpenAiEndpointAndApiKey(model);
+  const openAiClient = new OpenAI(endpointAndKey);
   const config = {
-    openAiClient: new OpenAI(endpointAndKey),
     model: model.deployment,
     temperature: 0,
     label: model.label,
   };
-  const referenceAlignmentFn = makeReferenceAlignment(config);
+  const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
@@ -195,6 +227,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
             reference: currentCase?.expected ?? "",
             links: [], // TODO: update with links from currentCase if defined
           },
+          metadata: {},
         })) as {
           score: number | null;
           name: string;
@@ -250,6 +283,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         expectedResponse: currentCase?.expected,
         profoundPromptId: currentAnswer.prompt_id,
         profoundRunId: currentAnswer.run_id,
+        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null
       };
       answerRecords.push(answerEngineRecord);
       return answerEngineRecord;

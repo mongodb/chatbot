@@ -35,7 +35,7 @@ export function makePromptDbUserInfo(user: DatabaseUser) {
   return `## User Information
 
 Name: ${user.name}
-Job Title: ${user.jobTitle}
+Role: ${user.role}
 Description: ${user.description}`;
 }
 

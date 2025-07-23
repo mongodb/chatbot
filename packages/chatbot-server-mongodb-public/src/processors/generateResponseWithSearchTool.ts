@@ -5,6 +5,9 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  type ResponseStreamOutputTextDone,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
 } from "mongodb-rag-core";
 import {
   CoreAssistantMessage,
@@ -57,6 +60,7 @@ export interface GenerateResponseWithSearchToolParams {
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
     onReferenceLinks: StreamFunction<{ references: References }>;
     onTextDelta: StreamFunction<{ delta: string }>;
+    onTextDone?: StreamFunction<{ text: string }>;
   };
 }
 
@@ -88,20 +92,75 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
     },
   };
 
-// TODO: implement this
 export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
   {
-    onLlmNotWorking() {
-      throw new Error("not yet implemented");
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
-    onLlmRefusal() {
-      throw new Error("not yet implemented");
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
-    onReferenceLinks() {
-      throw new Error("not yet implemented");
+    onReferenceLinks({ dataStreamer, references }) {
+      references.forEach((reference, index) => {
+        dataStreamer?.streamResponses({
+          type: "response.output_text.annotation.added",
+          annotation: {
+            type: "url_citation",
+            url: reference.url,
+            title: reference.title,
+            start_index: 0,
+            end_index: 0,
+          },
+          annotation_index: index,
+          content_index: 0,
+          output_index: 0,
+          item_id: "",
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
+      });
     },
-    onTextDelta() {
-      throw new Error("not yet implemented");
+    onTextDelta({ dataStreamer, delta }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+    },
+    onTextDone({ dataStreamer, text }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
   };
 
@@ -130,7 +189,6 @@ export function makeGenerateResponseWithSearchTool({
     shouldStream,
     reqId,
     dataStreamer,
-    request,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -175,7 +233,6 @@ export function makeGenerateResponseWithSearchTool({
             shouldStream,
             reqId,
             dataStreamer,
-            request,
           })
         : undefined;
 
@@ -224,6 +281,7 @@ export function makeGenerateResponseWithSearchTool({
             },
           });
 
+          let fullStreamText = "";
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -234,9 +292,18 @@ export function makeGenerateResponseWithSearchTool({
             switch (chunk.type) {
               case "text-delta":
                 if (streamingModeActive) {
+                  fullStreamText += chunk.textDelta;
                   stream.onTextDelta({
                     dataStreamer,
                     delta: chunk.textDelta,
+                  });
+                }
+                break;
+              case "finish":
+                if (streamingModeActive) {
+                  stream.onTextDone?.({
+                    dataStreamer,
+                    text: fullStreamText,
                   });
                 }
                 break;

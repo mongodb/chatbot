@@ -54,8 +54,10 @@ import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
 import {
+  responsesApiStream,
   addMessageToConversationStream,
   makeGenerateResponseWithSearchTool,
+  type GenerateResponseWithSearchToolParams,
 } from "./processors/generateResponseWithSearchTool";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
@@ -193,13 +195,6 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
-export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  })
-);
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
@@ -225,47 +220,50 @@ const inputGuardrail = wrapTraced(
   }
 );
 
-export const generateResponse = wrapTraced(
-  makeVerifiedAnswerGenerateResponse({
-    findVerifiedAnswer,
-    onVerifiedAnswerFound: (verifiedAnswer) => {
-      return {
-        ...verifiedAnswer,
-        references: verifiedAnswer.references.map(addReferenceSourceType),
-      };
-    },
-    stream: addMessageToConversationVerifiedAnswerStream,
-    onNoVerifiedAnswerFound: wrapTraced(
-      makeGenerateResponseWithSearchTool({
-        languageModel,
-        systemMessage: systemPrompt,
-        makeReferenceLinks: makeMongoDbReferences,
-        inputGuardrail,
-        llmRefusalMessage:
-          conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        filterPreviousMessages: async (conversation) => {
-          return conversation.messages.filter((message) => {
-            return (
-              message.role === "user" ||
-              // Only include assistant messages that are not tool calls
-              (message.role === "assistant" && !message.toolCall)
-            );
-          });
-        },
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-        searchTool: makeSearchTool(findContent),
-        toolChoice: "auto",
-        maxSteps: 5,
-        stream: addMessageToConversationStream,
-      }),
-      { name: "generateResponseWithSearchTool" }
-    ),
-  }),
-  {
-    name: "generateResponse",
-  }
-);
+export const makeGenerateResponse = (
+  streamConfig: GenerateResponseWithSearchToolParams["stream"]
+) =>
+  wrapTraced(
+    makeVerifiedAnswerGenerateResponse({
+      findVerifiedAnswer,
+      onVerifiedAnswerFound: (verifiedAnswer) => {
+        return {
+          ...verifiedAnswer,
+          references: verifiedAnswer.references.map(addReferenceSourceType),
+        };
+      },
+      stream: addMessageToConversationVerifiedAnswerStream,
+      onNoVerifiedAnswerFound: wrapTraced(
+        makeGenerateResponseWithSearchTool({
+          languageModel,
+          systemMessage: systemPrompt,
+          makeReferenceLinks: makeMongoDbReferences,
+          inputGuardrail,
+          llmRefusalMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          filterPreviousMessages: async (conversation) => {
+            return conversation.messages.filter((message) => {
+              return (
+                message.role === "user" ||
+                // Only include assistant messages that are not tool calls
+                (message.role === "assistant" && !message.toolCall)
+              );
+            });
+          },
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
+          searchTool: makeSearchTool(findContent),
+          toolChoice: "auto",
+          maxSteps: 5,
+          stream: streamConfig,
+        }),
+        { name: "generateResponseWithSearchTool" }
+      ),
+    }),
+    {
+      name: "generateResponse",
+    }
+  );
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
@@ -384,7 +382,7 @@ export const config: AppConfig = {
       scrubbedMessageStore,
       braintrustLogger,
     }),
-    generateResponse,
+    generateResponse: makeGenerateResponse(addMessageToConversationStream),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
@@ -394,7 +392,7 @@ export const config: AppConfig = {
   responsesRouterConfig: {
     createResponse: {
       conversations,
-      generateResponse,
+      generateResponse: makeGenerateResponse(responsesApiStream),
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
       maxUserMessagesInConversation: 6,

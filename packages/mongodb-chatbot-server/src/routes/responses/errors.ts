@@ -61,12 +61,12 @@ export const makeInternalServerError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Internal server error";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.SERVER_ERROR,
     message,
+    name: error.name,
   };
-  return new InternalServerError(500, _error, message, headers);
+  return new InternalServerError(500, _error, message, new Headers(headers));
 };
 
 export const makeBadRequestError = ({
@@ -75,12 +75,12 @@ export const makeBadRequestError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Bad request";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.INVALID_REQUEST_ERROR,
     message,
+    name: error.name,
   };
-  return new BadRequestError(400, _error, message, headers);
+  return new BadRequestError(400, _error, message, new Headers(headers));
 };
 
 export const makeNotFoundError = ({
@@ -89,12 +89,12 @@ export const makeNotFoundError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Not found";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.NOT_FOUND_ERROR,
     message,
+    name: error.name,
   };
-  return new NotFoundError(404, _error, message, headers);
+  return new NotFoundError(404, _error, message, new Headers(headers));
 };
 
 export const makeRateLimitError = ({
@@ -103,12 +103,12 @@ export const makeRateLimitError = ({
 }: MakeOpenAIErrorParams) => {
   const message = error.message ?? "Rate limit exceeded";
   const _error = {
-    ...error,
     type: ERROR_TYPE,
     code: ERROR_CODE.RATE_LIMIT_ERROR,
     message,
+    name: error.name,
   };
-  return new RateLimitError(429, _error, message, headers);
+  return new RateLimitError(429, _error, message, new Headers(headers));
 };
 
 // --- ZOD VALIDATION ERROR MESSAGE GENERATION ---

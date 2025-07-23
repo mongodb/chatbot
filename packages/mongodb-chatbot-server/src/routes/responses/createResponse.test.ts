@@ -390,6 +390,10 @@ describe("POST /responses", () => {
             output: `{"result": "success"}`,
             status: "completed",
           },
+          {
+            role: "user",
+            content: "What is MongoDB?",
+          },
         ],
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -755,13 +759,20 @@ const expectValidResponses = async ({
   }
 
   expect(Array.isArray(responses)).toBe(true);
-  expect(responses.length).toBe(3);
+  expect(responses.length).toBe(6);
 
   expect(responses[0].type).toBe("response.created");
   expect(responses[1].type).toBe("response.in_progress");
-  expect(responses[2].type).toBe("response.completed");
+  expect(responses[2].type).toBe("response.output_text.delta");
+  expect(responses[3].type).toBe("response.output_text.annotation.added");
+  expect(responses[4].type).toBe("response.output_text.done");
+  expect(responses[5].type).toBe("response.completed");
+
+  // skip mock events that don't have the extra data
+  const skipIndexes = [2, 3, 4];
 
   responses.forEach(({ response, sequence_number }, index) => {
+    if (skipIndexes.includes(index)) return;
     // basic response properties
     expect(sequence_number).toBe(index);
     expect(typeof response.id).toBe("string");
@@ -866,7 +877,7 @@ const expectDefaultMessageContent = ({
   expect(firstMessage.metadata).toEqual(metadata);
 
   expect(secondMessage.role).toEqual("user");
-  expect(secondMessage.content).toBeFalsy();
+  expect(secondMessage.content).toBe(store ? "What is MongoDB?" : "");
   expect(secondMessage.metadata).toEqual(metadata);
 
   expect(thirdMessage.role).toEqual("assistant");

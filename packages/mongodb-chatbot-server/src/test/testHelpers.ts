@@ -108,11 +108,11 @@ export type Stream = Awaited<
   ReturnType<typeof makeCreateResponseRequestStream>
 >;
 
-export const makeCreateResponseRequestStream = (
+export const makeCreateResponseRequestStream = async (
   openAiClient: OpenAI,
   body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
 ) => {
-  return openAiClient.responses.create({
+  return await openAiClient.responses.create({
     ...basicResponsesRequestBody,
     ...body,
     stream: true,

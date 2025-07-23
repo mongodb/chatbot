@@ -288,7 +288,5 @@ export const defaultConversationConstants: ConversationConstants = {
 
 Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,
   LLM_NOT_WORKING: `Unfortunately, my chat functionality is not working at the moment,
-so I cannot respond to your message. Please try again later.
-
-However, here are some links that might provide some helpful information for your message:`,
+so I cannot respond to your message. Please try again later.`,
 };

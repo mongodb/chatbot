@@ -42,11 +42,32 @@ cronJobs:
 
   - name: verify-sources-have-pages-prod
     schedule: "0 0 * * *" # every day at midnight UTC
-    command: "npm run scripts:verifyPagesInSources"
+    command: ["npm", "run", "scripts:verifyPagesInSource"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-prod
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
+  - name: process-citations-for-metrics
+    schedule: "0 3 * * *" # every day at 3 AM UTC
+    command: ["npm", "run", "scripts:getLLMAnswers"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
+      PROFOUND_API_URL: https://api.tryprofound.com/v1
+      BRAINTRUST_ENDPOINT: https://api.braintrust.dev/v1/proxy
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
+      PROFOUND_API_KEY: docs-chatbot-prod
+      PROFOUND_CATALOG_ID_EDU: docs-chatbot-prod
+      BRAINTRUST_API_KEY: docs-chatbot-prod
     resources:
       requests:
         cpu: 100m

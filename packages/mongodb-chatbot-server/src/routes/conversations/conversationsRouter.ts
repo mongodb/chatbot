@@ -1,7 +1,5 @@
 import { Request, RequestHandler, Response } from "express";
 import Router from "express-promise-router";
-import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
-import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
@@ -20,7 +18,13 @@ import {
 } from "./addMessageToConversation";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
-import { requireValidIpAddress } from "../../middleware";
+import {
+  makeRateLimit,
+  makeSlowDown,
+  RateLimitOptions,
+  requireValidIpAddress,
+  SlowDownOptions,
+} from "../../middleware";
 import {
   GetConversationRequest,
   makeGetConversationRoute,
@@ -36,26 +40,26 @@ export interface ConversationsRateLimitConfig {
   /**
     Configuration for rate limiting on ALL /conversations/* routes.
    */
-  routerRateLimitConfig?: Partial<RateLimitOptions>;
+  routerRateLimitConfig?: RateLimitOptions;
 
   /**
     Configuration for rate limiting on the POST /conversations/:conversationId/messages route.
     Since this is the most "expensive" route as it calls the LLM,
     it could be more restrictive than the global rate limit.
    */
-  addMessageRateLimitConfig?: Partial<RateLimitOptions>;
+  addMessageRateLimitConfig?: RateLimitOptions;
 
   /**
     Configuration for slow down on ALL /conversations/* routes.
    */
-  routerSlowDownConfig?: Partial<SlowDownOptions>;
+  routerSlowDownConfig?: SlowDownOptions;
 
   /**
     Configuration for slow down on the POST /conversations/:conversationId/messages route.
     Since this is the most "expensive" route as it calls the LLM,
     it could be more restrictive than the global slow down.
    */
-  addMessageSlowDownConfig?: Partial<SlowDownOptions>;
+  addMessageSlowDownConfig?: SlowDownOptions;
 }
 
 /**
@@ -189,18 +193,6 @@ export interface ConversationsRouterParams {
   braintrustLogger?: Logger<true>;
 }
 
-export const rateLimitResponse = {
-  error: "Too many requests, please try again later.",
-};
-
-function keyGenerator(request: Request) {
-  if (!request.ip) {
-    throw new Error("Request IP is not defined");
-  }
-
-  return request.ip;
-}
-
 const addIpToCustomData: AddCustomDataFunc = async (req) =>
   req.ip
     ? {
@@ -324,27 +316,13 @@ export function makeConversationsRouter({
   /*
     Global rate limit the requests to the conversationsRouter.
    */
-  const globalRateLimit = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 5000,
-    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-    legacyHeaders: true, // X-RateLimit-* headers
-    message: rateLimitResponse,
-    keyGenerator,
-    ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
-  });
+  const globalRateLimit = makeRateLimit(rateLimitConfig?.routerRateLimitConfig);
   conversationsRouter.use(globalRateLimit);
   /*
     Slow down the response to the conversationsRouter after certain number
     of requests in the time window.
    */
-  const globalSlowDown = slowDown({
-    windowMs: 60 * 1000,
-    delayAfter: 20,
-    delayMs: 500,
-    keyGenerator,
-    ...(rateLimitConfig?.routerSlowDownConfig ?? {}),
-  });
+  const globalSlowDown = makeSlowDown(rateLimitConfig?.routerSlowDownConfig);
   conversationsRouter.use(globalSlowDown);
 
   // Create new conversation.
@@ -361,26 +339,19 @@ export function makeConversationsRouter({
     Rate limit the requests to the addMessageToConversationRoute.
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
    */
-  const addMessageRateLimit = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 2500,
-    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-    legacyHeaders: true, // X-RateLimit-* headers
-    message: rateLimitResponse,
-    keyGenerator,
-    ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
-  });
+  const addMessageRateLimit = makeRateLimit(
+    rateLimitConfig?.addMessageRateLimitConfig
+  );
   /*
     Slow down the response to the addMessageToConversationRoute after certain number
     of requests in the time window. Rate limit should be more restrictive than global slow down
     to limit expensive requests to the LLM.
    */
-  const addMessageSlowDown = slowDown({
+  const addMessageSlowDown = makeSlowDown({
     windowMs: 60 * 1000,
     delayAfter: 10,
     delayMs: 1500,
-    keyGenerator,
-    ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
+    ...rateLimitConfig?.addMessageSlowDownConfig,
   });
 
   /*

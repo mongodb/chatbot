@@ -13,6 +13,7 @@ import {
   runNlPromptResponseEval,
   NlPromptResponseEvalCase,
 } from "./NlQuestionAnswerEval";
+import { strict as assert } from "assert";
 
 export interface DatasetConfig {
   projectName: string;
@@ -54,21 +55,29 @@ export async function runNlPromptResponseBenchmark({
   braintrustApiKey: string;
   filterDataset?: (datasetEntry: NlPromptResponseEvalCase) => boolean;
 }) {
-  const judgeClients = await Promise.all(
+  assert(
+    judgeModelsConfig?.length > 0,
+    "At least one judge model must be configured in 'judgeModelsConfig'. Check your model labels in 'globalConfig.ts'."
+  );
+
+  const judgeConfigs = await Promise.all(
     judgeModelsConfig.map(async (m) => {
       const endpointAndKey = await getOpenAiEndpointAndApiKey(m);
       console.log(`Judge model: ${m.label}`);
       return {
         openAiClient: new OpenAI(endpointAndKey),
-        model: m.deployment,
-        temperature: 0,
-        label: m.label,
+        config: {
+          model: m.deployment,
+          temperature: 0,
+          label: m.label,
+        },
       };
     })
   );
-  const judgeMetrics = judgeClients.map(({ label, ...config }) =>
-    makeReferenceAlignment(config, label)
-  );
+  const judgeMetrics = judgeConfigs.map(({ openAiClient, config }) => {
+    const { label, ...llmOptions } = config;
+    return makeReferenceAlignment(openAiClient, llmOptions, label);
+  });
 
   await PromisePool.for(models)
     .withConcurrency(maxConcurrentExperiments)
@@ -115,6 +124,7 @@ export async function runNlPromptResponseBenchmark({
           ...staticLlmOptions,
         },
         task: makeNlPromptCompletionTask({
+          openAiClient,
           llmOptions,
           initialMessages: [systemMessage],
         }),

@@ -38,14 +38,15 @@ export type NlPromptResponseTaskExpected = {
 export type NlPromptResponseEvalTask = EvalTask<
   NlPromptResponseEvalCaseInput,
   NlPromptResponseTaskOutput,
-  NlPromptResponseTaskExpected
+  NlPromptResponseTaskExpected,
+  NlPromptResponseMetadata
 >;
 
 export type NlPromptResponseEvalScorer = EvalScorer<
   NlPromptResponseEvalCaseInput,
   NlPromptResponseTaskOutput,
   NlPromptResponseTaskExpected,
-  void
+  NlPromptResponseMetadata
 >;
 
 export interface RunNlPromptResponseEvalParams {
@@ -70,7 +71,8 @@ export function runNlPromptResponseEval({
   return Eval<
     NlPromptResponseEvalCaseInput,
     NlPromptResponseTaskOutput,
-    NlPromptResponseTaskExpected
+    NlPromptResponseTaskExpected,
+    NlPromptResponseMetadata
   >(projectName, {
     data,
     experimentName,

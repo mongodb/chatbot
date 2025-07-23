@@ -1,19 +1,19 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { makeGenerateMongoshCodeAgenticTask } from "../../generateDriverCode/generateMongoshCodeAgentic";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { MODELS } from "../../../benchmarkModels";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  MODELS,
   MAX_CONCURRENT_EXPERIMENTS,
   makeLlmOptions,
   EXPERIMENT_BASE_NAME,
+  mongoshScores,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
@@ -64,7 +64,7 @@ async function main() {
           model,
           experimentType,
         },
-        scores: [SuccessfulExecution, ReasonableOutput],
+        scores: [mongoshScores],
       });
     });
 }

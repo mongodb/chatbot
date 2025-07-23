@@ -198,6 +198,7 @@ const voyageAiDocsDataSourceConstructor = async (): Promise<DataSource> => {
     markdownUrls: sitemapUrls.map((url) => url + ".md"),
     sourceType: "tech-docs",
     metadata: {
+      productName: "Voyage AI",
       tags: ["docs", "voyageai"],
     },
     markdownUrlToPageUrl: removeMarkdownFileExtension,

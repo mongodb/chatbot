@@ -287,7 +287,7 @@ export function makeAddMessageToConversationRoute({
       );
 
       if (!shouldStream) {
-        return res.status(200).json(apiRes);
+        res.status(200).json(apiRes);
       } else {
         dataStreamer.streamData({
           type: "metadata",
@@ -300,15 +300,15 @@ export function makeAddMessageToConversationRoute({
         if (dataStreamer.connected) {
           dataStreamer.disconnect();
         }
-
-        await updateTraceIfExists({
-          updateTrace,
-          reqId,
-          conversations,
-          conversationId: conversation._id,
-          assistantResponseMessageId: dbAssistantMessage.id,
-        });
       }
+
+      await updateTraceIfExists({
+        updateTrace,
+        reqId,
+        conversations,
+        conversationId: conversation._id,
+        assistantResponseMessageId: dbAssistantMessage.id,
+      });
     } catch (error) {
       const { httpStatus, message } =
         (error as Error).name === "RequestError"

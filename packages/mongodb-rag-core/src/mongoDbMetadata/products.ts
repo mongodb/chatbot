@@ -158,6 +158,12 @@ export const mongodbDrivers = [
  */
 export const mongoDbProducts = [
   {
+    id: "voyage_ai",
+    name: "Voyage AI",
+    description:
+      "Voyage AI embeddings models (prefixed with 'voyage-') and Voyage API.",
+  },
+  {
     id: "server",
     name: "MongoDB Server",
     description: "Core MongoDB server",
@@ -206,7 +212,7 @@ export const mongoDbProducts = [
   {
     id: "atlas_vector_search",
     name: "Atlas Vector Search",
-    description: "Vector search on your data in MongoDB Atlas",
+    description: "Vector search on data in MongoDB Atlas",
     parentProductId: "atlas",
   },
   {
@@ -298,6 +304,12 @@ export const mongoDbProducts = [
     name: "MongoDB for VS Code",
     description:
       "VS Code extension for working with MongoDB data directly in your IDE",
+  },
+  {
+    id: "mcp_server",
+    name: "MongoDB MCP Server",
+    description:
+      "The MongoDB MCP Server lets you connect to MongoDB from your agentic AI tools, assistants, and platforms.",
   },
   {
     id: "mongodb_cli",

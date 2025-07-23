@@ -104,7 +104,13 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "mck",
-    tags: ["docs", "kubernetes", "k8s", "kubernetes-controllers", "kubernetes-operator"],
+    tags: [
+      "docs",
+      "kubernetes",
+      "k8s",
+      "kubernetes-controllers",
+      "kubernetes-operator",
+    ],
     productName: "MongoDB Controllers for Kubernetes",
   },
   {
@@ -147,6 +153,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "mongodb-vscode",
     tags: ["docs", "mongodb-vscode", "vscode", "gui"],
     productName: "MongoDB for VS Code",
+  },
+  {
+    type: "snooty",
+    name: "mcp-server",
+    tags: ["docs", "mongodb-mcp", "mcp"],
+    productName: "MongoDB MCP Server",
   },
   {
     type: "snooty",

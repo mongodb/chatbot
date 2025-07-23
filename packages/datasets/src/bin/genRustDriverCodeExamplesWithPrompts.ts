@@ -8,7 +8,7 @@ import "dotenv/config";
 import yaml from "yaml";
 import { appendLlmMetadata } from "../codeExampleDataset/appendLlmMetadata.js";
 import { PersistedPage } from "mongodb-rag-core";
-import { openAiClient, model } from "../openAi.js";
+import { makeOpenAiClient, model } from "../openAi.js";
 
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
   const codeBlocksWithPrompts = await appendLlmMetadata({
     pages,
     codeExamples,
-    openAiClient,
+    openAiClient: makeOpenAiClient(),
     model,
   });
   fs.writeFileSync(

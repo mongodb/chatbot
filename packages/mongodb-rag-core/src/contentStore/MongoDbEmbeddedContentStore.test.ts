@@ -8,6 +8,7 @@ import "dotenv/config";
 import { PersistedPage } from ".";
 import {
   MongoDbEmbeddedContentStore,
+  listDataSourcesCache,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
 import { MongoClient } from "mongodb";
@@ -467,6 +468,16 @@ describe("initialized DB", () => {
 describe("listDataSources", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongoClient: MongoClient | undefined;
+  let dateNowSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    dateNowSpy = jest.spyOn(Date, "now");
+  });
+
+  afterAll(() => {
+    dateNowSpy.mockRestore();
+  });
+
   beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
@@ -475,6 +486,11 @@ describe("listDataSources", () => {
       searchIndex: { embeddingName: "test-list-data-sources" },
     });
     mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+
+    listDataSourcesCache.data = null;
+    listDataSourcesCache.expiresAt = 0;
+    listDataSourcesCache.isRefreshing = false;
+    dateNowSpy.mockReset();
   });
 
   afterEach(async () => {
@@ -559,5 +575,63 @@ describe("listDataSources", () => {
     expect(sourceC).toBeDefined();
     expect(sourceC!.type).toBe("blog");
     expect(sourceC!.versions).toEqual([]);
+  });
+
+  it("returns cached data if cache is fresh (<24hrs)", async () => {
+    const now = 1720000000000;
+    dateNowSpy.mockImplementation(() => now);
+
+    const mockCachedData = [{ id: "name1" }];
+    listDataSourcesCache.data = mockCachedData;
+    listDataSourcesCache.expiresAt = now + 1000 * 60 * 60 * 12; // 12 hrs later
+
+    assert(store);
+    const result = await store.listDataSources();
+    expect(result).toBe(mockCachedData);
+  });
+
+  it("returns stale data and triggers background refresh if cache is >24hrs but <7d", async () => {
+    const now = 1720000000000;
+    dateNowSpy.mockImplementation(() => now);
+
+    const staleData = [{ id: "name2" }];
+    listDataSourcesCache.data = staleData;
+    listDataSourcesCache.expiresAt = now - 1000; // 1 sec ago
+
+    assert(store);
+    const result = await store.listDataSources();
+
+    expect(result).toBe(staleData); // Still returns stale
+    expect(listDataSourcesCache.isRefreshing).toBe(true); // Refresh triggered
+  });
+
+  it("blocks and fetches fresh data if cache is >7d", async () => {
+    const now = 1720000000000;
+    dateNowSpy.mockImplementation(() => now);
+
+    listDataSourcesCache.data = null;
+    listDataSourcesCache.expiresAt = now - 1000 * 60 * 60 * 24 * 8; // 8 days ago
+
+    assert(store);
+
+    // Insert real data into the collection so it can be fetched fresh
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<EmbeddedContent>(store.metadata.collectionName);
+    await coll?.deleteMany({});
+    await coll?.insertOne({
+      sourceName: "docs",
+      url: "/test",
+      text: "text",
+      tokenCount: 1,
+      embeddings: { test: [0.1] },
+      updated: new Date(),
+      sourceType: "docs",
+      metadata: { version: { label: "v12.0", isCurrent: true } },
+    });
+
+    const result = await store.listDataSources();
+    expect(result.length).toBeGreaterThan(0); // Real fetch happened
+    expect(result).toStrictEqual([{ id: "docs", versions: [{ label: "v12.0", isCurrent: true }], type: "docs" }])
   });
 });

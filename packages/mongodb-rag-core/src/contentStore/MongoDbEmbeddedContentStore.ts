@@ -82,7 +82,7 @@ function makeMatchQuery({ sourceNames, chunkAlgoHash }: GetSourcesMatchParams) {
 /**
   24-hour cache of listDataSources aggregation as query is a full scan of all documents in collection
  */
-const listDataSourcesCache: {
+export const listDataSourcesCache: {
   data: DataSourceMetadata[] | null;
   expiresAt: number;
   isRefreshing: boolean;
@@ -91,6 +91,8 @@ const listDataSourcesCache: {
   expiresAt: 0,
   isRefreshing: false,
 };
+const CACHE_STALE_AGE = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
@@ -187,7 +189,7 @@ export function makeMongoDbEmbeddedContentStore({
       .toArray();
 
     listDataSourcesCache.data = freshData;
-    listDataSourcesCache.expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    listDataSourcesCache.expiresAt = Date.now() + CACHE_STALE_AGE;
     listDataSourcesCache.isRefreshing = false;
 
     return freshData;
@@ -355,7 +357,6 @@ export function makeMongoDbEmbeddedContentStore({
 
     async listDataSources(): Promise<DataSourceMetadata[]> {
       const now = Date.now();
-      const maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days
 
       // If cache is fresh (< 24h), return it immediately
       if (listDataSourcesCache.data && now < listDataSourcesCache.expiresAt) {
@@ -365,7 +366,7 @@ export function makeMongoDbEmbeddedContentStore({
       // If cache exists but is stale (< 7 days), return it and refresh in background
       if (
         listDataSourcesCache.data &&
-        now - listDataSourcesCache.expiresAt < maxAge
+        now - listDataSourcesCache.expiresAt < CACHE_MAX_AGE
       ) {
         if (!listDataSourcesCache.isRefreshing) {
           listDataSourcesCache.isRefreshing = true;

@@ -45,28 +45,26 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
   tasks: {
     agentic: {
       description: "Agentic workflow-based code generation",
-      taskFunc: (provider, deployment) => {
+      taskFunc: (provider, modelConfig) => {
         const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
           MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
         });
         return makeGenerateMongoshCodeAgenticTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
-          llmOptions: makeLlmOptions({
-            deployment,
-          }),
+          llmOptions: makeLlmOptions(modelConfig),
           openai: wrapAISDKModel(
             createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(deployment)
+            }).chat(modelConfig.deployment)
           ),
         });
       },
     },
     prompt_completion_annotated_schema: {
       description: "Prompt completion with annotated schema",
-      taskFunc: (provider, deployment) => {
+      taskFunc: (provider, modelConfig) => {
         const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
           MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
         });
@@ -75,21 +73,19 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
           schemaStrategy: "annotated",
           systemPromptStrategy: "default",
           databaseInfos: annotatedDbSchemas,
-          llmOptions: makeLlmOptions({
-            deployment,
-          }),
+          llmOptions: makeLlmOptions(modelConfig),
           openai: wrapAISDKModel(
             createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(deployment)
+            }).chat(modelConfig.deployment)
           ),
         });
       },
     },
     tool_call_annotated_schema: {
       description: "Tool call with annotated schema",
-      taskFunc: (provider, deployment) => {
+      taskFunc: (provider, modelConfig) => {
         const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
           MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
         });
@@ -98,14 +94,12 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
           schemaStrategy: "annotated",
           systemPromptStrategy: "default",
           databaseInfos: annotatedDbSchemas,
-          llmOptions: makeLlmOptions({
-            deployment,
-          }),
+          llmOptions: makeLlmOptions(modelConfig),
           openai: wrapAISDKModel(
             createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(deployment)
+            }).chat(modelConfig.deployment)
           ),
         });
       },

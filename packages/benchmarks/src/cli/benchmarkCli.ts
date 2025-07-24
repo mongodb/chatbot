@@ -3,7 +3,7 @@ import { hideBin } from "yargs/helpers";
 import { BenchmarkCliConfig } from "./BenchmarkConfig";
 import { runBenchmark, RunBenchmarkArgs } from "./runBenchmark";
 
-export function createBenchmarkCli(config: BenchmarkCliConfig) {
+export function makeBenchmarkCli(config: BenchmarkCliConfig) {
   return yargs(hideBin(process.argv))
     .command(
       "run",
@@ -22,9 +22,9 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
           })
           .option("dataset", {
             type: "array",
-            describe: "Datasets to run benchmark on.",
+            describe:
+              "Datasets to run benchmark on. Defaults to first dataset if no value provided.",
             string: true,
-            demandOption: true,
           })
           .option("task", {
             type: "string",
@@ -60,7 +60,7 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
             }
 
             // Validate datasets exist
-            for (const dataset of argv.dataset) {
+            for (const dataset of argv.dataset ?? []) {
               if (!config.benchmarks[argv.type].datasets[dataset]) {
                 errors.push(
                   `Unknown dataset: ${dataset}. Use 'benchmark list' to see available datasets for type ${argv.type}.`
@@ -101,7 +101,7 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
             : Object.keys(config.benchmarks[argv.type].tasks);
           const datasets = argv.dataset
             ? argv.dataset
-            : Object.keys(config.benchmarks[argv.type].datasets);
+            : [Object.keys(config.benchmarks[argv.type].datasets)[0]];
           const models = argv.model
             ? argv.model
             : config.models.map((m) => m.label);
@@ -125,24 +125,21 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
           Object.entries(config.benchmarks).map(([type, benchmarkConfig]) => ({
             type,
             description: benchmarkConfig.description,
-            datasets: Object.entries(benchmarkConfig.datasets).map(
-              ([name, dataset]) => ({
-                name,
-                description: dataset.description,
-              })
-            ),
-            tasks: Object.entries(benchmarkConfig.tasks).map(
-              ([name, task]) => ({
-                name,
-                description: task.description,
-              })
-            ),
-            scorers: Object.entries(benchmarkConfig.scorers).map(
-              ([name, scorer]) => ({
-                name,
-                description: scorer.description,
-              })
-            ),
+            datasets: Object.entries(benchmarkConfig.datasets)
+              .map(([name, dataset]) => ({
+                [name]: dataset.description ?? "",
+              }))
+              .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+            tasks: Object.entries(benchmarkConfig.tasks)
+              .map(([name, task]) => ({
+                [name]: task.description ?? "",
+              }))
+              .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+            scorers: Object.entries(benchmarkConfig.scorers)
+              .map(([name, scorer]) => ({
+                [name]: scorer.description ?? "",
+              }))
+              .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
           })),
           null,
           2
@@ -169,5 +166,6 @@ export function createBenchmarkCli(config: BenchmarkCliConfig) {
     .help()
     .alias("h", "help")
     .version("1.0.0")
-    .alias("v", "version");
+    .alias("v", "version")
+    .scriptName("benchmark");
 }

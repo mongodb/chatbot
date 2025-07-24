@@ -612,7 +612,7 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        "gpt-4"
+        mockConfig.models[0]
       );
     });
 
@@ -621,12 +621,12 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        "gpt-4"
+        mockConfig.models[0]
       );
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        "gpt-3.5-turbo"
+        mockConfig.models[1]
       );
     });
   });

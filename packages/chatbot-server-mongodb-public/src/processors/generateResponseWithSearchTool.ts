@@ -5,8 +5,10 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  type ResponseStreamOutputTextDone,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
 } from "mongodb-rag-core";
-
 import {
   CoreAssistantMessage,
   CoreMessage,
@@ -28,6 +30,7 @@ import {
   GenerateResponse,
   GenerateResponseReturnValue,
   InputGuardrailResult,
+  type StreamFunction,
 } from "mongodb-chatbot-server";
 import {
   MongoDbSearchToolArgs,
@@ -52,7 +55,114 @@ export interface GenerateResponseWithSearchToolParams {
     search_content: SearchTool;
   }>;
   searchTool: SearchTool;
+  stream?: {
+    onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
+    onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
+    onReferenceLinks: StreamFunction<{ references: References }>;
+    onTextDelta: StreamFunction<{ delta: string }>;
+    onTextDone?: StreamFunction<{ text: string }>;
+  };
 }
+
+export const addMessageToConversationStream: GenerateResponseWithSearchToolParams["stream"] =
+  {
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: notWorkingMessage,
+      });
+    },
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: refusalMessage,
+      });
+    },
+    onReferenceLinks({ dataStreamer, references }) {
+      dataStreamer?.streamData({
+        type: "references",
+        data: references,
+      });
+    },
+    onTextDelta({ dataStreamer, delta }) {
+      dataStreamer?.streamData({
+        type: "delta",
+        data: delta,
+      });
+    },
+  };
+
+export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
+  {
+    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: notWorkingMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
+    },
+    onLlmRefusal({ dataStreamer, refusalMessage }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text: refusalMessage,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
+    },
+    onReferenceLinks({ dataStreamer, references }) {
+      references.forEach((reference, index) => {
+        dataStreamer?.streamResponses({
+          type: "response.output_text.annotation.added",
+          annotation: {
+            type: "url_citation",
+            url: reference.url,
+            title: reference.title,
+            start_index: 0,
+            end_index: 0,
+          },
+          annotation_index: index,
+          content_index: 0,
+          output_index: 0,
+          item_id: "",
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
+      });
+    },
+    onTextDelta({ dataStreamer, delta }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.delta",
+        delta,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+    },
+    onTextDone({ dataStreamer, text }) {
+      dataStreamer?.streamResponses({
+        type: "response.output_text.done",
+        text,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
+    },
+  };
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
@@ -69,6 +179,7 @@ export function makeGenerateResponseWithSearchTool({
   maxSteps = 2,
   searchTool,
   toolChoice,
+  stream,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
@@ -78,11 +189,12 @@ export function makeGenerateResponseWithSearchTool({
     shouldStream,
     reqId,
     dataStreamer,
-    request,
   }) {
-    if (shouldStream) {
-      assert(dataStreamer, "dataStreamer is required for streaming");
-    }
+    const streamingModeActive =
+      shouldStream === true &&
+      dataStreamer !== undefined &&
+      stream !== undefined;
+
     const userMessage: UserMessage = {
       role: "user",
       content: latestMessageText,
@@ -121,7 +233,6 @@ export function makeGenerateResponseWithSearchTool({
             shouldStream,
             reqId,
             dataStreamer,
-            request,
           })
         : undefined;
 
@@ -170,6 +281,7 @@ export function makeGenerateResponseWithSearchTool({
             },
           });
 
+          let fullStreamText = "";
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -179,10 +291,19 @@ export function makeGenerateResponseWithSearchTool({
 
             switch (chunk.type) {
               case "text-delta":
-                if (shouldStream) {
-                  dataStreamer?.streamData({
-                    data: chunk.textDelta,
-                    type: "delta",
+                if (streamingModeActive) {
+                  fullStreamText += chunk.textDelta;
+                  stream.onTextDelta({
+                    dataStreamer,
+                    delta: chunk.textDelta,
+                  });
+                }
+                break;
+              case "finish":
+                if (streamingModeActive) {
+                  stream.onTextDone?.({
+                    dataStreamer,
+                    text: fullStreamText,
                   });
                 }
                 break;
@@ -202,10 +323,10 @@ export function makeGenerateResponseWithSearchTool({
 
           // Stream references if we have any and weren't aborted
           if (references.length > 0 && !generationController.signal.aborted) {
-            if (shouldStream) {
-              dataStreamer?.streamData({
-                data: references,
-                type: "references",
+            if (streamingModeActive) {
+              stream.onReferenceLinks({
+                dataStreamer,
+                references,
               });
             }
           }
@@ -238,10 +359,10 @@ export function makeGenerateResponseWithSearchTool({
           ...userMessageCustomData,
           ...guardrailResult,
         };
-        if (shouldStream) {
-          dataStreamer?.streamData({
-            type: "delta",
-            data: llmRefusalMessage,
+        if (streamingModeActive) {
+          stream.onLlmRefusal({
+            dataStreamer,
+            refusalMessage: llmRefusalMessage,
           });
         }
         return handleReturnGeneration({
@@ -293,10 +414,10 @@ export function makeGenerateResponseWithSearchTool({
         });
       }
     } catch (error: unknown) {
-      if (shouldStream) {
-        dataStreamer?.streamData({
-          type: "delta",
-          data: llmNotWorkingMessage,
+      if (streamingModeActive) {
+        stream.onLlmNotWorking({
+          dataStreamer,
+          notWorkingMessage: llmNotWorkingMessage,
         });
       }
 

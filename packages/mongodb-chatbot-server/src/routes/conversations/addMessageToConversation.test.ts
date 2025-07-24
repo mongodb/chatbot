@@ -290,6 +290,9 @@ describe("POST /conversations/:conversationId/messages", () => {
 
     test("Should respond 500 if error with conversation service", async () => {
       const mockBrokenConversationsService: ConversationsService = {
+        async init() {
+          throw new Error("mock error");
+        },
         async create() {
           throw new Error("mock error");
         },
@@ -301,6 +304,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         },
         async findById() {
           throw new Error("Error finding conversation");
+        },
+        async findByMessageId() {
+          throw new Error("Error finding conversation by message id");
         },
         async rateMessage() {
           throw new Error("mock error");

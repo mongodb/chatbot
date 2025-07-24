@@ -64,7 +64,7 @@ export interface ModelConfig {
   generation?: string;
 
   /**
-    If a 'reasoning model' that generates tokens before final response.
+    If this is a 'reasoning model' that generates tokens before final response.
    */
   reasoning?: boolean;
 }

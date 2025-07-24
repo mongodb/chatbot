@@ -9,10 +9,6 @@ import {
   ScoredPromptAndEmbeddings,
 } from "./Case";
 
-export const makeShortName = (prompt: string) => {
-  return prompt.length > 32 ? prompt.slice(0, 29) + "..." : prompt;
-};
-
 /**
   Given the expected answer, generate a number of possible prompts that could
   elicit that expected answer.
@@ -29,8 +25,13 @@ export const generatePromptsFromExpectedAnswer = async ({
   howMany: number;
 }): Promise<PromptAndEmbeddings[]> => {
   const variants = await generate({
-    prompt: `Given the following "expected answer", formulate a question that is likely to elicit the expected answer. Just return the generated question. Expected answer:\n\n${expected}`,
+    prompt: `Given the following "expected answer", formulate a question that is likely to elicit the expected answer.
+Don't necessarily use proper grammar or punctuation; write like a user of a chatbot, search engine, or LLM would.
+Just return the generated question.
+
+Expected answer:\n\n${expected}`,
     n: howMany,
+    temperature: 0.5,
   });
 
   return await Promise.all(
@@ -143,4 +144,11 @@ ${scoredVariants
     generated_prompts: scoredVariants,
     average,
   };
+};
+
+export const makeShortName = (prompt: string, ellipsizeAtLength = 64) => {
+  assert(ellipsizeAtLength > 0);
+  return prompt.length > ellipsizeAtLength
+    ? prompt.slice(0, ellipsizeAtLength - 3) + "..."
+    : prompt;
 };

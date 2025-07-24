@@ -54,14 +54,7 @@ const assessRelevanceMain = async () => {
     );
     const db = client.db(FROM_DATABASE_NAME);
     const collection = db.collection<Case>(CASE_COLLECTION_NAME);
-
-    // Find cases where quality field has not been filled out yet
-    const cases = await collection
-      .find({
-        relevance: { $exists: false },
-      })
-      .toArray();
-
+    const cases = await collection.find().toArray();
     const relevancePromises = cases.map(async ({ _id, name, expected }) => {
       const shortName = makeShortName(name);
       const relevance = await assessRelevance({

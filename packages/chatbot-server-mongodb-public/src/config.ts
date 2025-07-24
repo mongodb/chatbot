@@ -66,6 +66,8 @@ import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/Mong
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
+import { makeCorsOptions } from "./corsOptions";
+
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -103,7 +105,7 @@ export const braintrustLogger = makeBraintrustLogger({
   projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
 });
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") ?? [];
 
 export const openAiClient = wrapOpenAI(
   new AzureOpenAI({
@@ -414,11 +416,7 @@ export const config: AppConfig = {
     },
   },
   maxRequestTimeoutMs: 60000,
-  corsOptions: {
-    origin: allowedOrigins,
-    // Allow cookies from different origins to be sent to the server.
-    credentials: true,
-  },
+  corsOptions: makeCorsOptions(isProduction, allowedOrigins),
   expressAppConfig: !isProduction
     ? async (app) => {
         const staticAssetsPath = path.join(__dirname, "..", "static");

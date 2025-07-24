@@ -228,10 +228,7 @@ interface MakeGenerateResponseParams {
   verifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"];
 }
 
-export const makeGenerateResponse = ({
-  responseWithSearchToolStream,
-  verifiedAnswerStream,
-}: MakeGenerateResponseParams) =>
+export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
   wrapTraced(
     makeVerifiedAnswerGenerateResponse({
       findVerifiedAnswer,
@@ -241,7 +238,7 @@ export const makeGenerateResponse = ({
           references: verifiedAnswer.references.map(addReferenceSourceType),
         };
       },
-      stream: verifiedAnswerStream,
+      stream: args?.verifiedAnswerStream,
       onNoVerifiedAnswerFound: wrapTraced(
         makeGenerateResponseWithSearchTool({
           languageModel,
@@ -264,7 +261,7 @@ export const makeGenerateResponse = ({
           searchTool: makeSearchTool(findContent),
           toolChoice: "auto",
           maxSteps: 5,
-          stream: responseWithSearchToolStream,
+          stream: args?.responseWithSearchToolStream,
         }),
         { name: "generateResponseWithSearchTool" }
       ),

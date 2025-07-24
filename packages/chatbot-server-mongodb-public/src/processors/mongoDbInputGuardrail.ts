@@ -137,6 +137,14 @@ const fewShotExamples: {
       type: "unknown",
     },
   },
+  {
+    input: "how to use the Voyage embeddings API",
+    output: {
+      reasoning:
+        "This query is related to Voyage AI, a subsidary of MongoDB, and is therefore relevant.",
+      type: "valid",
+    },
+  },
 ];
 
 const systemPrompt = `You are the guardrail on an AI chatbot for MongoDB. You must determine whether a user query is valid, irrelevant, or inappropriate, or unknown.
@@ -163,6 +171,7 @@ Relevant topics include (this list is NOT exhaustive):
 - Non-English queries: Accept ALL queries in any language, regardless of content unless it is explicitly inappropriate or irrelevant
 - Vague or unclear queries: If it is unclear whether a query is relevant, ALWAYS accept it
 - Questions about MongoDB company, sales, support, or business inquiries
+- Questions about the company Voyage AI or its embedding models, as Voyage AI is owned by MongoDB
 - Single words, symbols, or short phrases that might be MongoDB-related
 - ANY technical question, even if the connection to MongoDB isn't immediately obvious
 - If there is ANY possible connection to technology, databases, or business, classify as valid.

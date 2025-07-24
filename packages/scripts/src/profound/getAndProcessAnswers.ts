@@ -193,7 +193,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   };
   const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
-  const answerRecordsWithNoAssociatedCase = new Set()
+  const promptsWithNoAssociatedCase = new Set()
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
     .process(async (currentAnswer) => {
@@ -209,7 +209,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentPromptId = currentAnswer.prompt_id;
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
-        answerRecordsWithNoAssociatedCase.add(`${currentPromptId} - ${currentPrompt}`);
+        promptsWithNoAssociatedCase.add(`${currentPromptId} - ${currentPrompt}`);
       }
 
       // calculate reference alignment score
@@ -295,8 +295,8 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       return answerEngineRecord;
     });
 
-  console.log(`No cases found for ${answerRecordsWithNoAssociatedCase.size} prompts:`)
-  answerRecordsWithNoAssociatedCase.forEach((promptInfo: any) => {
+  console.log(`Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`)
+  promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
     console.log(` - ${promptInfo}`);
   });
   // update the llm_answers collection

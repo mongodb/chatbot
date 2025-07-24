@@ -5,7 +5,7 @@ import LeafyGreenProvider, {
   useDarkModeContext,
 } from "@leafygreen-ui/leafygreen-provider";
 import { canUseServerSentEvents } from "./utils";
-import { Overline, Link } from "@leafygreen-ui/typography";
+import { Overline, Link, Body } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
@@ -13,6 +13,7 @@ import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
 import { makePrioritizeReferenceDomain } from "./references";
 import { getSegmentIdHeaders } from "./segment";
+import Button from "@leafygreen-ui/button";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -121,6 +122,17 @@ function App() {
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
             initialMessageReferences={initialMessageReferences}
+            messageBottomContent={
+              <div>
+                <Body as="i">
+                  This is custom message bottom content. It can contain a{" "}
+                  <Button size="xsmall" onClick={() => alert("button clicked")}>
+                    button
+                  </Button>{" "}
+                  or any other ReactNode!
+                </Body>
+              </div>
+            }
           />
           <HotkeyTrigger onKey="/" />
         </Chatbot>

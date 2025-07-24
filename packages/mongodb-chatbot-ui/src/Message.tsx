@@ -44,6 +44,7 @@ export type MessageProps = {
   messageData: MessageData;
   suggestedPrompts?: string[];
   showSuggestedPrompts?: boolean;
+  bottomContent?: React.ReactNode;
   onReferenceClick?: (reference: Reference) => void;
   onSuggestedPromptClick?: (prompt: string) => void;
   canSubmitSuggestedPrompt?: (prompt: string) => boolean;
@@ -71,6 +72,7 @@ export const Message = ({
   isLoading,
   showRating,
   conversation,
+  bottomContent,
 }: MessageProps) => {
   const { maxCommentCharacters } = useChatbotContext();
   const user = useUser();
@@ -171,23 +173,7 @@ export const Message = ({
             />
           ) : null}
         </Suspense>
-        {showRating && (
-          <div
-            className={css`
-              display: flex;
-              justify-content: flex-end;
-              margin-top: 10px;
-            `}
-          >
-            <button
-              onClick={() => {
-                console.log("whatup");
-              }}
-            >
-              Reference
-            </button>
-          </div>
-        )}
+        {bottomContent ?? null}
       </LGMessage>
       <Suspense fallback={null}>
         {showSuggestedPrompts && (

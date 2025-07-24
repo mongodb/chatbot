@@ -33,6 +33,7 @@ export function ChatWindow(props: ChatWindowProps) {
     initialMessageSuggestedPrompts,
     inputBarId = "chatbot-input-bar",
     inputBottomText,
+    messageBottomContent,
     windowTitle,
   } = props;
 
@@ -70,6 +71,7 @@ export function ChatWindow(props: ChatWindowProps) {
             disclaimer={disclaimer}
             disclaimerHeading={disclaimerHeading}
             initialMessage={initialMessage}
+            messageBottomContent={messageBottomContent}
           />
         </Suspense>
         <ChatInput

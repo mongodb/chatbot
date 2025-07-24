@@ -179,7 +179,12 @@ export async function loadTextToDriverBraintrustEvalCases({
       apiKey,
       dataset: datasetName,
     }).fetchedData()
-  ).map((d) => TextToDriverEvalCaseSchema.parse(d));
+  ).map((d) => {
+    if (d.tags === null) {
+      d.tags = undefined;
+    }
+    return TextToDriverEvalCaseSchema.parse(d);
+  });
 
   return dataset;
 }

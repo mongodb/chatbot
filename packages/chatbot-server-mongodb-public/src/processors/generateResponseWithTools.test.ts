@@ -272,6 +272,33 @@ const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
   },
 });
 
+const mockStreamConfig = {
+  onLlmNotWorking: jest.fn().mockImplementation((args: any) => {
+    args.dataStreamer.streamData({
+      type: "delta",
+      data: args.notWorkingMessage,
+    });
+  }),
+  onLlmRefusal: jest.fn().mockImplementation((args: any) => {
+    args.dataStreamer.streamData({
+      type: "delta",
+      data: args.refusalMessage,
+    });
+  }),
+  onReferenceLinks: jest.fn().mockImplementation((args: any) => {
+    args.dataStreamer.streamData({
+      type: "references",
+      data: args.references,
+    });
+  }),
+  onTextDelta: jest.fn().mockImplementation((args: any) => {
+    args.dataStreamer.streamData({
+      type: "delta",
+      data: args.delta,
+    });
+  }),
+} satisfies GenerateResponseWithToolsParams["stream"];
+
 const makeGenerateResponseWithToolsArgs = () =>
   ({
     languageModel: makeMockLanguageModel(),
@@ -281,6 +308,7 @@ const makeGenerateResponseWithToolsArgs = () =>
     searchTool: mockSearchTool,
     fetchPageTool: mockFetchPageTool,
     maxSteps: 5,
+    stream: mockStreamConfig
   } satisfies Partial<GenerateResponseWithToolsParams>);
 
 const generateResponseBaseArgs = {
@@ -293,6 +321,7 @@ const generateResponseBaseArgs = {
   shouldStream: false,
   reqId: mockReqId,
 };
+
 describe("generateResponseWithTools", () => {
   // Reset mocks before each test
   beforeEach(() => {
@@ -337,7 +366,9 @@ describe("generateResponseWithTools", () => {
 
       const references = (result.messages.at(-1) as AssistantMessage)
         .references;
-      expect(references).toMatchObject(mockReferences);
+      expect(references).toEqual(
+        expect.arrayContaining([expect.objectContaining(mockReferences[0])])
+      );
     });
 
     it("should add custom data to the user message", async () => {
@@ -429,25 +460,28 @@ describe("generateResponseWithTools", () => {
     });
 
     describe("streaming mode", () => {
-      // Create a mock DataStreamer implementation
       const makeMockDataStreamer = () => {
-        const mockStreamData = jest.fn();
         const mockConnect = jest.fn();
         const mockDisconnect = jest.fn();
+        const mockStreamData = jest.fn();
+        const mockStreamResponses = jest.fn();
         const mockStream = jest.fn().mockImplementation(async () => {
           // Process the stream and return a string result
           return "Hello";
         });
+
         const dataStreamer = {
-          connected: false,
+          connected: true,
           connect: mockConnect,
           disconnect: mockDisconnect,
           streamData: mockStreamData,
+          streamResponses: mockStreamResponses,
           stream: mockStream,
         } as DataStreamer;
 
         return dataStreamer;
       };
+
       test("should handle successful streaming", async () => {
         const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools(
@@ -460,24 +494,24 @@ describe("generateResponseWithTools", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(3);
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          data: "Final",
-          type: "delta",
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          delta: expect.any(String),
         });
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          type: "references",
-          data: expect.any(Array),
+        expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          references: expect.any(Array),
         });
+
         expectSuccessfulResult(result);
       });
 
       test("should handle successful generation with guardrail", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(true),
         });
-        const mockDataStreamer = makeMockDataStreamer();
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -485,25 +519,24 @@ describe("generateResponseWithTools", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(3);
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          data: "Final",
-          type: "delta",
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          delta: expect.any(String),
         });
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          type: "references",
-          data: expect.any(Array),
+        expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          references: expect.any(Array),
         });
 
         expectSuccessfulResult(result);
       });
 
       test("should handle streaming with guardrail rejection", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(false),
         });
-        const mockDataStreamer = makeMockDataStreamer();
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -511,31 +544,30 @@ describe("generateResponseWithTools", () => {
           dataStreamer: mockDataStreamer,
         });
 
-        expectGuardrailRejectResult(result);
-        expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(1);
-        expect(mockDataStreamer.streamData).toHaveBeenCalledWith({
-          data: mockLlmRefusalMessage,
-          type: "delta",
+        expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          refusalMessage: mockLlmRefusalMessage,
         });
+
+        expectGuardrailRejectResult(result);
       });
 
       test("should handle error in language model", async () => {
+        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           languageModel: mockThrowingLanguageModel,
         });
 
-        const dataStreamer = makeMockDataStreamer();
         const result = await generateResponse({
           ...generateResponseBaseArgs,
           shouldStream: true,
-          dataStreamer,
+          dataStreamer: mockDataStreamer,
         });
 
-        expect(dataStreamer.streamData).toHaveBeenCalledTimes(1);
-        expect(dataStreamer.streamData).toHaveBeenCalledWith({
-          data: mockLlmNotWorkingMessage,
-          type: "delta",
+        expect(mockStreamConfig.onLlmNotWorking).toHaveBeenCalledWith({
+          dataStreamer: mockDataStreamer,
+          notWorkingMessage: mockLlmNotWorkingMessage,
         });
 
         expect(result.messages[0].role).toBe("user");
@@ -553,7 +585,7 @@ function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
     role: "user",
     content: latestMessageText,
     rejectQuery: true,
-    customData: mockGuardrailRejectResult,
+    customData: expect.objectContaining(mockGuardrailRejectResult),
   } satisfies UserMessage);
 
   expect(result.messages[1]).toMatchObject({
@@ -571,6 +603,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect(result.messages[0]).toMatchObject({
     role: "user",
     content: latestMessageText,
+    customData: expect.objectContaining(searchToolMockArgs),
   });
 
   expect(result.messages[1]).toMatchObject({

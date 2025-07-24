@@ -75,6 +75,9 @@ interface CaseByProfoundPromptId {
     expected: string;
     tags: string[];
     caseId: ObjectId;
+    metadata: {
+      category: string;
+    }
   };
 }
 const casesByPromptId = async (
@@ -86,6 +89,7 @@ const casesByPromptId = async (
       expected: doc.expected,
       tags: doc.tags,
       caseId: doc._id,
+      metadata: doc.metadata,
     };
     return map;
   }, {} as CaseByProfoundPromptId);
@@ -97,6 +101,35 @@ const platformsByName = async (): Promise<Record<string, string>> => {
     platforms.map((record) => [record.name, record.id])
   );
 };
+
+interface DatasetByTag {
+  [key: string]: {
+    name: string;
+    slug: string;
+  };
+}
+const datasetsByTag = async (
+  collection: Collection
+): Promise<DatasetByTag> => {
+  const documents = await collection.find().toArray();
+  return documents.reduce((map, doc) => {
+    map[doc.query.tags] = {
+      name: doc.name,
+      slug: doc.slug,
+    };
+    return map;
+  }, {} as DatasetByTag);
+};
+
+const getDataset = (tags: string[], datasetsByTagMap: DatasetByTag): { name: string; slug: string; } | null => {
+  for (const tag of tags) {
+    if (datasetsByTagMap[tag]) {
+      return datasetsByTagMap[tag];
+    }
+  }
+  console.error('No matching dataset found for tags:', tags);
+  return null;
+}
 
 const model: ModelConfig = {
   label: "gpt-4.1",
@@ -131,10 +164,13 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   const db = client.db(MONGODB_DATABASE_NAME);
   const answersCollection = db.collection("llm_answers");
   const casesCollection = db.collection("llm_cases");
+  const reportsCollection = db.collection("llm_reports");
   // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
   const casesByPromptMap = await casesByPromptId(casesCollection);
   // create a hashmap of all platforms, where the key is the platform name and the value is the platform id
   const platformsByNameMap = await platformsByName();
+  // create a hashmap of all dataset tags, where the key is the tag and the value is the dataset name and slug
+  const datasetsByTagMap = await datasetsByTag(reportsCollection);
   // END set up
 
   const answers = await getAnswers({
@@ -149,14 +185,15 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
 
   // get reference alignment scores for answers
   const endpointAndKey = await getOpenAiEndpointAndApiKey(model);
+  const openAiClient = new OpenAI(endpointAndKey);
   const config = {
-    openAiClient: new OpenAI(endpointAndKey),
     model: model.deployment,
     temperature: 0,
     label: model.label,
   };
-  const referenceAlignmentFn = makeReferenceAlignment(config);
+  const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
+  const promptsWithNoAssociatedCase = new Set()
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
     .process(async (currentAnswer) => {
@@ -172,7 +209,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentPromptId = currentAnswer.prompt_id;
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
-        console.log(`No case found for ${currentPrompt}`);
+        promptsWithNoAssociatedCase.add(`${currentPromptId} - ${currentPrompt}`);
       }
 
       // calculate reference alignment score
@@ -195,6 +232,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
             reference: currentCase?.expected ?? "",
             links: [], // TODO: update with links from currentCase if defined
           },
+          metadata: {},
         })) as {
           score: number | null;
           name: string;
@@ -206,8 +244,8 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       } catch (err) {
         console.error("Error in referenceAlignmentFn:", {
           prompt: currentAnswer.prompt,
-          response: currentAnswer.response,
-          expected: currentCase?.expected,
+          profoundPromptId: currentAnswer.prompt_id,
+          profoundRunId: currentAnswer.run_id,
           error: err,
         });
         referenceAlignment = {
@@ -250,11 +288,17 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         expectedResponse: currentCase?.expected,
         profoundPromptId: currentAnswer.prompt_id,
         profoundRunId: currentAnswer.run_id,
+        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null,
+        category: currentCase ? currentCase.metadata.category : null
       };
       answerRecords.push(answerEngineRecord);
       return answerEngineRecord;
     });
 
+  console.log(`Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`)
+  promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
+    console.log(` - ${promptInfo}`);
+  });
   // update the llm_answers collection
   if (answerRecords.length > 0) {
     const bulkOps = answerRecords.map((record) => ({
@@ -272,7 +316,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const inserted = result.upsertedCount || 0;
       const updated = result.modifiedCount || 0;
       console.log(
-        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records).`
+        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start.toISOString()} and ${end.toISOString()}).`
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);

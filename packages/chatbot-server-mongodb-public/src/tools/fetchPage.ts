@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { FindContentFunc, logger, MongoDbPageStore, Reference } from "mongodb-rag-core";
+import {
+  FindContentFunc,
+  logger,
+  MongoDbPageStore,
+  Reference,
+} from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";

@@ -59,10 +59,10 @@ export const MAX_CONCURRENT_EXPERIMENTS = 4;
 export const MAX_CONCURRENT_MODELS = 2;
 
 export function makeLlmOptions(
-  model: ModelConfig
+  model: Pick<ModelConfig, "deployment">
 ): Omit<LlmOptions, "openAiClient"> {
   // Different because o3-mini has slightly different options
-  if (model.label === "o3-mini") {
+  if (model.deployment.includes("o3-mini")) {
     return {
       model: model.deployment,
       max_completion_tokens: 3000,

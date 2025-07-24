@@ -56,6 +56,7 @@ async function main() {
         }),
         functionName: nlQueryResponseSchema.name,
         functionDescription: nlQueryResponseSchema.description,
+        openAiClient,
       });
       return results;
     },

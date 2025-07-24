@@ -1,7 +1,8 @@
 import { OpenAI } from "mongodb-rag-core/openai";
 import { QuizQuestionData } from "./QuizQuestionData";
+import { CoreMessage } from "ai";
 
-type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
+type ChatMessage = CoreMessage;
 
 /**
   Create a HELM-style quiz question prompt string.

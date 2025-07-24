@@ -8,6 +8,7 @@ import {
 import { OpenAI } from "mongodb-rag-core/openai";
 import fs from "fs";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
+import { generateText, LanguageModel } from "ai";
 
 export interface DiscoveryEvalCaseInput {
   content: string;
@@ -55,13 +56,11 @@ export type DiscoveryEvalTask = EvalTask<
 >;
 
 interface MakeDiscoveryTaskParams {
-  openaiClient: OpenAI;
+  model: LanguageModel;
   llmOptions: DiscoveryLlmOptions;
-  model: string;
   iterations: number;
 }
 export function makeDiscoveryTask({
-  openaiClient,
   model,
   llmOptions,
   iterations,
@@ -69,16 +68,15 @@ export function makeDiscoveryTask({
   return async function (input) {
     const contentOut = [];
     for (let i = 0; i < iterations; i++) {
-      const res = await openaiClient.chat.completions.create({
+      const { text } = await generateText({
         model,
         messages: [{ role: "user", content: input.content }],
-        stream: false,
         ...llmOptions,
+        temperature: llmOptions.temperature ?? undefined,
         seed: 42, // Deterministically sample from the model, so same output every time
       });
-      const { content } = res.choices[0].message;
-      assert(content, "No content found in response");
-      contentOut.push(content);
+      assert(text, "No content found in response");
+      contentOut.push(text);
     }
     return {
       content: contentOut,
@@ -136,7 +134,7 @@ export interface MakeDiscoveryEvalParams {
   experimentName: string;
   llmOptions: DiscoveryLlmOptions;
   additionalMetadata?: Record<string, unknown>;
-  model: string;
+  model: LanguageModel;
   iterations?: number;
   maxConcurrency?: number;
 }
@@ -164,7 +162,7 @@ export function runDiscoveryEval({
       matchRegExp: matchRegExp.toString(),
       ...additionalMetadata,
     },
-    task: makeDiscoveryTask({ openaiClient, llmOptions, model, iterations }),
+    task: makeDiscoveryTask({ llmOptions, model, iterations }),
     scores: [makeMatchScorers(matchRegExp)],
   });
 }

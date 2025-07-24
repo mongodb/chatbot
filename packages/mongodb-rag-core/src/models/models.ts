@@ -62,6 +62,11 @@ export interface ModelConfig {
     Generation of the model. Used for reporting/analysis.
    */
   generation?: string;
+
+  /**
+    If this is a 'reasoning model' that generates tokens before final response.
+   */
+  reasoning?: boolean;
 }
 
 /**
@@ -109,6 +114,7 @@ const allModels = [
     maxConcurrency: 10,
     parent: "o1-mini",
     generation: "o3",
+    reasoning: true,
   },
   {
     label: "o3",
@@ -119,6 +125,7 @@ const allModels = [
     maxConcurrency: 15,
     parent: "o1",
     generation: "o3",
+    reasoning: true,
   },
   {
     label: "o4-mini",
@@ -129,6 +136,7 @@ const allModels = [
     maxConcurrency: 15,
     parent: "o3-mini",
     generation: "o4",
+    reasoning: true,
   },
   {
     label: "gpt-4.1",
@@ -355,6 +363,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-2-flash",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.5-flash-preview-05-20",
@@ -365,6 +374,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-2-flash",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.0-flash-lite-001",
@@ -384,6 +394,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-1.5-pro-002",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.5-pro-preview-05-06",
@@ -394,6 +405,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-1.5-pro-002",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.5-pro",
@@ -404,6 +416,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-1.5-pro-002",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.5-flash",
@@ -414,6 +427,7 @@ const allModels = [
     authorized: true,
     parent: "gemini-2-flash",
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "gemini-2.5-flash-lite-preview-06-17",
@@ -423,6 +437,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     generation: "gemini-2",
+    reasoning: true,
   },
   {
     label: "deepseek-r1",
@@ -431,6 +446,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     maxConcurrency: 5,
+    reasoning: true,
   },
   {
     label: "mistral-small-3-instruct",

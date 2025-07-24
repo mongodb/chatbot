@@ -10,6 +10,8 @@ import {
 } from "./QuizQuestionEval";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { mongoDbQuizQuestionExamples } from "./mongoDbQuizQuestionExamples";
+import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { createOpenAI } from "@ai-sdk/openai";
 
 export const projectName = "mongodb-multiple-choice";
 export const datasetName = "university-quiz-badge-questions";
@@ -31,33 +33,43 @@ export const multipleChoiceBenchmarkConfig: BenchmarkConfig<
         });
       },
     },
+    mdbu_quiz_badge: {
+      description: "Badge MongoDB University quiz questions",
+      getDataset: async () => {
+        return (
+          (
+            await getQuizQuestionEvalCasesFromBraintrust({
+              projectName,
+              datasetName,
+            })
+          )
+            // Filter to only look at 'badge' questions here
+            .filter((d) => d.tags?.includes("badge"))
+        );
+      },
+    },
   },
   tasks: {
     answer_question: {
       description: "Answer multiple choice questions about MongoDB",
-      taskFunc: (modelProvider: ModelProvider, deployment: string) => {
-        const openaiClient = wrapOpenAI(
-          new OpenAI({
-            baseURL: modelProvider.baseUrl,
+      taskFunc: (modelProvider, modelConfig) => {
+        const model = wrapAISDKModel(
+          createOpenAI({
             apiKey: modelProvider.apiKey,
-          })
+            baseURL: modelProvider.baseUrl,
+          }).chat(modelConfig.deployment)
         );
         const promptOptions = {
           subject: "MongoDB",
           quizQuestionExamples: mongoDbQuizQuestionExamples,
         };
         const llmOptions = {
-          max_tokens: deployment.includes("gemini-2.5") ? undefined : 100,
-          reasoning_enabled: deployment.includes("gemini-2.5")
-            ? true
-            : undefined,
-          reasoning_budget: deployment.includes("gemini-2.5")
-            ? 1024
-            : undefined,
+          max_tokens: modelConfig.reasoning ? undefined : 100,
+          reasoning_enabled: modelConfig.reasoning ? true : undefined,
+          reasoning_budget: modelConfig.reasoning ? 1024 : undefined,
         };
         return makeQuizQuestionTask({
-          openaiClient,
-          model: deployment,
+          languageModel: model,
           llmOptions,
           promptOptions,
         });

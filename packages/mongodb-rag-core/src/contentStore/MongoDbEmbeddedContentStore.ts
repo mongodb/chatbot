@@ -101,6 +101,10 @@ export function makeMongoDbEmbeddedContentStore({
         type: "filter",
         path: "sourceType",
       },
+      {
+        type: "filter",
+        path: "url",
+      },
     ],
     name = "vector_index",
   },

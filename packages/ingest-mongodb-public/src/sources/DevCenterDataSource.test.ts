@@ -29,7 +29,7 @@ describe("DevCenterDataSource", () => {
       name: "devcenter",
       collectionName: "search_content_prod",
       databaseName: "devcenter",
-      baseUrl: "https://example.com/developer",
+      baseUrl: "https://example.com/developer/",
       connectionUri: DEVCENTER_CONNECTION_URI,
     });
 
@@ -37,7 +37,7 @@ describe("DevCenterDataSource", () => {
 
     expect(pages.length).toBeGreaterThan(300);
     pages.slice(0, 100).forEach(({ url }) => {
-      expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9/-]+$/);
+      expect(url).toMatch(/^example.com\/developer\/[A-z0-9/-]+$/);
     });
   });
 });
@@ -47,7 +47,7 @@ describe("makeDevCenterPage()", () => {
     const page = makeDevCenterPage(
       devCenterDoc,
       "devcenter",
-      "https://example.com/developer"
+      "https://example.com/developer/"
     );
     expect(page).toEqual({
       title: devCenterDoc.name,
@@ -63,7 +63,7 @@ describe("makeDevCenterPage()", () => {
         pageDescription: devCenterDoc.description,
         contentType: devCenterDoc.type,
       },
-      url: "https://example.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
+      url: "example.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
     });
   });
 });

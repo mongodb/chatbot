@@ -262,9 +262,13 @@ export async function makeConversationEval({
           const msgId = i === messages.length - 1 ? id : new ObjectId();
           return { ...m, id: msgId, createdAt: new Date() };
         });
+        const assistantMessageIdx = mockDbMessages.findLastIndex(
+          (m) => m.role === "assistant"
+        );
+        const assistantMessageId = mockDbMessages[assistantMessageIdx].id;
 
         const { rejectQuery, userMessage, contextContent, assistantMessage } =
-          extractTracingData(mockDbMessages, id, new ObjectId());
+          extractTracingData(mockDbMessages, assistantMessageId, id);
         assert(assistantMessage, "No assistant message found");
         assert(contextContent, "No context content found");
         assert(userMessage, "No user message found");

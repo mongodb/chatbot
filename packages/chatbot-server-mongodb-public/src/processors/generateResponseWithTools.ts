@@ -25,20 +25,20 @@ import { strict as assert } from "assert";
 import {
   InputGuardrail,
   FilterPreviousMessages,
-  MakeReferenceLinksFunc,
-  makeDefaultReferenceLinks,
   GenerateResponse,
   GenerateResponseReturnValue,
   InputGuardrailResult,
   type StreamFunction,
 } from "mongodb-chatbot-server";
+import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import {
   MongoDbSearchToolArgs,
   SEARCH_TOOL_NAME,
   SearchTool,
 } from "../tools/search";
+import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 
-export interface GenerateResponseWithSearchToolParams {
+export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
@@ -49,12 +49,12 @@ export interface GenerateResponseWithSearchToolParams {
     Required tool for performing content search and gathering {@link References}
    */
   additionalTools?: ToolSet;
-  makeReferenceLinks?: MakeReferenceLinksFunc;
-  maxSteps?: number;
+  maxSteps: number;
   toolChoice?: ToolChoice<{
     search_content: SearchTool;
   }>;
   searchTool: SearchTool;
+  fetchPageTool: FetchPageTool;
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
@@ -64,7 +64,7 @@ export interface GenerateResponseWithSearchToolParams {
   };
 }
 
-export const addMessageToConversationStream: GenerateResponseWithSearchToolParams["stream"] =
+export const addMessageToConversationStream: GenerateResponseWithToolsParams["stream"] =
   {
     onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
       dataStreamer?.streamData({
@@ -92,82 +92,81 @@ export const addMessageToConversationStream: GenerateResponseWithSearchToolParam
     },
   };
 
-export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] =
-  {
-    onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
+  onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_text.delta",
+      delta: notWorkingMessage,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDelta);
+    dataStreamer?.streamResponses({
+      type: "response.output_text.done",
+      text: notWorkingMessage,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDone);
+  },
+  onLlmRefusal({ dataStreamer, refusalMessage }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_text.delta",
+      delta: refusalMessage,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDelta);
+    dataStreamer?.streamResponses({
+      type: "response.output_text.done",
+      text: refusalMessage,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDone);
+  },
+  onReferenceLinks({ dataStreamer, references }) {
+    references.forEach((reference, index) => {
       dataStreamer?.streamResponses({
-        type: "response.output_text.delta",
-        delta: notWorkingMessage,
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "url_citation",
+          url: reference.url,
+          title: reference.title,
+          start_index: 0,
+          end_index: 0,
+        },
+        annotation_index: index,
         content_index: 0,
         output_index: 0,
         item_id: "",
-      } satisfies ResponseStreamOutputTextDelta);
-      dataStreamer?.streamResponses({
-        type: "response.output_text.done",
-        text: notWorkingMessage,
-        content_index: 0,
-        output_index: 0,
-        item_id: "",
-      } satisfies ResponseStreamOutputTextDone);
-    },
-    onLlmRefusal({ dataStreamer, refusalMessage }) {
-      dataStreamer?.streamResponses({
-        type: "response.output_text.delta",
-        delta: refusalMessage,
-        content_index: 0,
-        output_index: 0,
-        item_id: "",
-      } satisfies ResponseStreamOutputTextDelta);
-      dataStreamer?.streamResponses({
-        type: "response.output_text.done",
-        text: refusalMessage,
-        content_index: 0,
-        output_index: 0,
-        item_id: "",
-      } satisfies ResponseStreamOutputTextDone);
-    },
-    onReferenceLinks({ dataStreamer, references }) {
-      references.forEach((reference, index) => {
-        dataStreamer?.streamResponses({
-          type: "response.output_text.annotation.added",
-          annotation: {
-            type: "url_citation",
-            url: reference.url,
-            title: reference.title,
-            start_index: 0,
-            end_index: 0,
-          },
-          annotation_index: index,
-          content_index: 0,
-          output_index: 0,
-          item_id: "",
-        } satisfies ResponseStreamOutputTextAnnotationAdded);
-      });
-    },
-    onTextDelta({ dataStreamer, delta }) {
-      dataStreamer?.streamResponses({
-        type: "response.output_text.delta",
-        delta,
-        content_index: 0,
-        output_index: 0,
-        item_id: "",
-      } satisfies ResponseStreamOutputTextDelta);
-    },
-    onTextDone({ dataStreamer, text }) {
-      dataStreamer?.streamResponses({
-        type: "response.output_text.done",
-        text,
-        content_index: 0,
-        output_index: 0,
-        item_id: "",
-      } satisfies ResponseStreamOutputTextDone);
-    },
-  };
+      } satisfies ResponseStreamOutputTextAnnotationAdded);
+    });
+  },
+  onTextDelta({ dataStreamer, delta }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_text.delta",
+      delta,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDelta);
+  },
+  onTextDone({ dataStreamer, text }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_text.done",
+      text,
+      content_index: 0,
+      output_index: 0,
+      item_id: "",
+    } satisfies ResponseStreamOutputTextDone);
+  },
+};
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool({
+export function makeGenerateResponseWithTools({
   languageModel,
   llmNotWorkingMessage,
   llmRefusalMessage,
@@ -175,13 +174,13 @@ export function makeGenerateResponseWithSearchTool({
   systemMessage,
   filterPreviousMessages,
   additionalTools,
-  makeReferenceLinks = makeDefaultReferenceLinks,
-  maxSteps = 2,
+  maxSteps,
   searchTool,
+  fetchPageTool,
   toolChoice,
   stream,
-}: GenerateResponseWithSearchToolParams): GenerateResponse {
-  return async function generateResponseWithSearchTool({
+}: GenerateResponseWithToolsParams): GenerateResponse {
+  return async function generateResponseWithTools({
     conversation,
     latestMessageText,
     clientContext,
@@ -197,7 +196,11 @@ export function makeGenerateResponseWithSearchTool({
 
     const userMessage: UserMessage = {
       role: "user",
-      content: latestMessageText,
+      content: formatUserMessageForGeneration({
+        userMessageText: latestMessageText,
+        reqId,
+        customData,
+      }),
     };
     try {
       // Get preceding messages to include in the LLM prompt
@@ -209,6 +212,7 @@ export function makeGenerateResponseWithSearchTool({
 
       const toolSet = {
         [SEARCH_TOOL_NAME]: searchTool,
+        [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
@@ -270,12 +274,9 @@ export function makeGenerateResponseWithSearchTool({
               toolResults?.forEach((toolResult) => {
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.toolName === SEARCH_TOOL_NAME
+                  toolResult.result?.references
                 ) {
-                  const searchResults = toolResult.result.results;
-                  if (searchResults && Array.isArray(searchResults)) {
-                    references.push(...makeReferenceLinks(searchResults));
-                  }
+                  references.push(...toolResult.result.references);
                 }
               });
             },

@@ -10,7 +10,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "../ConversationEval";
-import { generateResponse } from "../../config";
+import { makeGenerateResponse } from "../../config";
 
 async function conversationEval() {
   // Get dotcom question set eval cases from YAML
@@ -40,7 +40,7 @@ async function conversationEval() {
         apiVersion: OPENAI_API_VERSION,
       },
     },
-    generateResponse,
+    generateResponse: makeGenerateResponse(),
   });
 }
 conversationEval();

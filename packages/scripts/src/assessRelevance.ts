@@ -104,17 +104,28 @@ export const assessRelevance = async ({
     generate,
     howMany: 3,
   });
+
   const variantCount = Object.values(variants).length;
   if (variantCount === 0) {
     throw new Error(`Unexpectedly without variants for ${shortName}!`);
   }
 
-  console.log(`Calculating variant scores for '${shortName}'...`);
   const scoredVariants = scoreVariants({
     original: { prompt, embeddings: promptEmbeddings },
     variants,
   });
   assert(variantCount === Object.values(scoredVariants).length);
+
+  console.log(
+    `- Expected: "${expected}"
+- Original: "${prompt}"
+- Generated variants:
+${scoredVariants
+  .map(
+    ({ prompt, relevance }) => `  - "${prompt}" (${JSON.stringify(relevance)})`
+  )
+  .join("\n")}`
+  );
 
   const average =
     scoredVariants.reduce((acc, { relevance }) => {
@@ -126,7 +137,7 @@ export const assessRelevance = async ({
       return acc + averageAcrossModels;
     }, 0) / variantCount;
 
-  console.log(`Average score for '${shortName}': ${average}`);
+  console.log(`Average score: ${average}`);
   return {
     prompt_embeddings: promptEmbeddings,
     generated_prompts: scoredVariants,

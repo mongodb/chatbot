@@ -14,6 +14,7 @@ const assessRelevanceMain = async () => {
     OPENAI_ENDPOINT,
     OPENAI_API_VERSION,
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+    CASE_COLLECTION_NAME,
   } = assertEnvVars({
     FROM_CONNECTION_URI: "",
     FROM_DATABASE_NAME: "",
@@ -21,6 +22,7 @@ const assessRelevanceMain = async () => {
     OPENAI_ENDPOINT: "",
     OPENAI_API_VERSION: "",
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "",
+    CASE_COLLECTION_NAME: "",
   });
 
   const openAiClient = new AzureOpenAI({
@@ -47,8 +49,11 @@ const assessRelevanceMain = async () => {
 
   const client = await MongoClient.connect(FROM_CONNECTION_URI);
   try {
+    console.log(
+      `Fetching unscored cases from ${FROM_DATABASE_NAME}.${CASE_COLLECTION_NAME}...`
+    );
     const db = client.db(FROM_DATABASE_NAME);
-    const collection = db.collection<Case>("llm_cases");
+    const collection = db.collection<Case>(CASE_COLLECTION_NAME);
 
     // Find cases where quality field has not been filled out yet
     const cases = await collection

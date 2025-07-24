@@ -101,6 +101,15 @@ export type QueryFilters = {
   sourceType?: Page["sourceType"] | string[];
 };
 
+/** 
+  Metadata of data source
+*/
+export type DataSourceMetadata = {
+  id: string;
+  versions?: { label: string, isCurrent: boolean; }[];
+  type?: string;
+}
+
 /**
   Data store of the embedded content.
  */
@@ -140,6 +149,11 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
     Initialize the store.
    */
   init?: () => Promise<void>;
+
+  /**
+    Lists all unique data sources
+   */
+  listDataSources(): Promise<DataSourceMetadata[]>;
 
   /**
    Get the names of ingested data sources that match the given query. 

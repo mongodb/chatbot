@@ -16,7 +16,7 @@ import { generateZodErrorMessage, SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
 import {
   SearchContentCustomData,
-  SearchContentRouterLocals,
+  ContentRouterLocals,
 } from "./contentRouter";
 import { AddCustomDataFunc } from "../../processors";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
@@ -69,7 +69,7 @@ export function makeSearchContentRoute({
   const tracedFindContent = wrapTraced(findContent, { name: "searchContent" });
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
-    res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>
+    res: ExpressResponse<SearchContentResponseBody, ContentRouterLocals>
   ) => {
     try {
       // --- INPUT VALIDATION ---
@@ -169,7 +169,7 @@ async function persistSearchResultsToDatabase({
 
 async function getCustomData(
   req: ExpressRequest,
-  res: ExpressResponse<SearchContentResponseBody, SearchContentRouterLocals>,
+  res: ExpressResponse<SearchContentResponseBody, ContentRouterLocals>,
   addCustomData?: AddCustomDataFunc
 ): Promise<SearchContentCustomData | undefined> {
   try {

@@ -9,6 +9,7 @@ import type {
   SearchContentMiddleware,
 } from "./contentRouter";
 import { makeTestApp } from "../../test/testHelpers";
+import { embeddedContentStore } from "../../test/testConfig";
 
 // Minimal in-memory mock for SearchResultsStore for testing purposes
 const mockSearchResultsStore: MongoDbSearchResultsStore = {
@@ -33,6 +34,7 @@ function makeMockContentRouterConfig(
   return {
     findContent: findContentMock,
     searchResultsStore: mockSearchResultsStore,
+    embeddedContentStore,
     ...overrides,
   } satisfies MakeContentRouterParams;
 }

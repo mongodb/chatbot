@@ -120,7 +120,6 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
         output_index: 0,
         item_id: "",
       } satisfies ResponseStreamOutputTextDelta);
-      // only stream "done" here since it's one message
       dataStreamer?.streamResponses({
         type: "response.output_text.done",
         text: refusalMessage,
@@ -148,7 +147,6 @@ export const responsesApiStream: GenerateResponseWithSearchToolParams["stream"] 
       });
     },
     onTextDelta({ dataStreamer, delta }) {
-      // only stream delta here, allow "done" to be streamed elsewhere
       dataStreamer?.streamResponses({
         type: "response.output_text.delta",
         delta,

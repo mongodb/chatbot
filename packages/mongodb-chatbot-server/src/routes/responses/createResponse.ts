@@ -11,6 +11,7 @@ import {
   type ResponseStreamInProgress,
   type ResponseStreamCompleted,
   type ResponseStreamError,
+  type UserMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -484,30 +485,6 @@ const saveMessagesToConversation = async ({
   });
 };
 
-const convertInputToLatestMessageText = (
-  input: CreateResponseRequest["body"]["input"],
-  headers: Record<string, string>
-): string => {
-  if (typeof input === "string") {
-    return input;
-  }
-
-  // Find the last user message in the input array
-  for (let i = input.length - 1; i >= 0; i--) {
-    const message = input[i];
-    if (message.type === "message" || !message.type) {
-      if (message.role === "user" && message.content) {
-        return message.content;
-      }
-    }
-  }
-
-  throw makeBadRequestError({
-    error: new Error("No user message found in input"),
-    headers,
-  });
-};
-
 const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
@@ -576,4 +553,29 @@ const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
     user: data.user,
     metadata: data.metadata ?? null,
   };
+};
+
+const convertInputToLatestMessageText = (
+  input: CreateResponseRequest["body"]["input"],
+  headers: Record<string, string>
+): string => {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  const lastUserMessageString = input.findLast(
+    (message): message is UserMessage =>
+      (message.type === "message" || !message.type) &&
+      message.role === "user" &&
+      !!message.content
+  )?.content;
+
+  if (!lastUserMessageString) {
+    throw makeBadRequestError({
+      error: new Error("No user message found in input"),
+      headers,
+    });
+  }
+
+  return lastUserMessageString;
 };

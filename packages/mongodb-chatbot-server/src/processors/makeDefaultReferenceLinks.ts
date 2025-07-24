@@ -6,21 +6,21 @@ import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
   @param url The URL string to check
   @returns boolean indicating whether the URL has a protocol
  */
-function hasProtocol(url: string): boolean {
+const hasProtocol = (url: string): boolean => {
   return /^https?:\/\//i.test(url);
-}
+};
 
 /**
   Ensures a URL has a protocol by adding https:// if missing
   @param url The URL string to normalize
   @returns A URL string with protocol
- */
-function ensureProtocol(url: string): string {
+  */
+const ensureProtocol = (url: string): string => {
   if (!hasProtocol(url)) {
     return `https://${url}`;
   }
   return url;
-}
+};
 
 /**
   The default reference format returns the following for chunks from _unique_ pages:

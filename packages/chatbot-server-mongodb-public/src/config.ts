@@ -20,6 +20,8 @@ import {
   defaultAddMessageToConversationCustomData,
   makeVerifiedAnswerGenerateResponse,
   addMessageToConversationVerifiedAnswerStream,
+  responsesVerifiedAnswerStream,
+  type MakeVerifiedAnswerGenerateResponseParams,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -221,9 +223,15 @@ const inputGuardrail = wrapTraced(
   }
 );
 
-export const makeGenerateResponse = (
-  streamConfig: GenerateResponseWithSearchToolParams["stream"]
-) =>
+interface MakeGenerateResponseParams {
+  responseWithSearchToolStream: GenerateResponseWithSearchToolParams["stream"];
+  verifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"];
+}
+
+export const makeGenerateResponse = ({
+  responseWithSearchToolStream,
+  verifiedAnswerStream,
+}: MakeGenerateResponseParams) =>
   wrapTraced(
     makeVerifiedAnswerGenerateResponse({
       findVerifiedAnswer,
@@ -233,7 +241,7 @@ export const makeGenerateResponse = (
           references: verifiedAnswer.references.map(addReferenceSourceType),
         };
       },
-      stream: addMessageToConversationVerifiedAnswerStream,
+      stream: verifiedAnswerStream,
       onNoVerifiedAnswerFound: wrapTraced(
         makeGenerateResponseWithSearchTool({
           languageModel,
@@ -256,7 +264,7 @@ export const makeGenerateResponse = (
           searchTool: makeSearchTool(findContent),
           toolChoice: "auto",
           maxSteps: 5,
-          stream: streamConfig,
+          stream: responseWithSearchToolStream,
         }),
         { name: "generateResponseWithSearchTool" }
       ),
@@ -383,7 +391,10 @@ export const config: AppConfig = {
       scrubbedMessageStore,
       braintrustLogger,
     }),
-    generateResponse: makeGenerateResponse(addMessageToConversationStream),
+    generateResponse: makeGenerateResponse({
+      responseWithSearchToolStream: addMessageToConversationStream,
+      verifiedAnswerStream: addMessageToConversationVerifiedAnswerStream,
+    }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
@@ -393,7 +404,10 @@ export const config: AppConfig = {
   responsesRouterConfig: {
     createResponse: {
       conversations,
-      generateResponse: makeGenerateResponse(responsesApiStream),
+      generateResponse: makeGenerateResponse({
+        responseWithSearchToolStream: responsesApiStream,
+        verifiedAnswerStream: responsesVerifiedAnswerStream,
+      }),
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
       maxUserMessagesInConversation: 6,

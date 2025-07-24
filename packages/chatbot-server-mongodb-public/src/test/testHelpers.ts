@@ -6,7 +6,8 @@ import {
 } from "mongodb-chatbot-server";
 import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { systemPrompt } from "../systemPrompt";
-import { MONGODB_CONNECTION_URI, config } from "../config";
+import { config } from "../config";
+import { MONGO_MEMORY_SERVER_URI } from "./constants";
 
 let mongoClient: MongoClient | undefined;
 let mongodb: Db | undefined;
@@ -14,7 +15,7 @@ let testDbName: string | undefined;
 
 beforeAll(async () => {
   testDbName = `conversations-test-${Date.now()}`;
-  mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  mongoClient = new MongoClient(MONGO_MEMORY_SERVER_URI);
   mongodb = mongoClient.db(testDbName);
 });
 
@@ -33,6 +34,13 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
     conversationsRouterConfig: {
       ...config.conversationsRouterConfig,
       conversations,
+    },
+    responsesRouterConfig: {
+      ...config.responsesRouterConfig,
+      createResponse: {
+        ...config.responsesRouterConfig.createResponse,
+        conversations,
+      },
     },
     ...(defaultConfigOverrides ?? {}),
   };

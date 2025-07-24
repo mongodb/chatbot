@@ -2,6 +2,9 @@ import {
   VerifiedAnswer,
   FindVerifiedAnswerFunc,
   DataStreamer,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
+  type ResponseStreamOutputTextDone,
 } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
@@ -52,6 +55,44 @@ export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGen
         type: "references",
         data: verifiedAnswer.references,
       });
+    },
+  };
+
+export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
+  {
+    onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      dataStreamer.streamResponses({
+        type: "response.output_text.delta",
+        delta: verifiedAnswer.answer,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDelta);
+
+      verifiedAnswer.references.forEach(({ title, url }, annotation_index) => {
+        dataStreamer.streamResponses({
+          type: "response.output_text.annotation.added",
+          annotation: {
+            type: "url_citation",
+            url,
+            title,
+            start_index: 0,
+            end_index: 0,
+          },
+          annotation_index,
+          content_index: 0,
+          output_index: 0,
+          item_id: "",
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
+      });
+
+      dataStreamer.streamResponses({
+        type: "response.output_text.done",
+        text: verifiedAnswer.answer,
+        content_index: 0,
+        output_index: 0,
+        item_id: "",
+      } satisfies ResponseStreamOutputTextDone);
     },
   };
 

@@ -64,9 +64,7 @@ export const makeInternalServerError = ({
     type: ERROR_TYPE,
     code: ERROR_CODE.SERVER_ERROR,
     message,
-    // Only include safe, serializable properties
     name: error.name,
-    stack: error.stack,
   };
   return new InternalServerError(500, _error, message, new Headers(headers));
 };
@@ -80,9 +78,7 @@ export const makeBadRequestError = ({
     type: ERROR_TYPE,
     code: ERROR_CODE.INVALID_REQUEST_ERROR,
     message,
-    // Only include safe, serializable properties
     name: error.name,
-    stack: error.stack,
   };
   return new BadRequestError(400, _error, message, new Headers(headers));
 };
@@ -96,9 +92,7 @@ export const makeNotFoundError = ({
     type: ERROR_TYPE,
     code: ERROR_CODE.NOT_FOUND_ERROR,
     message,
-    // Only include safe, serializable properties
     name: error.name,
-    stack: error.stack,
   };
   return new NotFoundError(404, _error, message, new Headers(headers));
 };
@@ -112,9 +106,7 @@ export const makeRateLimitError = ({
     type: ERROR_TYPE,
     code: ERROR_CODE.RATE_LIMIT_ERROR,
     message,
-    // Only include safe, serializable properties
     name: error.name,
-    stack: error.stack,
   };
   return new RateLimitError(429, _error, message, new Headers(headers));
 };

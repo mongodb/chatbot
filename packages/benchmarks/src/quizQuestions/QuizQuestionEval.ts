@@ -11,6 +11,7 @@ import {
   makeHelmQuizQuestionPrompt,
   MakeHelmQuizQuestionPromptParams,
 } from "./makeHelmQuizQuestionPrompt";
+import { CoreMessage, generateText, LanguageModel } from "ai";
 
 export type QuizQuestionEvalCaseInput = Pick<
   QuizQuestionData,
@@ -44,15 +45,13 @@ export type QuizQuestionEvalTask = EvalTask<
 >;
 
 interface MakeQuizQuestionTaskParams {
-  openaiClient: OpenAI;
+  languageModel: LanguageModel;
   llmOptions: QuizQuestionLlmOptions;
-  model: string;
   promptOptions: QuizQuestionPromptOptions;
 }
 
-function makeQuizQuestionTask({
-  openaiClient,
-  model,
+export function makeQuizQuestionTask({
+  languageModel,
   llmOptions,
   promptOptions,
 }: MakeQuizQuestionTaskParams): QuizQuestionEvalTask {
@@ -60,17 +59,15 @@ function makeQuizQuestionTask({
     const promptMessages = makeHelmQuizQuestionPrompt({
       quizQuestion: input,
       ...promptOptions,
-    }) satisfies OpenAI.Chat.Completions.ChatCompletionMessageParam[];
-    const res = await openaiClient.chat.completions.create({
-      model,
+    }) satisfies CoreMessage[];
+    const { text } = await generateText({
+      model: languageModel,
       messages: promptMessages,
-      stream: false,
       ...llmOptions,
       temperature: 0,
     });
-    const { content } = res.choices[0].message;
-    assert(content, "No content found in response");
-    return content;
+    assert(text, "No content found in response");
+    return text;
   };
 }
 
@@ -111,30 +108,39 @@ type QuizQuestionPromptOptions = Omit<
 export interface MakeQuizQuestionEvalParams {
   data: QuizQuestionEvalCase[];
   projectName: string;
-  openaiClient: OpenAI;
   experimentName: string;
   llmOptions?: QuizQuestionLlmOptions;
   promptOptions: QuizQuestionPromptOptions;
   additionalMetadata?: Record<string, unknown>;
-  model: string;
+  languageModel: LanguageModel;
   maxConcurrency?: number;
 }
 
 export function runQuizQuestionEval({
   data,
   projectName,
-  openaiClient,
   experimentName,
   additionalMetadata,
-  model,
-  llmOptions = {
-    max_tokens: model.includes("gemini-2.5") ? undefined : 100,
-    reasoning_enabled: model.includes("gemini-2.5") ? true : undefined,
-    reasoning_budget: model.includes("gemini-2.5") ? 1024 : undefined,
-  },
+  languageModel,
+  llmOptions,
   promptOptions,
   maxConcurrency,
 }: MakeQuizQuestionEvalParams) {
+  const reasoningOptions = {
+    max_tokens: languageModel.modelId.includes("gemini-2.5") ? undefined : 100,
+    reasoning_enabled: languageModel.modelId.includes("gemini-2.5")
+      ? true
+      : undefined,
+    reasoning_budget: languageModel.modelId.includes("gemini-2.5")
+      ? 1024
+      : undefined,
+  };
+
+  llmOptions = {
+    ...reasoningOptions,
+    ...(llmOptions ?? {}),
+  };
+
   return Eval<
     QuizQuestionEvalCaseInput,
     QuizQuestionTaskOutput,
@@ -144,14 +150,13 @@ export function runQuizQuestionEval({
     experimentName,
     maxConcurrency,
     metadata: {
-      model,
+      model: languageModel.modelId,
       llmOptions,
       ...additionalMetadata,
     },
     task: makeQuizQuestionTask({
-      openaiClient,
+      languageModel,
       llmOptions,
-      model,
       promptOptions,
     }),
     scores: [CorrectQuizAnswer],

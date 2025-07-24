@@ -1,23 +1,22 @@
-import express, {
-  Express,
-  ErrorRequestHandler,
-  RequestHandler,
-  NextFunction,
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from "express";
-import cors from "cors";
 import "dotenv/config";
+import express, {
+  type Express,
+  type ErrorRequestHandler,
+  type RequestHandler,
+  type NextFunction,
+  type Request as ExpressRequest,
+  type Response as ExpressResponse,
+} from "express";
+import cors, { type CorsOptions } from "cors";
 import {
-  ConversationsRouterParams,
   makeConversationsRouter,
-  ResponsesRouterParams,
   makeResponsesRouter,
+  type ConversationsRouterParams,
+  type ResponsesRouterParams,
 } from "./routes";
 import { logger } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
-import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";
 
 /**
@@ -68,7 +67,9 @@ export interface AppConfig {
 */
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const reqId = getRequestId(req);
-  const httpStatus = err.status || 500;
+  const isCorsError = err.message.includes("CORS");
+
+  const httpStatus = isCorsError ? 403 : err.status || 500;
   const errorMessage = err.message || "Internal Server Error";
 
   if (!res.headersSent) {

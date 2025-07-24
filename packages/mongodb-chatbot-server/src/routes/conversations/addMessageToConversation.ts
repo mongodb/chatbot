@@ -31,6 +31,7 @@ import {
   GenerateResponse,
   GenerateResponseParams,
 } from "../../processors/GenerateResponse";
+import { hasTooManyUserMessagesInConversation } from "../responses/createResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -207,11 +208,12 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      const numUserMessages = conversation.messages.reduce(
-        (acc, message) => (message.role === "user" ? acc + 1 : acc),
-        0
-      );
-      if (numUserMessages >= maxUserMessagesInConversation) {
+      if (
+        hasTooManyUserMessagesInConversation(
+          conversation,
+          maxUserMessagesInConversation
+        )
+      ) {
         // Omit the system prompt and assume the user always received one response per message
         throw makeRequestError({
           httpStatus: 400,

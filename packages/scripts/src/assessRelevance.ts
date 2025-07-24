@@ -6,8 +6,10 @@ import { Embedder } from "mongodb-rag-core";
 import {
   PromptAndEmbeddings,
   Relevance,
+  RelevanceMetrics,
   ScoredPromptAndEmbeddings,
 } from "./Case";
+import { cosineSimilarity } from "mongodb-rag-core/aiSdk";
 
 /**
   Given the expected answer, generate a number of possible prompts that could
@@ -55,17 +57,23 @@ export const scoreVariants = ({
     ({ embeddings: variantEmbeddings, prompt }): ScoredPromptAndEmbeddings => {
       const relevance = Object.fromEntries(
         Object.entries(original.embeddings).map(
-          ([model, originalEmbedding]) => {
+          ([model, originalEmbedding]): [string, RelevanceMetrics] => {
             assert(
               variantEmbeddings[model] !== undefined,
               `No embedding for model ${model}!`
             );
             return [
               model,
-              normalizedSquareMagnitudeDifference(
-                originalEmbedding,
-                variantEmbeddings[model]
-              ),
+              {
+                cos_similarity: cosineSimilarity(
+                  originalEmbedding,
+                  variantEmbeddings[model]
+                ),
+                norm_sq_mag_diff: normalizedSquareMagnitudeDifference(
+                  originalEmbedding,
+                  variantEmbeddings[model]
+                ),
+              },
             ];
           }
         )
@@ -121,28 +129,43 @@ export const assessRelevance = async ({
     `- Expected: "${expected}"
 - Original: "${prompt}"
 - Generated variants:
-${scoredVariants
-  .map(
-    ({ prompt, relevance }) => `  - "${prompt}" (${JSON.stringify(relevance)})`
-  )
-  .join("\n")}`
+${scoredVariants.map(({ prompt }) => `  - "${prompt}"`).join("\n")}`
   );
 
-  const average =
-    scoredVariants.reduce((acc, { relevance }) => {
+  const summedMetrics = scoredVariants.reduce(
+    (outer, { relevance }): RelevanceMetrics => {
       const relevanceValues = Object.values(relevance);
       const modelCount = relevanceValues.length;
       assert(modelCount > 0);
-      const averageAcrossModels =
-        relevanceValues.reduce((acc, cur) => acc + cur, 0) / modelCount;
-      return acc + averageAcrossModels;
-    }, 0) / variantCount;
+      // Sum metrics across models
+      const crossModel = relevanceValues.reduce(
+        (acc, { cos_similarity, norm_sq_mag_diff }) => ({
+          cos_similarity: acc.cos_similarity + cos_similarity,
+          norm_sq_mag_diff: acc.norm_sq_mag_diff + norm_sq_mag_diff,
+        }),
+        { cos_similarity: 0, norm_sq_mag_diff: 0 }
+      );
 
-  console.log(`Average score: ${average}`);
+      // Accumulate averages across models
+      return {
+        cos_similarity:
+          outer.cos_similarity + crossModel.cos_similarity / modelCount,
+        norm_sq_mag_diff:
+          outer.norm_sq_mag_diff + crossModel.norm_sq_mag_diff / modelCount,
+      };
+    },
+    { cos_similarity: 0, norm_sq_mag_diff: 0 }
+  );
+  const averages: RelevanceMetrics = {
+    cos_similarity: summedMetrics.cos_similarity / variantCount,
+    norm_sq_mag_diff: summedMetrics.norm_sq_mag_diff / variantCount,
+  };
+
+  console.log(`Average score: ${JSON.stringify(averages)}`);
   return {
     prompt_embeddings: promptEmbeddings,
     generated_prompts: scoredVariants,
-    average,
+    averages,
   };
 };
 

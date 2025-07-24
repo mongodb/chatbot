@@ -12,10 +12,20 @@ export const PromptAndEmbeddings = z.object({
 
 export type PromptAndEmbeddings = z.infer<typeof PromptAndEmbeddings>;
 
+export const RelevanceMetrics = z.object({
+  // normalized square magnitude difference (lower = closer = better)
+  norm_sq_mag_diff: z.number(),
+  // cosine similarity (are vectors pointing the same way?) [-1, 1]
+  cos_similarity: z.number(),
+});
+
+export type RelevanceMetrics = z.infer<typeof RelevanceMetrics>;
+
 export const ScoredPromptAndEmbeddings = PromptAndEmbeddings.and(
   z.object({
-    // embedding model name -> score
-    relevance: z.record(z.string(), z.number()),
+    relevance:
+      // embedding model name -> score
+      z.record(z.string(), RelevanceMetrics),
   })
 );
 
@@ -36,7 +46,7 @@ export type LlmAsJudgment = z.infer<typeof LlmAsJudgment>;
 export const Relevance = z.object({
   prompt_embeddings: Embeddings,
   generated_prompts: ScoredPromptAndEmbeddings.array(),
-  average: z.number(),
+  averages: RelevanceMetrics,
 });
 
 export type Relevance = z.infer<typeof Relevance>;

@@ -11,9 +11,7 @@ npm i
 npm run build
 ```
 
-# Run the Benchmarks
-
-Choose which models to run the benchmarks for by updating `MODELS` in `src/benchmarkModels.ts`. 
+## Run the Benchmarks
 
 To run the benchmarks, use the CLI:
 
@@ -31,7 +29,7 @@ npm run benchmark -- models list
 npm run benchmark -- run --type nl_prompt_response --model gpt-4.1-nano --dataset top_questions
 ```
 
-## Run Legacy Benchmarks
+### Run Legacy Benchmarks
 
 Going forward, all actively maintained benchmarks will be supported by the CLI. There are also some legacy benchmarks that will not be supported by the CLI. All of these are in the `src/textToDriver/bin` directory. They include:
 
@@ -45,3 +43,6 @@ To run these benchmarks, execute the file directly, such as via:
 npx tsx src/textToDriver/bin/nodeJsDriverBenchmark.ts
 ```
 
+## Update Benchmark CLI
+
+You can update the benchmarks and models available to the CLI from the `src/bin/mongoDbBenchmarkCli.ts` file. 

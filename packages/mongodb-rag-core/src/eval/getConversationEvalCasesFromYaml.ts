@@ -31,6 +31,10 @@ export const ConversationEvalCaseSchema = z.object({
     .string()
     .optional()
     .describe("Reference answer for model to output"),
+  customSystemPrompt: z
+    .string()
+    .optional()
+    .describe("Custom system prompt to use for this test case"),
 });
 
 export type ConversationEvalCase = z.infer<typeof ConversationEvalCaseSchema>;

@@ -100,7 +100,7 @@ async function getPageContent(
   if (page === null) {
     // Fall back - no page for this URL
     logger.info(
-      `${FETCH_PAGE_TOOL_NAME} did not find a page for URL ${normalizedUrl}, falling back to search tool`
+      `${FETCH_PAGE_TOOL_NAME} did not find a page for URL ${normalizedUrl}`
     );
     return { text: searchFallbackText };
   }

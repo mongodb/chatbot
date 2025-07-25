@@ -271,6 +271,20 @@ describe("POST /responses", () => {
       await expectValidResponses({ requestBody, stream });
     });
 
+    it("Should return responses given a message array with input_text content type", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "What is MongoDB?" }],
+          },
+        ],
+      };
+      const stream = await makeClientAndRequest(requestBody);
+
+      await expectValidResponses({ requestBody, stream });
+    });
+
     it("Should store conversation messages if `storeMessageContent: undefined` and `store: true`", async () => {
       const storeMessageContent = undefined;
       const initialMessages: Array<SomeMessage> = [
@@ -699,6 +713,41 @@ describe("POST /responses", () => {
       await expectInvalidResponses({
         stream,
         message: ERR_MSG.CONVERSATION_STORE_MISMATCH,
+      });
+    });
+
+    it("Should return error responses if input content array has invalid type", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_image" as any, text: "What is MongoDB?" }],
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: "Path: body.input - Invalid input",
+      });
+    });
+
+    it("Should return error responses if input content array has more than one input_text element", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: "What is MongoDB?" },
+              { type: "input_text", text: "Tell me more about it." },
+            ],
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input[0].content - ${ERR_MSG.INPUT_TEXT_ARRAY}`,
       });
     });
   });

@@ -85,6 +85,20 @@ describe("Responses API with OpenAI Client", () => {
       await expectValidResponses({ stream, requestBody });
     });
 
+    it("Should return responses given a message array with input_text content type", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "What is MongoDB?" }],
+          },
+        ],
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
+    });
+
     it("Should return responses given a valid request with instructions", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         instructions: "You are a helpful chatbot.",

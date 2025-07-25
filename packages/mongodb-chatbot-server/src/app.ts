@@ -62,14 +62,20 @@ export interface AppConfig {
   expressAppConfig?: (app: Express) => Promise<void>;
 }
 
+const corsHandler =
+  (corsOptions?: CorsOptions) =>
+  (req: ExpressRequest, res: ExpressResponse, next: NextFunction) =>
+    cors(corsOptions)(req, res, (err) => {
+      if (err) err.status = 403;
+      next(err);
+    });
+
 /**
   General error handler. Called at usage of `next()` in routes.
 */
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const reqId = getRequestId(req);
-  const isCorsError = err.message.includes("CORS");
-
-  const httpStatus = isCorsError ? 403 : err.status || 500;
+  const httpStatus = err.status || 500;
   const errorMessage = err.message || "Internal Server Error";
 
   if (!res.headersSent) {
@@ -142,7 +148,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   // MongoDB chatbot server logic
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors(corsOptions));
+  app.use(corsHandler(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
   app.use(

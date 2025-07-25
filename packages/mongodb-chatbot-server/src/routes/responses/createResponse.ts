@@ -11,7 +11,6 @@ import {
   type ResponseStreamInProgress,
   type ResponseStreamCompleted,
   type ResponseStreamError,
-  type UserMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -30,6 +29,8 @@ export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_TEXT_ARRAY:
+    'Input content array only supports "input_text" type with exactly one element.',
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -64,7 +65,20 @@ const CreateResponseRequestBodySchema = z.object({
           z.object({
             type: z.literal("message").optional(),
             role: z.enum(["user", "assistant", "system"]),
-            content: z.string(),
+            content: z.union([
+              z.string(),
+              z
+                .array(
+                  z.object({
+                    type: z.literal("input_text"),
+                    text: z.string(),
+                  })
+                )
+                .refine(
+                  (content) => content.length === 1,
+                  ERR_MSG.INPUT_TEXT_ARRAY
+                ),
+            ]),
           }),
           // function tool call
           z.object({
@@ -491,10 +505,14 @@ const convertInputToDBMessages = (
   }
 
   return input.map((message) => {
-    // handle function tool calls and outputs
-    const role = message.type === "message" ? message.role : "system";
-    const content =
-      message.type === "message" ? message.content : message.type ?? "";
+    // set default role and content for function tool calls and outputs
+    let role: MessagesParam[number]["role"] = "system";
+    let content = message.type ?? "";
+    // set role and content for all other messages
+    if (message.type === "message") {
+      role = message.role;
+      content = formatUserMessageContent(message.content);
+    }
 
     return formatMessage({ role, content }, store, metadata);
   });
@@ -559,19 +577,30 @@ const convertInputToLatestMessageText = (
     return input;
   }
 
-  const lastUserMessageString = input.findLast(
-    (message): message is UserMessage =>
-      (message.type === "message" || !message.type) &&
-      message.role === "user" &&
-      !!message.content
-  )?.content;
-
-  if (!lastUserMessageString) {
+  const lastUserMessage = input.findLast(isUserMessage);
+  if (!lastUserMessage) {
     throw makeBadRequestError({
       error: new Error("No user message found in input"),
       headers,
     });
   }
 
-  return lastUserMessageString;
+  return formatUserMessageContent(lastUserMessage.content);
+};
+
+type UserMessage = {
+  role: "user";
+  content: UserMessageContent;
+};
+
+const isUserMessage = (message: any): message is UserMessage =>
+  (message.type === "message" || !message.type) &&
+  message.role === "user" &&
+  !!message.content;
+
+type UserMessageContent = string | Array<{ type: "input_text"; text: string }>;
+
+const formatUserMessageContent = (content: UserMessageContent): string => {
+  if (typeof content === "string") return content;
+  return content[0].text;
 };

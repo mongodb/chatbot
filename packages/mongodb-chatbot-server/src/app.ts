@@ -62,7 +62,7 @@ export interface AppConfig {
   expressAppConfig?: (app: Express) => Promise<void>;
 }
 
-const corsHandler =
+const makeCorsHandler =
   (corsOptions?: CorsOptions) =>
   (req: ExpressRequest, res: ExpressResponse, next: NextFunction) =>
     cors(corsOptions)(req, res, (err) => {
@@ -148,7 +148,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   // MongoDB chatbot server logic
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(corsHandler(corsOptions));
+  app.use(makeCorsHandler(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
   app.use(

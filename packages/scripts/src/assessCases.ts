@@ -4,6 +4,7 @@ import { calculateEmbeddings } from "./calculateEmbeddings";
 import { SimpleTextGenerator } from "./SimpleTextGenerator";
 import { Embedder } from "mongodb-rag-core";
 import {
+  LlmAsJudgment,
   PromptAndEmbeddings,
   Relevance,
   RelevanceMetrics,
@@ -167,6 +168,54 @@ ${scoredVariants.map(({ prompt }) => `  - "${prompt}"`).join("\n")}`
     generated_prompts: scoredVariants,
     averages,
   };
+};
+
+export const rateWithLlm = async ({
+  prompt,
+  expected,
+  generate,
+}: {
+  prompt: string;
+  expected: string;
+  generate: SimpleTextGenerator;
+}): Promise<LlmAsJudgment | undefined> => {
+  const shortName = makeShortName(prompt);
+  console.log(`Rating '${shortName}' with LLM...`);
+
+  const [response] = await generate({
+    prompt: `
+Evaluate the quality of the following prompt-expected answer pair across
+multiple dimensions. Return your evaluation as a JSON object with numeric scores
+from 1 (poor) to 10 (excellent). Return only a JSON object with the following keys:
+
+- reasonableness (1-10): how reasonable it would be to expect an LLM to produce the given response from the given prompt.
+- clarity (1-10): how well formulated and clear the prompt is.
+- fit (1-10): how well the expected answer actually matches the prompt.
+- assumption (1-10): how much domain-specific knowledge is required to effectively answer the prompt.
+- guidance (string, optional): a text string containing detailing the issue and suggesting how to improve. Only include this if the above scores are low.
+
+Now evaluate this pair, returning only the JSON object:
+
+PROMPT: ${prompt}
+---
+EXPECTED ANSWER: ${expected}
+`,
+    n: 1,
+    temperature: 0,
+  });
+
+  try {
+    const judgment = LlmAsJudgment.parse(JSON.parse(response));
+    console.log(`Judgment of '${shortName}':
+${JSON.stringify(judgment, undefined, 2)}`);
+  } catch (e) {
+    console.error(
+      `Failed to parse response "${response}" into LlmAsJudgment: ${
+        (e as Error)?.message
+      }`
+    );
+    return undefined;
+  }
 };
 
 export const makeShortName = (prompt: string, ellipsizeAtLength = 64) => {

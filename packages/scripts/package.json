@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "assessRelevance": "npm run build && node ./build/main/assessRelevanceMain.js",
+    "assessCases": "npm run build && node ./build/main/assessCasesMain.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",

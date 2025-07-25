@@ -4,7 +4,7 @@ import { MongoClient } from "mongodb";
 import { Case } from "../Case";
 import { makeSimpleTextGenerator } from "../SimpleTextGenerator";
 import "dotenv/config";
-import { assessRelevance, makeShortName } from "../assessRelevance";
+import { assessRelevance, makeShortName, rateWithLlm } from "../assessCases";
 
 const assessRelevanceMain = async () => {
   const {
@@ -55,32 +55,40 @@ const assessRelevanceMain = async () => {
     const db = client.db(FROM_DATABASE_NAME);
     const collection = db.collection<Case>(CASE_COLLECTION_NAME);
     const cases = await collection.find().toArray();
-    const relevancePromises = cases.map(async ({ _id, name, expected }) => {
-      const shortName = makeShortName(name);
-      const relevance = await assessRelevance({
-        prompt: name,
-        expected,
-        embedders,
-        generate,
-      });
-      console.log(`Updating '${shortName}'...`);
-      const updateResult = await collection.updateOne(
-        {
-          _id,
-        },
-        {
-          $set: {
-            relevance,
+    const relevancePromises = cases.map(
+      async ({ _id, name: prompt, expected }) => {
+        const shortName = makeShortName(prompt);
+        const relevance = await assessRelevance({
+          prompt,
+          expected,
+          embedders,
+          generate,
+        });
+        const llm_as_judgment = await rateWithLlm({
+          prompt,
+          expected,
+          generate,
+        });
+        console.log(`Updating '${shortName}'...`);
+        const updateResult = await collection.updateOne(
+          {
+            _id,
           },
-        }
-      );
+          {
+            $set: {
+              relevance,
+              llm_as_judgment,
+            },
+          }
+        );
 
-      if (updateResult.modifiedCount === 1) {
-        console.log(`Updated '${shortName}'.`);
-      } else {
-        console.warn(`Failed to update '${shortName}' (${_id})`);
+        if (updateResult.modifiedCount === 1) {
+          console.log(`Updated '${shortName}'.`);
+        } else {
+          console.warn(`Failed to update '${shortName}' (${_id})`);
+        }
       }
-    });
+    );
 
     await Promise.allSettled(relevancePromises);
   } finally {

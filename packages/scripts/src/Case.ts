@@ -33,13 +33,16 @@ export type ScoredPromptAndEmbeddings = z.infer<
   typeof ScoredPromptAndEmbeddings
 >;
 
-export const LlmAsJudgment = z.object({
-  reasonableness: z.number(),
-  clarity: z.number(),
-  specificity: z.number(),
-  fit: z.number(),
-  assumption: z.number(),
-});
+export const LlmAsJudgment = z
+  .object({
+    reasonableness: z.number(),
+    clarity: z.number(),
+    specificity: z.number(),
+    fit: z.number(),
+    assumption: z.number(),
+    guidance: z.string(),
+  })
+  .partial();
 
 export type LlmAsJudgment = z.infer<typeof LlmAsJudgment>;
 

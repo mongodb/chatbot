@@ -370,10 +370,15 @@ const loadConversationByMessageId = async ({
   storeMessageContent,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
+    const formattedMetadata = formatMetadata({
+      shouldStore: storeMessageContent,
+      metadata,
+    });
+
     return await conversations.create({
       userId,
       storeMessageContent,
-      customData: { metadata },
+      customData: { metadata: formattedMetadata },
     });
   }
 
@@ -506,20 +511,40 @@ const formatMessage = (
   metadata?: Record<string, string>
 ): MessagesParam[number] => {
   // store a placeholder string if we're not storing message data
-  const content = store ? message.content : "";
-  // handle cleaning custom data if we're not storing message data
-  const customData = {
-    ...message.customData,
-    query: store ? message.customData?.query : "",
-    reason: store ? message.customData?.reason : "",
-  };
+  const formattedContent = store ? message.content : "";
+  // handle cleaning metadata fields if we're not storing message data
+  const formattedMetadata = formatMetadata({ shouldStore: store, metadata });
+  const formattedCustomData = formatMetadata({
+    shouldStore: store,
+    metadata: message.customData,
+  });
 
   return {
     ...message,
-    content,
-    metadata,
-    customData,
+    content: formattedContent,
+    metadata: formattedMetadata,
+    customData: formattedCustomData,
   };
+};
+
+/** These metadata keys will persist in conversations and messages even if store is false.
+ * Otherwise, keys will have their values set to an empty string if store is false. */
+export const ALWAYS_ALLOWED_METADATA_KEYS = ["ip", "origin", "userAgent"];
+
+interface FormatMetadataParams {
+  shouldStore: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+const formatMetadata = ({ shouldStore, metadata }: FormatMetadataParams) => {
+  if (shouldStore || !metadata) return metadata;
+
+  return Object.fromEntries(
+    Object.entries(metadata).map(([key, value]) => [
+      key,
+      ALWAYS_ALLOWED_METADATA_KEYS.includes(key) ? value : "",
+    ])
+  );
 };
 
 interface BaseResponseData {

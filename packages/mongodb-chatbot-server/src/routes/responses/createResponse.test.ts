@@ -310,8 +310,8 @@ describe("POST /responses", () => {
       const store = true;
       const userId = "customUserId";
       const metadata = {
-        customMessage1: "customMessage1",
-        customMessage2: "customMessage2",
+        ip: "127.0.0.1",
+        reason: "some-reason",
       };
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
@@ -342,8 +342,12 @@ describe("POST /responses", () => {
       const store = false;
       const userId = "customUserId";
       const metadata = {
-        customMessage1: "customMessage1",
-        customMessage2: "customMessage2",
+        ip: "127.0.0.1",
+        reason: "some-reason",
+      };
+      const expectedMetadata = {
+        ip: "127.0.0.1",
+        reason: "",
       };
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
@@ -366,7 +370,7 @@ describe("POST /responses", () => {
         updatedConversation,
         userId,
         store,
-        metadata,
+        metadata: expectedMetadata,
       });
     });
 

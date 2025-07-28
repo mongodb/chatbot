@@ -27,7 +27,6 @@ import {
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
-import { systemPrompt } from "./systemPrompt";
 import {
   addReferenceSourceType,
   makeMongoDbReferences,
@@ -65,7 +64,7 @@ import {
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure } from "mongodb-rag-core/aiSdk";
+import { createAzure } from "@ai-sdk/azure";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
@@ -293,7 +292,6 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
             findContent,
             makeReferences: makeMongoDbReferences,
           }),
-          toolChoice,
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),

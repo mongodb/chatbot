@@ -1,7 +1,6 @@
 import {
   References,
   SomeMessage,
-  SystemMessage,
   UserMessage,
   AssistantMessage,
   ToolMessage,
@@ -10,18 +9,23 @@ import {
   type ResponseStreamOutputTextAnnotationAdded,
 } from "mongodb-rag-core";
 import {
-  CoreAssistantMessage,
-  CoreMessage,
-  LanguageModel,
-  streamText,
+  AssistantModelMessage,
+  ModelMessage,
   ToolCallPart,
   ToolChoice,
   ToolSet,
-  CoreToolMessage,
-  ToolResultPart,
-  TextPart,
+  ToolModelMessage,
+  Tool,
+  tool,
+  streamText,
+  hasToolCall,
+  LanguageModel,
+  stepCountIs,
+  jsonSchema,
+  JSONSchema7,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
+
 import {
   InputGuardrail,
   FilterPreviousMessages,
@@ -29,6 +33,7 @@ import {
   GenerateResponseReturnValue,
   InputGuardrailResult,
   type StreamFunction,
+  GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import {
@@ -51,9 +56,6 @@ export interface GenerateResponseWithToolsParams {
    */
   additionalTools?: ToolSet;
   maxSteps: number;
-  toolChoice?: ToolChoice<{
-    search_content: SearchTool;
-  }>;
   searchTool: SearchTool;
   fetchPageTool: FetchPageTool;
   stream?: {
@@ -178,7 +180,6 @@ export function makeGenerateResponseWithTools({
   maxSteps,
   searchTool,
   fetchPageTool,
-  toolChoice,
   stream,
 }: GenerateResponseWithToolsParams): GenerateResponse {
   return async function generateResponseWithTools({
@@ -190,6 +191,8 @@ export function makeGenerateResponseWithTools({
     reqId,
     dataStreamer,
     customSystemPrompt,
+    toolDefinitions,
+    toolChoice,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -224,7 +227,7 @@ export function makeGenerateResponseWithTools({
           makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
           userMessage,
-        ] satisfies CoreMessage[],
+        ] satisfies ModelMessage[],
         tools: toolSet,
         toolChoice,
         maxSteps,
@@ -261,24 +264,44 @@ export function makeGenerateResponseWithTools({
       // Start generation immediately (in parallel with guardrail)
       const generationPromise = (async () => {
         try {
+          // Create the complete tool set with proper typing
+          const allTools = {
+            [SEARCH_TOOL_NAME]: searchTool,
+            [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+            ...formatToolDefinitionsForAiSdk(toolDefinitions),
+          } as const;
+
           const result = streamText({
             ...generationArgs,
+            tools: allTools,
+
+            toolChoice: formatToolChoiceForAiSdk(toolChoice, allTools),
             abortSignal: generationController.signal,
+            // Stops generation when one of the custom tool defintions is called
+            // OR when the max steps are reached
+            stopWhen: [
+              stepCountIs(maxSteps),
+              ...(toolDefinitions?.map((toolDef) =>
+                hasToolCall(toolDef.name)
+              ) || []),
+            ],
+
+            // Appends references when a reference-returning tool is called
             onStepFinish: async ({ toolResults, toolCalls }) => {
               toolCalls?.forEach((toolCall) => {
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
                   userMessageCustomData = {
                     ...userMessageCustomData,
-                    ...toolCall.args,
+                    ...toolCall.input,
                   };
                 }
               });
               toolResults?.forEach((toolResult) => {
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.result?.references
+                  toolResult.output?.references
                 ) {
-                  references.push(...toolResult.result.references);
+                  references.push(...toolResult.output.references);
                 }
               });
             },
@@ -295,10 +318,10 @@ export function makeGenerateResponseWithTools({
             switch (chunk.type) {
               case "text-delta":
                 if (streamingModeActive) {
-                  fullStreamText += chunk.textDelta;
+                  fullStreamText += chunk.text;
                   stream.onTextDelta({
                     dataStreamer,
-                    delta: chunk.textDelta,
+                    delta: chunk.text,
                   });
                 }
                 break;
@@ -437,7 +460,7 @@ export function makeGenerateResponseWithTools({
   };
 }
 
-type ResponseMessage = CoreAssistantMessage | CoreToolMessage;
+type ResponseMessage = AssistantModelMessage | ToolModelMessage;
 
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
@@ -494,7 +517,7 @@ function formatMessageForReturnGeneration(
                 id: c.toolCallId,
                 function: {
                   name: c.toolName,
-                  arguments: JSON.stringify(c.args),
+                  arguments: JSON.stringify(c.input),
                 },
                 type: "function",
               };
@@ -516,12 +539,25 @@ function formatMessageForReturnGeneration(
           m.content.forEach((c) => {
             if (c.type === "tool-result") {
               baseMessage.name = c.toolName;
-              const result = (c.result as Array<ToolResultPart | TextPart>)[0];
-              if (result.type === "text") {
-                baseMessage.content = result.text;
-              }
-              if (result.type === "tool-result") {
-                baseMessage.content = JSON.stringify(result.result);
+              if (
+                c.output.type === "content" &&
+                c.output.value[0].type === "text"
+              ) {
+                baseMessage.content = c.output.value[0].text;
+              } else if (
+                c.output &&
+                typeof c.output === "object" &&
+                "value" in c.output
+              ) {
+                baseMessage.content =
+                  typeof c.output.value === "string"
+                    ? c.output.value
+                    : JSON.stringify(c.output.value);
+              } else {
+                baseMessage.content =
+                  typeof c.output === "string"
+                    ? c.output
+                    : JSON.stringify(c.output);
               }
             }
           });
@@ -547,7 +583,7 @@ function formatMessageForReturnGeneration(
   return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
-function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
+function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
   if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
     if (message.toolCall) {
@@ -559,16 +595,16 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
             type: "tool-call",
             toolCallId: message.toolCall.id,
             toolName: message.toolCall.function.name,
-            args: message.toolCall.function.arguments,
+            input: message.toolCall.function.arguments,
           } satisfies ToolCallPart,
         ],
-      } satisfies CoreAssistantMessage;
+      } satisfies AssistantModelMessage;
     } else {
       // Fallback for other object content
       return {
         role: "assistant",
         content: message.content,
-      } satisfies CoreAssistantMessage;
+      } satisfies AssistantModelMessage;
     }
   } else if (message.role === "tool") {
     // Convert tool messages to the format expected by the AI SDK
@@ -576,15 +612,61 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
       role: "tool",
       content: [
         {
-          toolName: message.name,
           type: "tool-result",
-          result: message.content,
           toolCallId: "",
-        } satisfies ToolResultPart,
+          toolName: message.name,
+          output: {
+            type: "json",
+            value: message.content,
+          },
+        },
       ],
-    } satisfies CoreToolMessage;
+    } satisfies ToolModelMessage;
   } else {
     // User and system messages can pass through
-    return message satisfies CoreMessage;
+    return message satisfies ModelMessage;
   }
+}
+
+function formatToolDefinitionsForAiSdk(
+  toolDefinitions: GenerateResponseParams["toolDefinitions"]
+): Record<string, Tool> {
+  return (
+    toolDefinitions?.reduce((acc, toolDef) => {
+      acc[toolDef.name] = tool({
+        name: toolDef.name,
+        description: toolDef.description,
+        inputSchema: jsonSchema(toolDef.parameters as JSONSchema7),
+      });
+      return acc;
+    }, {} as Record<string, Tool>) ?? {}
+  );
+}
+
+function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
+  toolChoice: GenerateResponseParams["toolChoice"],
+  tools: T
+): ToolChoice<T> | undefined {
+  if (!toolChoice) {
+    return undefined;
+  }
+  if (toolChoice === "none") {
+    return "none";
+  }
+  if (toolChoice === "auto") {
+    return "auto";
+  }
+  if (toolChoice === "required") {
+    return "required";
+  }
+  // Validate that the tool exists in the tools object
+  if (toolChoice.name in tools) {
+    return {
+      toolName: toolChoice.name as Extract<keyof T, string>,
+      type: "tool",
+    };
+  }
+
+  // Fallback: if tool doesn't exist, return undefined (no tool choice)
+  return undefined;
 }

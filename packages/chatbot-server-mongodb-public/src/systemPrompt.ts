@@ -8,11 +8,17 @@ import {
   FETCH_PAGE_TOOL_NAME,
   SEARCH_ALL_FALLBACK_TEXT,
 } from "./tools/fetchPage";
+import { OpenAI } from "mongodb-rag-core/openai";
 
-export type MakeSystemPrompt = (customSystemPrompt?: string) => SystemMessage;
+export type MakeSystemPrompt = (
+  customSystemPrompt?: string,
+  customToolDefinitions?: OpenAI.FunctionDefinition[]
+) => SystemMessage;
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
+
+const chatbotOverview = `You are expert MongoDB documentation chatbot.`;
 
 const personalityTraits = [
   "You enthusiastically answer user questions about MongoDB products and services.",
@@ -69,13 +75,13 @@ const fetchPageToolNotes = [
   `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
 ];
 
+const importantNote = `<important>
+${makeMarkdownNumberedList(importantNotes)}
+</important>`;
+
 export const systemPrompt = {
   role: "system",
-  content: `You are expert MongoDB documentation chatbot.
-
-<important>
-${makeMarkdownNumberedList(importantNotes)}
-</important>
+  content: `${chatbotOverview}
 
 <personality_traits>
 You have the following personality:
@@ -146,11 +152,7 @@ ${makeMarkdownNumberedList(fetchPageToolNotes)}
 
 </tool>
 
-</tools>
-
-<important>
-${makeMarkdownNumberedList(importantNotes)}
-</important>`,
+</tools>`,
 } satisfies SystemMessage;
 
 function makeMarkdownNumberedList(items: string[]) {
@@ -158,11 +160,14 @@ function makeMarkdownNumberedList(items: string[]) {
 }
 
 export const makeMongoDbAssistantSystemPrompt: MakeSystemPrompt = (
-  customSystemPrompt
+  customSystemPrompt,
+  customToolDefinitions
 ) => {
-  if (!customSystemPrompt) {
-    return systemPrompt;
-  } else {
+  let systemPromptContent = "";
+  if (!customSystemPrompt && !customToolDefinitions) {
+    systemPromptContent = systemPrompt.content;
+  }
+  if (customSystemPrompt) {
     return {
       role: "system",
       content: `
@@ -176,4 +181,16 @@ ${customSystemPrompt}
 </custom-system-prompt>`,
     };
   }
+  // Add direction to use built in tools
+  // if no custom tools provided.
+  if (!customToolDefinitions) {
+    return {
+      role: "system",
+      content: systemPromptContent + "\n\n" + importantNote,
+    };
+  }
+  return {
+    role: "system",
+    content: systemPromptContent,
+  };
 };

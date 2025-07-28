@@ -210,6 +210,8 @@ export function makeCreateResponseRoute({
           input,
           stream,
           instructions,
+          tools,
+          tool_choice,
         },
       } = data;
 
@@ -302,6 +304,8 @@ export function makeCreateResponseRoute({
         shouldStream: stream,
         latestMessageText,
         customSystemPrompt: instructions,
+        toolDefinitions: tools,
+        toolChoice: tool_choice,
         // TODO: fix these
         // clientContext ??
         // customData ??

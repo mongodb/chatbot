@@ -222,6 +222,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
         supportedModels: [MONGO_CHAT_MODEL],
         maxOutputTokens: 4000,
         maxUserMessagesInConversation: 6,
+        alwaysAllowedMetadataKeys: ["ip"],
       },
     },
     maxRequestTimeoutMs: 30000,

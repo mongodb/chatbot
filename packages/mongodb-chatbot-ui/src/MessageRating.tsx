@@ -59,6 +59,7 @@ export function MessageRatingWithFeedbackComment(
       className={css`
         & > div + div {
           margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
         }
       `}
     >
@@ -66,6 +67,9 @@ export function MessageRatingWithFeedbackComment(
       {hasRating && status !== "abandoned" ? (
         <>
           <InlineMessageFeedback
+            className={
+              "" /* For now this is unsupported - use the > div + div selector above instead https://jira.mongodb.org/browse/LG-3965 */
+            }
             ref={ratingCommentRef}
             cancelButtonText="Cancel"
             onCancel={() => abandon()}

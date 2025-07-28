@@ -16,6 +16,7 @@ export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
   initialMessageSuggestedPrompts?: string[];
   initialMessageReferences?: References;
+  messageBottomContent?: React.ReactNode;
 };
 
 const ModalView = lazy(() =>
@@ -34,6 +35,7 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
       "Hi! I'm the MongoDB AI. What can I help you with today?",
     initialMessageReferences: props.initialMessageReferences,
     initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? [],
+    messageBottomContent: props.messageBottomContent,
     disclaimer: (
       <>
         <MongoDbLegalDisclosure />

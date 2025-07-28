@@ -15,6 +15,7 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
+  FilterPreviousMessages,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
@@ -34,7 +35,7 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -56,18 +57,18 @@ import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
 import {
+  makeGenerateResponseWithTools,
+  type GenerateResponseWithToolsParams,
   responsesApiStream,
   addMessageToConversationStream,
-  makeGenerateResponseWithSearchTool,
-  type GenerateResponseWithSearchToolParams,
-} from "./processors/generateResponseWithSearchTool";
+} from "./processors/generateResponseWithTools";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
+import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
-
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -200,6 +201,22 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const loadPage = wrapTraced(pageStore.loadPage, {
+  name: "loadPageFromStore",
+});
+
+export const preprocessorOpenAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
@@ -225,15 +242,28 @@ const inputGuardrail = wrapTraced(
   }
 );
 
+export const filterPreviousMessages: FilterPreviousMessages = async (
+  conversation
+) => {
+  return conversation.messages.filter((message) => {
+    return (
+      message.role === "user" ||
+      // Only include assistant messages that are not tool calls
+      (message.role === "assistant" && !message.toolCall)
+    );
+  });
+};
+
+export const toolChoice = "auto";
+
+export const maxSteps = 5;
+
 interface MakeGenerateResponseParams {
-  responseWithSearchToolStream: GenerateResponseWithSearchToolParams["stream"];
+  responseWithSearchToolStream: GenerateResponseWithToolsParams["stream"];
   verifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"];
 }
 
-export const makeGenerateResponse = ({
-  responseWithSearchToolStream,
-  verifiedAnswerStream,
-}: MakeGenerateResponseParams) =>
+export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
   wrapTraced(
     makeVerifiedAnswerGenerateResponse({
       findVerifiedAnswer,
@@ -243,30 +273,29 @@ export const makeGenerateResponse = ({
           references: verifiedAnswer.references.map(addReferenceSourceType),
         };
       },
-      stream: verifiedAnswerStream,
+      stream: args?.verifiedAnswerStream,
       onNoVerifiedAnswerFound: wrapTraced(
-        makeGenerateResponseWithSearchTool({
+        makeGenerateResponseWithTools({
           languageModel,
           makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
-          makeReferenceLinks: makeMongoDbReferences,
           inputGuardrail,
           llmRefusalMessage:
             conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          filterPreviousMessages: async (conversation) => {
-            return conversation.messages.filter((message) => {
-              return (
-                message.role === "user" ||
-                // Only include assistant messages that are not tool calls
-                (message.role === "assistant" && !message.toolCall)
-              );
-            });
-          },
+          filterPreviousMessages,
           llmNotWorkingMessage:
             conversations.conversationConstants.LLM_NOT_WORKING,
-          searchTool: makeSearchTool(findContent),
-          toolChoice: "auto",
-          maxSteps: 5,
-          stream: responseWithSearchToolStream,
+          searchTool: makeSearchTool({
+            findContent,
+            makeReferences: makeMongoDbReferences,
+          }),
+          fetchPageTool: makeFetchPageTool({
+            loadPage,
+            findContent,
+            makeReferences: makeMongoDbReferences,
+          }),
+          toolChoice,
+          maxSteps,
+          stream: args?.responseWithSearchToolStream,
         }),
         { name: "generateResponseWithSearchTool" }
       ),
@@ -314,6 +343,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export async function closeDbConnections() {
   await mongodb.close();
+  await pageStore.close();
   await verifiedAnswerStore.close();
   await embeddedContentStore.close();
 }

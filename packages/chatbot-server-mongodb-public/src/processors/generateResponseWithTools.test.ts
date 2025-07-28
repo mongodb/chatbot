@@ -1,8 +1,9 @@
 import { jest } from "@jest/globals";
 import {
-  GenerateResponseWithSearchToolParams,
-  makeGenerateResponseWithSearchTool,
-} from "./generateResponseWithSearchTool";
+  GenerateResponseWithToolsParams,
+  makeGenerateResponseWithTools,
+} from "./generateResponseWithTools";
+import { makeMongoDbReferences } from "../processors/makeMongoDbReferences";
 import {
   AssistantMessage,
   DataStreamer,
@@ -12,6 +13,7 @@ import {
   ToolMessage,
   UserMessage,
   WithScore,
+  PersistedPage,
 } from "mongodb-rag-core";
 import {
   MockLanguageModelV1,
@@ -30,7 +32,14 @@ import {
   SEARCH_TOOL_NAME,
   searchResultToLlmContent,
 } from "../tools/search";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  makeFetchPageTool,
+  MongoDbFetchPageToolArgs,
+} from "../tools/fetchPage";
+import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+import { systemPrompt } from "../systemPrompt";
 
 const latestMessageText = "Hello";
 
@@ -38,10 +47,10 @@ const mockReqId = "test";
 
 const mockContent: WithScore<EmbeddedContent>[] = [
   {
-    url: "https://example.com/",
+    url: "example.com",
     text: `Content!`,
     metadata: {
-      pageTitle: "Example Page",
+      pageTitle: "Example Embedded Content",
     },
     sourceName: "Example Source",
     tokenCount: 10,
@@ -53,10 +62,20 @@ const mockContent: WithScore<EmbeddedContent>[] = [
   },
 ];
 
-const mockReferences = mockContent.map((content) => ({
-  url: content.url,
-  title: content.metadata?.pageTitle ?? content.url,
-}));
+const mockPageContent = {
+  url: "example.com",
+  body: "Example page body",
+  format: "md",
+  sourceName: "test source name",
+  metadata: {},
+  title: "Example Page",
+  updated: new Date(),
+  action: "created",
+} satisfies PersistedPage;
+
+const mockLoadPage: MongoDbPageStore["loadPage"] = async () => {
+  return mockPageContent;
+};
 
 const mockFindContent: FindContentFunc = async () => {
   return {
@@ -66,7 +85,39 @@ const mockFindContent: FindContentFunc = async () => {
 };
 
 // Create a mock search tool that matches the SearchTool interface
-const mockSearchTool = makeSearchTool(mockFindContent);
+const mockSearchTool = makeSearchTool({
+  findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
+});
+
+// Create a mock fetch_page tool that matches the SearchTool interface
+const mockFetchPageTool = makeFetchPageTool({
+  loadPage: mockLoadPage,
+  findContent: mockFindContent,
+  makeReferences: makeMongoDbReferences,
+});
+
+// What the references are expected to look like
+const mockReferences = [
+  {
+    url: `https://${mockPageContent.url}/`,
+    title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
+    metadata: {
+      tags: [],
+      sourceName: mockPageContent.sourceName,
+    },
+  },
+  {
+    url: `https://${mockContent[0].url}/`,
+    title:
+      mockContent[0].metadata?.pageTitle ?? `https://${mockContent[0].url}/`,
+    metadata: {
+      // sourceName/tags are not available makeDefaultReferenceLinks
+      tags: [],
+      sourceName: mockContent[0].sourceName,
+    },
+  },
+];
 
 // Must have, but details don't matter
 const mockFinishChunk = {
@@ -93,42 +144,99 @@ const finalAnswerStreamChunks = finalAnswerChunks.map((word, i) => {
   };
 });
 
+// Note: have to make this constructor b/c the ReadableStream
+// can only be used once successfully.
+const makeFinalAnswerStream = () =>
+  simulateReadableStream({
+    chunks: [
+      ...finalAnswerStreamChunks,
+      mockFinishChunk,
+    ] satisfies LanguageModelV1StreamPart[],
+    chunkDelayInMs: 100,
+    initialDelayInMs: 100,
+  });
+
+const fetchPageToolMockArgs: MongoDbFetchPageToolArgs = {
+  pageUrl: "https://example.com/",
+  query: "example",
+};
+
 const searchToolMockArgs: MongoDbSearchToolArgs = {
   query: "test",
   productName: "driver",
   programmingLanguage: "python",
 };
 
-jest.setTimeout(5000);
+const makeFetchPageToolCallStream = () =>
+  simulateReadableStream({
+    chunks: [
+      {
+        type: "tool-call" as const,
+        toolCallId: "abc001",
+        toolName: FETCH_PAGE_TOOL_NAME,
+        toolCallType: "function" as const,
+        args: JSON.stringify(fetchPageToolMockArgs),
+      },
+      mockFinishChunk,
+    ] satisfies LanguageModelV1StreamPart[],
+    chunkDelayInMs: 100,
+    initialDelayInMs: 100,
+  });
+
+const makeSearchToolCallStream = () =>
+  simulateReadableStream({
+    chunks: [
+      {
+        type: "tool-call" as const,
+        toolCallId: "abc002",
+        toolName: SEARCH_TOOL_NAME,
+        toolCallType: "function" as const,
+        args: JSON.stringify(searchToolMockArgs),
+      },
+      mockFinishChunk,
+    ] satisfies LanguageModelV1StreamPart[],
+    chunkDelayInMs: 100,
+    initialDelayInMs: 100,
+  });
+
+jest.setTimeout(10000);
 // Mock language model following the AI SDK testing documentation
 // Create a minimalist mock for the language model
 const makeMockLanguageModel = () => {
-  return new MockLanguageModelV1({
-    doStream: async () => {
-      // Create a combined stream that includes tool call and final answer
-      const allChunks = [
-        // Tool call chunk
-        {
-          type: "tool-call" as const,
-          toolCallId: "abc123",
-          toolName: SEARCH_TOOL_NAME,
-          toolCallType: "function" as const,
-          args: JSON.stringify(searchToolMockArgs),
-        },
-        // Text chunks for final answer
-        ...finalAnswerStreamChunks,
-        // Finish chunk
-        mockFinishChunk,
-      ] satisfies LanguageModelV1StreamPart[];
-
+  // On first call, return fetch_page tool call stream
+  // On second call, return search_content tool call stream
+  // On third call, return final answer stream
+  // On subsequent calls, return final answer
+  let counter = 0;
+  const doStreamCalls = [
+    async () => {
       return {
-        stream: simulateReadableStream({
-          chunks: allChunks,
-          chunkDelayInMs: 10,
-          initialDelayInMs: 10,
-        }),
+        stream: makeFetchPageToolCallStream(),
         rawCall: { rawPrompt: null, rawSettings: {} },
       };
+    },
+    async () => {
+      return {
+        stream: makeSearchToolCallStream(),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      };
+    },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    async () => {
+      return {
+        stream: makeFinalAnswerStream(),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      };
+    },
+  ];
+  return new MockLanguageModelV1({
+    doStream: () => {
+      const streamCallPromise = doStreamCalls[counter]();
+      if (counter < doStreamCalls.length) {
+        counter++;
+      }
+      return streamCallPromise;
     },
   });
 };
@@ -190,16 +298,19 @@ const mockStreamConfig = {
       data: args.delta,
     });
   }),
-} satisfies GenerateResponseWithSearchToolParams["stream"];
+} satisfies GenerateResponseWithToolsParams["stream"];
 
-const generateResponseWithSearchToolArgs = {
-  languageModel: makeMockLanguageModel(),
-  llmNotWorkingMessage: mockLlmNotWorkingMessage,
-  llmRefusalMessage: mockLlmRefusalMessage,
-  makeSystemPrompt: () => mockSystemMessage,
-  searchTool: mockSearchTool,
-  stream: mockStreamConfig,
-} satisfies GenerateResponseWithSearchToolParams;
+const makeGenerateResponseWithToolsArgs = () =>
+  ({
+    languageModel: makeMockLanguageModel(),
+    llmNotWorkingMessage: mockLlmNotWorkingMessage,
+    llmRefusalMessage: mockLlmRefusalMessage,
+    searchTool: mockSearchTool,
+    fetchPageTool: mockFetchPageTool,
+    maxSteps: 5,
+    stream: mockStreamConfig,
+    makeSystemPrompt: () => systemPrompt,
+  } satisfies Partial<GenerateResponseWithToolsParams>);
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -212,15 +323,15 @@ const generateResponseBaseArgs = {
   reqId: mockReqId,
 };
 
-describe("generateResponseWithSearchTool", () => {
+describe("generateResponseWithTools", () => {
   // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("makeGenerateResponseWithSearchTool", () => {
-    const generateResponse = makeGenerateResponseWithSearchTool(
-      generateResponseWithSearchToolArgs
+  describe("makeGenerateResponseWithTools", () => {
+    const generateResponse = makeGenerateResponseWithTools(
+      makeGenerateResponseWithToolsArgs()
     );
     it("should return a function", () => {
       expect(typeof generateResponse).toBe("function");
@@ -232,8 +343,8 @@ describe("generateResponseWithSearchTool", () => {
         .mockImplementation((_conversation) =>
           Promise.resolve([])
         ) as FilterPreviousMessages;
-      const generateResponse = makeGenerateResponseWithSearchTool({
-        ...generateResponseWithSearchToolArgs,
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
         filterPreviousMessages: mockFilterPreviousMessages,
       });
 
@@ -248,8 +359,8 @@ describe("generateResponseWithSearchTool", () => {
     });
 
     it("should make reference links", async () => {
-      const generateResponse = makeGenerateResponseWithSearchTool(
-        generateResponseWithSearchToolArgs
+      const generateResponse = makeGenerateResponseWithTools(
+        makeGenerateResponseWithToolsArgs()
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
@@ -262,8 +373,8 @@ describe("generateResponseWithSearchTool", () => {
     });
 
     it("should add custom data to the user message", async () => {
-      const generateResponse = makeGenerateResponseWithSearchTool(
-        generateResponseWithSearchToolArgs
+      const generateResponse = makeGenerateResponseWithTools(
+        makeGenerateResponseWithToolsArgs()
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
@@ -274,8 +385,8 @@ describe("generateResponseWithSearchTool", () => {
       expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
     it("should not generate until guardrail has resolved (reject)", async () => {
-      const generateResponse = makeGenerateResponseWithSearchTool({
-        ...generateResponseWithSearchToolArgs,
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
         inputGuardrail: async () => {
           // sleep for 2 seconds
           await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -288,8 +399,8 @@ describe("generateResponseWithSearchTool", () => {
       expectGuardrailRejectResult(result);
     });
     it("should not generate until guardrail has resolved (pass)", async () => {
-      const generateResponse = makeGenerateResponseWithSearchTool({
-        ...generateResponseWithSearchToolArgs,
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
         inputGuardrail: async () => {
           // sleep for 2 seconds
           await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -303,8 +414,8 @@ describe("generateResponseWithSearchTool", () => {
     });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
-        const generateResponse = makeGenerateResponseWithSearchTool(
-          generateResponseWithSearchToolArgs
+        const generateResponse = makeGenerateResponseWithTools(
+          makeGenerateResponseWithToolsArgs()
         );
 
         const result = await generateResponse(generateResponseBaseArgs);
@@ -313,8 +424,8 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle guardrail rejection", async () => {
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(false),
         });
 
@@ -324,8 +435,8 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle guardrail pass", async () => {
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(true),
         });
 
@@ -335,8 +446,8 @@ describe("generateResponseWithSearchTool", () => {
       });
 
       test("should handle error in language model", async () => {
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           languageModel: mockThrowingLanguageModel,
         });
 
@@ -374,9 +485,9 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle successful streaming", async () => {
         const mockDataStreamer = makeMockDataStreamer();
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
-        });
+        const generateResponse = makeGenerateResponseWithTools(
+          makeGenerateResponseWithToolsArgs()
+        );
 
         const result = await generateResponse({
           ...generateResponseBaseArgs,
@@ -398,8 +509,8 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle successful generation with guardrail", async () => {
         const mockDataStreamer = makeMockDataStreamer();
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(true),
         });
 
@@ -423,8 +534,8 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle streaming with guardrail rejection", async () => {
         const mockDataStreamer = makeMockDataStreamer();
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: makeMockGuardrail(false),
         });
 
@@ -444,8 +555,8 @@ describe("generateResponseWithSearchTool", () => {
 
       test("should handle error in language model", async () => {
         const mockDataStreamer = makeMockDataStreamer();
-        const generateResponse = makeGenerateResponseWithSearchTool({
-          ...generateResponseWithSearchToolArgs,
+        const generateResponse = makeGenerateResponseWithTools({
+          ...makeGenerateResponseWithToolsArgs(),
           languageModel: mockThrowingLanguageModel,
         });
 
@@ -486,48 +597,76 @@ function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
 
 function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect(result).toHaveProperty("messages");
-  expect(result.messages).toHaveLength(6); // User + assistant (tool call) + tool result + assistant (tool call) + tool result + assistant
+  // User -> Assistant (fetch_page tool call) + fetch_page tool result ->
+  // Assistant (search tool call) + search tool result -> Assistant msg (final answer)
+  expect(result.messages).toHaveLength(6);
+
   expect(result.messages[0]).toMatchObject({
     role: "user",
     content: latestMessageText,
     customData: expect.objectContaining(searchToolMockArgs),
   });
+
   expect(result.messages[1]).toMatchObject({
     role: "assistant",
     toolCall: {
-      id: "abc123",
+      id: "abc001",
       function: {
-        name: "search_content",
+        name: FETCH_PAGE_TOOL_NAME,
       },
       type: "function",
     },
-    content: finalAnswer,
+    content: "",
   });
   expect(
     JSON.parse(
       (result.messages[1] as AssistantMessage)?.toolCall?.function
         .arguments as string
     )
+  ).toMatchObject(fetchPageToolMockArgs);
+
+  const fetchPageToolResponseMessage = result.messages[2];
+  assert(fetchPageToolResponseMessage);
+  expect(fetchPageToolResponseMessage).toMatchObject({
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: "Example page body",
+  });
+
+  expect(result.messages[3]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "abc002",
+      function: {
+        name: SEARCH_TOOL_NAME,
+      },
+      type: "function",
+    },
+    content: "",
+  });
+  expect(
+    JSON.parse(
+      (result.messages[3] as AssistantMessage)?.toolCall?.function
+        .arguments as string
+    )
   ).toMatchObject(searchToolMockArgs);
 
-  // The content might be a JSON string containing a content array
-  const toolMessage = result.messages.find(
-    (message) => message.role === "tool"
-  );
-  assert(toolMessage);
-  expect(toolMessage).toMatchObject({
+  const searchToolResponseMessage = result.messages[4];
+  assert(searchToolResponseMessage);
+  expect(searchToolResponseMessage).toMatchObject({
     role: "tool",
     name: "search_content",
     content: expect.any(String),
   } satisfies ToolMessage);
-  expect(JSON.parse(toolMessage.content)).toMatchObject({
+  expect(JSON.parse(searchToolResponseMessage.content)).toMatchObject({
     results: mockContent.map(searchResultToLlmContent),
   });
 
-  // Check that the final assistant message has references
-  const finalMessage = result.messages.at(-1) as AssistantMessage;
-  expect(finalMessage.role).toBe("assistant");
-  expect(finalMessage.content).toEqual("");
-  expect(finalMessage.references).toBeDefined();
-  expect(finalMessage.references).toHaveLength(2);
+  expect(result.messages[5]).toMatchObject({
+    role: "assistant",
+    content: finalAnswer,
+  });
+  expect((result.messages[5] as AssistantMessage).references).toEqual(
+    mockReferences
+  );
 }

@@ -1,26 +1,6 @@
-import { References } from "mongodb-rag-core";
+import { References, logger } from "mongodb-rag-core";
+import { ensureProtocol } from "mongodb-rag-core/dataSources";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
-
-/**
-  Checks if a URL string has a protocol (http:// or https://)
-  @param url The URL string to check
-  @returns boolean indicating whether the URL has a protocol
- */
-const hasProtocol = (url: string): boolean => {
-  return /^https?:\/\//i.test(url);
-};
-
-/**
-  Ensures a URL has a protocol by adding https:// if missing
-  @param url The URL string to normalize
-  @returns A URL string with protocol
-  */
-const ensureProtocol = (url: string): string => {
-  if (!hasProtocol(url)) {
-    return `https://${url}`;
-  }
-  return url;
-};
 
 /**
   The default reference format returns the following for chunks from _unique_ pages:
@@ -44,11 +24,18 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   });
 
   return uniqueReferenceChunks.map((chunk) => {
-    // Ensure URL has a protocol before creating URL object
-    const normalizedUrl = ensureProtocol(chunk.url);
-    const url = new URL(normalizedUrl).href;
-    // Ensure title is always a string by checking its type
-    const pageTitle = chunk.metadata?.pageTitle;
+    // Handle normalized URLs, add protocol if missing
+    let url;
+    try {
+      url = new URL(ensureProtocol(chunk.url)).href;
+    } catch (error) {
+      logger.error(`Could not safely convert URL "${chunk.url}":`, error);
+      url = chunk.url;
+    }
+
+    // Location of `title` param depends on chunk type (EmbeddedContent/Page)
+    const pageTitle =
+      chunk.metadata?.pageTitle ?? (hasTitle(chunk) ? chunk.title : undefined);
     const title = typeof pageTitle === "string" ? pageTitle : url;
     const sourceName = chunk.sourceName;
 
@@ -62,3 +49,8 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
     };
   }) satisfies References;
 };
+
+function hasTitle(obj: unknown): obj is { title: string } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return typeof (obj as any)?.title === "string";
+}

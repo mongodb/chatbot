@@ -58,7 +58,7 @@ const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
-    z.string().refine((input) => input.length > 0, ERR_MSG.INPUT_STRING),
+    z.string().nonempty(ERR_MSG.INPUT_STRING),
     z
       .array(
         z.union([
@@ -74,10 +74,7 @@ const CreateResponseRequestBodySchema = z.object({
                     text: z.string(),
                   })
                 )
-                .refine(
-                  (content) => content.length === 1,
-                  ERR_MSG.INPUT_TEXT_ARRAY
-                ),
+                .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
             ]),
           }),
           // function tool call
@@ -111,7 +108,7 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, ERR_MSG.INPUT_ARRAY),
+      .nonempty(ERR_MSG.INPUT_ARRAY),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -128,15 +125,15 @@ const CreateResponseRequestBodySchema = z.object({
   store: z
     .boolean()
     .optional()
-    .describe("Whether to store the response in the conversation.")
-    .default(true),
+    .default(true)
+    .describe("Whether to store the response in the conversation."),
   stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
   temperature: z
     .number()
-    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
     .optional()
-    .describe("Temperature for the model. Defaults to 0.")
-    .default(0),
+    .default(0)
+    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
+    .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
       z.enum(["none", "auto", "required"]),
@@ -148,8 +145,8 @@ const CreateResponseRequestBodySchema = z.object({
         .describe("Function tool choice"),
     ])
     .optional()
-    .describe("Tool choice for the model. Defaults to 'auto'.")
-    .default("auto"),
+    .default("auto")
+    .describe("Tool choice for the model. Defaults to 'auto'."),
   tools: z
     .array(
       z.object({

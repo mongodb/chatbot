@@ -447,7 +447,8 @@ describe("POST /responses", () => {
 
     it("Should return error responses if empty message array", async () => {
       const stream = await makeClientAndRequest({
-        input: [],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        input: [] as any,
       });
 
       await expectInvalidResponses({

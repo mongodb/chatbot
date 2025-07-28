@@ -54,6 +54,25 @@ export const ERR_MSG = {
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
 };
 
+const InputMessageSchema = z.object({
+  type: z.literal("message").optional(),
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.union([
+    z.string(),
+    z
+      .array(
+        z.object({
+          type: z.literal("input_text"),
+          text: z.string(),
+        })
+      )
+      .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
+  ]),
+});
+
+type InputMessage = z.infer<typeof InputMessageSchema>;
+type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
+
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
@@ -62,21 +81,7 @@ const CreateResponseRequestBodySchema = z.object({
     z
       .array(
         z.union([
-          z.object({
-            type: z.literal("message").optional(),
-            role: z.enum(["user", "assistant", "system"]),
-            content: z.union([
-              z.string(),
-              z
-                .array(
-                  z.object({
-                    type: z.literal("input_text"),
-                    text: z.string(),
-                  })
-                )
-                .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
-            ]),
-          }),
+          InputMessageSchema,
           // function tool call
           z.object({
             type: z.literal("function_call"),
@@ -585,15 +590,11 @@ const convertInputToLatestMessageText = (
   return formatUserMessageContent(lastUserMessage.content);
 };
 
-type UserMessage = {
-  role: "user";
-  content: UserMessageContent;
-};
+const isInputMessage = (message: unknown): message is InputMessage =>
+  InputMessageSchema.safeParse(message).success;
 
-const isUserMessage = (message: any): message is UserMessage =>
-  (message.type === "message" || !message.type) &&
-  message.role === "user" &&
-  !!message.content;
+const isUserMessage = (message: unknown): message is UserMessage =>
+  isInputMessage(message) && message.role === "user";
 
 type UserMessageContent = string | Array<{ type: "input_text"; text: string }>;
 

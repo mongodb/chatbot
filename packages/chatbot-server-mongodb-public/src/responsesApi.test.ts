@@ -198,24 +198,16 @@ describe("Responses API with OpenAI Client", () => {
       const stream = createResponseRequestStream({
         input: "",
       });
-      expectInvalidResponses({
+
+      await expectInvalidResponses({
         stream,
         errorMessage: "Input must be a non-empty string",
-      });
-    });
-    it("Should return error responses if empty message array", async () => {
-      const stream = createResponseRequestStream({
-        input: [],
-      });
-      expectInvalidResponses({
-        stream,
-        errorMessage:
-          "Path: body.input - Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
       });
     });
 
     it("Should return error responses if empty message array", async () => {
       const stream = createResponseRequestStream({
+        // @ts-expect-error - empty array is valid input
         input: [],
       });
 

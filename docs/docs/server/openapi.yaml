@@ -116,6 +116,13 @@ paths:
       tags:
         - Conversations
       summary: Start new conversation
+      description: |
+        Start a new conversation.
+
+        This endpoint is deprecated. Use the [createResponse](#operation/createResponse) endpoint instead.
+      tags:
+        - Conversations
+      deprecated: true
       responses:
         200:
           description: OK
@@ -134,8 +141,13 @@ paths:
       tags:
         - Conversations
       summary: Add message to the conversation
+      tags:
+        - Conversations
+      deprecated: true
       description: |
         Add a message to the conversation and get a response back from chatbot.
+
+        This endpoint is deprecated. Use the [createResponse](#operation/createResponse) endpoint instead.
 
         You can configure your server to create new conversations
         when you set the conversation ID to `null`.
@@ -242,6 +254,8 @@ paths:
       tags:
         - Conversations
       summary: Rate message
+      tags:
+        - Conversations
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"
@@ -266,6 +280,8 @@ paths:
       tags:
         - Conversations
       summary: Add comment to assistant message
+      tags:
+        - Conversations
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
 
@@ -287,7 +303,117 @@ paths:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
+  /responses:
+    post:
+      operationId: createResponse
+      summary: Create response
+      description: |
+        Create a response from an LLM. Follows the specification of the [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses).
 
+        You can rate or comment on a message using the [rateMessage](#operation/rateMessage) and [commentMessage](#operation/commentMessage) endpoints.
+
+        ### Basic Example Usage
+
+        Example usage with OpenAI client `openai`:
+        ```ts
+        import { OpenAI } from "openai";
+
+        const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+
+        const response = await openai.responses.create({
+          model: "mongodb-chat-latest",
+          stream: true,
+          input: [
+            {
+              role: "user",
+              content: "So what's MongoDB anyways??",
+            },
+          ],
+          instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
+        });
+
+        for await (const event of response) {
+          console.log(event);
+        }
+        ```
+
+        ### Features
+
+        #### Retrieval-Informed Answers
+
+        By default, the API performs retrieval augmented generation under the hood
+        to generate accurate and up-to-date responses about MongoDB products.
+        If you provide custom tools to the API via the `tools` parameter,
+        the API will choose to use the tool or the retrieval tool based on the `tool_choice` parameter.
+
+        Default behavior is to allow the model to choose the tool to use.
+
+        #### Personality
+
+        The AI API has the personality of a helpful MongoDB assistant. You cannot change this core personality.
+
+        You can augment the personality via the `instructions` parameter. (E.g. "You are a technical services engineer at MongoDB. Use that as context to inform your response.")
+
+        #### Guardrail
+
+        The API features a guardrail that helps ensure the input is appropriate for a MongoDB assistant.
+        This helps ensure the API isn't used for irrelevant or malicious purposes.
+
+        #### Tracing and Storage
+
+        All messages to the chatbot are traced and stored if `store: true`.
+        
+        For access to chatbot data, reach out to the Education AI team (`#ask-education-ai` on Slack).
+
+        All data retention is in line with MongoDB data retention policies.
+
+      tags:
+        - Responses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResponseRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ResponseStreamEvent"
+                examples:
+                  - summary: Example response.created event
+                    value:
+                      type: "response.created"
+                      sequence_number: 0
+                      response:
+                        id: "676f1234567890abcdef1234"
+                        object: "response"
+                        created_at: 1735123456789
+                        error: null
+                        incomplete_details: null
+                        instructions: "You are a helpful MongoDB assistant."
+                        max_output_tokens: 1000
+                        model: "mongodb-chat-latest"
+                        output_text: ""
+                        output: []
+                        parallel_tool_calls: true
+                        previous_response_id: null
+                        store: true
+                        temperature: 0
+                        stream: true
+                        tool_choice: "auto"
+                        tools: []
+                        top_p: null
+                        user: "user123"
+                        metadata: null
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
 components:
   securitySchemes:
     CustomHeaderAuth:
@@ -321,6 +447,115 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
   schemas:
+    CreateResponseRequest:
+      type: object
+      required:
+        - model
+        - input
+        - stream
+      properties:
+        model:
+          type: string
+          description: The model to use for generating the response
+        instructions:
+          type: string
+          description: System instructions for the model
+        input:
+          oneOf:
+            - $ref: "#/components/schemas/StringInput"
+            - $ref: "#/components/schemas/MessageArrayInput"
+        max_output_tokens:
+          type: integer
+          minimum: 0
+          default: 1000
+          description: Maximum number of tokens to generate
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 512
+          maxProperties: 16
+          description: Additional metadata with max 16 fields, each value max 512 chars. These are stored in the database.
+        previous_response_id:
+          type: string
+          description: |
+            The unique ID of the previous response to the model.
+            Including `previous_response_id` in the request causes the model
+            to use the previous response as context.
+
+            Usage notes:
+            - You can only use `previous_response_id` if `store: true`. 
+            - All requests on the same conversation must have the same `user` ID leave it undefined.
+        store:
+          type: boolean
+          default: true
+          description: |
+            Whether to store the response in the database.
+            
+            If store is `true`:
+
+            - The response is stored in the database.
+            - You may use the `previous_response_id` to statefully append new messages to the conversation.
+            - The response is traced and annotated with metadata.
+
+            If store is `false`:
+            
+            - Only metadata about the response is stored in the database.
+            - The response is not traced.
+            - You cannot add staefully interact with the converastion via `previous_response_id`.
+            
+        stream:
+          type: boolean
+          enum: [true]
+          description: | 
+              Stream response. Must always be `true` for current implementation.
+              Non-streaming is not yet supported.
+        temperature:
+          type: number
+          enum: [0]
+          default: 0
+          description: Temperature for the model. Must be `0`.
+        tool_choice:
+          oneOf:
+            - type: string
+              enum: [none, auto, required]
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum: [function]
+                name:
+                  type: string
+              required: [type, name]
+          default: auto
+          description: Tool choice for the model
+        tools:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [function]
+              strict:
+                type: boolean
+              name:
+                type: string
+              description:
+                type: string
+              parameters:
+                type: object
+                description: A JSON schema object describing the parameters of the function
+                additionalProperties: true
+            required: [type, strict, name, parameters]
+          description: Tools for the model to use
+        user:
+          type: string
+          description: |
+            The ID of the user. Can be any arbitrary string.
+            
+            If used in combination with `previous_response_id`, the value for `user` must be the same for all requests on the same conversation.
+            
     Conversation:
       type: object
       required:
@@ -413,6 +648,281 @@ components:
         - $ref: "#/components/schemas/StreamEventReferences"
         - $ref: "#/components/schemas/StreamEventFinished"
       description: A server-sent event data payload for a streaming message.
+    ResponseStreamEvent:
+      oneOf:
+        - $ref: "#/components/schemas/ResponseCreatedEvent"
+        - $ref: "#/components/schemas/ResponseInProgressEvent"
+        - $ref: "#/components/schemas/ResponseCompletedEvent"
+        - $ref: "#/components/schemas/ResponseOutputTextAnnotationAddedEvent"
+        - $ref: "#/components/schemas/ResponseOutputTextDeltaEvent"
+        - $ref: "#/components/schemas/ResponseOutputTextDoneEvent"
+        - $ref: "#/components/schemas/ResponseFunctionCallArgumentsDeltaEvent"
+        - $ref: "#/components/schemas/ResponseFunctionCallArgumentsDoneEvent"
+      description: Stream events for response creation
+    ResponseCreatedEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.created]
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+        response:
+          $ref: "#/components/schemas/ResponseObject"
+      required: [type, sequence_number, response]
+      description: Event sent when response is created
+    ResponseInProgressEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.in_progress]
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+        response:
+          $ref: "#/components/schemas/ResponseObject"
+      required: [type, sequence_number, response]
+      description: Event sent when response is in progress
+    ResponseCompletedEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.completed]
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+        response:
+          $ref: "#/components/schemas/ResponseObject"
+      required: [type, sequence_number, response]
+      description: Event sent when response is completed
+    ResponseOutputTextAnnotationAddedEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.output_text.annotation.added]
+        item_id:
+          type: string
+          description: Unique identifier for the item
+        output_index:
+          type: integer
+          description: Index of the output
+        content_index:
+          type: integer
+          description: Index of the content
+        annotation_index:
+          type: integer
+          description: Index of the annotation
+        annotation:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [text_annotation]
+            text:
+              type: string
+              description: The annotation text content
+            start:
+              type: integer
+              description: Start position of the annotation
+            end:
+              type: integer
+              description: End position of the annotation
+          required: [type, text, start, end]
+          description: The annotation object
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+      required: [type, item_id, output_index, content_index, annotation_index, annotation, sequence_number]
+      description: |
+        Event sent when a text annotation is added to response output.
+        This is used to include references used by the internal search tool.
+    ResponseOutputTextDeltaEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.output_text.delta]
+        item_id:
+          type: string
+          description: Unique identifier for the item
+        output_index:
+          type: integer
+          description: Index of the output
+        content_index:
+          type: integer
+          description: Index of the content
+        delta:
+          type: string
+          description: Incremental text content being streamed
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+      required: [type, item_id, output_index, content_index, delta, sequence_number]
+      description: Event sent for each piece of streaming text content
+    ResponseOutputTextDoneEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.output_text.done]
+        item_id:
+          type: string
+          description: Unique identifier for the item
+        output_index:
+          type: integer
+          description: Index of the output
+        content_index:
+          type: integer
+          description: Index of the content
+        text:
+          type: string
+          description: The complete final text content
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+      required: [type, item_id, output_index, content_index, text, sequence_number]
+      description: Event sent when text output is complete with the final content
+    ResponseFunctionCallArgumentsDeltaEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.function_call_arguments.delta]
+        item_id:
+          type: string
+          description: Unique identifier for the item
+        output_index:
+          type: integer
+          description: Index of the output
+        delta:
+          type: string
+          description: Incremental function call arguments being streamed
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+      required: [type, item_id, output_index, delta, sequence_number]
+      description: Event sent for each piece of streaming function call arguments
+    ResponseFunctionCallArgumentsDoneEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [response.function_call_arguments.done]
+        item_id:
+          type: string
+          description: Unique identifier for the item
+        output_index:
+          type: integer
+          description: Index of the output
+        arguments:
+          type: string
+          description: The complete function call arguments as JSON string
+        sequence_number:
+          type: integer
+          description: Sequence number of the event
+      required: [type, item_id, output_index, arguments, sequence_number]
+      description: Event sent when function call arguments are complete
+    ResponseObject:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the response
+        object:
+          type: string
+          enum: [response]
+        created_at:
+          type: integer
+          description: Unix timestamp when response was created
+        error:
+          type: "null"
+          description: Error information (always null for successful responses)
+        incomplete_details:
+          type: "null"
+          description: Details about incomplete response (always null for successful responses)
+        instructions:
+          type: string
+          nullable: true
+          description: System instructions for the model
+        max_output_tokens:
+          type: integer
+          nullable: true
+          description: Maximum number of tokens to generate
+        model:
+          type: string
+          description: Model used for the response
+        output_text:
+          type: string
+          description: Generated output text (empty during streaming)
+        output:
+          type: array
+          items: {}
+          description: Generated output array (empty during streaming)
+        parallel_tool_calls:
+          type: boolean
+          description: Whether parallel tool calls are enabled
+        previous_response_id:
+          type: string
+          nullable: true
+          description: ID of the previous response
+        store:
+          type: boolean
+          description: Whether to store the response
+        temperature:
+          type: number
+          description: Temperature setting for the model
+        stream:
+          type: boolean
+          description: Whether response is streamed
+        tool_choice:
+          oneOf:
+            - type: string
+              enum: [none, auto, required]
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum: [function]
+                name:
+                  type: string
+              required: [type, name]
+          description: Tool choice configuration
+        tools:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [function]
+              strict:
+                type: boolean
+              name:
+                type: string
+              description:
+                type: string
+              parameters:
+                type: object
+                additionalProperties: true
+            required: [type, strict, name, parameters]
+          description: Available tools for the model
+        top_p:
+          type: "null"
+          description: Top-p sampling parameter (always null)
+        user:
+          type: string
+          description: User ID
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+          description: Additional metadata
+      required: [id, object, created_at, error, incomplete_details, model, output_text, output, parallel_tool_calls, store, temperature, stream, tool_choice, tools, top_p]
     StreamEventDelta:
       description: Assistant response text.
       type: object
@@ -480,6 +990,69 @@ components:
           type: boolean
           description: |
             Set to `true` if the user liked the message, `false` if the user didn't like the message.
+    StringInput:
+      type: string
+      minLength: 1
+      description: A string input message from the user
+    MessageArrayInput:
+      type: array
+      minItems: 1
+      description: Array of messages or function calls/outputs
+      items:
+        oneOf:
+          - $ref: "#/components/schemas/MessageItem"
+          - $ref: "#/components/schemas/FunctionCallItem"
+          - $ref: "#/components/schemas/FunctionCallOutputItem"
+    MessageItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [message]
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+      required: [role, content]
+    FunctionCallItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [function_call]
+        call_id:
+          type: string
+          description: Unique ID of the function tool call
+        name:
+          type: string
+          description: Name of the function tool to call
+        arguments:
+          type: string
+          description: JSON string of arguments passed to the function tool call
+        status:
+          type: string
+          enum: [in_progress, completed, incomplete]
+      required: [type, call_id, name, arguments, status]
+    FunctionCallOutputItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [function_call_output]
+        id:
+          type: string
+          description: The unique ID of the function tool call output
+        call_id:
+          type: string
+          description: Unique ID of the function tool call generated by the model
+        output:
+          type: string
+          description: JSON string of the function tool call
+        status:
+          type: string
+          enum: [in_progress, completed, incomplete]
+      required: [type, call_id, output, status]
     ErrorResponse:
       type: object
     SearchResponse:

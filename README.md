@@ -4,7 +4,7 @@ This repo contains the work of the MongoDB Education AI team.
 
 ## MongoDB Knowledge Service
 
-The MongoDB Knowledge Service lets you learn about MongoDB using generative AI. To learn more about it, refer to the [MongoDB Knolwedge Service documentation](https://mongodb.github.io/chatbot)
+The MongoDB Knowledge Service lets you learn about MongoDB using generative AI. To learn more about it, refer to the [MongoDB Knowledge Service documentation](https://mongodb.github.io/chatbot)
 
 ## MongoDB Chatbot Framework (deprecated)
 

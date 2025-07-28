@@ -2,6 +2,8 @@ import {
   EmbeddedContent,
   FindContentFunc,
   updateFrontMatter,
+  Reference,
+  logger,
 } from "mongodb-rag-core";
 import {
   Tool,
@@ -15,6 +17,7 @@ import {
   mongoDbProgrammingLanguageIds,
 } from "mongodb-rag-core/mongoDbMetadata";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 
 export const MongoDbSearchToolArgsSchema = z.object({
   productName: z
@@ -44,6 +47,7 @@ export const SEARCH_TOOL_NAME = "search_content";
 
 export type SearchToolReturnValue = {
   results: SearchResult[];
+  references?: Reference[];
 };
 
 export type SearchTool = Tool<
@@ -60,7 +64,15 @@ export type SearchToolResult = ToolResultUnion<{
   [SEARCH_TOOL_NAME]: SearchTool;
 }>;
 
-export function makeSearchTool(findContent: FindContentFunc): SearchTool {
+export interface MakeSearchToolParams {
+  findContent: FindContentFunc;
+  makeReferences: MakeReferenceLinksFunc;
+}
+
+export function makeSearchTool({
+  findContent,
+  makeReferences,
+}: MakeSearchToolParams): SearchTool {
   return tool({
     parameters: MongoDbSearchToolArgsSchema,
     description: "Search MongoDB content",
@@ -95,7 +107,11 @@ export function makeSearchTool(findContent: FindContentFunc): SearchTool {
 
         const result: SearchToolReturnValue = {
           results: content.content.map(embeddedContentToSearchResult),
+          references: makeReferences(content.content),
         };
+        logger.info(
+          `${SEARCH_TOOL_NAME} found ${content.content.length} search results for query "${queryWithMetadata}"`
+        );
 
         return result;
       },

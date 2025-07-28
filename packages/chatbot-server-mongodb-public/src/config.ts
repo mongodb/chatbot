@@ -15,11 +15,15 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
+  FilterPreviousMessages,
   makeDefaultFindVerifiedAnswer,
   makeVerifiedAnswerGenerateResponse,
   addDefaultCustomData,
   ConversationsRouterLocals,
   ContentRouterLocals,
+  addMessageToConversationVerifiedAnswerStream,
+  responsesVerifiedAnswerStream,
+  type MakeVerifiedAnswerGenerateResponseParams,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -32,7 +36,10 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger, makeMongoDbSearchResultsStore } from "mongodb-rag-core";
+import {
+  makeMongoDbPageStore,
+  makeMongoDbSearchResultsStore, logger,
+} from "mongodb-rag-core";
 import { createAzure } from "mongodb-rag-core/aiSdk";
 import {
   wrapOpenAI,
@@ -54,11 +61,18 @@ import {
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
-import { makeGenerateResponseWithSearchTool } from "./processors/generateResponseWithSearchTool";
+import {
+  makeGenerateResponseWithTools,
+  type GenerateResponseWithToolsParams,
+  responsesApiStream,
+  addMessageToConversationStream,
+} from "./processors/generateResponseWithTools";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWithMongoDbMetadata";
+import { makeFetchPageTool } from "./tools/fetchPage";
+import { makeCorsOptions } from "./corsOptions";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -96,7 +110,7 @@ export const braintrustLogger = makeBraintrustLogger({
   projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
 });
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") ?? [];
 
 export const openAiClient = wrapOpenAI(
   new AzureOpenAI({
@@ -196,6 +210,15 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
+export const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const loadPage = wrapTraced(pageStore.loadPage, {
+  name: "loadPageFromStore",
+});
+
 export const preprocessorOpenAiClient = wrapOpenAI(
   new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
@@ -228,45 +251,68 @@ const inputGuardrail = wrapTraced(
   }
 );
 
-export const generateResponse = wrapTraced(
-  makeVerifiedAnswerGenerateResponse({
-    findVerifiedAnswer,
-    onVerifiedAnswerFound: (verifiedAnswer) => {
-      return {
-        ...verifiedAnswer,
-        references: verifiedAnswer.references.map(addReferenceSourceType),
-      };
-    },
-    onNoVerifiedAnswerFound: wrapTraced(
-      makeGenerateResponseWithSearchTool({
-        languageModel,
-        systemMessage: systemPrompt,
-        makeReferenceLinks: makeMongoDbReferences,
-        inputGuardrail,
-        llmRefusalMessage:
-          conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        filterPreviousMessages: async (conversation) => {
-          return conversation.messages.filter((message) => {
-            return (
-              message.role === "user" ||
-              // Only include assistant messages that are not tool calls
-              (message.role === "assistant" && !message.toolCall)
-            );
-          });
-        },
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-        searchTool: makeSearchTool(findContent),
-        toolChoice: "auto",
-        maxSteps: 5,
-      }),
-      { name: "generateResponseWithSearchTool" }
-    ),
-  }),
-  {
-    name: "generateResponse",
-  }
-);
+export const filterPreviousMessages: FilterPreviousMessages = async (
+  conversation
+) => {
+  return conversation.messages.filter((message) => {
+    return (
+      message.role === "user" ||
+      // Only include assistant messages that are not tool calls
+      (message.role === "assistant" && !message.toolCall)
+    );
+  });
+};
+
+export const toolChoice = "auto";
+
+export const maxSteps = 5;
+
+interface MakeGenerateResponseParams {
+  responseWithSearchToolStream: GenerateResponseWithToolsParams["stream"];
+  verifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"];
+}
+
+export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
+  wrapTraced(
+    makeVerifiedAnswerGenerateResponse({
+      findVerifiedAnswer,
+      onVerifiedAnswerFound: (verifiedAnswer) => {
+        return {
+          ...verifiedAnswer,
+          references: verifiedAnswer.references.map(addReferenceSourceType),
+        };
+      },
+      stream: args?.verifiedAnswerStream,
+      onNoVerifiedAnswerFound: wrapTraced(
+        makeGenerateResponseWithTools({
+          languageModel,
+          systemMessage: systemPrompt,
+          inputGuardrail,
+          llmRefusalMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          filterPreviousMessages,
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
+          searchTool: makeSearchTool({
+            findContent,
+            makeReferences: makeMongoDbReferences,
+          }),
+          fetchPageTool: makeFetchPageTool({
+            loadPage,
+            findContent,
+            makeReferences: makeMongoDbReferences,
+          }),
+          toolChoice,
+          maxSteps,
+          stream: args?.responseWithSearchToolStream,
+        }),
+        { name: "generateResponseWithSearchTool" }
+      ),
+    }),
+    {
+      name: "generateResponse",
+    }
+  );
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
@@ -306,6 +352,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export async function closeDbConnections() {
   await mongodb.close();
+  await pageStore.close();
   await verifiedAnswerStore.close();
   await embeddedContentStore.close();
 }
@@ -391,19 +438,30 @@ export const config: AppConfig = {
       scrubbedMessageStore,
       braintrustLogger,
     }),
-    generateResponse,
+    generateResponse: makeGenerateResponse({
+      responseWithSearchToolStream: addMessageToConversationStream,
+      verifiedAnswerStream: addMessageToConversationVerifiedAnswerStream,
+    }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
     braintrustLogger,
   },
-  maxRequestTimeoutMs: 60000,
-  corsOptions: {
-    origin: allowedOrigins,
-    // Allow cookies from different origins to be sent to the server.
-    credentials: true,
+  responsesRouterConfig: {
+    createResponse: {
+      conversations,
+      generateResponse: makeGenerateResponse({
+        responseWithSearchToolStream: responsesApiStream,
+        verifiedAnswerStream: responsesVerifiedAnswerStream,
+      }),
+      supportedModels: ["mongodb-chat-latest"],
+      maxOutputTokens: 4000,
+      maxUserMessagesInConversation: 6,
+    },
   },
+  maxRequestTimeoutMs: 60000,
+  corsOptions: makeCorsOptions(isProduction, allowedOrigins),
   expressAppConfig: !isProduction
     ? async (app) => {
         const staticAssetsPath = path.join(__dirname, "..", "static");

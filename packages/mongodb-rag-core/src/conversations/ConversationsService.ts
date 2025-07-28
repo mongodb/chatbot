@@ -162,6 +162,10 @@ export interface Conversation<
   createdAt: Date;
   /** The hostname that the request originated from. */
   requestOrigin?: string;
+  /** The user id that the request originated from. */
+  userId?: string;
+  /** Whether to store the message's content data. */
+  storeMessageContent?: boolean;
 
   /**
     Custom data to include in the Conversation persisted to the database.
@@ -172,6 +176,8 @@ export interface Conversation<
 export type CreateConversationParams = {
   initialMessages?: SomeMessage[];
   customData?: ConversationCustomData;
+  userId?: string;
+  storeMessageContent?: boolean;
 };
 
 export type AddMessageParams<T extends SomeMessage> = Omit<T, "createdAt"> & {
@@ -213,6 +219,9 @@ export type AddManyConversationMessagesParams = {
 export interface FindByIdParams {
   _id: ObjectId;
 }
+export interface FindByMessageIdParams {
+  messageId: ObjectId;
+}
 export interface RateMessageParams {
   conversationId: ObjectId;
   messageId: ObjectId;
@@ -246,6 +255,11 @@ export interface ConversationsService {
   conversationConstants: ConversationConstants;
 
   /**
+    Initialize the conversations service.
+   */
+  init?: () => Promise<void>;
+
+  /**
     Create a new {@link Conversation}.
    */
   create: (params?: CreateConversationParams) => Promise<Conversation>;
@@ -263,6 +277,13 @@ export interface ConversationsService {
     params: AddManyConversationMessagesParams
   ) => Promise<Message[]>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
+
+  /**
+    Find a {@link Conversation} by the id of a {@link Message} in the conversation.
+   */
+  findByMessageId: ({
+    messageId,
+  }: FindByMessageIdParams) => Promise<Conversation | null>;
 
   /**
     Rate a {@link Message} in a {@link Conversation}.

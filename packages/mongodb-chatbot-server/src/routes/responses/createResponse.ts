@@ -596,9 +596,7 @@ const isInputMessage = (message: unknown): message is InputMessage =>
 const isUserMessage = (message: unknown): message is UserMessage =>
   isInputMessage(message) && message.role === "user";
 
-type UserMessageContent = string | Array<{ type: "input_text"; text: string }>;
-
-const formatUserMessageContent = (content: UserMessageContent): string => {
+const formatUserMessageContent = (content: InputMessage["content"]): string => {
   if (typeof content === "string") return content;
   return content[0].text;
 };

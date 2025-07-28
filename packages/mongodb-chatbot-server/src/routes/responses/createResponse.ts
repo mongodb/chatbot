@@ -229,6 +229,7 @@ export function makeCreateResponseRoute({
           user,
           input,
           stream,
+          instructions,
         },
       } = data;
 
@@ -315,13 +316,16 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
+      // Convert input to latestMessageText format
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({
-        // TODO: handle adding more input options here
-        // TODO: handle passing customData
         shouldStream: stream,
         latestMessageText,
+        customSystemPrompt: instructions,
+        // TODO: fix these
+        // clientContext ??
+        // customData ??
         conversation,
         dataStreamer,
         reqId,

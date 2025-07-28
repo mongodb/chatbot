@@ -39,6 +39,7 @@ import {
 } from "../tools/fetchPage";
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+import { systemPrompt } from "../systemPrompt";
 
 const latestMessageText = "Hello";
 
@@ -304,11 +305,11 @@ const makeGenerateResponseWithToolsArgs = () =>
     languageModel: makeMockLanguageModel(),
     llmNotWorkingMessage: mockLlmNotWorkingMessage,
     llmRefusalMessage: mockLlmRefusalMessage,
-    systemMessage: mockSystemMessage,
     searchTool: mockSearchTool,
     fetchPageTool: mockFetchPageTool,
     maxSteps: 5,
-    stream: mockStreamConfig
+    stream: mockStreamConfig,
+    makeSystemPrompt: () => systemPrompt,
   } satisfies Partial<GenerateResponseWithToolsParams>);
 
 const generateResponseBaseArgs = {

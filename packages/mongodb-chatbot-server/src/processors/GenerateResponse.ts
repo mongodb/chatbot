@@ -17,6 +17,7 @@ export interface GenerateResponseParams {
   dataStreamer?: DataStreamer;
   reqId: string;
   conversation: Conversation;
+  customSystemPrompt?: string;
 }
 
 export interface GenerateResponseReturnValue {

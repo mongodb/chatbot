@@ -189,6 +189,9 @@ export interface CreateResponseRouteParams {
   supportedModels: string[];
   maxOutputTokens: number;
   maxUserMessagesInConversation: number;
+  /** These metadata keys will persist in conversations and messages even if store is false.
+   * Otherwise, keys will have their values set to an empty string if store is false. */
+  alwaysAllowedMetadataKeys: string[];
 }
 
 export function makeCreateResponseRoute({
@@ -197,6 +200,7 @@ export function makeCreateResponseRoute({
   supportedModels,
   maxOutputTokens,
   maxUserMessagesInConversation,
+  alwaysAllowedMetadataKeys,
 }: CreateResponseRouteParams) {
   return async (req: ExpressRequest, res: ExpressResponse) => {
     const reqId = getRequestId(req);
@@ -262,6 +266,7 @@ export function makeCreateResponseRoute({
         metadata,
         userId: user,
         storeMessageContent: store,
+        alwaysAllowedMetadataKeys,
       });
 
       // --- CONVERSATION USER ID CHECK ---
@@ -331,6 +336,7 @@ export function makeCreateResponseRoute({
         input,
         messages,
         responseId,
+        alwaysAllowedMetadataKeys,
       });
 
       dataStreamer.streamResponses({
@@ -375,6 +381,7 @@ interface LoadConversationByMessageIdParams {
   metadata?: Record<string, string>;
   userId?: string;
   storeMessageContent: boolean;
+  alwaysAllowedMetadataKeys: string[];
 }
 
 const loadConversationByMessageId = async ({
@@ -384,10 +391,12 @@ const loadConversationByMessageId = async ({
   metadata,
   userId,
   storeMessageContent,
+  alwaysAllowedMetadataKeys,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     const formattedMetadata = formatMetadata({
       shouldStore: storeMessageContent,
+      alwaysAllowedMetadataKeys,
       metadata,
     });
 
@@ -475,6 +484,7 @@ interface AddMessagesToConversationParams {
   input: CreateResponseRequest["body"]["input"];
   messages: MessagesParam;
   responseId: ObjectId;
+  alwaysAllowedMetadataKeys: string[];
 }
 
 const saveMessagesToConversation = async ({
@@ -485,10 +495,18 @@ const saveMessagesToConversation = async ({
   input,
   messages,
   responseId,
+  alwaysAllowedMetadataKeys,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
-    ...convertInputToDBMessages(input, store, metadata),
-    ...messages.map((message) => formatMessage(message, store, metadata)),
+    ...convertInputToDBMessages(
+      input,
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    ),
+    ...messages.map((message) =>
+      formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
+    ),
   ];
   // handle setting the response id for the last message
   // this corresponds to the response id in the response stream
@@ -505,10 +523,18 @@ const saveMessagesToConversation = async ({
 const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
+  alwaysAllowedMetadataKeys: string[],
   metadata?: Record<string, string>
 ): MessagesParam => {
   if (typeof input === "string") {
-    return [formatMessage({ role: "user", content: input }, store, metadata)];
+    return [
+      formatMessage(
+        { role: "user", content: input },
+        store,
+        alwaysAllowedMetadataKeys,
+        metadata
+      ),
+    ];
   }
 
   return input.map((message) => {
@@ -521,21 +547,32 @@ const convertInputToDBMessages = (
       content = formatUserMessageContent(message.content);
     }
 
-    return formatMessage({ role, content }, store, metadata);
+    return formatMessage(
+      { role, content },
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    );
   });
 };
 
 const formatMessage = (
   message: MessagesParam[number],
   store: boolean,
+  alwaysAllowedMetadataKeys: string[],
   metadata?: Record<string, string>
 ): MessagesParam[number] => {
   // store a placeholder string if we're not storing message data
   const formattedContent = store ? message.content : "";
   // handle cleaning metadata fields if we're not storing message data
-  const formattedMetadata = formatMetadata({ shouldStore: store, metadata });
+  const formattedMetadata = formatMetadata({
+    shouldStore: store,
+    alwaysAllowedMetadataKeys,
+    metadata,
+  });
   const formattedCustomData = formatMetadata({
     shouldStore: store,
+    alwaysAllowedMetadataKeys,
     metadata: message.customData,
   });
 
@@ -547,22 +584,23 @@ const formatMessage = (
   };
 };
 
-/** These metadata keys will persist in conversations and messages even if store is false.
- * Otherwise, keys will have their values set to an empty string if store is false. */
-export const ALWAYS_ALLOWED_METADATA_KEYS = ["ip", "origin", "userAgent"];
-
 interface FormatMetadataParams {
   shouldStore: boolean;
+  alwaysAllowedMetadataKeys: string[];
   metadata?: Record<string, unknown>;
 }
 
-const formatMetadata = ({ shouldStore, metadata }: FormatMetadataParams) => {
+const formatMetadata = ({
+  shouldStore,
+  alwaysAllowedMetadataKeys,
+  metadata,
+}: FormatMetadataParams) => {
   if (shouldStore || !metadata) return metadata;
 
   return Object.fromEntries(
     Object.entries(metadata).map(([key, value]) => [
       key,
-      ALWAYS_ALLOWED_METADATA_KEYS.includes(key) ? value : "",
+      alwaysAllowedMetadataKeys.includes(key) ? value : "",
     ])
   );
 };

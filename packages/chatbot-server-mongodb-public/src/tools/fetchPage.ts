@@ -110,18 +110,30 @@ async function getPageContent(
     return { text: searchFallbackText };
   }
   logger.info(`${FETCH_PAGE_TOOL_NAME} found a page for URL ${normalizedUrl}.`);
+  const referenceContent: Parameters<typeof makeReferences>[0][number] = {
+    url: page.url,
+    text: page.body,
+    metadata: {
+      ...page.metadata,
+      sourceName: page.sourceName,
+      pageTitle: page.title,
+    },
+    sourceName: page.sourceName,
+    updated: page.updated,
+  };
+
   if (page.body.length < pageLengthCutoff) {
     // Page content is short enough, return it directly
     return {
       text: page.body,
-      references: makeReferences([page]),
+      references: makeReferences([referenceContent]),
     };
   }
   // Page content is too long, do truncate-search
   logger.info(
     `Page for ${normalizedUrl} is very long, truncating and searching for most relevant content`
   );
-  const references = makeReferences([page]);
+  const references = makeReferences([referenceContent]);
   const mostRelevantChunks = await findContent({
     query: query,
     filters: { url: normalizedUrl },

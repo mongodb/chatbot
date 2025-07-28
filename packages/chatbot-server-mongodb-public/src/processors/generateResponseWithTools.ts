@@ -37,13 +37,14 @@ import {
   SearchTool,
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
+import { MakeSystemPrompt } from "../systemPrompt";
 
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
-  systemMessage: SystemMessage;
+  makeSystemPrompt: MakeSystemPrompt;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
     Required tool for performing content search and gathering {@link References}
@@ -171,7 +172,7 @@ export function makeGenerateResponseWithTools({
   llmNotWorkingMessage,
   llmRefusalMessage,
   inputGuardrail,
-  systemMessage,
+  makeSystemPrompt,
   filterPreviousMessages,
   additionalTools,
   maxSteps,
@@ -188,6 +189,7 @@ export function makeGenerateResponseWithTools({
     shouldStream,
     reqId,
     dataStreamer,
+    customSystemPrompt,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -219,7 +221,7 @@ export function makeGenerateResponseWithTools({
       const generationArgs = {
         model: languageModel,
         messages: [
-          systemMessage,
+          makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies CoreMessage[],

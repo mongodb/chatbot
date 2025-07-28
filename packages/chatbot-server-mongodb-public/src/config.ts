@@ -66,6 +66,7 @@ import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
 
@@ -276,7 +277,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
       onNoVerifiedAnswerFound: wrapTraced(
         makeGenerateResponseWithTools({
           languageModel,
-          systemMessage: systemPrompt,
+          makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
           inputGuardrail,
           llmRefusalMessage:
             conversations.conversationConstants.NO_RELEVANT_CONTENT,

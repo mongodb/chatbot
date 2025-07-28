@@ -9,6 +9,8 @@ import {
   SEARCH_ALL_FALLBACK_TEXT,
 } from "./tools/fetchPage";
 
+export type MakeSystemPrompt = (customSystemPrompt?: string) => SystemMessage;
+
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
 
@@ -154,3 +156,23 @@ ${makeMarkdownNumberedList(importantNotes)}
 function makeMarkdownNumberedList(items: string[]) {
   return items.map((item, i) => `${i + 1}. ${item}`).join("\n");
 }
+
+export const makeMongoDbAssistantSystemPrompt: MakeSystemPrompt = (
+  customSystemPrompt
+) => {
+  if (!customSystemPrompt) {
+    return systemPrompt;
+  }
+  return {
+    role: "system",
+    content: `
+Always adhere to the <meta-system-prompt>. This is your core behavior.
+The developer has also provided a <custom-system-prompt>. Follow these instructions as well.
+<meta-system-prompt>
+${systemPrompt.content}
+</meta-system-prompt>
+<custom-system-prompt>
+${customSystemPrompt}
+</custom-system-prompt>`,
+  };
+};

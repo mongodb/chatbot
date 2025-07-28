@@ -2,7 +2,7 @@ import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
 import { makeGenerateMongoshCodeAgenticTask } from "../../generateDriverCode/generateMongoshCodeAgentic";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import { MODELS } from "../../../benchmarkModels";
 import {
@@ -54,9 +54,7 @@ async function main() {
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
-            }).chat(llmOptions.model, {
-              structuredOutputs: true,
-            })
+            }).chat(llmOptions.model)
           ),
         }),
         metadata: {

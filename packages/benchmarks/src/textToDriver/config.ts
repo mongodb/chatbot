@@ -11,7 +11,7 @@ import { ReasonableOutput, SuccessfulExecution } from "./evaluationMetrics";
 import { annotatedDbSchemas } from "./generateDriverCode/annotatedDbSchemas";
 import { makeLlmOptions } from "./bin/mongoshBenchmarks/config";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { makeGenerateMongoshCodeAgenticTask } from "./generateDriverCode/generateMongoshCodeAgentic";
 import { makeGenerateMongoshCodePromptCompletionTask } from "./generateDriverCode/generateMongoshCodePromptCompletion";
 import { makeGenerateMongoshCodeToolCallTask } from "./generateDriverCode/generateMongoshCodeToolCall";

@@ -5,7 +5,7 @@ import {
   SuccessfulExecution,
 } from "../../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../../generateDriverCode/annotatedDbSchemas";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import {
   BRAINTRUST_API_KEY,
@@ -68,9 +68,7 @@ async function main() {
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
-            }).chat(llmOptions.model, {
-              structuredOutputs: true,
-            })
+            })(llmOptions.model)
           ),
           schemaStrategy: experiment.schemaStrategy,
         }),

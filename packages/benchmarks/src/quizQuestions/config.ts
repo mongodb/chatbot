@@ -1,5 +1,4 @@
-import { wrapOpenAI } from "mongodb-rag-core/braintrust";
-import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
+import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import { getQuizQuestionEvalCasesFromBraintrust } from "./getQuizQuestionEvalCasesFromBraintrust";
 import {
   QuizQuestionEvalCaseInput,
@@ -8,10 +7,9 @@ import {
   CorrectQuizAnswer,
   makeQuizQuestionTask,
 } from "./QuizQuestionEval";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { mongoDbQuizQuestionExamples } from "./mongoDbQuizQuestionExamples";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 
 export const projectName = "mongodb-multiple-choice";
 export const datasetName = "university-quiz-badge-questions";

@@ -16,8 +16,8 @@ import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import { makeReferenceAlignment } from "./metrics";
 import { getModelsFromLabels } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { createOpenAI } from "@ai-sdk/openai";
-import { CoreMessage } from "ai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { CoreMessage } from "mongodb-rag-core/aiSdk";
 
 export const systemMessage = {
   role: "system",

@@ -49,6 +49,7 @@ function runRewriteNlQueryEval({
   dataset: RewriteNlQueryDatasetEntry[];
 }) {
   const rewriteNlQuery = makeRewriteNlQueryPrompt(model);
+  const modelId = (model as Exclude<LanguageModel, string>).modelId;
   return Eval<
     RewriteNlQueryInput,
     RewriteNlQueryOutput,
@@ -57,9 +58,9 @@ function runRewriteNlQueryEval({
     data: dataset,
     task: rewriteNlQuery,
     scores: [correctRewriteClassification],
-    experimentName: `rewrite-nl-query-${model.modelId}`,
+    experimentName: `rewrite-nl-query-${modelId}`,
     metadata: {
-      model: model.modelId,
+      model: modelId,
     },
   });
 }

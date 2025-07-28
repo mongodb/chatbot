@@ -2,7 +2,7 @@ import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "mongodb-rag-core/aiSdk";
-
+import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
@@ -55,9 +55,11 @@ async function main() {
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
-          openai: createOpenAI({
-            ...(await getOpenAiEndpointAndApiKey(model)),
-          })(llmOptions.model),
+          openai: wrapAISDKModel(
+            createOpenAI({
+              ...(await getOpenAiEndpointAndApiKey(model)),
+            })(llmOptions.model)
+          ),
           systemPromptStrategy: experiment.systemPromptStrategy,
           schemaStrategy: experiment.schemaStrategy,
         }),

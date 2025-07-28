@@ -11,7 +11,6 @@ import {
   type ResponseStreamInProgress,
   type ResponseStreamCompleted,
   type ResponseStreamError,
-  type UserMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
@@ -30,6 +29,8 @@ export const ERR_MSG = {
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_TEXT_ARRAY:
+    'Input content array only supports "input_text" type with exactly one element.',
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -53,19 +54,34 @@ export const ERR_MSG = {
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
 };
 
+const InputMessageSchema = z.object({
+  type: z.literal("message").optional(),
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.union([
+    z.string(),
+    z
+      .array(
+        z.object({
+          type: z.literal("input_text"),
+          text: z.string(),
+        })
+      )
+      .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
+  ]),
+});
+
+type InputMessage = z.infer<typeof InputMessageSchema>;
+type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
+
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z.string().optional(),
   input: z.union([
-    z.string().refine((input) => input.length > 0, ERR_MSG.INPUT_STRING),
+    z.string().nonempty(ERR_MSG.INPUT_STRING),
     z
       .array(
         z.union([
-          z.object({
-            type: z.literal("message").optional(),
-            role: z.enum(["user", "assistant", "system"]),
-            content: z.string(),
-          }),
+          InputMessageSchema,
           // function tool call
           z.object({
             type: z.literal("function_call"),
@@ -97,7 +113,7 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, ERR_MSG.INPUT_ARRAY),
+      .nonempty(ERR_MSG.INPUT_ARRAY),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -114,15 +130,15 @@ const CreateResponseRequestBodySchema = z.object({
   store: z
     .boolean()
     .optional()
-    .describe("Whether to store the response in the conversation.")
-    .default(true),
+    .default(true)
+    .describe("Whether to store the response in the conversation."),
   stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
   temperature: z
     .number()
-    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
     .optional()
-    .describe("Temperature for the model. Defaults to 0.")
-    .default(0),
+    .default(0)
+    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
+    .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
       z.enum(["none", "auto", "required"]),
@@ -134,8 +150,8 @@ const CreateResponseRequestBodySchema = z.object({
         .describe("Function tool choice"),
     ])
     .optional()
-    .describe("Tool choice for the model. Defaults to 'auto'.")
-    .default("auto"),
+    .default("auto")
+    .describe("Tool choice for the model. Defaults to 'auto'."),
   tools: z
     .array(
       z.object({
@@ -491,10 +507,14 @@ const convertInputToDBMessages = (
   }
 
   return input.map((message) => {
-    // handle function tool calls and outputs
-    const role = message.type === "message" ? message.role : "system";
-    const content =
-      message.type === "message" ? message.content : message.type ?? "";
+    // set default role and content for function tool calls and outputs
+    let role: MessagesParam[number]["role"] = "system";
+    let content = message.type ?? "";
+    // set role and content for all other messages
+    if (message.type === "message") {
+      role = message.role;
+      content = formatUserMessageContent(message.content);
+    }
 
     return formatMessage({ role, content }, store, metadata);
   });
@@ -559,19 +579,24 @@ const convertInputToLatestMessageText = (
     return input;
   }
 
-  const lastUserMessageString = input.findLast(
-    (message): message is UserMessage =>
-      (message.type === "message" || !message.type) &&
-      message.role === "user" &&
-      !!message.content
-  )?.content;
-
-  if (!lastUserMessageString) {
+  const lastUserMessage = input.findLast(isUserMessage);
+  if (!lastUserMessage) {
     throw makeBadRequestError({
       error: new Error("No user message found in input"),
       headers,
     });
   }
 
-  return lastUserMessageString;
+  return formatUserMessageContent(lastUserMessage.content);
+};
+
+const isInputMessage = (message: unknown): message is InputMessage =>
+  InputMessageSchema.safeParse(message).success;
+
+const isUserMessage = (message: unknown): message is UserMessage =>
+  isInputMessage(message) && message.role === "user";
+
+const formatUserMessageContent = (content: InputMessage["content"]): string => {
+  if (typeof content === "string") return content;
+  return content[0].text;
 };

@@ -85,6 +85,20 @@ describe("Responses API with OpenAI Client", () => {
       await expectValidResponses({ stream, requestBody });
     });
 
+    it("Should return responses given a message array with input_text content type", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "What is MongoDB?" }],
+          },
+        ],
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
+    });
+
     it("Should return responses given a valid request with instructions", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         instructions: "You are a helpful chatbot.",
@@ -184,24 +198,16 @@ describe("Responses API with OpenAI Client", () => {
       const stream = createResponseRequestStream({
         input: "",
       });
-      expectInvalidResponses({
+
+      await expectInvalidResponses({
         stream,
         errorMessage: "Input must be a non-empty string",
-      });
-    });
-    it("Should return error responses if empty message array", async () => {
-      const stream = createResponseRequestStream({
-        input: [],
-      });
-      expectInvalidResponses({
-        stream,
-        errorMessage:
-          "Path: body.input - Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
       });
     });
 
     it("Should return error responses if empty message array", async () => {
       const stream = createResponseRequestStream({
+        // @ts-expect-error - empty array is valid input
         input: [],
       });
 

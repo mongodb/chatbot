@@ -203,6 +203,8 @@ export const mockGenerateResponsesStream: GenerateResponse = async ({
 
 export const MONGO_CHAT_MODEL = "mongodb-chat-latest";
 
+export const TEST_ALWAYS_ALLOWED_METADATA_KEYS = ["ip", "origin"];
+
 export const basicResponsesRequestBody = {
   model: MONGO_CHAT_MODEL,
   input: "What is MongoDB?",
@@ -222,7 +224,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
         supportedModels: [MONGO_CHAT_MODEL],
         maxOutputTokens: 4000,
         maxUserMessagesInConversation: 6,
-        alwaysAllowedMetadataKeys: ["ip"],
+        alwaysAllowedMetadataKeys: TEST_ALWAYS_ALLOWED_METADATA_KEYS,
       },
     },
     maxRequestTimeoutMs: 30000,

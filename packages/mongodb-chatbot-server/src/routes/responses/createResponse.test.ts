@@ -13,7 +13,10 @@ import {
   makeCreateResponseRequestStream,
   type Stream,
 } from "../../test/testHelpers";
-import { makeDefaultConfig } from "../../test/testConfig";
+import {
+  TEST_ALWAYS_ALLOWED_METADATA_KEYS,
+  makeDefaultConfig,
+} from "../../test/testConfig";
 import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
 
@@ -45,9 +48,14 @@ describe("POST /responses", () => {
   });
 
   const makeClientAndRequest = (
-    body?: Partial<CreateResponseRequest["body"]>
+    body?: Partial<CreateResponseRequest["body"]>,
+    overrideOrigin?: string,
+    overrideIpAddress?: string
   ) => {
-    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const openAiClient = makeOpenAiClient(
+      overrideOrigin ?? origin,
+      overrideIpAddress ?? ipAddress
+    );
     return makeCreateResponseRequestStream(openAiClient, body);
   };
 
@@ -320,12 +328,13 @@ describe("POST /responses", () => {
       });
     });
 
-    it("Should store conversation messages when `store: true`", async () => {
+    it("Should store conversation messages with all metadata keys when `store: true`", async () => {
       const store = true;
       const userId = "customUserId";
       const metadata = {
-        ip: "127.0.0.1",
-        reason: "some-reason",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please STORE me in this scenario",
       };
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
@@ -352,16 +361,18 @@ describe("POST /responses", () => {
       });
     });
 
-    it("Should not store conversation messages when `store: false`", async () => {
+    it("Should not store message content or metadata fields (except alwaysAllowedMetadataKeys) when `store: false`", async () => {
       const store = false;
       const userId = "customUserId";
       const metadata = {
-        ip: "127.0.0.1",
-        reason: "some-reason",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please REMOVE me in this scenario",
       };
       const expectedMetadata = {
-        ip: "127.0.0.1",
-        reason: "",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "",
       };
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
@@ -386,6 +397,60 @@ describe("POST /responses", () => {
         store,
         metadata: expectedMetadata,
       });
+    });
+
+    it("Should not store message content or ANY metadata fields when `store: false` and `alwaysAllowedMetadataKeys` is empty", async () => {
+      const customConfig = await makeDefaultConfig();
+      const testPort = 5201; // Use a different port
+      customConfig.responsesRouterConfig.createResponse.alwaysAllowedMetadataKeys =
+        [];
+      const {
+        server: customServer,
+        ipAddress: customIpAddress,
+        origin: customOrigin,
+      } = await makeTestLocalServer(customConfig, testPort);
+
+      const store = false;
+      const userId = "customUserId";
+      const metadata = {
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please REMOVE all fields in this scenario",
+      };
+      const expectedMetadata = {
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "",
+        notAllowedMetadataKey: "",
+      };
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store,
+        metadata,
+        user: userId,
+      };
+      const stream = await makeClientAndRequest(
+        requestBody,
+        customOrigin,
+        customIpAddress
+      );
+
+      const results = await expectValidResponses({ requestBody, stream });
+
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
+
+      expect(updatedConversation.storeMessageContent).toEqual(store);
+      expectDefaultMessageContent({
+        updatedConversation,
+        userId,
+        store,
+        metadata: expectedMetadata,
+      });
+
+      customServer.close();
     });
 
     it("Should store function_call messages when `store: true`", async () => {

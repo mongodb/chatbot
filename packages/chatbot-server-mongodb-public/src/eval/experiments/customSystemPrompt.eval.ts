@@ -190,7 +190,7 @@ async function conversationEval() {
         apiVersion: OPENAI_API_VERSION,
       },
     },
-    generateResponse: makeGenerateResponse(responsesApiStream),
+    generateResponse: makeGenerateResponse(),
   });
 }
 conversationEval().then(() => {

@@ -336,7 +336,6 @@ export function makeGenerateResponseWithTools({
 
           return result;
         } catch (error: unknown) {
-          console.error(error);
           // If aborted due to guardrail, return null
           if (generationController.signal.aborted && guardrailRejected) {
             return null;

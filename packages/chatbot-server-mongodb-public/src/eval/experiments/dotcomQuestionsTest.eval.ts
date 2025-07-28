@@ -41,7 +41,7 @@ async function conversationEval() {
         apiVersion: OPENAI_API_VERSION,
       },
     },
-    generateResponse: makeGenerateResponse(addMessageToConversationStream),
+    generateResponse: makeGenerateResponse(),
   });
 }
 conversationEval();

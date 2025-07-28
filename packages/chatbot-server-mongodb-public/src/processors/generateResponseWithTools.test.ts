@@ -39,6 +39,7 @@ import {
 } from "../tools/fetchPage";
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+import { systemPrompt } from "../systemPrompt";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 const latestMessageText = "Hello";

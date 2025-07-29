@@ -511,16 +511,17 @@ const convertInputToDBMessages = (
   }
 
   return input.map((message) => {
-    // set default role and content for function tool calls and outputs
-    let role: MessagesParam[number]["role"] = "system";
-    let content = message.type ?? "";
-    // set role and content for all other messages
-    if (message.type === "message") {
-      role = message.role;
-      content = formatUserMessageContent(message.content);
+    if (isInputMessage(message)) {
+      const role = message.role;
+      const content = formatUserMessageContent(message.content);
+      return formatMessage({ role, content }, store, metadata);
     }
-
-    return formatMessage({ role, content }, store, metadata);
+    // handle function tool calls and outputs
+    const role = "tool";
+    const name = message.type === "function_call" ? message.name : message.type;
+    const content =
+      message.type === "function_call" ? message.arguments : message.output;
+    return formatMessage({ role, name, content }, store, metadata);
   });
 };
 

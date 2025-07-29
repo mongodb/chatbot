@@ -1,7 +1,5 @@
 import Router from "express-promise-router";
-import type { ConversationsService } from "mongodb-rag-core";
 import { makeCreateResponseRoute } from "./createResponse";
-import type { GenerateResponse } from "../../processors";
 import { getRequestId } from "../../utils";
 import {
   makeRateLimit,
@@ -10,19 +8,14 @@ import {
   type SlowDownOptions,
 } from "../../middleware";
 import { makeRateLimitError, sendErrorResponse } from "./errors";
+import type { CreateResponseRouteParams } from "./createResponse";
 
 export interface ResponsesRouterParams {
   rateLimitConfig?: {
     routerRateLimitConfig?: RateLimitOptions;
     routerSlowDownConfig?: SlowDownOptions;
   };
-  createResponse: {
-    conversations: ConversationsService;
-    generateResponse: GenerateResponse;
-    supportedModels: string[];
-    maxOutputTokens: number;
-    maxUserMessagesInConversation: number;
-  };
+  createResponse: CreateResponseRouteParams;
 }
 
 /**

@@ -189,8 +189,8 @@ export interface CreateResponseRouteParams {
   supportedModels: string[];
   maxOutputTokens: number;
   maxUserMessagesInConversation: number;
-  /** These metadata keys will persist in conversations and messages even if store is false.
-   * Otherwise, keys will have their values set to an empty string if store is false. */
+  /** These metadata keys will persist in conversations and messages even if `Conversation.store: false`.
+   * Otherwise, keys will have their values set to an empty string `""` if `Conversation.store: false`. */
   alwaysAllowedMetadataKeys: string[];
 }
 

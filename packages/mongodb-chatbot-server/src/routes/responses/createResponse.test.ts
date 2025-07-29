@@ -18,7 +18,15 @@ import {
   TEST_ALWAYS_ALLOWED_METADATA_KEYS,
   makeDefaultConfig,
 } from "../../test/testConfig";
-import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
+import {
+  ERR_MSG,
+  MAX_INPUT_LENGTH,
+  MAX_INPUT_ARRAY_LENGTH,
+  MAX_INSTRUCTIONS_LENGTH,
+  MAX_TOOLS,
+  MAX_TOOLS_CONTENT_LENGTH,
+  type CreateResponseRequest,
+} from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
 
 jest.setTimeout(100000);
@@ -638,6 +646,102 @@ describe("POST /responses", () => {
       await expectInvalidResponses({
         stream,
         message: `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`,
+      });
+    });
+
+    it("Should return error responses if instructions are too long", async () => {
+      const stream = await makeClientAndRequest({
+        instructions: "a".repeat(MAX_INSTRUCTIONS_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.instructions - ${ERR_MSG.INSTRUCTIONS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if string input is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: "a".repeat(MAX_INPUT_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array has too many items", async () => {
+      const input = Array.from(
+        { length: MAX_INPUT_ARRAY_LENGTH + 1 },
+        (_, i) => ({
+          type: "message" as const,
+          role: "user" as const,
+          content: `Message ${i}`,
+        })
+      );
+      const stream = await makeClientAndRequest({
+        input: input as any,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${ERR_MSG.INPUT_ARRAY_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array content is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            type: "message" as const,
+            role: "user" as const,
+            content: "a".repeat(MAX_INPUT_LENGTH + 1),
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools array has too many items", async () => {
+      const tools = Array.from({ length: MAX_TOOLS + 1 }, (_, i) => ({
+        type: "function" as const,
+        strict: true,
+        name: `tool_${i}`,
+        description: `Tool ${i}`,
+        parameters: { type: "object", properties: {} },
+      }));
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${ERR_MSG.TOOLS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools content is too long", async () => {
+      const tools = [
+        {
+          type: "function" as const,
+          strict: true,
+          name: "large_tool",
+          description: "a".repeat(MAX_TOOLS_CONTENT_LENGTH),
+          parameters: { type: "object", properties: {} },
+        },
+      ];
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${ERR_MSG.TOOLS_CONTENT_LENGTH}`,
       });
     });
 

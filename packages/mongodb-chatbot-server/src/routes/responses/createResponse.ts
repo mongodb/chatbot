@@ -25,12 +25,28 @@ import {
   type SomeOpenAIAPIError,
 } from "./errors";
 
+export const MIN_INSTRUCTIONS_LENGTH = 1;
+export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
+
+export const MIN_INPUT_LENGTH = 1;
+export const MAX_INPUT_LENGTH = 250000; // ~50,000 tokens
+
+export const MAX_INPUT_ARRAY_LENGTH = 50;
+
+export const MAX_TOOLS = 10;
+export const MAX_TOOLS_CONTENT_LENGTH = 25000; // ~5,000 tokens
+
 export const ERR_MSG = {
+  INSTRUCTIONS_LENGTH: `Instructions must be between ${MIN_INSTRUCTIONS_LENGTH} and ${MAX_INSTRUCTIONS_LENGTH} characters, inclusive.`,
   INPUT_STRING: "Input must be a non-empty string",
+  INPUT_LENGTH: `Input must be between ${MIN_INPUT_LENGTH} and ${MAX_INPUT_LENGTH} characters, inclusive.`,
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_ARRAY_LENGTH: `Input array must have at most ${MAX_INPUT_ARRAY_LENGTH} element(s).`,
   INPUT_TEXT_ARRAY:
     'Input content array only supports "input_text" type with exactly one element.',
+  TOOLS_LENGTH: `Input tools array must have at most ${MAX_TOOLS} element(s).`,
+  TOOLS_CONTENT_LENGTH: `Input tools array must have at most ${MAX_TOOLS_CONTENT_LENGTH} characters, inclusive.`,
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -75,9 +91,16 @@ type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
 
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
-  instructions: z.string().optional(),
+  instructions: z
+    .string()
+    .min(MIN_INSTRUCTIONS_LENGTH, ERR_MSG.INSTRUCTIONS_LENGTH)
+    .max(MAX_INSTRUCTIONS_LENGTH, ERR_MSG.INSTRUCTIONS_LENGTH)
+    .optional(),
   input: z.union([
-    z.string().nonempty(ERR_MSG.INPUT_STRING),
+    z
+      .string()
+      .min(MIN_INPUT_LENGTH, ERR_MSG.INPUT_LENGTH)
+      .max(MAX_INPUT_LENGTH, ERR_MSG.INPUT_LENGTH),
     z
       .array(
         z.union([
@@ -113,7 +136,12 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .nonempty(ERR_MSG.INPUT_ARRAY),
+      .nonempty(ERR_MSG.INPUT_ARRAY)
+      .max(MAX_INPUT_ARRAY_LENGTH, ERR_MSG.INPUT_ARRAY_LENGTH)
+      .refine(
+        (input) => JSON.stringify(input).length <= MAX_INPUT_LENGTH,
+        ERR_MSG.INPUT_LENGTH
+      ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -135,9 +163,10 @@ const CreateResponseRequestBodySchema = z.object({
   stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
   temperature: z
     .number()
+    .min(0, ERR_MSG.TEMPERATURE)
+    .max(0, ERR_MSG.TEMPERATURE)
     .optional()
     .default(0)
-    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
     .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
@@ -165,6 +194,11 @@ const CreateResponseRequestBodySchema = z.object({
             "A JSON schema object describing the parameters of the function."
           ),
       })
+    )
+    .max(MAX_TOOLS, ERR_MSG.TOOLS_LENGTH)
+    .refine(
+      (tools) => JSON.stringify(tools).length <= MAX_TOOLS_CONTENT_LENGTH,
+      ERR_MSG.TOOLS_CONTENT_LENGTH
     )
     .optional()
     .describe("Tools for the model to use."),

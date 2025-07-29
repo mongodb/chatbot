@@ -214,7 +214,37 @@ describe("Responses API with OpenAI Client", () => {
         },
       };
       const stream = await createResponseRequestStream(requestBody);
-      // TODO: expect that the response uses the sample tool
+
+      // Collect all responses
+      const responses: any[] = [];
+      for await (const event of stream) {
+        responses.push(event);
+      }
+
+      // Find function call events
+      const functionCallEvents = responses.filter(
+        (r) =>
+          r.type === "response.function_call_arguments.delta" ||
+          r.type === "response.function_call_arguments.done"
+      );
+
+      // Verify that the specific tool was called
+      expect(functionCallEvents.length).toBeGreaterThan(0);
+
+      // Check that the function call arguments done event contains the correct tool name
+      const functionCallDoneEvent = responses.find(
+        (r) => r.type === "response.function_call_arguments.done"
+      );
+      expect(functionCallDoneEvent).toBeDefined();
+
+      // Verify the tool name matches our sample tool
+      const outputItemEvents = responses.filter(
+        (r) =>
+          r.type === "response.output_item.added" &&
+          r.item?.type === "function_call"
+      );
+      expect(outputItemEvents.length).toBeGreaterThan(0);
+      expect(outputItemEvents[0].item.name).toBe(sampleTool.name);
     });
   });
 

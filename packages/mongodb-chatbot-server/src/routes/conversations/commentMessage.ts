@@ -136,11 +136,15 @@ export function makeCommentMessageRoute({
         });
       }
 
+      const shouldStoreComment =
+        conversationInDb.storeMessageContent === true ||
+        conversationInDb.storeMessageContent === undefined;
+
       try {
         await conversations.commentMessage({
           conversationId,
           messageId,
-          comment,
+          comment: shouldStoreComment ? comment : "",
         });
 
         res.sendStatus(204);

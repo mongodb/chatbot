@@ -1,8 +1,8 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { makeGenerateMongoshCodeToolCallTask } from "../../generateDriverCode/generateMongoshCodeToolCall";
 import {
   BRAINTRUST_API_KEY,
@@ -57,11 +57,12 @@ async function main() {
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
-          openai: wrapAISDKModel(
-            createOpenAI({
+          openai: wrapLanguageModel({
+            model: createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
-            }).chat(llmOptions.model)
-          ),
+            }).chat(llmOptions.model),
+            middleware: [BraintrustMiddleware({ debug: true })],
+          }),
           systemPromptStrategy: experiment.systemPromptStrategy,
           schemaStrategy: experiment.schemaStrategy,
           fewShot: experiment.fewShot,

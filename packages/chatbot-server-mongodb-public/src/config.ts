@@ -35,11 +35,7 @@ import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
 import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
-import {
-  wrapOpenAI,
-  wrapTraced,
-  wrapAISDKModel,
-} from "mongodb-rag-core/braintrust";
+import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
@@ -61,10 +57,13 @@ import {
   responsesApiStream,
   addMessageToConversationStream,
 } from "./processors/generateResponseWithTools";
-import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
+import {
+  makeBraintrustLogger,
+  BraintrustMiddleware,
+} from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure } from "mongodb-rag-core/aiSdk";
+import { createAzure, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
@@ -225,13 +224,15 @@ const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
 });
-const languageModel = wrapAISDKModel(
-  azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT)
-);
+const languageModel = wrapLanguageModel({
+  model: azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT),
+  middleware: [BraintrustMiddleware({ debug: true })],
+});
 
-const guardrailLanguageModel = wrapAISDKModel(
-  azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT)
-);
+const guardrailLanguageModel = wrapLanguageModel({
+  model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),
+  middleware: [BraintrustMiddleware({ debug: true })],
+});
 const inputGuardrail = wrapTraced(
   makeMongoDbInputGuardrail({
     model: guardrailLanguageModel,
@@ -389,9 +390,10 @@ export const config: AppConfig = {
         braintrustLogger,
         embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         scrubbedMessageStore,
-        analyzerModel: wrapAISDKModel(
-          azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT)
-        ),
+        analyzerModel: wrapLanguageModel({
+          model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+          middleware: [BraintrustMiddleware({ debug: true })],
+        }),
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,

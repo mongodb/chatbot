@@ -8,8 +8,8 @@ import {
   makeQuizQuestionTask,
 } from "./QuizQuestionEval";
 import { mongoDbQuizQuestionExamples } from "./mongoDbQuizQuestionExamples";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const projectName = "mongodb-multiple-choice";
 export const datasetName = "university-quiz-badge-questions";
@@ -51,12 +51,13 @@ export const multipleChoiceBenchmarkConfig: BenchmarkConfig<
     answer_question: {
       description: "Answer multiple choice questions about MongoDB",
       taskFunc: (modelProvider, modelConfig) => {
-        const model = wrapAISDKModel(
-          createOpenAI({
+        const model = wrapLanguageModel({
+          model: createOpenAI({
             apiKey: modelProvider.apiKey,
             baseURL: modelProvider.baseUrl,
-          }).chat(modelConfig.deployment)
-        );
+          }).chat(modelConfig.deployment),
+          middleware: [BraintrustMiddleware({ debug: true })],
+        });
         const promptOptions = {
           subject: "MongoDB",
           quizQuestionExamples: mongoDbQuizQuestionExamples,

@@ -64,6 +64,20 @@ describe("Responses API with OpenAI Client", () => {
     });
   };
 
+  const sampleTool = {
+    type: "function",
+    strict: true,
+    name: "test-tool",
+    description: "A tool for testing.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+      },
+      required: ["query"],
+    },
+  } as const;
+
   describe("Valid requests", () => {
     it("Should return responses given a string input", async () => {
       const stream = await createResponseRequestStream();
@@ -168,7 +182,7 @@ describe("Responses API with OpenAI Client", () => {
       await expectValidResponses({ stream, requestBody });
     });
 
-    it("Should return responses with tools and tool_choice", async () => {
+    it("Should return responses with tools and tool_choice=auto", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [
           {
@@ -190,6 +204,17 @@ describe("Responses API with OpenAI Client", () => {
       const stream = await createResponseRequestStream(requestBody);
 
       await expectValidResponses({ stream, requestBody });
+    });
+    it("Should return correct tool choice for tool_choice=someTool", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        tools: [sampleTool],
+        tool_choice: {
+          type: "function",
+          name: sampleTool.name,
+        },
+      };
+      const stream = await createResponseRequestStream(requestBody);
+      // TODO: expect that the response uses the sample tool
     });
   });
 

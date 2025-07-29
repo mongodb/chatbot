@@ -141,7 +141,7 @@ const CreateResponseRequestBodySchema = z.object({
     .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
-      z.enum(["none", "auto", "required"]),
+      z.literal("auto"),
       z
         .object({
           type: z.literal("function"),

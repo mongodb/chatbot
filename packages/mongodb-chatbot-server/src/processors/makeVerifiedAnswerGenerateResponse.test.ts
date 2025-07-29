@@ -163,7 +163,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
         true,
         createMockDataStreamer()
       ),
-      toolChoice: "required",
+      toolChoice: "auto",
     });
 
     expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);

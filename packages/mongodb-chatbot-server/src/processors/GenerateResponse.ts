@@ -20,11 +20,7 @@ export interface GenerateResponseParams {
   conversation: Conversation;
   customSystemPrompt?: string;
   toolDefinitions?: OpenAI.FunctionDefinition[];
-  toolChoice?:
-    | "none"
-    | "auto"
-    | "required"
-    | { type: "function"; name: string };
+  toolChoice?: "auto" | { type: "function"; name: string };
 }
 
 export interface GenerateResponseReturnValue {

@@ -10,8 +10,8 @@ import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
 import { ReasonableOutput, SuccessfulExecution } from "./evaluationMetrics";
 import { annotatedDbSchemas } from "./generateDriverCode/annotatedDbSchemas";
 import { makeLlmOptions } from "./bin/mongoshBenchmarks/config";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeGenerateMongoshCodeAgenticTask } from "./generateDriverCode/generateMongoshCodeAgentic";
 import { makeGenerateMongoshCodePromptCompletionTask } from "./generateDriverCode/generateMongoshCodePromptCompletion";
 import { makeGenerateMongoshCodeToolCallTask } from "./generateDriverCode/generateMongoshCodeToolCall";
@@ -53,12 +53,13 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions: makeLlmOptions(modelConfig),
-          openai: wrapAISDKModel(
-            createOpenAI({
+          openai: wrapLanguageModel({
+            model: createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment)
-          ),
+            }).chat(modelConfig.deployment),
+            middleware: [BraintrustMiddleware({ debug: true })],
+          }),
         });
       },
     },
@@ -74,12 +75,13 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
           systemPromptStrategy: "default",
           databaseInfos: annotatedDbSchemas,
           llmOptions: makeLlmOptions(modelConfig),
-          openai: wrapAISDKModel(
-            createOpenAI({
+          openai: wrapLanguageModel({
+            model: createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment)
-          ),
+            }).chat(modelConfig.deployment),
+            middleware: [BraintrustMiddleware({ debug: true })],
+          }),
         });
       },
     },
@@ -95,12 +97,13 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
           systemPromptStrategy: "default",
           databaseInfos: annotatedDbSchemas,
           llmOptions: makeLlmOptions(modelConfig),
-          openai: wrapAISDKModel(
-            createOpenAI({
+          openai: wrapLanguageModel({
+            model: createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment)
-          ),
+            }).chat(modelConfig.deployment),
+            middleware: [BraintrustMiddleware({ debug: true })],
+          }),
         });
       },
     },

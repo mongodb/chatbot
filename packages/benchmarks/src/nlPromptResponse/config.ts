@@ -1,6 +1,6 @@
 import {
   initDataset,
-  wrapAISDKModel,
+  BraintrustMiddleware,
   wrapOpenAI,
 } from "mongodb-rag-core/braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
@@ -16,8 +16,11 @@ import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import { makeReferenceAlignment } from "./metrics";
 import { getModelsFromLabels } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
-import { CoreMessage } from "mongodb-rag-core/aiSdk";
+import {
+  createOpenAI,
+  CoreMessage,
+  wrapLanguageModel,
+} from "mongodb-rag-core/aiSdk";
 
 export const systemMessage = {
   role: "system",
@@ -104,12 +107,13 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
     completion: {
       description: "Standard 1-shot completion task",
       taskFunc: (modelProvider, modelConfig) => {
-        const model = wrapAISDKModel(
-          createOpenAI({
+        const model = wrapLanguageModel({
+          model: createOpenAI({
             apiKey: modelProvider.apiKey,
             baseURL: modelProvider.baseUrl,
-          }).chat(modelConfig.deployment)
-        );
+          }).chat(modelConfig.deployment),
+          middleware: [BraintrustMiddleware({ debug: true })],
+        });
         return makeNlPromptCompletionTask({
           llmOptions: {
             temperature: 0,

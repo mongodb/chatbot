@@ -415,7 +415,7 @@ components:
         tool_choice:
           oneOf:
             - type: string
-              enum: [none, auto, required]
+              enum: [auto]
             - type: object
               properties:
                 type:
@@ -425,7 +425,12 @@ components:
                   type: string
               required: [type, name]
           default: auto
-          description: Tool choice for the model
+          description: |
+            Tool choice for the model.
+            
+            Note that the OpenAI Responses API options `none` and `required` are not supported by our implementation.
+            We do not support them because it would be complex to use them with the internal tool call system that our API uses for RAG.
+            If you need these options supported, please [contact the Education AI team](../contact).
         tools:
           type: array
           items:

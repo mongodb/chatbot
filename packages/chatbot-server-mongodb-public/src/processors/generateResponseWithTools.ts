@@ -7,6 +7,10 @@ import {
   type ResponseStreamOutputTextDone,
   type ResponseStreamOutputTextDelta,
   type ResponseStreamOutputTextAnnotationAdded,
+  type ResponseStreamFunctionCallArgumentsDelta,
+  type ResponseStreamFunctionCallArgumentsDone,
+  ResponseStreamOutputItemAdded,
+  ResponseStreamOutputItemDone,
 } from "mongodb-rag-core";
 import {
   AssistantModelMessage,
@@ -61,9 +65,42 @@ export interface GenerateResponseWithToolsParams {
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
-    onReferenceLinks: StreamFunction<{ references: References }>;
-    onTextDelta: StreamFunction<{ delta: string }>;
-    onTextDone?: StreamFunction<{ text: string }>;
+    onReferenceLinks: StreamFunction<{
+      references: References;
+      textPartId: string;
+    }>;
+    onTextStart?: StreamFunction<{
+      text: string;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onTextDelta: StreamFunction<{
+      delta: string;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onTextDone?: StreamFunction<{
+      text: string;
+      references: References;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onFunctionCallStart?: StreamFunction<{
+      toolCallId: string;
+      toolName: string;
+      chunkId: string;
+    }>;
+    onFunctionCallDelta?: StreamFunction<{
+      toolCallId: string;
+      delta: string;
+      chunkId: string;
+    }>;
+    onFunctionCallDone?: StreamFunction<{
+      toolCallId: string;
+      toolName: string;
+      input: unknown;
+      chunkId: string;
+    }>;
   };
 }
 
@@ -97,6 +134,18 @@ export const addMessageToConversationStream: GenerateResponseWithToolsParams["st
 
 export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
   onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+    const itemId = Date.now().toString();
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
     dataStreamer?.streamResponses({
       type: "response.output_text.delta",
       delta: notWorkingMessage,
@@ -111,40 +160,93 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       output_index: 0,
       item_id: "",
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [
+          {
+            type: "output_text",
+            text: notWorkingMessage,
+            annotations: [],
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
   onLlmRefusal({ dataStreamer, refusalMessage }) {
+    const itemId = Date.now().toString();
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
     dataStreamer?.streamResponses({
       type: "response.output_text.delta",
       delta: refusalMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text: refusalMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [
+          {
+            type: "output_text",
+            text: refusalMessage,
+            annotations: [],
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
-  onReferenceLinks({ dataStreamer, references }) {
-    references.forEach((reference, index) => {
+  onReferenceLinks({ dataStreamer, references, textPartId }) {
+    convertReferencesToAnnotations(references).forEach((annotation, index) => {
       dataStreamer?.streamResponses({
         type: "response.output_text.annotation.added",
-        annotation: {
-          type: "url_citation",
-          url: reference.url,
-          title: reference.title,
-          start_index: 0,
-          end_index: 0,
-        },
+        annotation,
         annotation_index: index,
         content_index: 0,
         output_index: 0,
-        item_id: "",
+        item_id: textPartId,
       } satisfies ResponseStreamOutputTextAnnotationAdded);
     });
+  },
+  onTextStart({ dataStreamer }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: "",
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
   },
   onTextDelta({ dataStreamer, delta }) {
     dataStreamer?.streamResponses({
@@ -155,7 +257,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       item_id: "",
     } satisfies ResponseStreamOutputTextDelta);
   },
-  onTextDone({ dataStreamer, text }) {
+  onTextDone({ dataStreamer, text, references }) {
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text,
@@ -163,6 +265,67 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       output_index: 0,
       item_id: "",
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: "",
+        content: [
+          {
+            type: "output_text",
+            text,
+            annotations: convertReferencesToAnnotations(references),
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
+  },
+  onFunctionCallStart({ dataStreamer, toolCallId, toolName }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        arguments: "",
+        call_id: toolCallId,
+        name: toolName,
+        id: "",
+        type: "function_call",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
+  },
+  onFunctionCallDelta({ dataStreamer, toolCallId, delta }) {
+    dataStreamer?.streamResponses({
+      type: "response.function_call_arguments.delta",
+      delta,
+      output_index: 0,
+      item_id: toolCallId,
+    } satisfies ResponseStreamFunctionCallArgumentsDelta);
+  },
+  onFunctionCallDone({ dataStreamer, toolCallId, toolName, input }) {
+    const args = JSON.stringify(input);
+
+    dataStreamer?.streamResponses({
+      type: "response.function_call_arguments.done",
+      arguments: args,
+      output_index: 0,
+      item_id: toolCallId,
+    } satisfies ResponseStreamFunctionCallArgumentsDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        arguments: args,
+        call_id: toolCallId,
+        name: toolName,
+        id: "",
+        type: "function_call",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
 };
 
@@ -274,16 +437,16 @@ export function makeGenerateResponseWithTools({
           const result = streamText({
             ...generationArgs,
             tools: allTools,
-
             toolChoice: formatToolChoiceForAiSdk(toolChoice, allTools),
             abortSignal: generationController.signal,
-            // Stops generation when one of the custom tool defintions is called
-            // OR when the max steps are reached
+            // Stops generation when one of the criteria is met:
+            // - max steps are reached
+            // - custom tool defintion is called
             stopWhen: [
               stepCountIs(maxSteps),
               ...(toolDefinitions?.map((toolDef) =>
                 hasToolCall(toolDef.name)
-              ) || []),
+              ) ?? []),
             ],
 
             // Appends references when a reference-returning tool is called
@@ -308,6 +471,8 @@ export function makeGenerateResponseWithTools({
           });
 
           let fullStreamText = "";
+          let textPartId = ""; // Shared between text-start and text-end
+          let toolCallId = "";
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -316,25 +481,80 @@ export function makeGenerateResponseWithTools({
             }
 
             switch (chunk.type) {
+              case "text-start":
+                if (streamingModeActive) {
+                  textPartId = chunk.id;
+                  stream.onTextStart?.({
+                    dataStreamer,
+                    text: "",
+                    textPartId,
+                    chunkId: chunk.id,
+                  });
+                }
+                break;
               case "text-delta":
                 if (streamingModeActive) {
                   fullStreamText += chunk.text;
                   stream.onTextDelta({
                     dataStreamer,
                     delta: chunk.text,
+                    textPartId,
+                    chunkId: chunk.id,
                   });
                 }
                 break;
-              case "finish":
+              case "text-end":
                 if (streamingModeActive) {
                   stream.onTextDone?.({
                     dataStreamer,
                     text: fullStreamText,
+                    references,
+                    textPartId,
+                    chunkId: chunk.id,
                   });
                 }
                 break;
+
+              case "tool-input-start":
+                if (streamingModeActive) {
+                  const { id, toolName } = chunk;
+                  toolCallId = id;
+                  stream.onFunctionCallStart?.({
+                    dataStreamer,
+                    toolCallId,
+                    toolName,
+                    chunkId: chunk.id,
+                  });
+                }
+                break;
+              case "tool-input-delta":
+                if (streamingModeActive) {
+                  const { id, delta } = chunk;
+                  stream.onFunctionCallDelta?.({
+                    dataStreamer,
+                    delta,
+                    toolCallId,
+                    chunkId: id,
+                  });
+                }
+                break;
+              case "tool-input-end":
+                break;
               case "tool-call":
-                // do nothing with tool calls for now...
+                if (streamingModeActive) {
+                  const { input, toolCallId, toolName } = chunk;
+                  stream.onFunctionCallDone?.({
+                    dataStreamer,
+                    toolCallId,
+                    toolName,
+                    input,
+                    chunkId: "",
+                  });
+                }
+                break;
+              case "finish":
+                break;
+              case "tool-result":
                 break;
               case "error":
                 throw new Error(
@@ -353,6 +573,7 @@ export function makeGenerateResponseWithTools({
               stream.onReferenceLinks({
                 dataStreamer,
                 references,
+                textPartId,
               });
             }
           }
@@ -650,14 +871,8 @@ function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
   if (!toolChoice) {
     return undefined;
   }
-  if (toolChoice === "none") {
-    return "none";
-  }
   if (toolChoice === "auto") {
     return "auto";
-  }
-  if (toolChoice === "required") {
-    return "required";
   }
   // Validate that the tool exists in the tools object
   if (toolChoice.name in tools) {
@@ -669,4 +884,16 @@ function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
 
   // Fallback: if tool doesn't exist, return undefined (no tool choice)
   return undefined;
+}
+
+function convertReferencesToAnnotations(
+  references: References
+): ResponseStreamOutputTextAnnotationAdded["annotation"][] {
+  return references.map((reference) => ({
+    type: "url_citation",
+    url: reference.url,
+    title: reference.title,
+    start_index: 0,
+    end_index: 0,
+  }));
 }

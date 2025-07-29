@@ -663,49 +663,6 @@ describe("generateResponseWithTools", () => {
       });
     });
 
-    it("should respect toolCall=none option", async () => {
-      // With none, the model should not call any tools
-      const doStreamCalls = [
-        () => makeFinalAnswerStream(), // Should go straight to final answer
-      ];
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        languageModel: makeMockLanguageModel(doStreamCalls),
-      });
-
-      const result = await generateResponse({
-        ...generateResponseBaseArgs,
-        toolDefinitions: [mockCustomTool],
-        toolChoice: "none",
-      });
-
-      // Should skip tools and go to final answer
-      expect(result.messages).toHaveLength(2);
-      expect(result.messages[1]).toMatchObject({
-        role: "assistant",
-        content: "Final answer",
-      });
-      // Should not have toolCall property
-      expect(result.messages[1]).not.toHaveProperty("toolCall");
-    });
-
-    it("should respect toolCall=required option", async () => {
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        languageModel: makeMockLanguageModel(doStreamCalls),
-      });
-
-      const result = await generateResponse({
-        ...generateResponseBaseArgs,
-        toolDefinitions: [mockCustomTool],
-        toolChoice: "required",
-      });
-
-      expectSuccessfulResultCustomTool(result, {
-        name: "getAge",
-        arguments: JSON.stringify(mockCustomToolArgs),
-      });
-    });
     it("should respect toolCall=functionName option", async () => {
       const generateResponse = makeGenerateResponseWithTools({
         ...makeGenerateResponseWithToolsArgs(),

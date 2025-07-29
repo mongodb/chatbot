@@ -255,7 +255,7 @@ describe("POST /responses", () => {
 
     it("Should return responses with a valid tool_choice", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
-        tool_choice: "none",
+        tool_choice: "auto",
       };
       const stream = await makeClientAndRequest(requestBody);
 

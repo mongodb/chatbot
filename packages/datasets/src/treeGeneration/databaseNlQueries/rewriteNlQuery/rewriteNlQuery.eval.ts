@@ -1,10 +1,14 @@
 import { DatabaseNlQueryDatasetEntryBraintrust } from "../DatabaseNlQueryDatasetEntry";
-import { Eval, EvalScorer, wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import {
+  Eval,
+  EvalScorer,
+  BraintrustMiddleware,
+} from "mongodb-rag-core/braintrust";
 import {
   makeRewriteNlQueryPrompt,
   RewriteClassification,
 } from "./rewriteNlQuery";
-import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { LanguageModel, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeOpenAiProvider } from "../../../openAi";
 import { models } from "mongodb-rag-core/models";
 
@@ -415,6 +419,9 @@ const dataset: RewriteNlQueryDatasetEntry[] = [
 const modelDeployment: (typeof models)[number]["deployment"] =
   "claude-opus-4-20250514";
 runRewriteNlQueryEval({
-  model: wrapAISDKModel(makeOpenAiProvider()(modelDeployment)),
+  model: wrapLanguageModel({
+    model: makeOpenAiProvider()(modelDeployment),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
   dataset,
 });

@@ -1,9 +1,9 @@
 import "dotenv/config";
 import { makeGenerateMongoshCodeToolCallTask } from "./generateMongoshCodeToolCall";
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { assertEnvVars } from "mongodb-rag-core";
 
 describe.skip("makeGenerateMongoshCodeToolCallTask", () => {
@@ -22,7 +22,10 @@ describe.skip("makeGenerateMongoshCodeToolCallTask", () => {
     const task = makeGenerateMongoshCodeToolCallTask({
       uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
       databaseInfos: annotatedDbSchemas,
-      openai: wrapAISDKModel(openai.chat(llmOptions.model)),
+      openai: wrapLanguageModel({
+        model: openai.chat(llmOptions.model),
+        middleware: [BraintrustMiddleware({ debug: true })],
+      }),
       llmOptions,
       schemaStrategy: "annotated",
     });

@@ -18,7 +18,11 @@ import {
   TEST_ALWAYS_ALLOWED_METADATA_KEYS,
   makeDefaultConfig,
 } from "../../test/testConfig";
-import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
+import {
+  creationInterface,
+  ERR_MSG,
+  type CreateResponseRequest,
+} from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
 
 jest.setTimeout(100000);
@@ -552,6 +556,22 @@ describe("POST /responses", () => {
       expect(messages[1].role).toEqual("tool");
       expect(messages[1].name).toEqual(functionCallOutputType);
       expect(messages[1].content).toEqual("");
+    });
+    it("should store conversation", async () => {
+      const stream = await makeClientAndRequest({
+        input: "What is MongoDB?",
+      });
+
+      const results: any[] = [];
+      for await (const event of stream) {
+        results.push(event);
+      }
+      const conversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      expect(conversation).not.toBeNull();
+      expect(conversation?.messages.length).toBeGreaterThan(0);
+      expect(conversation?.creationInterface).toBe(creationInterface);
     });
   });
 

@@ -5,6 +5,7 @@ import type {
   Conversation,
   ConversationsService,
   SomeMessage,
+  ToolMessage,
 } from "mongodb-rag-core";
 import { type AppConfig } from "../../app";
 import {
@@ -455,15 +456,66 @@ describe("POST /responses", () => {
 
     it("Should store function_call messages when `store: true`", async () => {
       const store = true;
-      const functionCallType = "function_call";
+      const functionCallName = "my_function";
+      const functionCallArguments = `{"query": "value"}`;
+      const functionCallOutputType = "function_call_output";
+      const functionCallOutput = `{"result": "success"}`;
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store,
+        input: [
+          {
+            type: "function_call",
+            call_id: "call123",
+            name: functionCallName,
+            arguments: functionCallArguments,
+            status: "in_progress",
+          },
+          {
+            type: functionCallOutputType,
+            call_id: "call123",
+            output: functionCallOutput,
+            status: "completed",
+          },
+          {
+            role: "user",
+            content: "What is MongoDB?",
+          },
+        ],
+      };
+      const stream = await makeClientAndRequest(requestBody);
+
+      const results = await expectValidResponses({ requestBody, stream });
+
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
+      const messages = updatedConversation.messages as Array<ToolMessage>;
+
+      expect(updatedConversation.storeMessageContent).toEqual(store);
+
+      expect(messages[0].role).toEqual("tool");
+      expect(messages[0].name).toEqual(functionCallName);
+      expect(messages[0].content).toEqual(functionCallArguments);
+
+      expect(messages[1].role).toEqual("tool");
+      expect(messages[1].name).toEqual(functionCallOutputType);
+      expect(messages[1].content).toEqual(functionCallOutput);
+    });
+
+    it("Should not store function_call message content when `store: false`", async () => {
+      const store = false;
+      const functionCallName = "my_function";
       const functionCallOutputType = "function_call_output";
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         store,
         input: [
           {
-            type: functionCallType,
+            type: "function_call",
             call_id: "call123",
-            name: "my_function",
+            name: functionCallName,
             arguments: `{"query": "value"}`,
             status: "in_progress",
           },
@@ -489,16 +541,17 @@ describe("POST /responses", () => {
       if (!updatedConversation) {
         return expect(updatedConversation).not.toBeNull();
       }
+      const messages = updatedConversation.messages as Array<ToolMessage>;
 
       expect(updatedConversation.storeMessageContent).toEqual(store);
 
-      expect(updatedConversation.messages[0].role).toEqual("system");
-      expect(updatedConversation.messages[0].content).toEqual(functionCallType);
+      expect(messages[0].role).toEqual("tool");
+      expect(messages[0].name).toEqual(functionCallName);
+      expect(messages[0].content).toEqual("");
 
-      expect(updatedConversation.messages[1].role).toEqual("system");
-      expect(updatedConversation.messages[1].content).toEqual(
-        functionCallOutputType
-      );
+      expect(messages[1].role).toEqual("tool");
+      expect(messages[1].name).toEqual(functionCallOutputType);
+      expect(messages[1].content).toEqual("");
     });
   });
 

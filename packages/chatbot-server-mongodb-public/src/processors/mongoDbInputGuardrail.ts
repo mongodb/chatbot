@@ -287,8 +287,8 @@ function makeInputGuardrailUserMessage({
     role: "user" as const,
     content: `<latest-user-message>${latestMessageText}</latest-user-message>${
       customSystemPrompt
-        ? `<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>`
+        ? `\n\n<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>\n\n`
         : ""
-    }${toolDefinitions ? `<tools>${toolDefinitions}</tools>` : ""}`,
+    }${toolDefinitions ? `\n\n<tools>${toolDefinitions}</tools>\n\n` : ""}`,
   };
 }

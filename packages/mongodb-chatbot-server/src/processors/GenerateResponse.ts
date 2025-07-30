@@ -6,7 +6,7 @@ import {
   AssistantMessage,
   UserMessage,
 } from "mongodb-rag-core";
-import type { OpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export type ClientContext = Record<string, unknown>;
 

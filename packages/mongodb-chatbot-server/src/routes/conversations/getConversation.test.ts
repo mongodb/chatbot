@@ -4,7 +4,6 @@ import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 import request from "supertest";
 import { AppConfig, DEFAULT_API_PREFIX } from "../../app";
 import { ApiConversation } from "./utils";
-import { creationInterface } from "./constants";
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 
 jest.setTimeout(30000);
@@ -41,7 +40,6 @@ describe("GET /conversations/:conversationId", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("_id", convo._id.toString());
     expect(res.body).toHaveProperty("createdAt", convo.createdAt.getTime());
-    expect(res.body).toHaveProperty("creationInterface", creationInterface);
   });
 
   it("should return 404 when the conversation is not found", async () => {

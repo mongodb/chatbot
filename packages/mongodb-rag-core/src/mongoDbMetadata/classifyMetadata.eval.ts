@@ -1,11 +1,10 @@
 import "dotenv/config";
 import { strict as assert } from "assert";
-import { Eval } from "../braintrust";
+import { Eval, BraintrustMiddleware } from "../braintrust";
 import { Scorer } from "autoevals";
 import { classifyMongoDbMetadata, MongoDbTag } from "./";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { getOpenAiEndpointAndApiKey, models } from "../models";
-import { wrapAISDKModel } from "../braintrust";
 
 async function main() {
   const modelLabel = "gpt-4.1-mini";
@@ -410,7 +409,10 @@ async function main() {
     async task(input) {
       try {
         return await classifyMongoDbMetadata(
-          wrapAISDKModel(openai.languageModel(modelLabel)),
+          wrapLanguageModel({
+            model: openai.languageModel(modelLabel),
+            middleware: [BraintrustMiddleware({ debug: true })],
+          }),
           input
         );
       } catch (error) {

@@ -3,6 +3,7 @@ import {
   BaseMetadata,
   DefaultMetadataType,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "braintrust";
@@ -16,12 +17,13 @@ export interface BenchmarkTask<
   Input,
   Output,
   Expected,
-  Metadata extends BaseMetadata = DefaultMetadataType
+  Metadata extends BaseMetadata = DefaultMetadataType,
+  Parameters extends EvalParameters = EvalParameters
 > {
   taskFunc: (
     modelProvider: ModelProvider,
     deployment: ModelConfig
-  ) => EvalTask<Input, Output, Expected, Metadata>;
+  ) => EvalTask<Input, Output, Expected, Metadata, Parameters>;
   description?: string;
 }
 

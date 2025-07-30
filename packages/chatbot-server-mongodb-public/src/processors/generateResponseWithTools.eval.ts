@@ -6,12 +6,12 @@ import {
   models,
   ModelConfig,
 } from "mongodb-rag-core/models";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   Eval,
   EvalCase,
   EvalScorer,
-  wrapAISDKModel,
+  BraintrustMiddleware,
   wrapTraced,
 } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
@@ -213,9 +213,10 @@ assert(modelConfig, `Model ${OPENAI_CHAT_COMPLETION_DEPLOYMENT} not found`);
 
 const createEvalLanguageModel = async (modelConfig: ModelConfig) => {
   const openai = createOpenAI(await getOpenAiEndpointAndApiKey(modelConfig));
-  return wrapAISDKModel(
-    openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT)
-  );
+  return wrapLanguageModel({
+    model: openai.languageModel(OPENAI_CHAT_COMPLETION_DEPLOYMENT),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  });
 };
 
 // Run the eval. We recreate generateResponseWithTools each time so
@@ -267,7 +268,7 @@ Eval("mongodb-chatbot-generate-with-tools", {
     const generateResponseWithTools = wrapTraced(
       makeGenerateResponseWithTools({
         languageModel: await createEvalLanguageModel(modelConfig),
-        systemMessage: systemPrompt,
+        makeSystemPrompt: () => systemPrompt,
         llmRefusalMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
         filterPreviousMessages,
@@ -282,7 +283,6 @@ Eval("mongodb-chatbot-generate-with-tools", {
           findContent: mockFindContent,
           makeReferences: makeMongoDbReferences,
         }),
-        toolChoice,
         maxSteps,
       }),
       { name: "generateResponseWithTools" }

@@ -361,7 +361,6 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      // Convert input to latestMessageText format
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({
@@ -395,6 +394,14 @@ export function makeCreateResponseRoute({
         response: {
           ...baseResponse,
           created_at: Date.now(),
+          // pass actual token usage: https://jira.mongodb.org/browse/EAI-1215
+          usage: {
+            input_tokens: 0,
+            input_tokens_details: { cached_tokens: 0 },
+            output_tokens: 0,
+            output_tokens_details: { reasoning_tokens: 0 },
+            total_tokens: 0,
+          },
         },
       } satisfies ResponseStreamCompleted);
     } catch (error) {

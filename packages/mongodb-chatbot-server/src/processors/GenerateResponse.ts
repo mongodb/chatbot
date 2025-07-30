@@ -6,6 +6,7 @@ import {
   AssistantMessage,
   UserMessage,
 } from "mongodb-rag-core";
+import type { OpenAI } from "mongodb-rag-core/openai";
 
 export type ClientContext = Record<string, unknown>;
 
@@ -18,6 +19,7 @@ export interface GenerateResponseParams {
   reqId: string;
   conversation: Conversation;
   customSystemPrompt?: string;
+  toolDefinitions?: OpenAI.FunctionDefinition[];
 }
 
 export interface GenerateResponseReturnValue {

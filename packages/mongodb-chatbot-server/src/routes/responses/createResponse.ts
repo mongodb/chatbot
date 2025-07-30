@@ -316,7 +316,6 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      // Convert input to latestMessageText format
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({

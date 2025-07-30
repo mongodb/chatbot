@@ -19,8 +19,13 @@ import {
   makeDefaultConfig,
 } from "../../test/testConfig";
 import {
+  CREATE_RESPONSE_ERR_MSG,
+  MAX_INPUT_LENGTH,
+  MAX_INPUT_ARRAY_LENGTH,
+  MAX_INSTRUCTIONS_LENGTH,
+  MAX_TOOLS,
+  MAX_TOOLS_CONTENT_LENGTH,
   creationInterface,
-  ERR_MSG,
   type CreateResponseRequest,
 } from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
@@ -583,7 +588,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input - ${ERR_MSG.INPUT_STRING}`,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
       });
     });
 
@@ -595,7 +600,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY}`,
       });
     });
 
@@ -607,7 +612,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
+        message: CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
       });
     });
 
@@ -619,7 +624,10 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000),
+        message: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+          max_output_tokens,
+          4000
+        ),
       });
     });
 
@@ -634,7 +642,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`,
+        message: `Path: body.metadata - ${CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH}`,
       });
     });
 
@@ -657,7 +665,103 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`,
+        message: `Path: body.temperature - ${CREATE_RESPONSE_ERR_MSG.TEMPERATURE}`,
+      });
+    });
+
+    it("Should return error responses if instructions are too long", async () => {
+      const stream = await makeClientAndRequest({
+        instructions: "a".repeat(MAX_INSTRUCTIONS_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.instructions - ${CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if string input is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: "a".repeat(MAX_INPUT_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array has too many items", async () => {
+      const input = Array.from(
+        { length: MAX_INPUT_ARRAY_LENGTH + 1 },
+        (_, i) => ({
+          type: "message" as const,
+          role: "user" as const,
+          content: `Message ${i}`,
+        })
+      );
+      const stream = await makeClientAndRequest({
+        input: input as any,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array content is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            type: "message" as const,
+            role: "user" as const,
+            content: "a".repeat(MAX_INPUT_LENGTH + 1),
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools array has too many items", async () => {
+      const tools = Array.from({ length: MAX_TOOLS + 1 }, (_, i) => ({
+        type: "function" as const,
+        strict: true,
+        name: `tool_${i}`,
+        description: `Tool ${i}`,
+        parameters: { type: "object", properties: {} },
+      }));
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools content is too long", async () => {
+      const tools = [
+        {
+          type: "function" as const,
+          strict: true,
+          name: "large_tool",
+          description: "a".repeat(MAX_TOOLS_CONTENT_LENGTH),
+          parameters: { type: "object", properties: {} },
+        },
+      ];
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH}`,
       });
     });
 
@@ -746,7 +850,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.INVALID_OBJECT_ID(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.INVALID_OBJECT_ID(previous_response_id),
       });
     });
 
@@ -758,7 +863,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MESSAGE_NOT_FOUND(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_FOUND(previous_response_id),
       });
     });
 
@@ -777,7 +883,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MESSAGE_NOT_LATEST(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_LATEST(previous_response_id),
       });
     });
 
@@ -798,7 +905,9 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation),
+        message: CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
+          maxUserMessagesInConversation
+        ),
       });
     });
 
@@ -822,7 +931,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.CONVERSATION_USER_ID_CHANGED,
+        message: CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED,
       });
     });
 
@@ -834,7 +943,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.STORE_NOT_SUPPORTED,
+        message: CREATE_RESPONSE_ERR_MSG.STORE_NOT_SUPPORTED,
       });
     });
 
@@ -855,7 +964,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.CONVERSATION_STORE_MISMATCH,
+        message: CREATE_RESPONSE_ERR_MSG.CONVERSATION_STORE_MISMATCH,
       });
     });
 
@@ -890,7 +999,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input[0].content - ${ERR_MSG.INPUT_TEXT_ARRAY}`,
+        message: `Path: body.input[0].content - ${CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY}`,
       });
     });
   });

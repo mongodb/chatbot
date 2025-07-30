@@ -1,4 +1,4 @@
-import { generateText, LanguageModelV1 } from "ai";
+import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   DatabaseInfo,
   executeMongoshQuery,
@@ -57,7 +57,7 @@ ${markdownPromptFormatting}
 export interface MakeGenerateMongoshCodePromptCompletionParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
-  openai: LanguageModelV1;
+  openai: LanguageModel;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   schemaStrategy: SchemaStrategy;
   systemPromptStrategy?: SystemPromptStrategy;
@@ -89,7 +89,7 @@ export function makeGenerateMongoshCodePromptCompletionTask({
       const { text } = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
-        maxTokens:
+        maxOutputTokens:
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,

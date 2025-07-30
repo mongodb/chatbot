@@ -1,12 +1,13 @@
 import { makeRewriteNlQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteNlQuery";
 import { makeOpenAiProvider } from "../openAi";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { models } from "mongodb-rag-core/models";
 import { DatabaseNlQueryDatasetEntryBraintrustSchema } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import yaml from "yaml";
 import PromisePool from "@supercharge/promise-pool";
 import fs from "fs";
 import path from "path";
+import { wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 
 async function runRewriteNlQueryToMongoshDataset(config: {
   modelDeployment: (typeof models)[number]["deployment"];
@@ -18,7 +19,10 @@ async function runRewriteNlQueryToMongoshDataset(config: {
   // Note: maybe switch to Opus for the real run
   const modelDeployment = config.modelDeployment;
 
-  const model = wrapAISDKModel(makeOpenAiProvider()(modelDeployment));
+  const model = wrapLanguageModel({
+    model: makeOpenAiProvider()(modelDeployment),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  });
 
   const rewriteNlQueryPrompt = makeRewriteNlQueryPrompt(model);
 

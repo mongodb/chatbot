@@ -26,6 +26,7 @@ import {
   generateResponseCustomData,
   mockAssistantResponse,
 } from "../../test/testConfig";
+import { creationInterface } from "./constants";
 
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
@@ -366,6 +367,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         content: message.message,
         role: "user",
       });
+      expect(conversation?.creationInterface).toBe(creationInterface);
     });
     test("should not create a new conversation with 'null' value for addMessageToConversation if NOT configured", async () => {
       const { app: appWithoutCustomData } = await makeTestApp({

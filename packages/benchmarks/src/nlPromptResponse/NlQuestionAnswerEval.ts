@@ -1,4 +1,9 @@
-import { EvalCase, EvalScorer, EvalTask } from "mongodb-rag-core/braintrust";
+import {
+  EvalCase,
+  EvalParameters,
+  EvalScorer,
+  EvalTask,
+} from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 
@@ -34,7 +39,8 @@ export type NlPromptResponseEvalTask = EvalTask<
   NlPromptResponseEvalCaseInput,
   NlPromptResponseTaskOutput,
   NlPromptResponseTaskExpected,
-  NlPromptResponseMetadata
+  NlPromptResponseMetadata,
+  EvalParameters
 >;
 
 export type NlPromptResponseEvalScorer = EvalScorer<

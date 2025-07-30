@@ -1,6 +1,7 @@
 import {
   Eval,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "mongodb-rag-core/braintrust";
@@ -11,7 +12,11 @@ import {
   makeHelmQuizQuestionPrompt,
   MakeHelmQuizQuestionPromptParams,
 } from "./makeHelmQuizQuestionPrompt";
-import { CoreMessage, generateText, LanguageModel } from "ai";
+import {
+  CoreMessage,
+  generateText,
+  LanguageModel,
+} from "mongodb-rag-core/aiSdk";
 
 export type QuizQuestionEvalCaseInput = Pick<
   QuizQuestionData,
@@ -41,7 +46,9 @@ export type QuizQuestionTaskExpected = string;
 export type QuizQuestionEvalTask = EvalTask<
   QuizQuestionEvalCaseInput,
   QuizQuestionTaskOutput,
-  QuizQuestionTaskExpected
+  QuizQuestionTaskExpected,
+  void,
+  EvalParameters
 >;
 
 interface MakeQuizQuestionTaskParams {
@@ -126,14 +133,11 @@ export function runQuizQuestionEval({
   promptOptions,
   maxConcurrency,
 }: MakeQuizQuestionEvalParams) {
+  const modelId = (languageModel as Exclude<LanguageModel, string>).modelId;
   const reasoningOptions = {
-    max_tokens: languageModel.modelId.includes("gemini-2.5") ? undefined : 100,
-    reasoning_enabled: languageModel.modelId.includes("gemini-2.5")
-      ? true
-      : undefined,
-    reasoning_budget: languageModel.modelId.includes("gemini-2.5")
-      ? 1024
-      : undefined,
+    max_tokens: modelId.includes("gemini-2.5") ? undefined : 100,
+    reasoning_enabled: modelId.includes("gemini-2.5") ? true : undefined,
+    reasoning_budget: modelId.includes("gemini-2.5") ? 1024 : undefined,
   };
 
   llmOptions = {
@@ -150,7 +154,7 @@ export function runQuizQuestionEval({
     experimentName,
     maxConcurrency,
     metadata: {
-      model: languageModel.modelId,
+      model: modelId,
       llmOptions,
       ...additionalMetadata,
     },

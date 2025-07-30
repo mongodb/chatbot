@@ -5,12 +5,7 @@ import {
   Reference,
   logger,
 } from "mongodb-rag-core";
-import {
-  Tool,
-  tool,
-  ToolExecutionOptions,
-  ToolResultUnion,
-} from "mongodb-rag-core/aiSdk";
+import { Tool, tool, ToolResultUnion } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   mongoDbProducts,
@@ -50,15 +45,7 @@ export type SearchToolReturnValue = {
   references?: Reference[];
 };
 
-export type SearchTool = Tool<
-  typeof MongoDbSearchToolArgsSchema,
-  SearchToolReturnValue
-> & {
-  execute: (
-    args: MongoDbSearchToolArgs,
-    options: ToolExecutionOptions
-  ) => PromiseLike<SearchToolReturnValue>;
-};
+export type SearchTool = Tool<MongoDbSearchToolArgs, SearchToolReturnValue>;
 
 export type SearchToolResult = ToolResultUnion<{
   [SEARCH_TOOL_NAME]: SearchTool;
@@ -73,24 +60,28 @@ export function makeSearchTool({
   findContent,
   makeReferences,
 }: MakeSearchToolParams): SearchTool {
-  return tool({
-    parameters: MongoDbSearchToolArgsSchema,
+  const searchTool: SearchTool = tool({
+    inputSchema: MongoDbSearchToolArgsSchema,
     description: "Search MongoDB content",
+
+    // TODO: I get type errors when I try to implement this..Unclear why
     // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
-    experimental_toToolResultContent(result) {
-      return [
-        {
-          type: "text",
-          text: JSON.stringify({
-            results: result.results.map(searchResultToLlmContent),
-          }),
-        },
-      ];
+    toModelOutput(result) {
+      return {
+        type: "content",
+        value: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              results: result.results.map(searchResultToLlmContent),
+            }),
+          },
+        ],
+      };
     },
     execute: wrapTraced(
       async function (
-        args: MongoDbSearchToolArgs,
-        _options: ToolExecutionOptions
+        args: MongoDbSearchToolArgs
       ): Promise<SearchToolReturnValue> {
         const { query, productName, programmingLanguage } = args;
 
@@ -120,6 +111,8 @@ export function makeSearchTool({
       }
     ),
   });
+
+  return searchTool;
 }
 
 export function embeddedContentToSearchResult(

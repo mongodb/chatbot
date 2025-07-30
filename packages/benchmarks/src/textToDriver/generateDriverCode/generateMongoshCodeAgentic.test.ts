@@ -1,6 +1,6 @@
 import { makeGenerateMongoshCodeAgenticTask } from "./generateMongoshCodeAgentic";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { TEXT_TO_DRIVER_ENV_VARS } from "../../envVars";
 import { makeSampleLlmOptions } from "../../test/makeSampleLlmOptions";
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
@@ -21,9 +21,7 @@ describe.skip("generateMongoshCodeAgentic", () => {
     const openai = createOpenAI({
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
-    }).chat(llmOptions.model, {
-      structuredOutputs: true,
-    });
+    }).chat(llmOptions.model);
     const generateMongoshCodeAgentic = makeGenerateMongoshCodeAgenticTask({
       llmOptions,
       databaseInfos: annotatedDbSchemas,

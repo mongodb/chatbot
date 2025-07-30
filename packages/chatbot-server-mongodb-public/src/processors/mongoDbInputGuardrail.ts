@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { InputGuardrail } from "mongodb-chatbot-server";
-import { generateObject, LanguageModelV1 } from "mongodb-rag-core/aiSdk";
+import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -231,7 +231,7 @@ ${JSON.stringify(examplePair.output, null, 2)}
   .join("\n")}
 </few-shot-examples>`;
 export interface MakeUserMessageMongoDbGuardrailParams {
-  model: LanguageModelV1;
+  model: LanguageModel;
 }
 export const makeMongoDbInputGuardrail = ({
   model,

@@ -939,6 +939,13 @@ const expectValidResponses = async ({
   expect(responses[3].type).toBe("response.output_text.annotation.added");
   expect(responses[4].type).toBe("response.output_text.done");
   expect(responses[5].type).toBe("response.completed");
+  expect(responses[5].response.usage).toEqual({
+    input_tokens: 0,
+    input_tokens_details: { cached_tokens: 0 },
+    output_tokens: 0,
+    output_tokens_details: { reasoning_tokens: 0 },
+    total_tokens: 0,
+  });
 
   // skip mock events that don't have the extra data
   const skipIndexes = [2, 3, 4];

@@ -509,12 +509,15 @@ describe("generateResponseWithTools", () => {
         });
 
         expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          chunkId: expect.any(String),
           dataStreamer: mockDataStreamer,
           delta: expect.any(String),
+          textPartId: expect.any(String),
         });
         expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           references: expect.any(Array),
+          textPartId: expect.any(String),
         });
 
         expectSuccessfulResult(result);
@@ -534,12 +537,15 @@ describe("generateResponseWithTools", () => {
         });
 
         expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          chunkId: expect.any(String),
           dataStreamer: mockDataStreamer,
           delta: expect.any(String),
+          textPartId: expect.any(String),
         });
         expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           references: expect.any(Array),
+          textPartId: expect.any(String),
         });
 
         expectSuccessfulResult(result);
@@ -591,7 +597,7 @@ describe("generateResponseWithTools", () => {
       });
     });
   });
-  describe.only("custom tool calling", () => {
+  describe("custom tool calling", () => {
     const mockCustomTool: OpenAI.FunctionDefinition = {
       name: "getAge",
       description: "Get the age of a person",

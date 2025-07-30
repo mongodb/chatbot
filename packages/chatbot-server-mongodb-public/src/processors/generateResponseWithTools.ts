@@ -716,6 +716,70 @@ function handleReturnGeneration({
   } satisfies GenerateResponseReturnValue;
 }
 
+function makeAssitantMessage(m: ResponseMessage): AssistantMessage {
+  const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
+    role: "assistant",
+  };
+  if (typeof m.content === "string") {
+    baseMessage.content = m.content;
+  } else {
+    m.content.forEach((c) => {
+      if (c.type === "text") {
+        baseMessage.content = c.text;
+      }
+      if (c.type === "tool-call") {
+        baseMessage.toolCall = {
+          id: c.toolCallId,
+          function: {
+            name: c.toolName,
+            arguments: JSON.stringify(c.input),
+          },
+          type: "function",
+        };
+      }
+    });
+  }
+
+  return {
+    ...baseMessage,
+    content: baseMessage.content ?? "",
+  } satisfies AssistantMessage;
+}
+function makeToolMessage(m: ResponseMessage): ToolMessage {
+  const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
+    role: "tool",
+  };
+  if (typeof m.content === "string") {
+    baseMessage.content = m.content;
+  } else {
+    m.content.forEach((c) => {
+      if (c.type === "tool-result") {
+        baseMessage.name = c.toolName;
+        if (c.output.type === "content" && c.output.value[0].type === "text") {
+          baseMessage.content = c.output.value[0].text;
+        } else if (
+          c.output &&
+          typeof c.output === "object" &&
+          "value" in c.output
+        ) {
+          baseMessage.content =
+            typeof c.output.value === "string"
+              ? c.output.value
+              : JSON.stringify(c.output.value);
+        } else {
+          baseMessage.content =
+            typeof c.output === "string" ? c.output : JSON.stringify(c.output);
+        }
+      }
+    });
+  }
+  return {
+    ...baseMessage,
+    name: baseMessage.name ?? "",
+    content: baseMessage.content ?? "",
+  } satisfies ToolMessage;
+}
+
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   references: References
@@ -723,71 +787,9 @@ function formatMessageForReturnGeneration(
   const messagesOut = messages
     .map((m) => {
       if (m.role === "assistant") {
-        const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
-          role: "assistant",
-        };
-        if (typeof m.content === "string") {
-          baseMessage.content = m.content;
-        } else {
-          m.content.forEach((c) => {
-            if (c.type === "text") {
-              baseMessage.content = c.text;
-            }
-            if (c.type === "tool-call") {
-              baseMessage.toolCall = {
-                id: c.toolCallId,
-                function: {
-                  name: c.toolName,
-                  arguments: JSON.stringify(c.input),
-                },
-                type: "function",
-              };
-            }
-          });
-        }
-
-        return {
-          ...baseMessage,
-          content: baseMessage.content ?? "",
-        } satisfies AssistantMessage;
+        return makeAssitantMessage(m);
       } else if (m.role === "tool") {
-        const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
-          role: "tool",
-        };
-        if (typeof m.content === "string") {
-          baseMessage.content = m.content;
-        } else {
-          m.content.forEach((c) => {
-            if (c.type === "tool-result") {
-              baseMessage.name = c.toolName;
-              if (
-                c.output.type === "content" &&
-                c.output.value[0].type === "text"
-              ) {
-                baseMessage.content = c.output.value[0].text;
-              } else if (
-                c.output &&
-                typeof c.output === "object" &&
-                "value" in c.output
-              ) {
-                baseMessage.content =
-                  typeof c.output.value === "string"
-                    ? c.output.value
-                    : JSON.stringify(c.output.value);
-              } else {
-                baseMessage.content =
-                  typeof c.output === "string"
-                    ? c.output
-                    : JSON.stringify(c.output);
-              }
-            }
-          });
-        }
-        return {
-          ...baseMessage,
-          name: baseMessage.name ?? "",
-          content: baseMessage.content ?? "",
-        } satisfies ToolMessage;
+        return makeToolMessage(m);
       }
     })
     .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);

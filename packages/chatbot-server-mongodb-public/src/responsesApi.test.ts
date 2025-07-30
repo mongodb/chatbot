@@ -17,7 +17,7 @@ const API_PREFIX = "/api/v1";
 const DELTA_EVENT = "response.output_text.delta";
 const DONE_EVENT = "response.output_text.done";
 
-describe.skip("Responses API with OpenAI Client", () => {
+describe("Responses API with OpenAI Client", () => {
   let app: Express;
   let server: Server;
   let ipAddress: string;

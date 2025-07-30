@@ -588,7 +588,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_STRING}`,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
       });
     });
 

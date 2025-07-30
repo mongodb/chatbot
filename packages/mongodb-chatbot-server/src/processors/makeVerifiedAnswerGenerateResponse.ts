@@ -113,8 +113,10 @@ export const makeVerifiedAnswerGenerateResponse = ({
       shouldStream,
       dataStreamer,
       customSystemPrompt,
+      toolDefinitions,
+      toolChoice,
     } = args;
-    if (customSystemPrompt) {
+    if (customSystemPrompt || toolDefinitions || toolChoice) {
       return await onNoVerifiedAnswerFound(args);
     }
     const { answer: foundVerifiedAnswer, queryEmbedding } =

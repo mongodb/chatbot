@@ -356,7 +356,9 @@ components:
           description: The model to use for generating the response
         instructions:
           type: string
-          description: System instructions for the model
+          minLength: 1
+          maxLength: 50000
+          description: System instructions for the model (1-50,000 characters, ~10,000 tokens)
         input:
           oneOf:
             - $ref: "#/components/schemas/StringInput"
@@ -415,7 +417,7 @@ components:
         tool_choice:
           oneOf:
             - type: string
-              enum: [none, auto, required]
+              enum: [auto]
             - type: object
               properties:
                 type:
@@ -425,9 +427,15 @@ components:
                   type: string
               required: [type, name]
           default: auto
-          description: Tool choice for the model
+          description: |
+            Tool choice for the model.
+            
+            Note that the OpenAI Responses API options `none` and `required` are not supported by our implementation.
+            We do not support them because it would be complex to use them with the internal tool call system that our API uses for RAG.
+            If you need these options supported, please [contact the Education AI team](../contact).
         tools:
           type: array
+          maxItems: 10
           items:
             type: object
             properties:
@@ -445,7 +453,12 @@ components:
                 description: A JSON schema object describing the parameters of the function
                 additionalProperties: true
             required: [type, strict, name, parameters]
-          description: Tools for the model to use
+          description: |
+            Tools for the model to use. 
+            
+            Limitations:
+            - Maximum 10 tools
+            - Total serialized content must be ≤25,000 characters (~5,000 tokens)
         user:
           type: string
           description: |
@@ -890,11 +903,18 @@ components:
     StringInput:
       type: string
       minLength: 1
-      description: A string input message from the user
+      maxLength: 250000
+      description: A string input message from the user (1-250,000 characters, ~50,000 tokens)
     MessageArrayInput:
       type: array
       minItems: 1
-      description: Array of messages or function calls/outputs
+      maxItems: 50
+      description: |
+        Array of messages or function calls/outputs.
+        
+        Limitations:
+        - Maximum 50 items
+        - Total serialized content must be ≤250,000 characters (~50,000 tokens)
       items:
         oneOf:
           - $ref: "#/components/schemas/MessageItem"

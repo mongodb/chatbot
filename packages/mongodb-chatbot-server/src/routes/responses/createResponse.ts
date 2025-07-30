@@ -25,12 +25,28 @@ import {
   type SomeOpenAIAPIError,
 } from "./errors";
 
-export const ERR_MSG = {
+export const MIN_INSTRUCTIONS_LENGTH = 1;
+export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
+
+export const MIN_INPUT_LENGTH = 1;
+export const MAX_INPUT_LENGTH = 250000; // ~50,000 tokens
+
+export const MAX_INPUT_ARRAY_LENGTH = 50;
+
+export const MAX_TOOLS = 10;
+export const MAX_TOOLS_CONTENT_LENGTH = 25000; // ~5,000 tokens
+
+export const CREATE_RESPONSE_ERR_MSG = {
+  INSTRUCTIONS_LENGTH: `Instructions must be between ${MIN_INSTRUCTIONS_LENGTH} and ${MAX_INSTRUCTIONS_LENGTH} characters, inclusive.`,
   INPUT_STRING: "Input must be a non-empty string",
+  INPUT_LENGTH: `Input must be between ${MIN_INPUT_LENGTH} and ${MAX_INPUT_LENGTH} characters, inclusive.`,
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_ARRAY_LENGTH: `Input array must have at most ${MAX_INPUT_ARRAY_LENGTH} element(s).`,
   INPUT_TEXT_ARRAY:
     'Input content array only supports "input_text" type with exactly one element.',
+  TOOLS_LENGTH: `Input tools array must have at most ${MAX_TOOLS} element(s).`,
+  TOOLS_CONTENT_LENGTH: `Input tools array must have at most ${MAX_TOOLS_CONTENT_LENGTH} characters, inclusive.`,
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -52,7 +68,7 @@ export const ERR_MSG = {
     "Path: body.previous_response_id | body.store - to use previous_response_id the store flag must be true",
   CONVERSATION_STORE_MISMATCH:
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
-};
+} as const;
 
 const InputMessageSchema = z.object({
   type: z.literal("message").optional(),
@@ -66,7 +82,7 @@ const InputMessageSchema = z.object({
           text: z.string(),
         })
       )
-      .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
+      .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY),
   ]),
 });
 
@@ -75,9 +91,16 @@ type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
 
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
-  instructions: z.string().optional(),
+  instructions: z
+    .string()
+    .min(MIN_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
+    .max(MAX_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
+    .optional(),
   input: z.union([
-    z.string().nonempty(ERR_MSG.INPUT_STRING),
+    z
+      .string()
+      .min(MIN_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH)
+      .max(MAX_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH),
     z
       .array(
         z.union([
@@ -113,7 +136,12 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .nonempty(ERR_MSG.INPUT_ARRAY),
+      .nonempty(CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY)
+      .max(MAX_INPUT_ARRAY_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH)
+      .refine(
+        (input) => JSON.stringify(input).length <= MAX_INPUT_LENGTH,
+        CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH
+      ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -121,7 +149,7 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      ERR_MSG.METADATA_LENGTH
+      CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH
     ),
   previous_response_id: z
     .string()
@@ -132,16 +160,19 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .default(true)
     .describe("Whether to store the response in the conversation."),
-  stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
+  stream: z
+    .boolean()
+    .refine((stream) => stream, CREATE_RESPONSE_ERR_MSG.STREAM),
   temperature: z
     .number()
+    .min(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
+    .max(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
     .optional()
     .default(0)
-    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
     .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
-      z.enum(["none", "auto", "required"]),
+      z.literal("auto"),
       z
         .object({
           type: z.literal("function"),
@@ -165,6 +196,11 @@ const CreateResponseRequestBodySchema = z.object({
             "A JSON schema object describing the parameters of the function."
           ),
       })
+    )
+    .max(MAX_TOOLS, CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH)
+    .refine(
+      (tools) => JSON.stringify(tools).length <= MAX_TOOLS_CONTENT_LENGTH,
+      CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH
     )
     .optional()
     .describe("Tools for the model to use."),
@@ -230,13 +266,15 @@ export function makeCreateResponseRoute({
           input,
           stream,
           instructions,
+          tools,
+          tool_choice,
         },
       } = data;
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.MODEL_NOT_SUPPORTED(model)),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(model)),
           headers,
         });
       }
@@ -245,7 +283,10 @@ export function makeCreateResponseRoute({
       if (max_output_tokens > maxOutputTokens) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, maxOutputTokens)
+            CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+              max_output_tokens,
+              maxOutputTokens
+            )
           ),
           headers,
         });
@@ -254,7 +295,7 @@ export function makeCreateResponseRoute({
       // --- STORE CHECK ---
       if (previous_response_id && !store) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.STORE_NOT_SUPPORTED),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.STORE_NOT_SUPPORTED),
           headers,
         });
       }
@@ -273,7 +314,9 @@ export function makeCreateResponseRoute({
       // --- CONVERSATION USER ID CHECK ---
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.CONVERSATION_USER_ID_CHANGED),
+          error: new Error(
+            CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED
+          ),
           headers,
         });
       }
@@ -287,7 +330,9 @@ export function makeCreateResponseRoute({
       ) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
+            CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
+              maxUserMessagesInConversation
+            )
           ),
           headers,
         });
@@ -316,13 +361,14 @@ export function makeCreateResponseRoute({
         },
       } satisfies ResponseStreamInProgress);
 
-      // Convert input to latestMessageText format
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
       const { messages } = await generateResponse({
         shouldStream: stream,
         latestMessageText,
         customSystemPrompt: instructions,
+        toolDefinitions: tools,
+        toolChoice: tool_choice,
         // TODO: fix these
         // clientContext ??
         // customData ??
@@ -348,6 +394,14 @@ export function makeCreateResponseRoute({
         response: {
           ...baseResponse,
           created_at: Date.now(),
+          // pass actual token usage: https://jira.mongodb.org/browse/EAI-1215
+          usage: {
+            input_tokens: 0,
+            input_tokens_details: { cached_tokens: 0 },
+            output_tokens: 0,
+            output_tokens_details: { reasoning_tokens: 0 },
+            total_tokens: 0,
+          },
         },
       } satisfies ResponseStreamCompleted);
     } catch (error) {
@@ -388,6 +442,8 @@ interface LoadConversationByMessageIdParams {
   alwaysAllowedMetadataKeys: string[];
 }
 
+export const creationInterface = "responses-api";
+
 const loadConversationByMessageId = async ({
   messageId,
   conversations,
@@ -408,6 +464,7 @@ const loadConversationByMessageId = async ({
       userId,
       storeMessageContent,
       customData: { metadata: formattedMetadata },
+      creationInterface,
     });
   }
 
@@ -417,7 +474,7 @@ const loadConversationByMessageId = async ({
 
   if (!conversation) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
       headers,
     });
   }
@@ -427,7 +484,7 @@ const loadConversationByMessageId = async ({
   // this ensures that conversations will respect the store flag initially set
   if (shouldStoreConversation !== storeMessageContent) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.CONVERSATION_STORE_MISMATCH),
       headers,
     });
   }
@@ -435,7 +492,7 @@ const loadConversationByMessageId = async ({
   const latestMessage = conversation.messages[conversation.messages.length - 1];
   if (latestMessage.id.toString() !== messageId) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
       headers,
     });
   }
@@ -451,7 +508,7 @@ const convertToObjectId = (
     return new ObjectId(inputString);
   } catch (error) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.INVALID_OBJECT_ID(inputString)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.INVALID_OBJECT_ID(inputString)),
       headers,
     });
   }

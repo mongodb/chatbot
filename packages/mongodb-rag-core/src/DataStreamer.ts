@@ -80,6 +80,22 @@ export type ResponseStreamOutputTextDone = Omit<
   OpenAI.Responses.ResponseTextDoneEvent,
   "sequence_number"
 >;
+export type ResponseStreamOutputItemAdded = Omit<
+  OpenAI.Responses.ResponseOutputItemAddedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamFunctionCallArgumentsDelta = Omit<
+  OpenAI.Responses.ResponseFunctionCallArgumentsDeltaEvent,
+  "sequence_number"
+>;
+export type ResponseStreamFunctionCallArgumentsDone = Omit<
+  OpenAI.Responses.ResponseFunctionCallArgumentsDoneEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputItemDone = Omit<
+  OpenAI.Responses.ResponseOutputItemDoneEvent,
+  "sequence_number"
+>;
 export type ResponseStreamCompleted = Omit<
   OpenAI.Responses.ResponseCompletedEvent,
   "sequence_number"
@@ -95,6 +111,10 @@ export type ResponsesStreamParams =
   | ResponseStreamOutputTextDelta
   | ResponseStreamOutputTextAnnotationAdded
   | ResponseStreamOutputTextDone
+  | ResponseStreamOutputItemAdded
+  | ResponseStreamFunctionCallArgumentsDelta
+  | ResponseStreamFunctionCallArgumentsDone
+  | ResponseStreamOutputItemDone
   | ResponseStreamCompleted
   | ResponseStreamError;
 

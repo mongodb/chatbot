@@ -50,6 +50,9 @@ export function makeMongoDbConversationsService(
       if (params?.storeMessageContent !== undefined) {
         newConversation.storeMessageContent = params.storeMessageContent;
       }
+      if (params?.creationInterface !== undefined) {
+        newConversation.creationInterface = params.creationInterface;
+      }
 
       const insertResult = await conversationsCollection.insertOne(
         newConversation

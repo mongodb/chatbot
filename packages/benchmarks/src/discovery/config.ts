@@ -1,4 +1,4 @@
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import {
   DiscoveryEvalCaseInput,
@@ -8,7 +8,7 @@ import {
   makeMatchScorers,
 } from "./DiscoveryEval";
 import path from "path";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const discoveryBenchmarkConfig: BenchmarkConfig<
   DiscoveryEvalCaseInput,
@@ -31,12 +31,13 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
   tasks: {
     default: {
       taskFunc: (provider, config) => {
-        const model = wrapAISDKModel(
-          createOpenAI({
+        const model = wrapLanguageModel({
+          model: createOpenAI({
             apiKey: provider.apiKey,
             baseURL: provider.baseUrl,
-          }).chat(config.deployment)
-        );
+          }).chat(config.deployment),
+          middleware: [BraintrustMiddleware({ debug: true })],
+        });
         return makeDiscoveryTask({
           model,
           llmOptions: {

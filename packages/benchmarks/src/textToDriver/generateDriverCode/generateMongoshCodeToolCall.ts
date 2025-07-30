@@ -1,4 +1,9 @@
-import { generateText, LanguageModelV1, tool, jsonSchema } from "ai";
+import {
+  generateText,
+  jsonSchema,
+  LanguageModel,
+  tool,
+} from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   DatabaseInfo,
@@ -50,7 +55,7 @@ type FewShotPromptType = "default" | "chainOfThought";
 export interface MakeGenerateMongoshCodeSimpleParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
-  openai: LanguageModelV1;
+  openai: LanguageModel;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   schemaStrategy: SchemaStrategy;
   fewShot?: boolean;
@@ -93,7 +98,7 @@ export function makeGenerateMongoshCodeToolCallTask({
       await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
-        maxTokens:
+        maxOutputTokens:
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,
@@ -153,16 +158,18 @@ function makeDbCodeTool({
   output,
   hasQueryPlan,
 }: {
-  model: LanguageModelV1;
+  model: LanguageModel;
   databaseName: string;
   uri: string;
   output: TextToDriverOutput;
   hasQueryPlan: boolean;
 }) {
   let toolSchema;
+  const modelId = (model as Extract<LanguageModel, { modelId: string }>)
+    .modelId;
   // Gemini 2.5 models aren't compatible with our zod schema
   // This defines the schema more directly instead of relying on the ai sdk
-  if (model.modelId.startsWith("publishers/google/models/gemini")) {
+  if (modelId.startsWith("publishers/google/models/gemini")) {
     toolSchema = jsonSchema<{
       query_plan: string;
       code: string;
@@ -191,7 +198,7 @@ function makeDbCodeTool({
 
   return tool({
     description: "A MongoDB Shell (mongosh) query for the database use case",
-    parameters: toolSchema,
+    inputSchema: toolSchema,
     execute: async (args) => {
       const execution = await executeMongoshQuery({
         databaseName: databaseName,

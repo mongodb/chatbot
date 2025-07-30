@@ -1,8 +1,7 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
-import { createOpenAI } from "@ai-sdk/openai";
-import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
@@ -20,6 +19,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 import { makeGenerateMongoshCodeToolCallTask } from "../../generateDriverCode/generateMongoshCodeToolCall";
 import { makeExperimentName } from "../../makeExperimentName";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 
 async function main() {
   const toolCallModels = MODELS
@@ -100,13 +100,12 @@ async function main() {
               systemPromptStrategy,
               schemaStrategy,
               fewShot,
-              openai: wrapAISDKModel(
-                createOpenAI({
+              openai: wrapLanguageModel({
+                model: createOpenAI({
                   ...(await getOpenAiEndpointAndApiKey(model)),
-                }).chat(llmOptions.model, {
-                  structuredOutputs: true,
-                })
-              ),
+                }).chat(llmOptions.model),
+                middleware: [BraintrustMiddleware({ debug: true })],
+              }),
             }),
             metadata: {
               llmOptions,

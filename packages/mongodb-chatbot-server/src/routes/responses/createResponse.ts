@@ -36,7 +36,7 @@ export const MAX_INPUT_ARRAY_LENGTH = 50;
 export const MAX_TOOLS = 10;
 export const MAX_TOOLS_CONTENT_LENGTH = 25000; // ~5,000 tokens
 
-export const ERR_MSG = {
+export const CREATE_RESPONSE_ERR_MSG = {
   INSTRUCTIONS_LENGTH: `Instructions must be between ${MIN_INSTRUCTIONS_LENGTH} and ${MAX_INSTRUCTIONS_LENGTH} characters, inclusive.`,
   INPUT_STRING: "Input must be a non-empty string",
   INPUT_LENGTH: `Input must be between ${MIN_INPUT_LENGTH} and ${MAX_INPUT_LENGTH} characters, inclusive.`,
@@ -68,7 +68,7 @@ export const ERR_MSG = {
     "Path: body.previous_response_id | body.store - to use previous_response_id the store flag must be true",
   CONVERSATION_STORE_MISMATCH:
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
-};
+} as const;
 
 const InputMessageSchema = z.object({
   type: z.literal("message").optional(),
@@ -82,7 +82,7 @@ const InputMessageSchema = z.object({
           text: z.string(),
         })
       )
-      .length(1, ERR_MSG.INPUT_TEXT_ARRAY),
+      .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY),
   ]),
 });
 
@@ -93,14 +93,14 @@ const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z
     .string()
-    .min(MIN_INSTRUCTIONS_LENGTH, ERR_MSG.INSTRUCTIONS_LENGTH)
-    .max(MAX_INSTRUCTIONS_LENGTH, ERR_MSG.INSTRUCTIONS_LENGTH)
+    .min(MIN_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
+    .max(MAX_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
     .optional(),
   input: z.union([
     z
       .string()
-      .min(MIN_INPUT_LENGTH, ERR_MSG.INPUT_LENGTH)
-      .max(MAX_INPUT_LENGTH, ERR_MSG.INPUT_LENGTH),
+      .min(MIN_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH)
+      .max(MAX_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH),
     z
       .array(
         z.union([
@@ -136,11 +136,11 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .nonempty(ERR_MSG.INPUT_ARRAY)
-      .max(MAX_INPUT_ARRAY_LENGTH, ERR_MSG.INPUT_ARRAY_LENGTH)
+      .nonempty(CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY)
+      .max(MAX_INPUT_ARRAY_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH)
       .refine(
         (input) => JSON.stringify(input).length <= MAX_INPUT_LENGTH,
-        ERR_MSG.INPUT_LENGTH
+        CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH
       ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
@@ -149,7 +149,7 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      ERR_MSG.METADATA_LENGTH
+      CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH
     ),
   previous_response_id: z
     .string()
@@ -160,11 +160,13 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .default(true)
     .describe("Whether to store the response in the conversation."),
-  stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
+  stream: z
+    .boolean()
+    .refine((stream) => stream, CREATE_RESPONSE_ERR_MSG.STREAM),
   temperature: z
     .number()
-    .min(0, ERR_MSG.TEMPERATURE)
-    .max(0, ERR_MSG.TEMPERATURE)
+    .min(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
+    .max(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
     .optional()
     .default(0)
     .describe("Temperature for the model. Defaults to 0."),
@@ -195,10 +197,10 @@ const CreateResponseRequestBodySchema = z.object({
           ),
       })
     )
-    .max(MAX_TOOLS, ERR_MSG.TOOLS_LENGTH)
+    .max(MAX_TOOLS, CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH)
     .refine(
       (tools) => JSON.stringify(tools).length <= MAX_TOOLS_CONTENT_LENGTH,
-      ERR_MSG.TOOLS_CONTENT_LENGTH
+      CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH
     )
     .optional()
     .describe("Tools for the model to use."),
@@ -270,7 +272,7 @@ export function makeCreateResponseRoute({
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.MODEL_NOT_SUPPORTED(model)),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(model)),
           headers,
         });
       }
@@ -279,7 +281,10 @@ export function makeCreateResponseRoute({
       if (max_output_tokens > maxOutputTokens) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, maxOutputTokens)
+            CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+              max_output_tokens,
+              maxOutputTokens
+            )
           ),
           headers,
         });
@@ -288,7 +293,7 @@ export function makeCreateResponseRoute({
       // --- STORE CHECK ---
       if (previous_response_id && !store) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.STORE_NOT_SUPPORTED),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.STORE_NOT_SUPPORTED),
           headers,
         });
       }
@@ -307,7 +312,9 @@ export function makeCreateResponseRoute({
       // --- CONVERSATION USER ID CHECK ---
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.CONVERSATION_USER_ID_CHANGED),
+          error: new Error(
+            CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED
+          ),
           headers,
         });
       }
@@ -321,7 +328,9 @@ export function makeCreateResponseRoute({
       ) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
+            CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
+              maxUserMessagesInConversation
+            )
           ),
           headers,
         });
@@ -451,7 +460,7 @@ const loadConversationByMessageId = async ({
 
   if (!conversation) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
       headers,
     });
   }
@@ -461,7 +470,7 @@ const loadConversationByMessageId = async ({
   // this ensures that conversations will respect the store flag initially set
   if (shouldStoreConversation !== storeMessageContent) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.CONVERSATION_STORE_MISMATCH),
       headers,
     });
   }
@@ -469,7 +478,7 @@ const loadConversationByMessageId = async ({
   const latestMessage = conversation.messages[conversation.messages.length - 1];
   if (latestMessage.id.toString() !== messageId) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
       headers,
     });
   }
@@ -485,7 +494,7 @@ const convertToObjectId = (
     return new ObjectId(inputString);
   } catch (error) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.INVALID_OBJECT_ID(inputString)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.INVALID_OBJECT_ID(inputString)),
       headers,
     });
   }

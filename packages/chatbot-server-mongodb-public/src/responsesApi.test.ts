@@ -2,7 +2,10 @@ import "dotenv/config";
 import type { Server } from "http";
 import type { Express } from "express";
 import type { ConversationsService, SomeMessage } from "mongodb-rag-core";
-import type { CreateResponseRequest } from "mongodb-chatbot-server/src/routes/responses/createResponse";
+import {
+  CreateResponseRequest,
+  CREATE_RESPONSE_ERR_MSG,
+} from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
 
@@ -201,7 +204,7 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage: "Input must be a non-empty string",
+        errorMessage: CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH,
       });
     });
 
@@ -213,8 +216,7 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage:
-          "Path: body.input - Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+        errorMessage: CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY,
       });
     });
 
@@ -226,7 +228,7 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage: `Path: body.model - ${invalidModel} is not supported.`,
+        errorMessage: CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
       });
     });
 
@@ -238,7 +240,10 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage: `Path: body.max_output_tokens - ${max_output_tokens} is greater than the maximum allowed 4000.`,
+        errorMessage: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+          max_output_tokens,
+          4000
+        ),
       });
     });
 

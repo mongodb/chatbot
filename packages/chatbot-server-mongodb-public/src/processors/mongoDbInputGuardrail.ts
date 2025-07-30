@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { InputGuardrail } from "mongodb-chatbot-server";
-import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
+import type {
+  InputGuardrail,
+  GenerateResponseParams,
+} from "mongodb-chatbot-server";
+import { generateObject, type LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -238,7 +241,14 @@ export const makeMongoDbInputGuardrail = ({
 }: MakeUserMessageMongoDbGuardrailParams) => {
   const userMessageMongoDbGuardrail: InputGuardrail = async ({
     latestMessageText,
+    customSystemPrompt,
+    toolDefinitions,
   }) => {
+    const userMessage = makeInputGuardrailUserMessage({
+      latestMessageText,
+      customSystemPrompt,
+      toolDefinitions,
+    });
     const {
       object: { type, reasoning },
     } = await generateObject({
@@ -246,10 +256,7 @@ export const makeMongoDbInputGuardrail = ({
       schema: UserMessageMongoDbGuardrailFunctionSchema,
       schemaDescription: inputGuardrailMetadata.description,
       schemaName: inputGuardrailMetadata.name,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user" as const, content: latestMessageText },
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       mode: "json",
     });
     const rejected = type === "irrelevant" || type === "inappropriate";
@@ -261,3 +268,31 @@ export const makeMongoDbInputGuardrail = ({
   };
   return userMessageMongoDbGuardrail;
 };
+
+function makeInputGuardrailUserMessage({
+  latestMessageText,
+  customSystemPrompt,
+  toolDefinitions,
+}: Pick<
+  GenerateResponseParams,
+  "latestMessageText" | "customSystemPrompt" | "toolDefinitions"
+>) {
+  if (!customSystemPrompt && !toolDefinitions) {
+    return {
+      role: "user" as const,
+      content: latestMessageText,
+    };
+  }
+  return {
+    role: "user" as const,
+    content: `<latest-user-message>${latestMessageText}</latest-user-message>${
+      customSystemPrompt
+        ? `\n\n<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>\n\n`
+        : ""
+    }${
+      toolDefinitions
+        ? `\n\n<tools>${JSON.stringify(toolDefinitions)}</tools>\n\n`
+        : ""
+    }`,
+  };
+}

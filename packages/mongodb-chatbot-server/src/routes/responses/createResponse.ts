@@ -392,6 +392,8 @@ interface LoadConversationByMessageIdParams {
   alwaysAllowedMetadataKeys: string[];
 }
 
+export const creationInterface = "responses-api";
+
 const loadConversationByMessageId = async ({
   messageId,
   conversations,
@@ -412,6 +414,7 @@ const loadConversationByMessageId = async ({
       userId,
       storeMessageContent,
       customData: { metadata: formattedMetadata },
+      creationInterface,
     });
   }
 

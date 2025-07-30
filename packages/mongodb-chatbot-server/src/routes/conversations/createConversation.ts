@@ -20,6 +20,7 @@ import {
   AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
+import { creationInterface } from "./constants";
 
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
@@ -56,6 +57,7 @@ export function makeCreateConversationRoute({
       );
       const conversationInDb = await conversations.create({
         customData,
+        creationInterface,
       });
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);

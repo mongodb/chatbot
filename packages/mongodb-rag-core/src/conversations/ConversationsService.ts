@@ -164,6 +164,9 @@ export interface Conversation<
   requestOrigin?: string;
   /** The user id that the request originated from. */
   userId?: string;
+
+  /** The API that created the conversation. */
+  creationInterface?: string;
   /** Whether to store the message's content data. */
   storeMessageContent?: boolean;
 
@@ -178,6 +181,7 @@ export type CreateConversationParams = {
   customData?: ConversationCustomData;
   userId?: string;
   storeMessageContent?: boolean;
+  creationInterface?: string;
 };
 
 export type AddMessageParams<T extends SomeMessage> = Omit<T, "createdAt"> & {

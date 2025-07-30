@@ -397,7 +397,10 @@ describe("Responses API with OpenAI Client", () => {
     });
   });
 
-  describe("Braintrust tracing", () => {
+  // Skipping these tests because they require manual validation
+  // in the Braintrust UI. There isn't presently a good way to
+  // validate the tracing data in the tests.
+  describe.skip("Braintrust tracing", () => {
     let logger: Logger<true>;
     beforeAll(async () => {
       logger = makeBraintrustLogger({

@@ -289,6 +289,10 @@ function makeInputGuardrailUserMessage({
       customSystemPrompt
         ? `\n\n<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>\n\n`
         : ""
-    }${toolDefinitions ? `\n\n<tools>${toolDefinitions}</tools>\n\n` : ""}`,
+    }${
+      toolDefinitions
+        ? `\n\n<tools>${JSON.stringify(toolDefinitions)}</tools>\n\n`
+        : ""
+    }`,
   };
 }

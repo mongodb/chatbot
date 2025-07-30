@@ -1,11 +1,13 @@
 import { systemPrompt, type MakeSystemPrompt } from "../systemPrompt";
 
 export const makeResponsesSystemPrompt: MakeSystemPrompt = (
-  customSystemPrompt
+  customSystemPrompt,
+  customToolDefinitions
 ) => {
-  if (!customSystemPrompt) {
+  if (!customSystemPrompt && !customToolDefinitions) {
     return systemPrompt;
   }
+
   return {
     role: "system",
     content: `
@@ -16,6 +18,17 @@ ${systemPrompt.content}
 </meta-system-prompt>
 <custom-system-prompt>
 ${customSystemPrompt}
-</custom-system-prompt>`,
+</custom-system-prompt>
+<custom-tool-definitions>
+${customToolDefinitions
+  ?.map(({ name, description, parameters, strict }, index) => {
+    const toolNumber = index + 1;
+    const parametersString = parameters ? JSON.stringify(parameters) : "none";
+    const strictness = strict ? "strict" : "not strict";
+
+    return `${toolNumber}. name: ${name}, description: ${description}, parameters: ${parametersString}, strictness: ${strictness}`;
+  })
+  ?.join("\n")}
+</custom-tool-definitions>`,
   };
 };

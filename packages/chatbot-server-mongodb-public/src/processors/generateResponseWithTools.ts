@@ -135,6 +135,7 @@ export const addMessageToConversationStream: GenerateResponseWithToolsParams["st
 export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
   onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
     const itemId = Date.now().toString();
+
     dataStreamer?.streamResponses({
       type: "response.output_item.added",
       output_index: 0,
@@ -151,14 +152,14 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       delta: notWorkingMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text: notWorkingMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -180,6 +181,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
   },
   onLlmRefusal({ dataStreamer, refusalMessage }) {
     const itemId = Date.now().toString();
+
     dataStreamer?.streamResponses({
       type: "response.output_item.added",
       output_index: 0,
@@ -235,42 +237,42 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       } satisfies ResponseStreamOutputTextAnnotationAdded);
     });
   },
-  onTextStart({ dataStreamer }) {
+  onTextStart({ dataStreamer, textPartId }) {
     dataStreamer?.streamResponses({
       type: "response.output_item.added",
       output_index: 0,
       item: {
         type: "message",
-        id: "",
+        id: textPartId,
         content: [],
         role: "assistant",
         status: "in_progress",
       },
     } satisfies ResponseStreamOutputItemAdded);
   },
-  onTextDelta({ dataStreamer, delta }) {
+  onTextDelta({ dataStreamer, delta, textPartId }) {
     dataStreamer?.streamResponses({
       type: "response.output_text.delta",
       delta,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: textPartId,
     } satisfies ResponseStreamOutputTextDelta);
   },
-  onTextDone({ dataStreamer, text, references }) {
+  onTextDone({ dataStreamer, text, references, textPartId, chunkId }) {
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: textPartId,
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
       output_index: 0,
       item: {
         type: "message",
-        id: "",
+        id: chunkId,
         content: [
           {
             type: "output_text",
@@ -283,7 +285,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       },
     } satisfies ResponseStreamOutputItemDone);
   },
-  onFunctionCallStart({ dataStreamer, toolCallId, toolName }) {
+  onFunctionCallStart({ dataStreamer, toolCallId, toolName, chunkId }) {
     dataStreamer?.streamResponses({
       type: "response.output_item.added",
       output_index: 0,
@@ -291,7 +293,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
         arguments: "",
         call_id: toolCallId,
         name: toolName,
-        id: "",
+        id: chunkId,
         type: "function_call",
         status: "in_progress",
       },
@@ -305,7 +307,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       item_id: toolCallId,
     } satisfies ResponseStreamFunctionCallArgumentsDelta);
   },
-  onFunctionCallDone({ dataStreamer, toolCallId, toolName, input }) {
+  onFunctionCallDone({ dataStreamer, toolCallId, toolName, input, chunkId }) {
     const args = JSON.stringify(input);
 
     dataStreamer?.streamResponses({
@@ -321,7 +323,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
         arguments: args,
         call_id: toolCallId,
         name: toolName,
-        id: "",
+        id: chunkId,
         type: "function_call",
         status: "completed",
       },

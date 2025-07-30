@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { InputGuardrail } from "mongodb-chatbot-server";
+import type {
+  InputGuardrail,
+  GenerateResponseParams,
+} from "mongodb-chatbot-server";
 import { generateObject, type LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({

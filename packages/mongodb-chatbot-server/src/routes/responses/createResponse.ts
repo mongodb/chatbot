@@ -172,7 +172,7 @@ const CreateResponseRequestBodySchema = z.object({
     .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
-      z.enum(["none", "auto", "required"]),
+      z.literal("auto"),
       z
         .object({
           type: z.literal("function"),
@@ -266,6 +266,8 @@ export function makeCreateResponseRoute({
           input,
           stream,
           instructions,
+          tools,
+          tool_choice,
         },
       } = data;
 
@@ -366,6 +368,8 @@ export function makeCreateResponseRoute({
         shouldStream: stream,
         latestMessageText,
         customSystemPrompt: instructions,
+        toolDefinitions: tools,
+        toolChoice: tool_choice,
         // TODO: fix these
         // clientContext ??
         // customData ??
@@ -431,6 +435,8 @@ interface LoadConversationByMessageIdParams {
   alwaysAllowedMetadataKeys: string[];
 }
 
+export const creationInterface = "responses-api";
+
 const loadConversationByMessageId = async ({
   messageId,
   conversations,
@@ -451,6 +457,7 @@ const loadConversationByMessageId = async ({
       userId,
       storeMessageContent,
       customData: { metadata: formattedMetadata },
+      creationInterface,
     });
   }
 

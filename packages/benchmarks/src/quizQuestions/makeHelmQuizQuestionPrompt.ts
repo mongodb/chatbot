@@ -1,6 +1,5 @@
-import { OpenAI } from "mongodb-rag-core/openai";
 import { QuizQuestionData } from "./QuizQuestionData";
-import { CoreMessage } from "ai";
+import { CoreMessage } from "mongodb-rag-core/aiSdk";
 
 type ChatMessage = CoreMessage;
 

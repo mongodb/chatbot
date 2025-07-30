@@ -2,13 +2,14 @@ import { strict as assert } from "assert";
 import {
   Eval,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "mongodb-rag-core/braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
 import fs from "fs";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
-import { generateText, LanguageModel } from "ai";
+import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export interface DiscoveryEvalCaseInput {
   content: string;
@@ -52,7 +53,9 @@ export interface DiscoveryTaskOutput {
 export type DiscoveryEvalTask = EvalTask<
   DiscoveryEvalCaseInput,
   DiscoveryTaskOutput,
-  void
+  void,
+  void,
+  EvalParameters
 >;
 
 interface MakeDiscoveryTaskParams {
@@ -142,7 +145,6 @@ export interface MakeDiscoveryEvalParams {
 export function runDiscoveryEval({
   projectName,
   data,
-  openaiClient,
   matchRegExp,
   experimentName,
   additionalMetadata,

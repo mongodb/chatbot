@@ -25,6 +25,7 @@ import {
   MAX_INSTRUCTIONS_LENGTH,
   MAX_TOOLS,
   MAX_TOOLS_CONTENT_LENGTH,
+  creationInterface,
   type CreateResponseRequest,
 } from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
@@ -272,7 +273,7 @@ describe("POST /responses", () => {
 
     it("Should return responses with a valid tool_choice", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
-        tool_choice: "none",
+        tool_choice: "auto",
       };
       const stream = await makeClientAndRequest(requestBody);
 
@@ -560,6 +561,22 @@ describe("POST /responses", () => {
       expect(messages[1].role).toEqual("tool");
       expect(messages[1].name).toEqual(functionCallOutputType);
       expect(messages[1].content).toEqual("");
+    });
+    it("should store conversation", async () => {
+      const stream = await makeClientAndRequest({
+        input: "What is MongoDB?",
+      });
+
+      const results: any[] = [];
+      for await (const event of stream) {
+        results.push(event);
+      }
+      const conversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      expect(conversation).not.toBeNull();
+      expect(conversation?.messages.length).toBeGreaterThan(0);
+      expect(conversation?.creationInterface).toBe(creationInterface);
     });
   });
 

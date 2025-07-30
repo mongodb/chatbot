@@ -1,4 +1,4 @@
-import { generateText, LanguageModelV1, tool } from "ai";
+import { generateText, LanguageModel, tool } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   DatabaseExecutionResult,
@@ -30,7 +30,7 @@ type FewShotPromptType = "basic" | "chainOfThought";
 export interface MakeGenerateMongoshCodeSimpleParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
-  openai: LanguageModelV1;
+  openai: LanguageModel;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   schemaStrategy: SchemaStrategy;
   fewShot?: FewShotPromptType;
@@ -55,7 +55,7 @@ export function makeGenerateMongoshCodeSimpleTask({
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
-        maxTokens:
+        maxOutputTokens:
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,
@@ -68,7 +68,7 @@ export function makeGenerateMongoshCodeSimpleTask({
           [GENERATE_DB_CODE_TOOL_NAME]: tool({
             description:
               "A MongoDB Shell (mongosh) query for the database use case",
-            parameters: z.object({
+            inputSchema: z.object({
               [CODE_FIELD]: z
                 .string()
                 .describe("Executable mongosh code snippet"),
@@ -149,7 +149,7 @@ export function makeGenerateMongoshCodeSimpleCotTask({
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
-        maxTokens:
+        maxOutputTokens:
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,
@@ -162,7 +162,7 @@ export function makeGenerateMongoshCodeSimpleCotTask({
           [GENERATE_DB_CODE_TOOL_NAME]: tool({
             description:
               "A MongoDB Shell (mongosh) query for the database use case",
-            parameters: z.object({
+            inputSchema: z.object({
               [THOUGHTS_FIELD]: z.string().describe("Reasoning about answer"),
               [CODE_FIELD]: z
                 .string()

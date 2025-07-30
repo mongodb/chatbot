@@ -34,9 +34,13 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
+import {
+  makeMongoDbPageStore,
+  logger,
+  BRAINTRUST_ENV_VARS,
+} from "mongodb-rag-core";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   AZURE_OPENAI_ENV_VARS,
@@ -63,7 +67,11 @@ import {
 } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import {
+  createAzure,
+  createOpenAI,
+  wrapLanguageModel,
+} from "mongodb-rag-core/aiSdk";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
@@ -78,17 +86,23 @@ export const {
   OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+
   OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   ...PREPROCESSOR_ENV_VARS,
   ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
+  ...BRAINTRUST_ENV_VARS,
+});
+
+const braintrustOpenAi = new OpenAI({
+  apiKey: BRAINTRUST_API_KEY,
+  baseURL: BRAINTRUST_ENDPOINT,
 });
 
 // Optional env vars
@@ -106,7 +120,7 @@ export const braintrustLogger = makeBraintrustLogger({
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") ?? [];
 
-export const openAiClient = wrapOpenAI(
+export const embeddingOpenAiClient = wrapOpenAI(
   new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
@@ -146,7 +160,7 @@ export const retrievalConfig = {
 };
 
 export const embedder = makeOpenAiEmbedder({
-  openAiClient,
+  openAiClient: embeddingOpenAiClient,
   deployment: retrievalConfig.embeddingModel,
   backoffOptions: {
     numOfAttempts: 3,
@@ -178,7 +192,7 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
 });
 
 const verifiedAnswersEmbedder = makeOpenAiEmbedder({
-  openAiClient,
+  openAiClient: embeddingOpenAiClient,
   deployment: verifiedAnswerConfig.embeddingModel,
   backoffOptions: {
     numOfAttempts: 3,
@@ -215,22 +229,25 @@ export const preprocessorOpenAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
+const preprocessorModel = "us.amazon.nova-lite-v1:0";
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
 );
-const azureOpenAi = createAzure({
-  apiKey: OPENAI_API_KEY,
-  resourceName: process.env.OPENAI_RESOURCE_NAME,
+const openai = createOpenAI({
+  apiKey: BRAINTRUST_API_KEY,
+  baseURL: BRAINTRUST_ENDPOINT,
 });
+
+const mainModel = "us.anthropic.claude-sonnet-4-20250514-v1:0";
 const languageModel = wrapLanguageModel({
-  model: azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT),
+  model: openai.chat(mainModel),
   middleware: [BraintrustMiddleware({ debug: true })],
 });
 
 const guardrailLanguageModel = wrapLanguageModel({
-  model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),
+  model: openai.chat(preprocessorModel),
   middleware: [BraintrustMiddleware({ debug: true })],
 });
 const inputGuardrail = wrapTraced(
@@ -323,7 +340,7 @@ const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({
 });
 
 const llmAsAJudgeConfig = {
-  judgeModel: JUDGE_LLM,
+  judgeModel: preprocessorModel,
   judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
   openAiConfig: {
     azureOpenAi: {
@@ -391,7 +408,7 @@ export const config: AppConfig = {
         embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         scrubbedMessageStore,
         analyzerModel: wrapLanguageModel({
-          model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+          model: openai.chat(preprocessorModel),
           middleware: [BraintrustMiddleware({ debug: true })],
         }),
       }),
@@ -402,8 +419,8 @@ export const config: AppConfig = {
       braintrustLogger,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
-      openAiClient,
-      judgeLlm: JUDGE_LLM,
+      openAiClient: braintrustOpenAi,
+      judgeLlm: preprocessorModel,
       slack:
         SLACK_BOT_TOKEN !== undefined &&
         SLACK_COMMENT_CONVERSATION_ID !== undefined

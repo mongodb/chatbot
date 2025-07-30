@@ -4,6 +4,7 @@ import type {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { generateObject, type LanguageModel } from "mongodb-rag-core/aiSdk";
+import { makeResponsesSystemPrompt } from "./makeResponesSystemPrompt";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -244,6 +245,10 @@ export const makeMongoDbInputGuardrail = ({
     customSystemPrompt,
     toolDefinitions,
   }) => {
+    const systemPrompt = makeResponsesSystemPrompt(
+      customSystemPrompt,
+      toolDefinitions
+    );
     const userMessage = makeInputGuardrailUserMessage({
       latestMessageText,
       customSystemPrompt,
@@ -256,7 +261,7 @@ export const makeMongoDbInputGuardrail = ({
       schema: UserMessageMongoDbGuardrailFunctionSchema,
       schemaDescription: inputGuardrailMetadata.description,
       schemaName: inputGuardrailMetadata.name,
-      messages: [{ role: "system", content: systemPrompt }, userMessage],
+      messages: [systemPrompt, userMessage],
       mode: "json",
     });
     const rejected = type === "irrelevant" || type === "inappropriate";

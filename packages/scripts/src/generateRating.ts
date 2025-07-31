@@ -49,6 +49,8 @@ export const makeGenerateRating = ({ model }: { model: LanguageModel }) => {
     console.log(`Rating '${shortName}' with LLM...`);
 
     const result = await generateObject({
+      // TODO: TOMAYBEDO: Add more context to 1-5, add more context on different scores...
+      // - Output chain of thought - helpful for debugging
       prompt: `
 Evaluate the quality of the following prompt-expected answer pair across
 multiple dimensions. Return your evaluation as a JSON object with numeric scores

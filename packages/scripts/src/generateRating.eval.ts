@@ -18,6 +18,7 @@ interface GenerateRatingEvalCase {
   tags?: MongoDbTag[];
 }
 
+// TODO: More eval cases
 const evalCases: GenerateRatingEvalCase[] = [
   {
     input: {
@@ -34,10 +35,13 @@ const evalCases: GenerateRatingEvalCase[] = [
   },
 ];
 
+// TODO: More scorers
 const CorrectAnswerFit: Scorer<PromptResponseRating, unknown> = (args) => {
   return {
     name: "CorrectAnswerFit",
-    score: args.output.answer_fit === args.expected?.answer_fit ? 1 : 0,
+    score:
+      1 -
+      Math.abs(args.output.answer_fit - (args.expected?.answer_fit ?? 0)) / 5, // TODO: normalize
   };
 };
 

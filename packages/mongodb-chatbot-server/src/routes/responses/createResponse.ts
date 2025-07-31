@@ -14,7 +14,7 @@ import {
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
-import { getRequestId } from "../../utils";
+import { getRequestId, makeTraceConversation } from "../../utils";
 import type { GenerateResponse } from "../../processors";
 import {
   makeBadRequestError,
@@ -24,6 +24,7 @@ import {
   ERROR_TYPE,
   type SomeOpenAIAPIError,
 } from "./errors";
+import { traced, wrapNoTrace, wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const MIN_INSTRUCTIONS_LENGTH = 1;
 export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
@@ -363,16 +364,31 @@ export function makeCreateResponseRoute({
 
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
-      const { messages } = await generateResponse({
+      const traceMetadata = {
+        name: "generateResponse",
+        event: {
+          id: responseId.toHexString(),
+          metadata: {
+            conversationId: conversation._id.toHexString(),
+            store,
+          },
+        },
+      };
+
+      // Create a wrapper trace. This always creates a top-level trace.
+      // It only traces the contents of the generateResponse function
+      // if `store` is true.
+      const generateResponseMaybeTraced = store
+        ? wrapTraced(generateResponse, traceMetadata)
+        : traced(() => wrapNoTrace(generateResponse), traceMetadata);
+
+      const { messages } = await generateResponseMaybeTraced({
         shouldStream: stream,
         latestMessageText,
         customSystemPrompt: instructions,
         toolDefinitions: tools,
         toolChoice: tool_choice,
-        // TODO: fix these
-        // clientContext ??
-        // customData ??
-        conversation,
+        conversation: makeTraceConversation(conversation),
         dataStreamer,
         reqId,
       });

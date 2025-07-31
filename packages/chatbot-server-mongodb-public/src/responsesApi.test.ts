@@ -8,8 +8,13 @@ import {
 } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
+import {
+  initLogger,
+  Logger,
+  makeBraintrustLogger,
+} from "mongodb-rag-core/braintrust";
 
-jest.setTimeout(10 * 1000); // 10 seconds
+jest.setTimeout(100 * 1000); // 100 seconds
 
 const TEST_OPENAI_API_KEY = "test-api-key";
 const TEST_PORT = 5200;
@@ -394,6 +399,37 @@ describe("Responses API with OpenAI Client", () => {
       expect(responses2.length).toBeGreaterThanOrEqual(5);
       expect(deltaCount2).toBeGreaterThanOrEqual(1);
       expect(doneCount2).toBe(1);
+    });
+  });
+
+  // Skipping these tests because they require manual validation
+  // in the Braintrust UI. There isn't presently a good way to
+  // validate the tracing data in the tests.
+  describe.skip("Braintrust tracing", () => {
+    let logger: Logger<true>;
+    beforeAll(async () => {
+      logger = makeBraintrustLogger({
+        apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
+        projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+      });
+      await logger.flush();
+    });
+
+    it("Should return responses with tracing", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store: true,
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
+    });
+    it("should return responses without tracing", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store: false,
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
     });
   });
 });

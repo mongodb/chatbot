@@ -1,4 +1,11 @@
-import { DatasetRecord, initDataset, initLogger, Logger } from "braintrust";
+import {
+  DatasetRecord,
+  initDataset,
+  initLogger,
+  Logger,
+  NoopSpan,
+  withCurrent,
+} from "braintrust";
 import { z } from "zod";
 
 export * from "braintrust";
@@ -51,4 +58,14 @@ export async function getDatasetFromBraintrust<SchemaReturnType>({
     datasetRowSchema.parse(d)
   );
   return datasetRows;
+}
+
+export function wrapNoTrace<T extends (...args: any[]) => any>(
+  fn: T
+): (...args: Parameters<T>) => Promise<ReturnType<T>> {
+  return async function (...args: Parameters<T>): Promise<ReturnType<T>> {
+    return withCurrent(new NoopSpan(), async () => {
+      return fn(...args);
+    });
+  };
 }

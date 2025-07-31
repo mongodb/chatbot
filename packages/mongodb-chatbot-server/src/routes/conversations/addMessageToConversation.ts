@@ -18,7 +18,12 @@ import {
   convertMessageFromDbToApi,
   makeRequestError,
 } from "./utils";
-import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
+import {
+  getRequestId,
+  logRequest,
+  makeTraceConversation,
+  sendErrorResponse,
+} from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
@@ -230,36 +235,8 @@ export function makeAddMessageToConversationRoute({
 
       const assistantResponseMessageId = new ObjectId();
 
-      // Only include the necessary message info for the conversastion.
-      // This sends less data to Braintrust speeding up tracing
-      // and also being more readable in the Braintrust UI.
-      const traceConversation: Conversation = {
-        ...conversation,
-        messages: conversation.messages.map((message) => {
-          const baseFields = {
-            content: message.content,
-            id: message.id,
-            createdAt: message.createdAt,
-            metadata: message.metadata,
-          };
-
-          if (message.role === "tool") {
-            return {
-              role: "tool",
-              name: message.name,
-              ...baseFields,
-            } satisfies DbMessage<ToolMessage>;
-          } else {
-            return { ...baseFields, role: message.role } satisfies Exclude<
-              Message,
-              ToolMessage
-            >;
-          }
-        }),
-      };
-
       const { messages } = await generateResponseTraced({
-        conversation: traceConversation,
+        conversation: makeTraceConversation(conversation),
         latestMessageText,
         clientContext,
         customData,

@@ -9,9 +9,10 @@ import { Case } from "../Case";
 import { makeSimpleTextGenerator } from "../SimpleTextGenerator";
 import "dotenv/config";
 import { assessRelevance, makeShortName } from "../assessCases";
-import { generateRating } from "../generateRating";
+import { makeGenerateRating } from "../generateRating";
 import { models } from "mongodb-rag-core/models";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 
 const assessRelevanceMain = async () => {
   const {
@@ -62,15 +63,10 @@ const assessRelevanceMain = async () => {
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
     }).chat("o3"),
-    middleware: [],
+    middleware: [BraintrustMiddleware({ debug: true })],
   });
+  const generateRating = makeGenerateRating({ model: judgmentModel });
 
-  const openai = createOpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  }).chat(llmOptions.model, {
-    structuredOutputs: true,
-  });
   const client = await MongoClient.connect(FROM_CONNECTION_URI);
   try {
     console.log(
@@ -90,10 +86,9 @@ const assessRelevanceMain = async () => {
         });
 
         models.find(({ deployment }) => deployment === "o3");
-        const llm_as_judgment = await generateRating({
+        const prompt_response_rating = await generateRating({
           prompt,
           expectedResponse,
-          model: judgmentModel,
         });
         console.log(`Updating '${shortName}'...`);
         const updateResult = await collection.updateOne(
@@ -103,7 +98,7 @@ const assessRelevanceMain = async () => {
           {
             $set: {
               relevance,
-              llm_as_judgment,
+              prompt_response_rating,
             },
           }
         );

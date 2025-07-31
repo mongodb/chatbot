@@ -1,4 +1,5 @@
 import z from "zod";
+import { PromptResponseRating } from "./generateRating";
 
 // Map of embedding model name -> vector (array of numbers)
 export const Embeddings = z.record(z.string(), z.number().array());
@@ -33,20 +34,6 @@ export type ScoredPromptAndEmbeddings = z.infer<
   typeof ScoredPromptAndEmbeddings
 >;
 
-export const LlmAsJudgment = z
-  .object({
-    reasonableness: z.number(),
-    clarity: z.number(),
-    specificity: z.number(),
-    fit: z.number(),
-    assumption: z.number(),
-    impact: z.number(),
-    guidance: z.string(),
-  })
-  .partial();
-
-export type LlmAsJudgment = z.infer<typeof LlmAsJudgment>;
-
 export const Relevance = z.object({
   prompt_embeddings: Embeddings,
   generated_prompts: ScoredPromptAndEmbeddings.array(),
@@ -70,7 +57,7 @@ export const Case = z.object({
   // Fields to add
   prompt_embeddings: Embeddings.optional(),
   relevance: Relevance.optional(),
-  llm_as_judgment: LlmAsJudgment.optional(),
+  prompt_response_rating: PromptResponseRating.optional(),
 });
 
 export type Case = z.infer<typeof Case>;

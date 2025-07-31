@@ -56,11 +56,11 @@ export const scoreVariants = ({
 export const assessRelevance = async ({
   prompt,
   embedders,
-  expected,
+  expectedResponse,
   generate,
 }: {
   prompt: string;
-  expected: string;
+  expectedResponse: string;
   embedders: Embedder[];
   generate: SimpleTextGenerator;
 }): Promise<Relevance> => {
@@ -75,7 +75,7 @@ export const assessRelevance = async ({
   console.log(`Generating variants for '${shortName}'...`);
   const variants = await generatePromptsFromExpectedAnswer({
     embedders,
-    expected,
+    expectedResponse,
     generate,
     howMany: 3,
   });
@@ -92,7 +92,7 @@ export const assessRelevance = async ({
   assert(variantCount === Object.values(scoredVariants).length);
 
   console.log(
-    `- Expected: "${expected}"
+    `- Expected: "${expectedResponse}"
 - Original: "${prompt}"
 - Generated variants:
 ${scoredVariants.map(({ prompt }) => `  - "${prompt}"`).join("\n")}`

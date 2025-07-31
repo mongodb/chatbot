@@ -8,12 +8,12 @@ import { calculateEmbeddings } from "./calculateEmbeddings";
   elicit that expected answer.
  */
 export const generatePromptsFromExpectedAnswer = async ({
-  expected,
+  expectedResponse,
   embedders,
   generate,
   howMany,
 }: {
-  expected: string;
+  expectedResponse: string;
   embedders: Embedder[];
   generate: SimpleTextGenerator;
   howMany: number;
@@ -23,7 +23,7 @@ export const generatePromptsFromExpectedAnswer = async ({
 Don't necessarily use proper grammar or punctuation; write like a user of a chatbot, search engine, or LLM would.
 Just return the generated question.
 
-Expected answer:\n\n${expected}`,
+Expected answer:\n\n${expectedResponse}`,
     n: howMany,
     temperature: 0.5,
   });

@@ -420,6 +420,10 @@ describe("Responses API with OpenAI Client", () => {
         model: aiSDKClient.responses(MONGO_CHAT_MODEL),
         prompt: [
           {
+            role: "assistant",
+            content: [{ type: "text", text: "Here's some test context..." }],
+          },
+          {
             role: "user",
             content: [{ type: "text", text: "What is MongoDB?" }],
           },
@@ -456,6 +460,8 @@ describe("Responses API with OpenAI Client", () => {
         fail("Expected request to throw an error but it didn't");
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
+        // currently throws "Invalid JSON response" instead of the zod error: "Path: body.stream - 'stream' must be true"
+        // this will require quite a bit of changing how the input validation works to enable this to work for ai sdk clients
         expect((error as Error).message).toContain("Invalid JSON response");
       }
     });

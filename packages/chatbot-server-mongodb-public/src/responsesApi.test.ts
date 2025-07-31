@@ -8,11 +8,7 @@ import {
 } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
-import {
-  initLogger,
-  Logger,
-  makeBraintrustLogger,
-} from "mongodb-rag-core/braintrust";
+import { Logger, makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 
 jest.setTimeout(100 * 1000); // 100 seconds
 

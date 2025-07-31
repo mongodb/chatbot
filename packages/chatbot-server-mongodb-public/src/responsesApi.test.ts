@@ -2,6 +2,7 @@ import "dotenv/config";
 import type { Server } from "http";
 import type { Express } from "express";
 import type { ConversationsService, SomeMessage } from "mongodb-rag-core";
+import { streamText, createOpenAI } from "mongodb-rag-core/aiSdk";
 import {
   CreateResponseRequest,
   CREATE_RESPONSE_ERR_MSG,
@@ -16,6 +17,7 @@ const TEST_OPENAI_API_KEY = "test-api-key";
 const TEST_PORT = 5200;
 const TEST_ORIGIN = `http://localhost:${TEST_PORT}`;
 const API_PREFIX = "/api/v1";
+const MONGO_CHAT_MODEL = "mongodb-chat-latest";
 
 // Response event types
 const DELTA_EVENT = "response.output_text.delta";
@@ -60,7 +62,7 @@ describe("Responses API with OpenAI Client", () => {
     body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
   ) => {
     return await openAiClient.responses.create({
-      model: "mongodb-chat-latest",
+      model: MONGO_CHAT_MODEL,
       input: "What is MongoDB?",
       stream: true,
       temperature: 0,
@@ -319,7 +321,7 @@ describe("Responses API with OpenAI Client", () => {
       // Handles error slightly differently when stream: false
       await expect(
         openAiClient.responses.create({
-          model: "mongodb-chat-latest",
+          model: MONGO_CHAT_MODEL,
           input: "What is MongoDB?",
           stream: false,
           temperature: 0,
@@ -398,6 +400,48 @@ describe("Responses API with OpenAI Client", () => {
     });
   });
 
+  describe("Real AI SDK integration", () => {
+    it("Should handle actual conversation flow", async () => {
+      const model = createOpenAI({
+        baseURL: origin + API_PREFIX,
+        apiKey: TEST_OPENAI_API_KEY,
+        headers: {
+          Origin: origin,
+          "X-Forwarded-For": ipAddress,
+        },
+      }).responses(MONGO_CHAT_MODEL);
+
+      const result = await streamText({
+        model,
+        prompt: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "What is MongoDB?" }],
+          },
+        ],
+      });
+
+      const events: any[] = [];
+      for await (const chunk of result.toUIMessageStream()) {
+        events.push(chunk);
+      }
+
+      const resultText = await result.text;
+      const eventTypes = events.map((e) => e.type);
+
+      expect(eventTypes).toContain("start");
+      expect(eventTypes).toContain("start-step");
+      expect(eventTypes).toContain("text-start");
+      expect(eventTypes).toContain("text-delta");
+      expect(eventTypes).toContain("text-end");
+      expect(eventTypes).toContain("finish");
+
+      expect(resultText).toContain("MongoDB");
+      expect(resultText).toContain("document");
+      expect(resultText).toContain("database");
+    });
+  });
+
   // Skipping these tests because they require manual validation
   // in the Braintrust UI. There isn't presently a good way to
   // validate the tracing data in the tests.
@@ -458,7 +502,7 @@ const expectValidResponses = async ({
       expect(typeof response.created_at).toBe("number");
       expect(response.object).toBe("response");
       expect(response.error).toBeNull();
-      expect(response.model).toBe("mongodb-chat-latest");
+      expect(response.model).toBe(MONGO_CHAT_MODEL);
       expect(response.stream).toBe(true);
       expect(response.temperature).toBe(0);
 

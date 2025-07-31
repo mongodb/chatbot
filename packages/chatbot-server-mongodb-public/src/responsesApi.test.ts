@@ -110,7 +110,19 @@ describe("Responses API with OpenAI Client", () => {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
-          { role: "assistant", content: "MongoDB is a document database." },
+          {
+            id: "assistant-message-id",
+            role: "assistant",
+            type: "message",
+            status: "completed",
+            content: [
+              {
+                type: "output_text",
+                text: "MongoDB is a document database.",
+                annotations: [],
+              },
+            ],
+          },
           { role: "user", content: "What is a document database?" },
         ],
       };

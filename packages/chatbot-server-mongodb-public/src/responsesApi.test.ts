@@ -2,7 +2,12 @@ import "dotenv/config";
 import type { Server } from "http";
 import type { Express } from "express";
 import type { ConversationsService, SomeMessage } from "mongodb-rag-core";
-import { streamText, createOpenAI } from "mongodb-rag-core/aiSdk";
+import {
+  type OpenAIProvider,
+  createOpenAI,
+  streamText,
+  generateText,
+} from "mongodb-rag-core/aiSdk";
 import {
   CreateResponseRequest,
   CREATE_RESPONSE_ERR_MSG,
@@ -30,6 +35,7 @@ describe("Responses API with OpenAI Client", () => {
   let origin: string;
   let conversations: ConversationsService;
   let openAiClient: OpenAI;
+  let aiSDKClient: OpenAIProvider;
 
   beforeAll(async () => {
     const testAppResult = await makeTestApp();
@@ -44,6 +50,14 @@ describe("Responses API with OpenAI Client", () => {
       baseURL: origin + API_PREFIX,
       apiKey: TEST_OPENAI_API_KEY,
       defaultHeaders: {
+        Origin: origin,
+        "X-Forwarded-For": ipAddress,
+      },
+    });
+    aiSDKClient = createOpenAI({
+      baseURL: origin + API_PREFIX,
+      apiKey: TEST_OPENAI_API_KEY,
+      headers: {
         Origin: origin,
         "X-Forwarded-For": ipAddress,
       },
@@ -401,18 +415,9 @@ describe("Responses API with OpenAI Client", () => {
   });
 
   describe("Real AI SDK integration", () => {
-    it("Should handle actual conversation flow", async () => {
-      const model = createOpenAI({
-        baseURL: origin + API_PREFIX,
-        apiKey: TEST_OPENAI_API_KEY,
-        headers: {
-          Origin: origin,
-          "X-Forwarded-For": ipAddress,
-        },
-      }).responses(MONGO_CHAT_MODEL);
-
+    it("Should handle basic text streaming", async () => {
       const result = await streamText({
-        model,
+        model: aiSDKClient.responses(MONGO_CHAT_MODEL),
         prompt: [
           {
             role: "user",
@@ -439,6 +444,20 @@ describe("Responses API with OpenAI Client", () => {
       expect(resultText).toContain("MongoDB");
       expect(resultText).toContain("document");
       expect(resultText).toContain("database");
+    });
+
+    it("Should throw an error when generating text since we don't support non-streaming generation", async () => {
+      try {
+        await generateText({
+          model: aiSDKClient.responses(MONGO_CHAT_MODEL),
+          prompt: "What is MongoDB?",
+        });
+
+        fail("Expected request to throw an error but it didn't");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Invalid JSON response");
+      }
     });
   });
 

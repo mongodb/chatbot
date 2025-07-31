@@ -8,7 +8,7 @@ import {
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
-import { Tool, tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
+import { Tool, tool } from "mongodb-rag-core/aiSdk";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 export const SEARCH_ALL_FALLBACK_TEXT = "{fallback_to_search}";
@@ -28,15 +28,7 @@ export type FetchPageToolResult = {
   references?: Reference[];
 };
 
-export type FetchPageTool = Tool<
-  typeof MongoDbFetchPageToolArgsSchema,
-  FetchPageToolResult
-> & {
-  execute: (
-    args: MongoDbFetchPageToolArgs,
-    options: ToolExecutionOptions
-  ) => PromiseLike<FetchPageToolResult>;
-};
+export type FetchPageTool = Tool<MongoDbFetchPageToolArgs, FetchPageToolResult>;
 
 export interface MakeFetchPageToolParams {
   loadPage: MongoDbPageStore["loadPage"];
@@ -54,15 +46,17 @@ export function makeFetchPageTool({
   pageLengthCutoff = SEARCH_ON_PAGE_LENGTH_CUTOFF,
 }: MakeFetchPageToolParams): FetchPageTool {
   return tool({
-    parameters: MongoDbFetchPageToolArgsSchema,
+    inputSchema: MongoDbFetchPageToolArgsSchema,
     description: "Fetch all content for a specific URL",
-    experimental_toToolResultContent(result) {
-      return [{ type: "text", text: result.text }];
+    toModelOutput(output) {
+      return {
+        type: "content",
+        value: [{ type: "text", text: output.text }],
+      };
     },
     execute: wrapTraced(
       async function (
-        args: MongoDbFetchPageToolArgs,
-        _options: ToolExecutionOptions
+        args: MongoDbFetchPageToolArgs
       ): Promise<FetchPageToolResult> {
         const normalizedUrl = normalizeUrl({ url: args.pageUrl });
         const page = await loadPage({
@@ -110,18 +104,30 @@ async function getPageContent(
     return { text: searchFallbackText };
   }
   logger.info(`${FETCH_PAGE_TOOL_NAME} found a page for URL ${normalizedUrl}.`);
+  const referenceContent: Parameters<typeof makeReferences>[0][number] = {
+    url: page.url,
+    text: page.body,
+    metadata: {
+      ...page.metadata,
+      sourceName: page.sourceName,
+      pageTitle: page.title,
+    },
+    sourceName: page.sourceName,
+    updated: page.updated,
+  };
+
   if (page.body.length < pageLengthCutoff) {
     // Page content is short enough, return it directly
     return {
       text: page.body,
-      references: makeReferences([page]),
+      references: makeReferences([referenceContent]),
     };
   }
   // Page content is too long, do truncate-search
   logger.info(
     `Page for ${normalizedUrl} is very long, truncating and searching for most relevant content`
   );
-  const references = makeReferences([page]);
+  const references = makeReferences([referenceContent]);
   const mostRelevantChunks = await findContent({
     query: query,
     filters: { url: normalizedUrl },

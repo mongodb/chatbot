@@ -11,11 +11,10 @@ import {
   type ResponseStreamInProgress,
   type ResponseStreamCompleted,
   type ResponseStreamError,
-  type UserMessage,
   makeDataStreamer,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
-import { getRequestId } from "../../utils";
+import { getRequestId, makeTraceConversation } from "../../utils";
 import type { GenerateResponse } from "../../processors";
 import {
   makeBadRequestError,
@@ -25,11 +24,30 @@ import {
   ERROR_TYPE,
   type SomeOpenAIAPIError,
 } from "./errors";
+import { traced, wrapNoTrace, wrapTraced } from "mongodb-rag-core/braintrust";
 
-export const ERR_MSG = {
+export const MIN_INSTRUCTIONS_LENGTH = 1;
+export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
+
+export const MIN_INPUT_LENGTH = 1;
+export const MAX_INPUT_LENGTH = 250000; // ~50,000 tokens
+
+export const MAX_INPUT_ARRAY_LENGTH = 50;
+
+export const MAX_TOOLS = 10;
+export const MAX_TOOLS_CONTENT_LENGTH = 25000; // ~5,000 tokens
+
+export const CREATE_RESPONSE_ERR_MSG = {
+  INSTRUCTIONS_LENGTH: `Instructions must be between ${MIN_INSTRUCTIONS_LENGTH} and ${MAX_INSTRUCTIONS_LENGTH} characters, inclusive.`,
   INPUT_STRING: "Input must be a non-empty string",
+  INPUT_LENGTH: `Input must be between ${MIN_INPUT_LENGTH} and ${MAX_INPUT_LENGTH} characters, inclusive.`,
   INPUT_ARRAY:
     "Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+  INPUT_ARRAY_LENGTH: `Input array must have at most ${MAX_INPUT_ARRAY_LENGTH} element(s).`,
+  INPUT_TEXT_ARRAY:
+    'Input content array only supports "input_text" type with exactly one element.',
+  TOOLS_LENGTH: `Input tools array must have at most ${MAX_TOOLS} element(s).`,
+  TOOLS_CONTENT_LENGTH: `Input tools array must have at most ${MAX_TOOLS_CONTENT_LENGTH} characters, inclusive.`,
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
@@ -51,21 +69,43 @@ export const ERR_MSG = {
     "Path: body.previous_response_id | body.store - to use previous_response_id the store flag must be true",
   CONVERSATION_STORE_MISMATCH:
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
-};
+} as const;
+
+const InputMessageSchema = z.object({
+  type: z.literal("message").optional(),
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.union([
+    z.string(),
+    z
+      .array(
+        z.object({
+          type: z.literal("input_text"),
+          text: z.string(),
+        })
+      )
+      .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY),
+  ]),
+});
+
+type InputMessage = z.infer<typeof InputMessageSchema>;
+type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
 
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
-  instructions: z.string().optional(),
+  instructions: z
+    .string()
+    .min(MIN_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
+    .max(MAX_INSTRUCTIONS_LENGTH, CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH)
+    .optional(),
   input: z.union([
-    z.string().refine((input) => input.length > 0, ERR_MSG.INPUT_STRING),
+    z
+      .string()
+      .min(MIN_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH)
+      .max(MAX_INPUT_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH),
     z
       .array(
         z.union([
-          z.object({
-            type: z.literal("message").optional(),
-            role: z.enum(["user", "assistant", "system"]),
-            content: z.string(),
-          }),
+          InputMessageSchema,
           // function tool call
           z.object({
             type: z.literal("function_call"),
@@ -97,7 +137,12 @@ const CreateResponseRequestBodySchema = z.object({
           }),
         ])
       )
-      .refine((input) => input.length > 0, ERR_MSG.INPUT_ARRAY),
+      .nonempty(CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY)
+      .max(MAX_INPUT_ARRAY_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH)
+      .refine(
+        (input) => JSON.stringify(input).length <= MAX_INPUT_LENGTH,
+        CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH
+      ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
   metadata: z
@@ -105,7 +150,7 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      ERR_MSG.METADATA_LENGTH
+      CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH
     ),
   previous_response_id: z
     .string()
@@ -114,18 +159,21 @@ const CreateResponseRequestBodySchema = z.object({
   store: z
     .boolean()
     .optional()
-    .describe("Whether to store the response in the conversation.")
-    .default(true),
-  stream: z.boolean().refine((stream) => stream, ERR_MSG.STREAM),
+    .default(true)
+    .describe("Whether to store the response in the conversation."),
+  stream: z
+    .boolean()
+    .refine((stream) => stream, CREATE_RESPONSE_ERR_MSG.STREAM),
   temperature: z
     .number()
-    .refine((temperature) => temperature === 0, ERR_MSG.TEMPERATURE)
+    .min(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
+    .max(0, CREATE_RESPONSE_ERR_MSG.TEMPERATURE)
     .optional()
-    .describe("Temperature for the model. Defaults to 0.")
-    .default(0),
+    .default(0)
+    .describe("Temperature for the model. Defaults to 0."),
   tool_choice: z
     .union([
-      z.enum(["none", "auto", "required"]),
+      z.literal("auto"),
       z
         .object({
           type: z.literal("function"),
@@ -134,8 +182,8 @@ const CreateResponseRequestBodySchema = z.object({
         .describe("Function tool choice"),
     ])
     .optional()
-    .describe("Tool choice for the model. Defaults to 'auto'.")
-    .default("auto"),
+    .default("auto")
+    .describe("Tool choice for the model. Defaults to 'auto'."),
   tools: z
     .array(
       z.object({
@@ -149,6 +197,11 @@ const CreateResponseRequestBodySchema = z.object({
             "A JSON schema object describing the parameters of the function."
           ),
       })
+    )
+    .max(MAX_TOOLS, CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH)
+    .refine(
+      (tools) => JSON.stringify(tools).length <= MAX_TOOLS_CONTENT_LENGTH,
+      CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH
     )
     .optional()
     .describe("Tools for the model to use."),
@@ -173,6 +226,9 @@ export interface CreateResponseRouteParams {
   supportedModels: string[];
   maxOutputTokens: number;
   maxUserMessagesInConversation: number;
+  /** These metadata keys will persist in conversations and messages even if `Conversation.store: false`.
+   * Otherwise, keys will have their values set to an empty string `""` if `Conversation.store: false`. */
+  alwaysAllowedMetadataKeys: string[];
 }
 
 export function makeCreateResponseRoute({
@@ -181,6 +237,7 @@ export function makeCreateResponseRoute({
   supportedModels,
   maxOutputTokens,
   maxUserMessagesInConversation,
+  alwaysAllowedMetadataKeys,
 }: CreateResponseRouteParams) {
   return async (req: ExpressRequest, res: ExpressResponse) => {
     const reqId = getRequestId(req);
@@ -209,13 +266,16 @@ export function makeCreateResponseRoute({
           user,
           input,
           stream,
+          instructions,
+          tools,
+          tool_choice,
         },
       } = data;
 
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.MODEL_NOT_SUPPORTED(model)),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(model)),
           headers,
         });
       }
@@ -224,7 +284,10 @@ export function makeCreateResponseRoute({
       if (max_output_tokens > maxOutputTokens) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, maxOutputTokens)
+            CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+              max_output_tokens,
+              maxOutputTokens
+            )
           ),
           headers,
         });
@@ -233,7 +296,7 @@ export function makeCreateResponseRoute({
       // --- STORE CHECK ---
       if (previous_response_id && !store) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.STORE_NOT_SUPPORTED),
+          error: new Error(CREATE_RESPONSE_ERR_MSG.STORE_NOT_SUPPORTED),
           headers,
         });
       }
@@ -246,12 +309,15 @@ export function makeCreateResponseRoute({
         metadata,
         userId: user,
         storeMessageContent: store,
+        alwaysAllowedMetadataKeys,
       });
 
       // --- CONVERSATION USER ID CHECK ---
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
-          error: new Error(ERR_MSG.CONVERSATION_USER_ID_CHANGED),
+          error: new Error(
+            CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED
+          ),
           headers,
         });
       }
@@ -265,7 +331,9 @@ export function makeCreateResponseRoute({
       ) {
         throw makeBadRequestError({
           error: new Error(
-            ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation)
+            CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
+              maxUserMessagesInConversation
+            )
           ),
           headers,
         });
@@ -296,12 +364,31 @@ export function makeCreateResponseRoute({
 
       const latestMessageText = convertInputToLatestMessageText(input, headers);
 
-      const { messages } = await generateResponse({
-        // TODO: handle adding more input options here
-        // TODO: handle passing customData
+      const traceMetadata = {
+        name: "generateResponse",
+        event: {
+          id: responseId.toHexString(),
+          metadata: {
+            conversationId: conversation._id.toHexString(),
+            store,
+          },
+        },
+      };
+
+      // Create a wrapper trace. This always creates a top-level trace.
+      // It only traces the contents of the generateResponse function
+      // if `store` is true.
+      const generateResponseMaybeTraced = store
+        ? wrapTraced(generateResponse, traceMetadata)
+        : traced(() => wrapNoTrace(generateResponse), traceMetadata);
+
+      const { messages } = await generateResponseMaybeTraced({
         shouldStream: stream,
         latestMessageText,
-        conversation,
+        customSystemPrompt: instructions,
+        toolDefinitions: tools,
+        toolChoice: tool_choice,
+        conversation: makeTraceConversation(conversation),
         dataStreamer,
         reqId,
       });
@@ -315,6 +402,7 @@ export function makeCreateResponseRoute({
         input,
         messages,
         responseId,
+        alwaysAllowedMetadataKeys,
       });
 
       dataStreamer.streamResponses({
@@ -322,6 +410,14 @@ export function makeCreateResponseRoute({
         response: {
           ...baseResponse,
           created_at: Date.now(),
+          // pass actual token usage: https://jira.mongodb.org/browse/EAI-1215
+          usage: {
+            input_tokens: 0,
+            input_tokens_details: { cached_tokens: 0 },
+            output_tokens: 0,
+            output_tokens_details: { reasoning_tokens: 0 },
+            total_tokens: 0,
+          },
         },
       } satisfies ResponseStreamCompleted);
     } catch (error) {
@@ -359,7 +455,10 @@ interface LoadConversationByMessageIdParams {
   metadata?: Record<string, string>;
   userId?: string;
   storeMessageContent: boolean;
+  alwaysAllowedMetadataKeys: string[];
 }
+
+export const creationInterface = "responses-api";
 
 const loadConversationByMessageId = async ({
   messageId,
@@ -368,12 +467,20 @@ const loadConversationByMessageId = async ({
   metadata,
   userId,
   storeMessageContent,
+  alwaysAllowedMetadataKeys,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
+    const formattedMetadata = formatMetadata({
+      shouldStore: storeMessageContent,
+      alwaysAllowedMetadataKeys,
+      metadata,
+    });
+
     return await conversations.create({
       userId,
       storeMessageContent,
-      customData: { metadata },
+      customData: { metadata: formattedMetadata },
+      creationInterface,
     });
   }
 
@@ -383,7 +490,7 @@ const loadConversationByMessageId = async ({
 
   if (!conversation) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_FOUND(messageId)),
       headers,
     });
   }
@@ -393,7 +500,7 @@ const loadConversationByMessageId = async ({
   // this ensures that conversations will respect the store flag initially set
   if (shouldStoreConversation !== storeMessageContent) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.CONVERSATION_STORE_MISMATCH),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.CONVERSATION_STORE_MISMATCH),
       headers,
     });
   }
@@ -401,7 +508,7 @@ const loadConversationByMessageId = async ({
   const latestMessage = conversation.messages[conversation.messages.length - 1];
   if (latestMessage.id.toString() !== messageId) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_LATEST(messageId)),
       headers,
     });
   }
@@ -417,7 +524,7 @@ const convertToObjectId = (
     return new ObjectId(inputString);
   } catch (error) {
     throw makeBadRequestError({
-      error: new Error(ERR_MSG.INVALID_OBJECT_ID(inputString)),
+      error: new Error(CREATE_RESPONSE_ERR_MSG.INVALID_OBJECT_ID(inputString)),
       headers,
     });
   }
@@ -454,6 +561,7 @@ interface AddMessagesToConversationParams {
   input: CreateResponseRequest["body"]["input"];
   messages: MessagesParam;
   responseId: ObjectId;
+  alwaysAllowedMetadataKeys: string[];
 }
 
 const saveMessagesToConversation = async ({
@@ -464,10 +572,18 @@ const saveMessagesToConversation = async ({
   input,
   messages,
   responseId,
+  alwaysAllowedMetadataKeys,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
-    ...convertInputToDBMessages(input, store, metadata),
-    ...messages.map((message) => formatMessage(message, store, metadata)),
+    ...convertInputToDBMessages(
+      input,
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    ),
+    ...messages.map((message) =>
+      formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
+    ),
   ];
   // handle setting the response id for the last message
   // this corresponds to the response id in the response stream
@@ -484,42 +600,92 @@ const saveMessagesToConversation = async ({
 const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
+  alwaysAllowedMetadataKeys: string[],
   metadata?: Record<string, string>
 ): MessagesParam => {
   if (typeof input === "string") {
-    return [formatMessage({ role: "user", content: input }, store, metadata)];
+    return [
+      formatMessage(
+        { role: "user", content: input },
+        store,
+        alwaysAllowedMetadataKeys,
+        metadata
+      ),
+    ];
   }
 
   return input.map((message) => {
+    if (isInputMessage(message)) {
+      const role = message.role;
+      const content = formatUserMessageContent(message.content);
+      return formatMessage(
+        { role, content },
+        store,
+        alwaysAllowedMetadataKeys,
+        metadata
+      );
+    }
     // handle function tool calls and outputs
-    const role = message.type === "message" ? message.role : "system";
+    const role = "tool";
+    const name = message.type === "function_call" ? message.name : message.type;
     const content =
-      message.type === "message" ? message.content : message.type ?? "";
-
-    return formatMessage({ role, content }, store, metadata);
+      message.type === "function_call" ? message.arguments : message.output;
+    return formatMessage(
+      { role, name, content },
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    );
   });
 };
 
 const formatMessage = (
   message: MessagesParam[number],
   store: boolean,
+  alwaysAllowedMetadataKeys: string[],
   metadata?: Record<string, string>
 ): MessagesParam[number] => {
   // store a placeholder string if we're not storing message data
-  const content = store ? message.content : "";
-  // handle cleaning custom data if we're not storing message data
-  const customData = {
-    ...message.customData,
-    query: store ? message.customData?.query : "",
-    reason: store ? message.customData?.reason : "",
-  };
+  const formattedContent = store ? message.content : "";
+  // handle cleaning metadata fields if we're not storing message data
+  const formattedMetadata = formatMetadata({
+    shouldStore: store,
+    alwaysAllowedMetadataKeys,
+    metadata,
+  });
+  const formattedCustomData = formatMetadata({
+    shouldStore: store,
+    alwaysAllowedMetadataKeys,
+    metadata: message.customData,
+  });
 
   return {
     ...message,
-    content,
-    metadata,
-    customData,
+    content: formattedContent,
+    metadata: formattedMetadata,
+    customData: formattedCustomData,
   };
+};
+
+interface FormatMetadataParams {
+  shouldStore: boolean;
+  alwaysAllowedMetadataKeys: string[];
+  metadata?: Record<string, unknown>;
+}
+
+const formatMetadata = ({
+  shouldStore,
+  alwaysAllowedMetadataKeys,
+  metadata,
+}: FormatMetadataParams) => {
+  if (shouldStore || !metadata) return metadata;
+
+  return Object.fromEntries(
+    Object.entries(metadata).map(([key, value]) => [
+      key,
+      alwaysAllowedMetadataKeys.includes(key) ? value : "",
+    ])
+  );
 };
 
 interface BaseResponseData {
@@ -559,19 +725,24 @@ const convertInputToLatestMessageText = (
     return input;
   }
 
-  const lastUserMessageString = input.findLast(
-    (message): message is UserMessage =>
-      (message.type === "message" || !message.type) &&
-      message.role === "user" &&
-      !!message.content
-  )?.content;
-
-  if (!lastUserMessageString) {
+  const lastUserMessage = input.findLast(isUserMessage);
+  if (!lastUserMessage) {
     throw makeBadRequestError({
       error: new Error("No user message found in input"),
       headers,
     });
   }
 
-  return lastUserMessageString;
+  return formatUserMessageContent(lastUserMessage.content);
+};
+
+const isInputMessage = (message: unknown): message is InputMessage =>
+  InputMessageSchema.safeParse(message).success;
+
+const isUserMessage = (message: unknown): message is UserMessage =>
+  isInputMessage(message) && message.role === "user";
+
+const formatUserMessageContent = (content: InputMessage["content"]): string => {
+  if (typeof content === "string") return content;
+  return content[0].text;
 };

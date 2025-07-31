@@ -108,7 +108,17 @@ export const makeVerifiedAnswerGenerateResponse = ({
   stream,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
-    const { latestMessageText, shouldStream, dataStreamer } = args;
+    const {
+      latestMessageText,
+      shouldStream,
+      dataStreamer,
+      customSystemPrompt,
+      toolDefinitions,
+      toolChoice,
+    } = args;
+    if (customSystemPrompt || toolDefinitions || toolChoice) {
+      return await onNoVerifiedAnswerFound(args);
+    }
     const { answer: foundVerifiedAnswer, queryEmbedding } =
       await findVerifiedAnswer({
         query: latestMessageText,

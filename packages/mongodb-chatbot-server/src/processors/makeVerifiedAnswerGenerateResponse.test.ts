@@ -128,6 +128,47 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     expect(answer.messages[0].content).toBe(MAGIC_VERIFIABLE);
   });
 
+  it("skips verified answer if custom system prompt", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      customSystemPrompt: "Custom system prompt",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tools", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolDefinitions: [
+        { name: "tool", description: "description", parameters: {} },
+      ],
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tool choice", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolChoice: "auto",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
   describe("streaming functionality", () => {
     it("streams verified answer data when shouldStream is true", async () => {
       const mockDataStreamer = createMockDataStreamer();

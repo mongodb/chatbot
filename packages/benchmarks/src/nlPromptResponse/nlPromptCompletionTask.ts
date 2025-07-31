@@ -1,7 +1,11 @@
 import assert from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { NlPromptResponseEvalTask } from "./NlQuestionAnswerEval";
-import { LanguageModel, generateText, CoreMessage } from "ai";
+import {
+  LanguageModel,
+  generateText,
+  CoreMessage,
+} from "mongodb-rag-core/aiSdk";
 
 interface MakeNlPromptCompletionTaskParams {
   llmOptions: Omit<LlmOptions, "openAiClient" | "model">;
@@ -20,7 +24,7 @@ export function makeNlPromptCompletionTask({
       messages: [...(initialMessages ?? []), ...input.messages],
       model: languageModel,
       temperature: llmConfig.temperature ?? undefined,
-      maxTokens:
+      maxOutputTokens:
         llmConfig.max_completion_tokens ?? llmConfig.max_tokens ?? undefined,
       seed: llmConfig.seed ?? undefined,
     });

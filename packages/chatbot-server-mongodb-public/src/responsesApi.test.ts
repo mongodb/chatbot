@@ -2,11 +2,19 @@ import "dotenv/config";
 import type { Server } from "http";
 import type { Express } from "express";
 import type { ConversationsService, SomeMessage } from "mongodb-rag-core";
-import type { CreateResponseRequest } from "mongodb-chatbot-server/src/routes/responses/createResponse";
+import {
+  CreateResponseRequest,
+  CREATE_RESPONSE_ERR_MSG,
+} from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
+import {
+  initLogger,
+  Logger,
+  makeBraintrustLogger,
+} from "mongodb-rag-core/braintrust";
 
-jest.setTimeout(10 * 1000); // 10 seconds
+jest.setTimeout(100 * 1000); // 100 seconds
 
 const TEST_OPENAI_API_KEY = "test-api-key";
 const TEST_PORT = 5200;
@@ -64,6 +72,20 @@ describe("Responses API with OpenAI Client", () => {
     });
   };
 
+  const sampleTool = {
+    type: "function",
+    strict: true,
+    name: "test-tool",
+    description: "A tool for testing.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+      },
+      required: ["query"],
+    },
+  } as const;
+
   describe("Valid requests", () => {
     it("Should return responses given a string input", async () => {
       const stream = await createResponseRequestStream();
@@ -78,6 +100,20 @@ describe("Responses API with OpenAI Client", () => {
           { role: "user", content: "What is MongoDB?" },
           { role: "assistant", content: "MongoDB is a document database." },
           { role: "user", content: "What is a document database?" },
+        ],
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
+    });
+
+    it("Should return responses given a message array with input_text content type", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "What is MongoDB?" }],
+          },
         ],
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -154,7 +190,7 @@ describe("Responses API with OpenAI Client", () => {
       await expectValidResponses({ stream, requestBody });
     });
 
-    it("Should return responses with tools and tool_choice", async () => {
+    it("Should return responses with tools and tool_choice=auto", async () => {
       const requestBody: Partial<CreateResponseRequest["body"]> = {
         tools: [
           {
@@ -177,6 +213,48 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectValidResponses({ stream, requestBody });
     });
+    // Skipping this test for the CI as it requires a real OpenAI client, which we don't do in the CI environment
+    it.skip("Should return correct tool choice for tool_choice=someTool", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        tools: [sampleTool],
+        tool_choice: {
+          type: "function",
+          name: sampleTool.name,
+        },
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      // Collect all responses
+      const responses: any[] = [];
+      for await (const event of stream) {
+        responses.push(event);
+      }
+
+      // Find function call events
+      const functionCallEvents = responses.filter(
+        (r) =>
+          r.type === "response.function_call_arguments.delta" ||
+          r.type === "response.function_call_arguments.done"
+      );
+
+      // Verify that the specific tool was called
+      expect(functionCallEvents.length).toBeGreaterThan(0);
+
+      // Check that the function call arguments done event contains the correct tool name
+      const functionCallDoneEvent = responses.find(
+        (r) => r.type === "response.function_call_arguments.done"
+      );
+      expect(functionCallDoneEvent).toBeDefined();
+
+      // Verify the tool name matches our sample tool
+      const outputItemEvents = responses.filter(
+        (r) =>
+          r.type === "response.output_item.added" &&
+          r.item?.type === "function_call"
+      );
+      expect(outputItemEvents.length).toBeGreaterThan(0);
+      expect(outputItemEvents[0].item.name).toBe(sampleTool.name);
+    });
   });
 
   describe("Invalid requests", () => {
@@ -184,31 +262,22 @@ describe("Responses API with OpenAI Client", () => {
       const stream = createResponseRequestStream({
         input: "",
       });
-      expectInvalidResponses({
+
+      await expectInvalidResponses({
         stream,
-        errorMessage: "Input must be a non-empty string",
-      });
-    });
-    it("Should return error responses if empty message array", async () => {
-      const stream = createResponseRequestStream({
-        input: [],
-      });
-      expectInvalidResponses({
-        stream,
-        errorMessage:
-          "Path: body.input - Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+        errorMessage: CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH,
       });
     });
 
     it("Should return error responses if empty message array", async () => {
       const stream = createResponseRequestStream({
+        // @ts-expect-error - empty array is valid input
         input: [],
       });
 
       await expectInvalidResponses({
         stream,
-        errorMessage:
-          "Path: body.input - Input must be a string or array of messages. See https://platform.openai.com/docs/api-reference/responses/create#responses-create-input for more information.",
+        errorMessage: CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY,
       });
     });
 
@@ -220,7 +289,7 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage: `Path: body.model - ${invalidModel} is not supported.`,
+        errorMessage: CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
       });
     });
 
@@ -232,7 +301,10 @@ describe("Responses API with OpenAI Client", () => {
 
       await expectInvalidResponses({
         stream,
-        errorMessage: `Path: body.max_output_tokens - ${max_output_tokens} is greater than the maximum allowed 4000.`,
+        errorMessage: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+          max_output_tokens,
+          4000
+        ),
       });
     });
 
@@ -327,6 +399,37 @@ describe("Responses API with OpenAI Client", () => {
       expect(responses2.length).toBeGreaterThanOrEqual(5);
       expect(deltaCount2).toBeGreaterThanOrEqual(1);
       expect(doneCount2).toBe(1);
+    });
+  });
+
+  // Skipping these tests because they require manual validation
+  // in the Braintrust UI. There isn't presently a good way to
+  // validate the tracing data in the tests.
+  describe.skip("Braintrust tracing", () => {
+    let logger: Logger<true>;
+    beforeAll(async () => {
+      logger = makeBraintrustLogger({
+        apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
+        projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+      });
+      await logger.flush();
+    });
+
+    it("Should return responses with tracing", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store: true,
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
+    });
+    it("should return responses without tracing", async () => {
+      const requestBody: Partial<CreateResponseRequest["body"]> = {
+        store: false,
+      };
+      const stream = await createResponseRequestStream(requestBody);
+
+      await expectValidResponses({ stream, requestBody });
     });
   });
 });

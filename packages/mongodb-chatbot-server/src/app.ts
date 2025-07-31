@@ -156,7 +156,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
   app.use(makeCorsHandler(corsOptions));
-  app.use(express.json());
+  app.use(express.json({ limit: "10mb" }));
   app.use(reqHandler);
   app.use(
     `${apiPrefix}/conversations`,

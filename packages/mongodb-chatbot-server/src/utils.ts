@@ -2,7 +2,13 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { logger } from "mongodb-rag-core";
+import {
+  Conversation,
+  DbMessage,
+  logger,
+  Message,
+  ToolMessage,
+} from "mongodb-rag-core";
 import { stripIndent } from "common-tags";
 
 /**
@@ -85,4 +91,39 @@ export function retryAsyncOperation<T>(
         }
       });
   });
+}
+
+/**
+  Create a slimmed down version of the conversation to
+  send to Braintrust for tracing.
+  This sends less data to Braintrust speeding up tracing
+  and also being more readable in the Braintrust UI.
+ */
+export function makeTraceConversation(
+  conversation: Conversation
+): Conversation {
+  return {
+    ...conversation,
+    messages: conversation.messages.map((message) => {
+      const baseFields = {
+        content: message.content,
+        id: message.id,
+        createdAt: message.createdAt,
+        metadata: message.metadata,
+      };
+
+      if (message.role === "tool") {
+        return {
+          role: "tool",
+          name: message.name,
+          ...baseFields,
+        } satisfies DbMessage<ToolMessage>;
+      } else {
+        return { ...baseFields, role: message.role } satisfies Exclude<
+          Message,
+          ToolMessage
+        >;
+      }
+    }),
+  };
 }

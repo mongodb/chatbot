@@ -29,6 +29,8 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   let appConfig: AppConfig;
   let origin: string;
 
+  const testComment = "This answer was super helpful!";
+
   beforeEach(async () => {
     ({ app, ipAddress, appConfig, origin } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
@@ -55,7 +57,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       .post(testEndpointUrl)
       .set("X-Forwarded-For", ipAddress)
       .set("Origin", origin)
-      .send({ comment: "This answer was super helpful!" });
+      .send({ comment: testComment });
 
     expect(response.statusCode).toBe(204);
     expect(response.body).toEqual({});
@@ -70,7 +72,136 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
           updatedConversation.messages.length - 1
         ] as AssistantMessage
       ).userComment
-    ).toBe("This answer was super helpful!");
+    ).toBe(testComment);
+  });
+  it('Should tombstone comment with empty string ("") if storeMessageContent is false', async () => {
+    // Create a new conversation with storeMessageContent set to false
+    const conversationWithNoStore = await conversations.create({
+      initialMessages: [systemPrompt],
+      storeMessageContent: false,
+    });
+    const testMsgWithNoStore = await conversations.addConversationMessage({
+      conversationId: conversationWithNoStore._id,
+      message: {
+        content: "hello",
+        role: "assistant",
+        rating: true,
+        references: [],
+      },
+    });
+    const testEndpointUrlWithNoStore = endpointUrl
+      .replace(":conversationId", conversationWithNoStore._id.toHexString())
+      .replace(":messageId", String(testMsgWithNoStore.id));
+
+    const response = await request(app)
+      .post(testEndpointUrlWithNoStore)
+      .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
+      .send({ comment: testComment });
+
+    expect(response.statusCode).toBe(204);
+    expect(response.body).toEqual({});
+
+    // Verify that the comment was not stored (empty string)
+    const updatedConversation = await conversations.findById({
+      _id: conversationWithNoStore._id,
+    });
+    assert(updatedConversation);
+    expect(
+      (
+        updatedConversation.messages[
+          updatedConversation.messages.length - 1
+        ] as AssistantMessage
+      ).userComment
+    ).toBe("");
+  });
+
+  it("Should store comment if storeMessageContent is true", async () => {
+    // Create a new conversation with storeMessageContent explicitly set to true
+    const conversationWithStore = await conversations.create({
+      initialMessages: [systemPrompt],
+      storeMessageContent: true,
+    });
+    const testMsgWithStore = await conversations.addConversationMessage({
+      conversationId: conversationWithStore._id,
+      message: {
+        content: "hello",
+        role: "assistant",
+        rating: true,
+        references: [],
+      },
+    });
+    const testEndpointUrlWithStore = endpointUrl
+      .replace(":conversationId", conversationWithStore._id.toHexString())
+      .replace(":messageId", String(testMsgWithStore.id));
+
+    const response = await request(app)
+      .post(testEndpointUrlWithStore)
+      .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
+      .send({ comment: testComment });
+
+    expect(response.statusCode).toBe(204);
+    expect(response.body).toEqual({});
+
+    // Verify that the comment was stored
+    const updatedConversation = await conversations.findById({
+      _id: conversationWithStore._id,
+    });
+    assert(updatedConversation);
+    expect(
+      (
+        updatedConversation.messages[
+          updatedConversation.messages.length - 1
+        ] as AssistantMessage
+      ).userComment
+    ).toBe(testComment);
+  });
+
+  it("Should store comment if storeMessageContent is undefined", async () => {
+    // Create a new conversation with storeMessageContent undefined (default behavior)
+    const conversationWithUndefinedStore = await conversations.create({
+      initialMessages: [systemPrompt],
+      // storeMessageContent is undefined by default
+    });
+    const testMsgWithUndefinedStore =
+      await conversations.addConversationMessage({
+        conversationId: conversationWithUndefinedStore._id,
+        message: {
+          content: "hello",
+          role: "assistant",
+          rating: true,
+          references: [],
+        },
+      });
+    const testEndpointUrlWithUndefinedStore = endpointUrl
+      .replace(
+        ":conversationId",
+        conversationWithUndefinedStore._id.toHexString()
+      )
+      .replace(":messageId", String(testMsgWithUndefinedStore.id));
+
+    const response = await request(app)
+      .post(testEndpointUrlWithUndefinedStore)
+      .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
+      .send({ comment: testComment });
+
+    expect(response.statusCode).toBe(204);
+    expect(response.body).toEqual({});
+
+    // Verify that the comment was stored (undefined defaults to true)
+    const updatedConversation = await conversations.findById({
+      _id: conversationWithUndefinedStore._id,
+    });
+    assert(updatedConversation);
+    expect(
+      (
+        updatedConversation.messages[
+          updatedConversation.messages.length - 1
+        ] as AssistantMessage
+      ).userComment
+    ).toBe(testComment);
   });
 
   it("Should return 400 if the message is not an assistant message", async () => {
@@ -164,7 +295,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
         role: "assistant",
         references: [],
         rating: true,
-        userComment: "This answer was super helpful!",
+        userComment: testComment,
       },
     });
     testEndpointUrl = endpointUrl
@@ -206,7 +337,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       .post(testEndpointUrl)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send({ commentz: "This answer was super helpful!" });
+      .send({ commentz: testComment });
     expect(res2.statusCode).toEqual(400);
     expect(res2.body).toEqual({ error: "Invalid request" });
   });

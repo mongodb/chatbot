@@ -9,16 +9,16 @@ import {
   DataStreamer,
   EmbeddedContent,
   FindContentFunc,
-  SystemMessage,
   ToolMessage,
   UserMessage,
   WithScore,
   PersistedPage,
 } from "mongodb-rag-core";
 import {
-  MockLanguageModelV1,
   simulateReadableStream,
-  LanguageModelV1StreamPart,
+  LanguageModel,
+  JSONSchema7,
+  MockLanguageModelV2,
 } from "mongodb-rag-core/aiSdk";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
@@ -39,6 +39,8 @@ import {
 } from "../tools/fetchPage";
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+import { systemPrompt } from "../systemPrompt";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 const latestMessageText = "Hello";
 
@@ -118,39 +120,53 @@ const mockReferences = [
   },
 ];
 
+// Extract the stream part type from the actual language model object type
+type LanguageModelObject = Exclude<LanguageModel, string>;
+type LanguageModelV2StreamPart = Awaited<
+  ReturnType<LanguageModelObject["doStream"]>
+>["stream"] extends ReadableStream<infer T>
+  ? T
+  : never;
+
 // Must have, but details don't matter
-const mockFinishChunk = {
+const mockFinishChunk: LanguageModelV2StreamPart = {
   type: "finish" as const,
   finishReason: "stop" as const,
   usage: {
-    completionTokens: 10,
-    promptTokens: 3,
+    inputTokens: 10,
+    outputTokens: 20,
+    totalTokens: 30,
   },
-} satisfies LanguageModelV1StreamPart;
+};
 
 const finalAnswer = "Final answer";
 const finalAnswerChunks = finalAnswer.split(" ");
-const finalAnswerStreamChunks = finalAnswerChunks.map((word, i) => {
-  if (i === 0) {
+const finalAnswerStreamChunks: LanguageModelV2StreamPart[] =
+  finalAnswerChunks.map((word, i) => {
+    if (i === 0) {
+      return {
+        type: "text-delta" as const,
+        id: `text-1`,
+        delta: word,
+      };
+    }
     return {
       type: "text-delta" as const,
-      textDelta: word,
+      id: `text-1`,
+      delta: ` ${word}`,
     };
-  }
-  return {
-    type: "text-delta" as const,
-    textDelta: ` ${word}`,
-  };
-});
+  });
 
 // Note: have to make this constructor b/c the ReadableStream
 // can only be used once successfully.
 const makeFinalAnswerStream = () =>
   simulateReadableStream({
     chunks: [
+      { type: "text-start", id: "text-1" },
       ...finalAnswerStreamChunks,
+      { type: "text-end", id: "text-1" },
       mockFinishChunk,
-    ] satisfies LanguageModelV1StreamPart[],
+    ] satisfies LanguageModelV2StreamPart[],
     chunkDelayInMs: 100,
     initialDelayInMs: 100,
   });
@@ -173,11 +189,10 @@ const makeFetchPageToolCallStream = () =>
         type: "tool-call" as const,
         toolCallId: "abc001",
         toolName: FETCH_PAGE_TOOL_NAME,
-        toolCallType: "function" as const,
-        args: JSON.stringify(fetchPageToolMockArgs),
+        input: JSON.stringify(fetchPageToolMockArgs),
       },
       mockFinishChunk,
-    ] satisfies LanguageModelV1StreamPart[],
+    ] satisfies LanguageModelV2StreamPart[],
     chunkDelayInMs: 100,
     initialDelayInMs: 100,
   });
@@ -189,60 +204,47 @@ const makeSearchToolCallStream = () =>
         type: "tool-call" as const,
         toolCallId: "abc002",
         toolName: SEARCH_TOOL_NAME,
-        toolCallType: "function" as const,
-        args: JSON.stringify(searchToolMockArgs),
+        input: JSON.stringify(searchToolMockArgs),
       },
       mockFinishChunk,
-    ] satisfies LanguageModelV1StreamPart[],
+    ] satisfies LanguageModelV2StreamPart[],
     chunkDelayInMs: 100,
     initialDelayInMs: 100,
   });
 
 jest.setTimeout(10000);
+
 // Mock language model following the AI SDK testing documentation
 // Create a minimalist mock for the language model
-const makeMockLanguageModel = () => {
+const makeMockLanguageModel = (
+  doStreamCalls: (() => ReadableStream<LanguageModelV2StreamPart>)[] = [
+    () => makeFetchPageToolCallStream(),
+    () => makeSearchToolCallStream(),
+    () => makeFinalAnswerStream(),
+  ]
+): LanguageModel => {
   // On first call, return fetch_page tool call stream
   // On second call, return search_content tool call stream
   // On third call, return final answer stream
   // On subsequent calls, return final answer
   let counter = 0;
-  const doStreamCalls = [
-    async () => {
-      return {
-        stream: makeFetchPageToolCallStream(),
-        rawCall: { rawPrompt: null, rawSettings: {} },
-      };
-    },
-    async () => {
-      return {
-        stream: makeSearchToolCallStream(),
-        rawCall: { rawPrompt: null, rawSettings: {} },
-      };
-    },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    async () => {
-      return {
-        stream: makeFinalAnswerStream(),
-        rawCall: { rawPrompt: null, rawSettings: {} },
-      };
-    },
-  ];
-  return new MockLanguageModelV1({
-    doStream: () => {
-      const streamCallPromise = doStreamCalls[counter]();
+
+  return new MockLanguageModelV2({
+    doStream: async () => {
+      // 1. fetch page
+      // 2. search content
+      // 3... final answer
+      const streamData = doStreamCalls[counter]();
+
       if (counter < doStreamCalls.length) {
         counter++;
       }
-      return streamCallPromise;
+
+      return {
+        stream: streamData,
+      };
     },
   });
-};
-
-const mockSystemMessage: SystemMessage = {
-  role: "system",
-  content: "You are a helpful assistant.",
 };
 
 const mockLlmNotWorkingMessage =
@@ -266,11 +268,18 @@ const makeMockGuardrail =
   (pass: boolean): InputGuardrail =>
   async () =>
     pass ? mockGuardrailPassResult : mockGuardrailRejectResult;
-const mockThrowingLanguageModel: MockLanguageModelV1 = new MockLanguageModelV1({
-  doStream: async () => {
-    throw new Error("LLM error");
+const mockThrowingLanguageModel: LanguageModel = {
+  doGenerate: async () => {
+    throw new Error("LLM error: should always fail");
   },
-});
+  doStream: async () => {
+    throw new Error("LLM error: should always fail");
+  },
+  provider: "test",
+  modelId: "test",
+  specificationVersion: "v2" as const,
+  supportedUrls: {} as Record<string, RegExp[]>,
+};
 
 const mockStreamConfig = {
   onLlmNotWorking: jest.fn().mockImplementation((args: any) => {
@@ -304,11 +313,16 @@ const makeGenerateResponseWithToolsArgs = () =>
     languageModel: makeMockLanguageModel(),
     llmNotWorkingMessage: mockLlmNotWorkingMessage,
     llmRefusalMessage: mockLlmRefusalMessage,
-    systemMessage: mockSystemMessage,
     searchTool: mockSearchTool,
     fetchPageTool: mockFetchPageTool,
     maxSteps: 5,
-    stream: mockStreamConfig
+    stream: mockStreamConfig,
+    makeSystemPrompt: () => {
+      return {
+        role: "system",
+        content: "",
+      };
+    },
   } satisfies Partial<GenerateResponseWithToolsParams>);
 
 const generateResponseBaseArgs = {
@@ -495,12 +509,15 @@ describe("generateResponseWithTools", () => {
         });
 
         expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          chunkId: expect.any(String),
           dataStreamer: mockDataStreamer,
           delta: expect.any(String),
+          textPartId: expect.any(String),
         });
         expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           references: expect.any(Array),
+          textPartId: expect.any(String),
         });
 
         expectSuccessfulResult(result);
@@ -520,12 +537,15 @@ describe("generateResponseWithTools", () => {
         });
 
         expect(mockStreamConfig.onTextDelta).toHaveBeenCalledWith({
+          chunkId: expect.any(String),
           dataStreamer: mockDataStreamer,
           delta: expect.any(String),
+          textPartId: expect.any(String),
         });
         expect(mockStreamConfig.onReferenceLinks).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           references: expect.any(Array),
+          textPartId: expect.any(String),
         });
 
         expectSuccessfulResult(result);
@@ -574,6 +594,99 @@ describe("generateResponseWithTools", () => {
         expect(result.messages[0].content).toBe(latestMessageText);
         expect(result.messages.at(-1)?.role).toBe("assistant");
         expect(result.messages.at(-1)?.content).toBe(mockLlmNotWorkingMessage);
+      });
+    });
+  });
+  describe("custom tool calling", () => {
+    const mockCustomTool: OpenAI.FunctionDefinition = {
+      name: "getAge",
+      description: "Get the age of a person",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          age: { type: "number" },
+        },
+        required: ["name", "age"],
+      } satisfies JSONSchema7,
+    };
+    const mockCustomToolArgs = {
+      name: "John Doe",
+      age: 30,
+    };
+    const makeCustomToolCallStream = () =>
+      simulateReadableStream({
+        chunks: [
+          {
+            type: "tool-call" as const,
+            toolCallId: "abc001",
+            toolName: mockCustomTool.name,
+            input: JSON.stringify(mockCustomToolArgs),
+          },
+          mockFinishChunk,
+        ] satisfies LanguageModelV2StreamPart[],
+        chunkDelayInMs: 100,
+        initialDelayInMs: 100,
+      });
+
+    const doStreamCalls = [
+      () => makeCustomToolCallStream(),
+      () => makeFinalAnswerStream(),
+    ];
+
+    it("should call custom tool and return after call (no final assistant message)", async () => {
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
+        languageModel: makeMockLanguageModel(doStreamCalls),
+      });
+
+      const result = await generateResponse({
+        ...generateResponseBaseArgs,
+        toolDefinitions: [mockCustomTool],
+      });
+
+      expectSuccessfulResultCustomTool(result, {
+        name: mockCustomTool.name,
+        arguments: JSON.stringify(mockCustomToolArgs),
+      });
+    });
+
+    it("should respect toolCall=auto option", async () => {
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
+        languageModel: makeMockLanguageModel(doStreamCalls),
+      });
+
+      const result = await generateResponse({
+        ...generateResponseBaseArgs,
+        toolDefinitions: [mockCustomTool],
+        toolChoice: "auto",
+      });
+
+      expectSuccessfulResultCustomTool(result, {
+        name: "getAge",
+        arguments: JSON.stringify(mockCustomToolArgs),
+      });
+    });
+
+    it("should respect toolCall=functionName option", async () => {
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
+        languageModel: makeMockLanguageModel(doStreamCalls),
+      });
+
+      const result = await generateResponse({
+        ...generateResponseBaseArgs,
+        toolDefinitions: [mockCustomTool],
+        toolChoice: {
+          type: "function",
+          name: "getAge",
+        },
+      });
+
+      expectSuccessfulResultCustomTool(result, {
+        name: "getAge",
+        arguments: JSON.stringify(mockCustomToolArgs),
       });
     });
   });
@@ -668,4 +781,27 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect((result.messages[5] as AssistantMessage).references).toEqual(
     mockReferences
   );
+}
+
+function expectSuccessfulResultCustomTool(
+  result: GenerateResponseReturnValue,
+  functionMessage: {
+    name: string;
+    arguments: string;
+  }
+) {
+  // Should call the custom tool and stop (due to stopWhen condition)
+  expect(result.messages).toHaveLength(2);
+  expect(result.messages[0]).toMatchObject({
+    role: "user",
+    content: latestMessageText,
+  });
+  expect(result.messages[1]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "abc001",
+      type: "function",
+      function: functionMessage,
+    },
+  });
 }

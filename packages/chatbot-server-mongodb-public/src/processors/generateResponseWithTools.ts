@@ -1,27 +1,35 @@
 import {
   References,
   SomeMessage,
-  SystemMessage,
   UserMessage,
   AssistantMessage,
   ToolMessage,
   type ResponseStreamOutputTextDone,
   type ResponseStreamOutputTextDelta,
   type ResponseStreamOutputTextAnnotationAdded,
+  type ResponseStreamFunctionCallArgumentsDelta,
+  type ResponseStreamFunctionCallArgumentsDone,
+  ResponseStreamOutputItemAdded,
+  ResponseStreamOutputItemDone,
 } from "mongodb-rag-core";
 import {
-  CoreAssistantMessage,
-  CoreMessage,
-  LanguageModel,
-  streamText,
+  AssistantModelMessage,
+  ModelMessage,
   ToolCallPart,
   ToolChoice,
   ToolSet,
-  CoreToolMessage,
-  ToolResultPart,
-  TextPart,
+  ToolModelMessage,
+  Tool,
+  tool,
+  streamText,
+  hasToolCall,
+  LanguageModel,
+  stepCountIs,
+  jsonSchema,
+  JSONSchema7,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
+
 import {
   InputGuardrail,
   FilterPreviousMessages,
@@ -29,6 +37,7 @@ import {
   GenerateResponseReturnValue,
   InputGuardrailResult,
   type StreamFunction,
+  GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import {
@@ -37,30 +46,61 @@ import {
   SearchTool,
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
+import { MakeSystemPrompt } from "../systemPrompt";
 
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
-  systemMessage: SystemMessage;
+  makeSystemPrompt: MakeSystemPrompt;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
     Required tool for performing content search and gathering {@link References}
    */
   additionalTools?: ToolSet;
   maxSteps: number;
-  toolChoice?: ToolChoice<{
-    search_content: SearchTool;
-  }>;
   searchTool: SearchTool;
   fetchPageTool: FetchPageTool;
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
-    onReferenceLinks: StreamFunction<{ references: References }>;
-    onTextDelta: StreamFunction<{ delta: string }>;
-    onTextDone?: StreamFunction<{ text: string }>;
+    onReferenceLinks: StreamFunction<{
+      references: References;
+      textPartId: string;
+    }>;
+    onTextStart?: StreamFunction<{
+      text: string;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onTextDelta: StreamFunction<{
+      delta: string;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onTextDone?: StreamFunction<{
+      text: string;
+      references: References;
+      textPartId: string;
+      chunkId: string;
+    }>;
+    onFunctionCallStart?: StreamFunction<{
+      toolCallId: string;
+      toolName: string;
+      chunkId: string;
+    }>;
+    onFunctionCallDelta?: StreamFunction<{
+      toolCallId: string;
+      delta: string;
+      chunkId: string;
+    }>;
+    onFunctionCallDone?: StreamFunction<{
+      toolCallId: string;
+      toolName: string;
+      input: unknown;
+      chunkId: string;
+    }>;
   };
 }
 
@@ -94,6 +134,18 @@ export const addMessageToConversationStream: GenerateResponseWithToolsParams["st
 
 export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
   onLlmNotWorking({ dataStreamer, notWorkingMessage }) {
+    const itemId = Date.now().toString();
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
     dataStreamer?.streamResponses({
       type: "response.output_text.delta",
       delta: notWorkingMessage,
@@ -108,40 +160,93 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       output_index: 0,
       item_id: "",
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [
+          {
+            type: "output_text",
+            text: notWorkingMessage,
+            annotations: [],
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
   onLlmRefusal({ dataStreamer, refusalMessage }) {
+    const itemId = Date.now().toString();
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
     dataStreamer?.streamResponses({
       type: "response.output_text.delta",
       delta: refusalMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text: refusalMessage,
       content_index: 0,
       output_index: 0,
-      item_id: "",
+      item_id: itemId,
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: itemId,
+        content: [
+          {
+            type: "output_text",
+            text: refusalMessage,
+            annotations: [],
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
-  onReferenceLinks({ dataStreamer, references }) {
-    references.forEach((reference, index) => {
+  onReferenceLinks({ dataStreamer, references, textPartId }) {
+    convertReferencesToAnnotations(references).forEach((annotation, index) => {
       dataStreamer?.streamResponses({
         type: "response.output_text.annotation.added",
-        annotation: {
-          type: "url_citation",
-          url: reference.url,
-          title: reference.title,
-          start_index: 0,
-          end_index: 0,
-        },
+        annotation,
         annotation_index: index,
         content_index: 0,
         output_index: 0,
-        item_id: "",
+        item_id: textPartId,
       } satisfies ResponseStreamOutputTextAnnotationAdded);
     });
+  },
+  onTextStart({ dataStreamer }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: "",
+        content: [],
+        role: "assistant",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
   },
   onTextDelta({ dataStreamer, delta }) {
     dataStreamer?.streamResponses({
@@ -152,7 +257,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       item_id: "",
     } satisfies ResponseStreamOutputTextDelta);
   },
-  onTextDone({ dataStreamer, text }) {
+  onTextDone({ dataStreamer, text, references }) {
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
       text,
@@ -160,6 +265,67 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       output_index: 0,
       item_id: "",
     } satisfies ResponseStreamOutputTextDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        type: "message",
+        id: "",
+        content: [
+          {
+            type: "output_text",
+            text,
+            annotations: convertReferencesToAnnotations(references),
+          },
+        ],
+        role: "assistant",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
+  },
+  onFunctionCallStart({ dataStreamer, toolCallId, toolName }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_item.added",
+      output_index: 0,
+      item: {
+        arguments: "",
+        call_id: toolCallId,
+        name: toolName,
+        id: "",
+        type: "function_call",
+        status: "in_progress",
+      },
+    } satisfies ResponseStreamOutputItemAdded);
+  },
+  onFunctionCallDelta({ dataStreamer, toolCallId, delta }) {
+    dataStreamer?.streamResponses({
+      type: "response.function_call_arguments.delta",
+      delta,
+      output_index: 0,
+      item_id: toolCallId,
+    } satisfies ResponseStreamFunctionCallArgumentsDelta);
+  },
+  onFunctionCallDone({ dataStreamer, toolCallId, toolName, input }) {
+    const args = JSON.stringify(input);
+
+    dataStreamer?.streamResponses({
+      type: "response.function_call_arguments.done",
+      arguments: args,
+      output_index: 0,
+      item_id: toolCallId,
+    } satisfies ResponseStreamFunctionCallArgumentsDone);
+    dataStreamer?.streamResponses({
+      type: "response.output_item.done",
+      output_index: 0,
+      item: {
+        arguments: args,
+        call_id: toolCallId,
+        name: toolName,
+        id: "",
+        type: "function_call",
+        status: "completed",
+      },
+    } satisfies ResponseStreamOutputItemDone);
   },
 };
 
@@ -171,13 +337,12 @@ export function makeGenerateResponseWithTools({
   llmNotWorkingMessage,
   llmRefusalMessage,
   inputGuardrail,
-  systemMessage,
+  makeSystemPrompt,
   filterPreviousMessages,
   additionalTools,
   maxSteps,
   searchTool,
   fetchPageTool,
-  toolChoice,
   stream,
 }: GenerateResponseWithToolsParams): GenerateResponse {
   return async function generateResponseWithTools({
@@ -188,6 +353,9 @@ export function makeGenerateResponseWithTools({
     shouldStream,
     reqId,
     dataStreamer,
+    customSystemPrompt,
+    toolDefinitions,
+    toolChoice,
   }) {
     const streamingModeActive =
       shouldStream === true &&
@@ -219,10 +387,10 @@ export function makeGenerateResponseWithTools({
       const generationArgs = {
         model: languageModel,
         messages: [
-          systemMessage,
+          makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
           userMessage,
-        ] satisfies CoreMessage[],
+        ] satisfies ModelMessage[],
         tools: toolSet,
         toolChoice,
         maxSteps,
@@ -259,30 +427,52 @@ export function makeGenerateResponseWithTools({
       // Start generation immediately (in parallel with guardrail)
       const generationPromise = (async () => {
         try {
+          // Create the complete tool set with proper typing
+          const allTools = {
+            [SEARCH_TOOL_NAME]: searchTool,
+            [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+            ...formatToolDefinitionsForAiSdk(toolDefinitions),
+          } as const;
+
           const result = streamText({
             ...generationArgs,
+            tools: allTools,
+            toolChoice: formatToolChoiceForAiSdk(toolChoice, allTools),
             abortSignal: generationController.signal,
+            // Stops generation when one of the criteria is met:
+            // - max steps are reached
+            // - custom tool defintion is called
+            stopWhen: [
+              stepCountIs(maxSteps),
+              ...(toolDefinitions?.map((toolDef) =>
+                hasToolCall(toolDef.name)
+              ) ?? []),
+            ],
+
+            // Appends references when a reference-returning tool is called
             onStepFinish: async ({ toolResults, toolCalls }) => {
               toolCalls?.forEach((toolCall) => {
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
                   userMessageCustomData = {
                     ...userMessageCustomData,
-                    ...toolCall.args,
+                    ...toolCall.input,
                   };
                 }
               });
               toolResults?.forEach((toolResult) => {
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.result?.references
+                  toolResult.output?.references
                 ) {
-                  references.push(...toolResult.result.references);
+                  references.push(...toolResult.output.references);
                 }
               });
             },
           });
 
           let fullStreamText = "";
+          let textPartId = ""; // Shared between text-start and text-end
+          let toolCallId = "";
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -291,25 +481,80 @@ export function makeGenerateResponseWithTools({
             }
 
             switch (chunk.type) {
-              case "text-delta":
+              case "text-start":
                 if (streamingModeActive) {
-                  fullStreamText += chunk.textDelta;
-                  stream.onTextDelta({
+                  textPartId = chunk.id;
+                  stream.onTextStart?.({
                     dataStreamer,
-                    delta: chunk.textDelta,
+                    text: "",
+                    textPartId,
+                    chunkId: chunk.id,
                   });
                 }
                 break;
-              case "finish":
+              case "text-delta":
+                if (streamingModeActive) {
+                  fullStreamText += chunk.text;
+                  stream.onTextDelta({
+                    dataStreamer,
+                    delta: chunk.text,
+                    textPartId,
+                    chunkId: chunk.id,
+                  });
+                }
+                break;
+              case "text-end":
                 if (streamingModeActive) {
                   stream.onTextDone?.({
                     dataStreamer,
                     text: fullStreamText,
+                    references,
+                    textPartId,
+                    chunkId: chunk.id,
                   });
                 }
                 break;
+
+              case "tool-input-start":
+                if (streamingModeActive) {
+                  const { id, toolName } = chunk;
+                  toolCallId = id;
+                  stream.onFunctionCallStart?.({
+                    dataStreamer,
+                    toolCallId,
+                    toolName,
+                    chunkId: chunk.id,
+                  });
+                }
+                break;
+              case "tool-input-delta":
+                if (streamingModeActive) {
+                  const { id, delta } = chunk;
+                  stream.onFunctionCallDelta?.({
+                    dataStreamer,
+                    delta,
+                    toolCallId,
+                    chunkId: id,
+                  });
+                }
+                break;
+              case "tool-input-end":
+                break;
               case "tool-call":
-                // do nothing with tool calls for now...
+                if (streamingModeActive) {
+                  const { input, toolCallId, toolName } = chunk;
+                  stream.onFunctionCallDone?.({
+                    dataStreamer,
+                    toolCallId,
+                    toolName,
+                    input,
+                    chunkId: "",
+                  });
+                }
+                break;
+              case "finish":
+                break;
+              case "tool-result":
                 break;
               case "error":
                 throw new Error(
@@ -328,6 +573,7 @@ export function makeGenerateResponseWithTools({
               stream.onReferenceLinks({
                 dataStreamer,
                 references,
+                textPartId,
               });
             }
           }
@@ -435,7 +681,7 @@ export function makeGenerateResponseWithTools({
   };
 }
 
-type ResponseMessage = CoreAssistantMessage | CoreToolMessage;
+type ResponseMessage = AssistantModelMessage | ToolModelMessage;
 
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
@@ -470,6 +716,70 @@ function handleReturnGeneration({
   } satisfies GenerateResponseReturnValue;
 }
 
+function makeAssitantMessage(m: ResponseMessage): AssistantMessage {
+  const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
+    role: "assistant",
+  };
+  if (typeof m.content === "string") {
+    baseMessage.content = m.content;
+  } else {
+    m.content.forEach((c) => {
+      if (c.type === "text") {
+        baseMessage.content = c.text;
+      }
+      if (c.type === "tool-call") {
+        baseMessage.toolCall = {
+          id: c.toolCallId,
+          function: {
+            name: c.toolName,
+            arguments: JSON.stringify(c.input),
+          },
+          type: "function",
+        };
+      }
+    });
+  }
+
+  return {
+    ...baseMessage,
+    content: baseMessage.content ?? "",
+  } satisfies AssistantMessage;
+}
+function makeToolMessage(m: ResponseMessage): ToolMessage {
+  const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
+    role: "tool",
+  };
+  if (typeof m.content === "string") {
+    baseMessage.content = m.content;
+  } else {
+    m.content.forEach((c) => {
+      if (c.type === "tool-result") {
+        baseMessage.name = c.toolName;
+        if (c.output.type === "content" && c.output.value[0].type === "text") {
+          baseMessage.content = c.output.value[0].text;
+        } else if (
+          c.output &&
+          typeof c.output === "object" &&
+          "value" in c.output
+        ) {
+          baseMessage.content =
+            typeof c.output.value === "string"
+              ? c.output.value
+              : JSON.stringify(c.output.value);
+        } else {
+          baseMessage.content =
+            typeof c.output === "string" ? c.output : JSON.stringify(c.output);
+        }
+      }
+    });
+  }
+  return {
+    ...baseMessage,
+    name: baseMessage.name ?? "",
+    content: baseMessage.content ?? "",
+  } satisfies ToolMessage;
+}
+
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   references: References
@@ -477,58 +787,9 @@ function formatMessageForReturnGeneration(
   const messagesOut = messages
     .map((m) => {
       if (m.role === "assistant") {
-        const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
-          role: "assistant",
-        };
-        if (typeof m.content === "string") {
-          baseMessage.content = m.content;
-        } else {
-          m.content.forEach((c) => {
-            if (c.type === "text") {
-              baseMessage.content = c.text;
-            }
-            if (c.type === "tool-call") {
-              baseMessage.toolCall = {
-                id: c.toolCallId,
-                function: {
-                  name: c.toolName,
-                  arguments: JSON.stringify(c.args),
-                },
-                type: "function",
-              };
-            }
-          });
-        }
-
-        return {
-          ...baseMessage,
-          content: baseMessage.content ?? "",
-        } satisfies AssistantMessage;
+        return makeAssitantMessage(m);
       } else if (m.role === "tool") {
-        const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
-          role: "tool",
-        };
-        if (typeof m.content === "string") {
-          baseMessage.content = m.content;
-        } else {
-          m.content.forEach((c) => {
-            if (c.type === "tool-result") {
-              baseMessage.name = c.toolName;
-              const result = (c.result as Array<ToolResultPart | TextPart>)[0];
-              if (result.type === "text") {
-                baseMessage.content = result.text;
-              }
-              if (result.type === "tool-result") {
-                baseMessage.content = JSON.stringify(result.result);
-              }
-            }
-          });
-        }
-        return {
-          ...baseMessage,
-          name: baseMessage.name ?? "",
-          content: baseMessage.content ?? "",
-        } satisfies ToolMessage;
+        return makeToolMessage(m);
       }
     })
     .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
@@ -545,7 +806,7 @@ function formatMessageForReturnGeneration(
   return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
-function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
+function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
   if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
     if (message.toolCall) {
@@ -557,16 +818,16 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
             type: "tool-call",
             toolCallId: message.toolCall.id,
             toolName: message.toolCall.function.name,
-            args: message.toolCall.function.arguments,
+            input: message.toolCall.function.arguments,
           } satisfies ToolCallPart,
         ],
-      } satisfies CoreAssistantMessage;
+      } satisfies AssistantModelMessage;
     } else {
       // Fallback for other object content
       return {
         role: "assistant",
         content: message.content,
-      } satisfies CoreAssistantMessage;
+      } satisfies AssistantModelMessage;
     }
   } else if (message.role === "tool") {
     // Convert tool messages to the format expected by the AI SDK
@@ -574,15 +835,67 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
       role: "tool",
       content: [
         {
-          toolName: message.name,
           type: "tool-result",
-          result: message.content,
           toolCallId: "",
-        } satisfies ToolResultPart,
+          toolName: message.name,
+          output: {
+            type: "json",
+            value: message.content,
+          },
+        },
       ],
-    } satisfies CoreToolMessage;
+    } satisfies ToolModelMessage;
   } else {
     // User and system messages can pass through
-    return message satisfies CoreMessage;
+    return message satisfies ModelMessage;
   }
+}
+
+function formatToolDefinitionsForAiSdk(
+  toolDefinitions: GenerateResponseParams["toolDefinitions"]
+): Record<string, Tool> {
+  return (
+    toolDefinitions?.reduce((acc, toolDef) => {
+      acc[toolDef.name] = tool({
+        name: toolDef.name,
+        description: toolDef.description,
+        inputSchema: jsonSchema(toolDef.parameters as JSONSchema7),
+      });
+      return acc;
+    }, {} as Record<string, Tool>) ?? {}
+  );
+}
+
+function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
+  toolChoice: GenerateResponseParams["toolChoice"],
+  tools: T
+): ToolChoice<T> | undefined {
+  if (!toolChoice) {
+    return undefined;
+  }
+  if (toolChoice === "auto") {
+    return "auto";
+  }
+  // Validate that the tool exists in the tools object
+  if (toolChoice.name in tools) {
+    return {
+      toolName: toolChoice.name as Extract<keyof T, string>,
+      type: "tool",
+    };
+  }
+
+  // Fallback: if tool doesn't exist, return undefined (no tool choice)
+  return undefined;
+}
+
+function convertReferencesToAnnotations(
+  references: References
+): ResponseStreamOutputTextAnnotationAdded["annotation"][] {
+  return references.map((reference) => ({
+    type: "url_citation",
+    url: reference.url,
+    title: reference.title,
+    start_index: 0,
+    end_index: 0,
+  }));
 }

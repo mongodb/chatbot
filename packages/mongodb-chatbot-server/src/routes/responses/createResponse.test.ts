@@ -58,7 +58,7 @@ describe("POST /responses", () => {
   });
 
   const makeClientAndRequest = (
-    body?: Partial<CreateResponseRequest["body"]>,
+    body?: Parameters<typeof makeCreateResponseRequestStream>[1],
     overrideOrigin?: string,
     overrideIpAddress?: string
   ) => {
@@ -81,7 +81,19 @@ describe("POST /responses", () => {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
-          { role: "assistant", content: "MongoDB is a document database." },
+          {
+            id: "assistant-message-id",
+            role: "assistant",
+            type: "message",
+            status: "completed",
+            content: [
+              {
+                type: "output_text",
+                text: "MongoDB is a document database.",
+                annotations: [],
+              },
+            ],
+          },
           { role: "user", content: "What is a document database?" },
         ],
       };

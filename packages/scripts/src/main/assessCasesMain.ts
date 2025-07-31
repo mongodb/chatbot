@@ -1,10 +1,17 @@
 import { AzureOpenAI } from "mongodb-rag-core/openai";
-import { assertEnvVars, makeOpenAiEmbedder } from "mongodb-rag-core";
+import {
+  assertEnvVars,
+  BRAINTRUST_ENV_VARS,
+  makeOpenAiEmbedder,
+} from "mongodb-rag-core";
 import { MongoClient } from "mongodb";
 import { Case } from "../Case";
 import { makeSimpleTextGenerator } from "../SimpleTextGenerator";
 import "dotenv/config";
-import { assessRelevance, makeShortName, rateWithLlm } from "../assessCases";
+import { assessRelevance, makeShortName } from "../assessCases";
+import { generateRating } from "../generateRating";
+import { models } from "mongodb-rag-core/models";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 
 const assessRelevanceMain = async () => {
   const {
@@ -15,6 +22,8 @@ const assessRelevanceMain = async () => {
     OPENAI_API_VERSION,
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     CASE_COLLECTION_NAME,
+    BRAINTRUST_API_KEY,
+    BRAINTRUST_ENDPOINT,
   } = assertEnvVars({
     FROM_CONNECTION_URI: "",
     FROM_DATABASE_NAME: "",
@@ -23,6 +32,7 @@ const assessRelevanceMain = async () => {
     OPENAI_API_VERSION: "",
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "",
     CASE_COLLECTION_NAME: "",
+    ...BRAINTRUST_ENV_VARS,
   });
 
   const openAiClient = new AzureOpenAI({
@@ -47,6 +57,20 @@ const assessRelevanceMain = async () => {
     model: "gpt-4o",
   });
 
+  const judgmentModel = wrapLanguageModel({
+    model: createOpenAI({
+      apiKey: BRAINTRUST_API_KEY,
+      baseURL: BRAINTRUST_ENDPOINT,
+    }).chat("o3"),
+    middleware: [],
+  });
+
+  const openai = createOpenAI({
+    apiKey: BRAINTRUST_API_KEY,
+    baseURL: BRAINTRUST_ENDPOINT,
+  }).chat(llmOptions.model, {
+    structuredOutputs: true,
+  });
   const client = await MongoClient.connect(FROM_CONNECTION_URI);
   try {
     console.log(
@@ -56,18 +80,20 @@ const assessRelevanceMain = async () => {
     const collection = db.collection<Case>(CASE_COLLECTION_NAME);
     const cases = await collection.find().toArray();
     const relevancePromises = cases.map(
-      async ({ _id, name: prompt, expected }) => {
+      async ({ _id, name: prompt, expected: expectedResponse }) => {
         const shortName = makeShortName(prompt);
         const relevance = await assessRelevance({
           prompt,
-          expected,
+          expectedResponse,
           embedders,
           generate,
         });
-        const llm_as_judgment = await rateWithLlm({
+
+        models.find(({ deployment }) => deployment === "o3");
+        const llm_as_judgment = await generateRating({
           prompt,
-          expected,
-          generate,
+          expectedResponse,
+          model: judgmentModel,
         });
         console.log(`Updating '${shortName}'...`);
         const updateResult = await collection.updateOne(

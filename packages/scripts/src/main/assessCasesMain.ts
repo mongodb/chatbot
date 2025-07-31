@@ -8,9 +8,8 @@ import { MongoClient } from "mongodb";
 import { Case } from "../Case";
 import { makeSimpleTextGenerator } from "../SimpleTextGenerator";
 import "dotenv/config";
-import { assessRelevance, makeShortName } from "../assessCases";
+import { assessRelevance, makeShortName } from "../assessRelevance";
 import { makeGenerateRating } from "../generateRating";
-import { models } from "mongodb-rag-core/models";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 
@@ -54,8 +53,13 @@ const assessRelevanceMain = async () => {
   ];
 
   const generate = makeSimpleTextGenerator({
-    client: openAiClient,
-    model: "gpt-4o",
+    model: wrapLanguageModel({
+      model: createOpenAI({
+        apiKey: BRAINTRUST_API_KEY,
+        baseURL: BRAINTRUST_ENDPOINT,
+      }).chat("gpt-4.1"),
+      middleware: [BraintrustMiddleware({ debug: true })],
+    }),
   });
 
   const judgmentModel = wrapLanguageModel({
@@ -78,6 +82,7 @@ const assessRelevanceMain = async () => {
     const relevancePromises = cases.map(
       async ({ _id, name: prompt, expected: expectedResponse }) => {
         const shortName = makeShortName(prompt);
+
         const relevance = await assessRelevance({
           prompt,
           expectedResponse,
@@ -85,7 +90,6 @@ const assessRelevanceMain = async () => {
           generate,
         });
 
-        models.find(({ deployment }) => deployment === "o3");
         const prompt_response_rating = await generateRating({
           prompt,
           expectedResponse,

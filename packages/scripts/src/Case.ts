@@ -13,6 +13,11 @@ export const PromptAndEmbeddings = z.object({
 
 export type PromptAndEmbeddings = z.infer<typeof PromptAndEmbeddings>;
 
+/**
+  Answer relevance: given prompt and expected answer pair, generate N possible
+  prompts that would elicit that answer, then compare their embeddings with the
+  embedding of the original prompt.
+ */
 export const RelevanceMetrics = z.object({
   // normalized square magnitude difference (lower = closer = better)
   norm_sq_mag_diff: z.number(),

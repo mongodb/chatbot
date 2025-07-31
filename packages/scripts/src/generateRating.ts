@@ -1,5 +1,5 @@
 import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
-import { makeShortName } from "./assessCases";
+import { makeShortName } from "./assessRelevance";
 import z from "zod";
 
 const Rating = z.number().min(1).max(5);

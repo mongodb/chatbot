@@ -35,15 +35,20 @@ const evalCases: GenerateRatingEvalCase[] = [
   },
 ];
 
-// TODO: More scorers
-const CorrectAnswerFit: Scorer<PromptResponseRating, unknown> = (args) => {
-  return {
-    name: "CorrectAnswerFit",
-    score:
-      1 -
-      Math.abs(args.output.answer_fit - (args.expected?.answer_fit ?? 0)) / 5, // TODO: normalize
-  };
-};
+const scores = (
+  [
+    "answer_fit",
+    "answer_reasonableness",
+    "business_impact",
+    "prompt_clarity",
+    "prompt_knowledge_assumption",
+  ] satisfies (keyof PromptResponseRating)[]
+).map((key): Scorer<PromptResponseRating, unknown> => {
+  return ({ output, expected }) => ({
+    name: `correct_${key}`,
+    score: 1 - Math.abs(output[key] - (expected?.[key] ?? 0)) / 4,
+  });
+});
 
 const model = wrapLanguageModel({
   model: createOpenAI({
@@ -75,5 +80,5 @@ Eval("generate-prompt-response-rating", {
       throw error;
     }
   },
-  scores: [CorrectAnswerFit],
+  scores,
 });

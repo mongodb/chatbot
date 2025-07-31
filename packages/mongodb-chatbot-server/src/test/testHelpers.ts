@@ -7,7 +7,6 @@ import {
   systemPrompt,
   basicResponsesRequestBody,
 } from "./testConfig";
-import type { CreateResponseRequest } from "../routes/responses/createResponse";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig

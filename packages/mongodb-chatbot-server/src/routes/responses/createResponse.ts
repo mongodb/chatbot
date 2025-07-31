@@ -46,6 +46,8 @@ export const CREATE_RESPONSE_ERR_MSG = {
   INPUT_ARRAY_LENGTH: `Input array must have at most ${MAX_INPUT_ARRAY_LENGTH} element(s).`,
   INPUT_TEXT_ARRAY:
     'Input content array only supports "input_text" type with exactly one element.',
+  INPUT_ASSISTANT_CONTENT_ARRAY:
+    'Input content array only supports "output_text" type with exactly one element.',
   TOOLS_LENGTH: `Input tools array must have at most ${MAX_TOOLS} element(s).`,
   TOOLS_CONTENT_LENGTH: `Input tools array must have at most ${MAX_TOOLS_CONTENT_LENGTH} characters, inclusive.`,
   CONVERSATION_USER_ID_CHANGED:
@@ -71,9 +73,15 @@ export const CREATE_RESPONSE_ERR_MSG = {
     "Path: body.previous_response_id | body.store - the conversation store flag does not match the store flag provided",
 } as const;
 
-const InputMessageSchema = z.object({
+const SystemMessageSchema = z.object({
   type: z.literal("message").optional(),
-  role: z.enum(["user", "assistant", "system"]),
+  role: z.literal("system"),
+  content: z.string(),
+});
+
+const UserMessageSchema = z.object({
+  type: z.literal("message").optional(),
+  role: z.literal("user"),
   content: z.union([
     z.string(),
     z
@@ -87,8 +95,38 @@ const InputMessageSchema = z.object({
   ]),
 });
 
+const AssistantMessageSchema = z.object({
+  id: z.string(),
+  role: z.literal("assistant"),
+  type: z.literal("message"),
+  status: z.enum(["in_progress", "completed", "incomplete"]),
+  content: z
+    .array(
+      z.object({
+        type: z.literal("output_text"),
+        text: z.string(),
+        annotations: z.array(
+          z.object({
+            type: z.literal("url_citation"),
+            title: z.string(),
+            url: z.string(),
+            start_index: z.number(),
+            end_index: z.number(),
+          })
+        ),
+      })
+    )
+    .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_ASSISTANT_CONTENT_ARRAY),
+});
+
+const InputMessageSchema = z.union([
+  SystemMessageSchema,
+  UserMessageSchema,
+  AssistantMessageSchema,
+]);
+
 type InputMessage = z.infer<typeof InputMessageSchema>;
-type UserMessage = Omit<InputMessage, "role"> & { role: "user" };
+type UserMessage = z.infer<typeof UserMessageSchema>;
 
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
@@ -740,7 +778,7 @@ const isInputMessage = (message: unknown): message is InputMessage =>
   InputMessageSchema.safeParse(message).success;
 
 const isUserMessage = (message: unknown): message is UserMessage =>
-  isInputMessage(message) && message.role === "user";
+  UserMessageSchema.safeParse(message).success;
 
 const formatUserMessageContent = (content: InputMessage["content"]): string => {
   if (typeof content === "string") return content;

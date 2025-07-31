@@ -37,17 +37,32 @@ interface AssessRelevanceEvalCase {
   tags?: MongoDbTag[];
 }
 
-// TODO: More eval cases
 const evalCases: AssessRelevanceEvalCase[] = [
   {
+    // High similarity
     input: {
-      prompt: "What is the weather?",
-      expectedResponse: "",
+      prompt: "When to use $pull and $push mongodb",
+      expectedResponse:
+        "Use the $pull operator when you want to remove a value or values that match specific conditions from an existing array. \nUse the $push operator when you want to add a specific value to an array. ",
     },
     expected: {
       averages: {
-        cos_similarity: 0.8,
-        norm_sq_mag_diff: 0.9,
+        cos_similarity: 0.9639615103046141,
+        norm_sq_mag_diff: 1.876484720646915e-11,
+      },
+    },
+  },
+  {
+    // Low similarity
+    input: {
+      prompt: "give me an example of how to use the $and operator",
+      expectedResponse:
+        "The following example returns inventory documents where the price is greater than 25 and the quantity is less than 20:\n\ndb.inventory.find( {\n  $and: [\n    { price: { $gt: 25 } },\n    { quantity: { $lt: 20 } }\n  ]\n} )",
+    },
+    expected: {
+      averages: {
+        cos_similarity: 0.3442199438560915,
+        norm_sq_mag_diff: 1.0454893515591396e-10,
       },
     },
   },

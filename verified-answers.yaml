@@ -17,28 +17,40 @@
       title: MongoDB Atlas Registration
     - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot
       title: MongoDB Atlas Tutorial
-- answer: |
-    To get started with MongoDB, you can try the 5-minute interactive tutorial
-    that connects you to a MongoDB Atlas cluster and walks you through
-    inserting, querying, and deleting data in MongoDB. You do not need to
-    install anything for this tutorial. Simply click the Launch button of the
-    in-browser Integrated Development Environment to start the tutorial.
-
-    After completing the tutorial, you can also deploy a free cluster without any installation overhead by following the instructions in the "Getting Started with Atlas" documentation.
-
-    Let me know if you have any other questions!
-  author_email: ian.fogelman@mongodb.com
-  questions:
+- questions:
     - Get started with MongoDB
+    - How do I get started with MongoDB?
+    - How do I get started with MongoDB Atlas?
+  author_email: jessica.roberts@mongodb.com
+  answer: |
+    To get started with MongoDB Atlas, the easiest way is through the Atlas UI. Here are the steps to get started:
+
+    - Register for Atlas: register for Atlas by visiting our [registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
+    - Choose your connection method: using a driver, developer tool, or programmatic connection method.
+    - Load sample data: using our sample data sets, data migration tools, or by generating mock/synthetic data.
+
+    Atlas also supports getting started via the Atlas CLI, Kubernetes Operator, or a preferred Infrastructure-as-Code (IaC) tool. Install the Atlas CLI using brew install mongodb-atlas and configure your database with atlas setup.
+
+    If migrating from another database, Atlas provides migration resources to help streamline the process.
+
+    For a fast hands-on experience, try this 5-minute interactive tutorial—no setup needed. It walks through inserting, querying, and deleting data using a browser-based IDE.
+
+    - [Step by Step Guide](https://www.mongodb.com/docs/guides/?tck=mongodb_ai_chatbot)
+    - [Migrate or Import Data](https://www.mongodb.com/docs/atlas/import/?tck=mongodb_ai_chatbot)
+    - [MongoDB Migrators, Tools, and Connectors](https://www.mongodb.com/docs/tools-and-connectors/?tck=mongodb_ai_chatbot)
+    - [Generate Synthetic Data](https://www.mongodb.com/docs/atlas/synthetic-data/?tck=mongodb_ai_chatbot)
   references:
     - url: https://mongodb.com/docs/manual/tutorial/getting-started/
       title: Getting Started with MongoDB
-    - url: https://learn.mongodb.com/learn/course/start-here-introduction-to-mongodb/welcome-to-the-introduction-to-mongodb-course/learn
-      title: Welcome to the Introduction to MongoDB Course
-    - url: https://mongodb.com/docs/develop-applications
-      title: Develop Applications
-    - url: https://mongodb.com/docs/manual/
-      title: MongoDB Manual
+    - url: https://www.mongodb.com/docs/guides/
+      title: MongoDB Guides
+    - url: https://www.mongodb.com/docs/atlas/import/
+      title: Migrate or Import Data
+    - url: https://www.mongodb.com/docs/tools-and-connectors/
+      title: Migrators, Tools, and Connectors
+    - url: https://www.mongodb.com/docs/atlas/synthetic-data/
+      title: Generate Synthetic Data
+
 - answer: |
     To install MongoDB on Windows, you can follow these steps:
 
@@ -1463,7 +1475,7 @@
       title: Using Atlas Search from Java
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-search/conclusion/learn
       title: MongoDB Atlas Search - Conclusion - Learn
-- answer: |
+- answer: >
     MongoDB and Oracle are both popular database management systems, but they
     have some key differences. Here are a few of the main differences between
     MongoDB and Oracle:
@@ -1780,7 +1792,7 @@
 - author_email: jessica.roberts@mongodb.com
   questions:
     - What is MongoDB Atlas?
-  answer: |
+  answer: >
     MongoDB Atlas is a fully managed cloud database service that simplifies
     deploying, scaling, and managing MongoDB databases in the cloud. It
     eliminates infrastructure setup and database management by automating
@@ -1796,9 +1808,7 @@
   questions:
     - What types of use cases are best for MongoDB?
   answer: |
-    MongoDB is a versatile, flexible, and enterprise-ready general purpose
-    database platform. It supports a wide range of use cases—from traditional
-    applications to modern, AI-powered workloads like search and vector search.
+    MongoDB is a versatile, flexible, and enterprise-ready general purpose database platform. It supports a wide range of use cases—from traditional applications to modern, AI-powered workloads like search and vector search.
 
     Here are some common use cases where MongoDB excels:
 
@@ -1819,17 +1829,12 @@
   questions:
     - What’s the difference between MongoDB Atlas and Community Edition?
   answer: |
-    MongoDB Atlas is a fully managed, cloud-based database service provided by
-    the creators of MongoDB. It simplifies deploying, managing, and scaling
-    MongoDB databases in the cloud, offering features like automated backups,
-    monitoring, security, and integrations with other cloud services.
+    MongoDB Atlas is a fully managed, cloud-based database service provided by the creators of MongoDB. It simplifies deploying, managing, and scaling MongoDB databases in the cloud, offering features like automated backups, monitoring, security, and integrations with other cloud services.
 
-    MongoDB Community Edition, on the other hand, is a self-managed version of
-    MongoDB. You are responsible for installing, configuring, maintaining, and
-    scaling the database yourself, either on your local machine or on your own
-    cloud infrastructure.
+    MongoDB Community Edition, on the other hand, is a self-managed version of MongoDB. You are responsible for installing, configuring, maintaining, and scaling the database yourself, either on your local machine or on your own cloud infrastructure.
 
     Key differences:
+
     - Atlas is managed by MongoDB and runs in the cloud, while Community Edition is self-managed and can run locally or in the cloud.
     - Atlas provides built-in automation, security, and cloud integrations, whereas Community Edition requires you to handle these aspects manually.
     - Atlas is ideal for most use cases that require cloud deployment and management, while Community Edition is often chosen for local development or when you want full control over your deployment.
@@ -1848,10 +1853,10 @@
   answer: |
     You can create Free clusters through the Atlas CLI, Atlas User Interface, and Atlas Administration API.
 
-    For detailed instructions, refer to the [MongoDB Atlas
-    documentation](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/?tck=mongodb_ai_chatbot).
+    For detailed instructions, refer to the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/?tck=mongodb_ai_chatbot).
 
     Most users like to start with the Atlas UI and follow these steps:
+
     1. Log in to your MongoDB Atlas account.
     2. Go to the Overview page for your project.
     3. Click the Create button to create a cluster.
@@ -1861,17 +1866,13 @@
     7. Specify a name for your cluster
     8. Click Create to deploy the cluster.
 
-    Once you deploy your cluster, it can take up to 10 minutes for your cluster
-    to provision and become ready to use. After deployment:
+    Once you deploy your cluster, it can take up to 10 minutes for your cluster to provision and become ready to use. After deployment:
 
-      - Create a database user by specifying a username and password.
+    - Create a database user by specifying a username and password.
     - Add your IP address to the IP access list to allow connections.
     - Click Finish and Close, then Go to Overview.
 
-    Atlas Free clusters provide a small-scale development environment to host
-    your data and test proof of concepts. Free clusters never expire, and
-    provide access to a subset of Atlas features and functionality. You can only
-    deploy one free cluster per Atlas project.
+    Atlas Free clusters provide a small-scale development environment to host your data and test proof of concepts. Free clusters never expire, and provide access to a subset of Atlas features and functionality. You can only deploy one free cluster per Atlas project.
   references:
     - url: https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/
       title: Deploy a Free Cluster
@@ -1881,15 +1882,27 @@
   answer: |
     MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
 
-    - Free Tier (`M0`): Best for learning and exploring, with limited resources.
-    - Flex: Ideal for development and testing, offering the lowest cost option with certain feature limitations.
-    - Dedicated (`M10` & `M20`): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
-    - Dedicated (`M30+`): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
+    - Free Tier (M0): Best for learning and exploring, with [limited resources](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/?tck=mongodb_ai_chatbot).
+    - Flex: Ideal for development and testing, offering the lowest cost option with certain [feature limitations](https://www.mongodb.com/docs/atlas/reference/flex-limitations/#std-label-atlas-flex-limitations?tck=mongodb_ai_chatbot).
+    - Dedicated (M10 & M20): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
+    - Dedicated (M30+): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
 
-    Clusters can always be scaled up from any tier as requirements expand. If
-    you're unsure, MongoDB recommends starting with a lower tier and monitoring
-    performance before adjusting. For all Dedicated tiers, use auto-scaling to
-    adjust cluster tier and storage as workloads evolve.
+    Clusters can always be scaled up from any tier as requirements expand. If unsure, MongoDB recommends starting with a lower tier and [monitoring performance](https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/?tck=mongodb_ai_chatbot) before adjusting. For all Dedicated tiers, use auto-scaling to adjust cluster tier and storage as workloads evolve.
+
+    [How to select your cluster tier](https://www.mongodb.com/docs/atlas/manage-clusters/?tck=mongodb_ai_chatbot#select-cluster-tier)
+    [Atlas cluster sizing and tier selection](https://www.mongodb.com/docs/atlas/sizing-tier-selection/?tck=mongodb_ai_chatbot)
+  # answer: |
+  #   MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
+
+  #   - Free Tier (`M0`): Best for learning and exploring, with limited resources.
+  #   - Flex: Ideal for development and testing, offering the lowest cost option with certain feature limitations.
+  #   - Dedicated (`M10` & `M20`): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
+  #   - Dedicated (`M30+`): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
+
+  #   Clusters can always be scaled up from any tier as requirements expand. If
+  #   you're unsure, MongoDB recommends starting with a lower tier and monitoring
+  #   performance before adjusting. For all Dedicated tiers, use auto-scaling to
+  #   adjust cluster tier and storage as workloads evolve.
   references:
     - url: https://www.mongodb.com/docs/atlas/manage-clusters/#select-cluster-tier
       title: Select Cluster Tier

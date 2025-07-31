@@ -1,5 +1,8 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { makeVerifiedAnswerGenerateResponse } from "./makeVerifiedAnswerGenerateResponse";
+import {
+  makeVerifiedAnswerGenerateResponse,
+  type StreamFunction,
+} from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
 import { GenerateResponseReturnValue } from "./GenerateResponse";
 
@@ -23,6 +26,29 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       content: "Not verified!",
     },
   ] satisfies GenerateResponseReturnValue["messages"];
+
+  const streamVerifiedAnswer: StreamFunction<{
+    verifiedAnswer: VerifiedAnswer;
+  }> = async ({ dataStreamer, verifiedAnswer }) => {
+    dataStreamer.streamData({
+      type: "metadata",
+      data: {
+        verifiedAnswer: {
+          _id: verifiedAnswer._id,
+          created: verifiedAnswer.created,
+          updated: verifiedAnswer.updated,
+        },
+      },
+    });
+    dataStreamer.streamData({
+      type: "delta",
+      data: verifiedAnswer.answer,
+    });
+    dataStreamer.streamData({
+      type: "references",
+      data: verifiedAnswer.references,
+    });
+  };
 
   // Create a mock verified answer
   const createMockVerifiedAnswer = (): WithScore<VerifiedAnswer> => ({
@@ -55,6 +81,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     connect: jest.fn(),
     disconnect: jest.fn(),
     stream: jest.fn(),
+    streamResponses: jest.fn(),
   });
 
   // Create base request parameters
@@ -79,6 +106,9 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     onNoVerifiedAnswerFound: async () => ({
       messages: noVerifiedAnswerFoundMessages,
     }),
+    stream: {
+      onVerifiedAnswerFound: streamVerifiedAnswer,
+    },
   });
 
   it("uses onNoVerifiedAnswerFound if no verified answer is found", async () => {
@@ -96,6 +126,47 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
 
     expect(answer.messages).toHaveLength(2);
     expect(answer.messages[0].content).toBe(MAGIC_VERIFIABLE);
+  });
+
+  it("skips verified answer if custom system prompt", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      customSystemPrompt: "Custom system prompt",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tools", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolDefinitions: [
+        { name: "tool", description: "description", parameters: {} },
+      ],
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tool choice", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolChoice: "auto",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
   });
 
   describe("streaming functionality", () => {

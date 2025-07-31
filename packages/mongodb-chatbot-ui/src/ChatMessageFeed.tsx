@@ -32,17 +32,25 @@ export type ChatMessageFeedProps = DarkModeProps & {
   disclaimer?: React.ReactNode;
   disclaimerHeading?: string;
   initialMessage?: MessageData | null;
+  messageBottomContent?: React.ReactNode;
 };
 
 export function ChatMessageFeed(props: ChatMessageFeedProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { className, disclaimer, disclaimerHeading, initialMessage } = props;
+  const {
+    className,
+    disclaimer,
+    disclaimerHeading,
+    initialMessage,
+    messageBottomContent,
+  } = props;
 
   const {
     awaitingReply,
     canSubmit,
     conversation,
     handleSubmit,
+    onReferenceClick,
     onSuggestedPromptClick,
   } = useChatbotContext();
 
@@ -71,20 +79,23 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
 
         const isInitialMessage = idx === 0;
 
+        const showRatingAndBottomContent =
+          !isLoading &&
+          // If we've sent a request but the response hasn't started streaming yet, don't show the rating
+          !(awaitingReply && conversation.streamingMessageId === message.id) &&
+          // Users can rate assistant messages that have started streaming
+          message.role === "assistant" &&
+          // We don't want users to rate the initial message (and they can't because it's not in the database)
+          !isInitialMessage;
+
         return (
           <Message
             key={message.id}
             messageData={message}
             isLoading={isLoading}
-            showRating={
-              // Users can rate assistant messages that have started streaming
-              message.role === "assistant" &&
-              !isLoading &&
-              !(
-                awaitingReply && conversation.streamingMessageId === message.id
-              ) &&
-              // We don't want users to rate the initial message (and they can't because it's not in the database)
-              !isInitialMessage
+            showRating={showRatingAndBottomContent}
+            bottomContent={
+              showRatingAndBottomContent ? messageBottomContent : null
             }
             conversation={conversation}
             suggestedPrompts={message.suggestedPrompts}
@@ -92,6 +103,7 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
               // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
               isInitialMessage && conversation.messages.length === 0
             }
+            onReferenceClick={onReferenceClick}
             onSuggestedPromptClick={(prompt) => {
               onSuggestedPromptClick?.(prompt);
               handleSubmit(prompt);

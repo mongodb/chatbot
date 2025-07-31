@@ -18,7 +18,12 @@ import {
   convertMessageFromDbToApi,
   makeRequestError,
 } from "./utils";
-import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
+import {
+  getRequestId,
+  logRequest,
+  makeTraceConversation,
+  sendErrorResponse,
+} from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
@@ -31,6 +36,8 @@ import {
   GenerateResponse,
   GenerateResponseParams,
 } from "../../processors/GenerateResponse";
+import { hasTooManyUserMessagesInConversation } from "../responses/createResponse";
+import { creationInterface } from "./constants";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -207,11 +214,12 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      const numUserMessages = conversation.messages.reduce(
-        (acc, message) => (message.role === "user" ? acc + 1 : acc),
-        0
-      );
-      if (numUserMessages >= maxUserMessagesInConversation) {
+      if (
+        hasTooManyUserMessagesInConversation(
+          conversation,
+          maxUserMessagesInConversation
+        )
+      ) {
         // Omit the system prompt and assume the user always received one response per message
         throw makeRequestError({
           httpStatus: 400,
@@ -227,36 +235,8 @@ export function makeAddMessageToConversationRoute({
 
       const assistantResponseMessageId = new ObjectId();
 
-      // Only include the necessary message info for the conversastion.
-      // This sends less data to Braintrust speeding up tracing
-      // and also being more readable in the Braintrust UI.
-      const traceConversation: Conversation = {
-        ...conversation,
-        messages: conversation.messages.map((message) => {
-          const baseFields = {
-            content: message.content,
-            id: message.id,
-            createdAt: message.createdAt,
-            metadata: message.metadata,
-          };
-
-          if (message.role === "tool") {
-            return {
-              role: "tool",
-              name: message.name,
-              ...baseFields,
-            } satisfies DbMessage<ToolMessage>;
-          } else {
-            return { ...baseFields, role: message.role } satisfies Exclude<
-              Message,
-              ToolMessage
-            >;
-          }
-        }),
-      };
-
       const { messages } = await generateResponseTraced({
-        conversation: traceConversation,
+        conversation: makeTraceConversation(conversation),
         latestMessageText,
         clientContext,
         customData,
@@ -412,6 +392,7 @@ const loadConversation = async ({
       customData: createConversation.addCustomData
         ? await createConversation.addCustomData(req, res)
         : undefined,
+      creationInterface,
     });
   }
 

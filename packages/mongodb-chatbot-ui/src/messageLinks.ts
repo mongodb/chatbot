@@ -2,6 +2,7 @@ import { isRichLinkVariantName, type RichLinkProps } from "@lg-chat/rich-links";
 import {
   isReferenceToDomain,
   makePrioritizeReferenceDomain,
+  Reference,
   type References,
   SortReferences,
 } from "./references";
@@ -10,16 +11,20 @@ import { MessageData } from "./services/conversations";
 
 export type FormatReferencesOptions = {
   tck?: string;
+  onReferenceClick?: (reference: Reference) => void;
 };
 
 export function formatReferences(
   references: References,
-  { tck }: FormatReferencesOptions = {}
+  { tck, onReferenceClick }: FormatReferencesOptions = {}
 ): RichLinkProps[] {
   return references.map((reference) => {
     const richLinkProps = {
       href: tck ? addQueryParams(reference.url, { tck }) : reference.url,
       children: reference.title,
+      onLinkClick: () => {
+        onReferenceClick?.(reference);
+      },
     };
     const { sourceType } = reference.metadata ?? {};
     if (sourceType && isRichLinkVariantName(sourceType)) {
@@ -34,10 +39,16 @@ export function formatReferences(
 
 export function getMessageLinks(
   messageData: MessageData,
-  options: { tck?: string } = {}
+  options: {
+    tck?: string;
+    onReferenceClick?: (reference: Reference) => void;
+  } = {}
 ): RichLinkProps[] | undefined {
   return messageData.references && messageData.references.length > 0
-    ? formatReferences(messageData.references, { tck: options.tck })
+    ? formatReferences(messageData.references, {
+        tck: options.tck,
+        onReferenceClick: options.onReferenceClick,
+      })
     : undefined;
 }
 

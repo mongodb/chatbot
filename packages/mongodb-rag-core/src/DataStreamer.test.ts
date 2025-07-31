@@ -1,16 +1,23 @@
-import { DataStreamer, makeDataStreamer } from "./DataStreamer";
+import {
+  DataStreamer,
+  makeDataStreamer,
+  type ResponsesStreamParams,
+} from "./DataStreamer";
 import { OpenAI } from "openai";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 import { Response } from "express";
 
-let res: ReturnType<typeof createResponse> & Response;
-const dataStreamer = makeDataStreamer();
 describe("Data Streaming", () => {
+  let dataStreamer: DataStreamer;
+  let res: ReturnType<typeof createResponse> & Response;
+
+  beforeAll(() => {
+    dataStreamer = makeDataStreamer();
+  });
+
   beforeEach(() => {
-    res = createResponse({
-      eventEmitter: EventEmitter,
-    });
+    res = createResponse({ eventEmitter: EventEmitter });
     dataStreamer.connect(res);
   });
 
@@ -77,6 +84,30 @@ describe("Data Streaming", () => {
     const data = res._getData();
     expect(data).toBe(
       `data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
+    );
+  });
+
+  it("Streams Responses API events as valid SSE events to the client", () => {
+    dataStreamer.streamResponses({
+      type: "response.created",
+      id: "test1",
+    } as unknown as ResponsesStreamParams);
+    dataStreamer.streamResponses({
+      type: "response.in_progress",
+      id: "test2",
+    } as unknown as ResponsesStreamParams);
+    dataStreamer.streamResponses({
+      type: "response.output_text.delta",
+      id: "test3",
+    } as unknown as ResponsesStreamParams);
+    dataStreamer.streamResponses({
+      type: "response.completed",
+      id: "test4",
+    } as unknown as ResponsesStreamParams);
+
+    const data = res._getData();
+    expect(data).toBe(
+      `event: response.created\ndata: {"type":"response.created","id":"test1","sequence_number":0}\n\nevent: response.in_progress\ndata: {"type":"response.in_progress","id":"test2","sequence_number":1}\n\nevent: response.output_text.delta\ndata: {"type":"response.output_text.delta","id":"test3","sequence_number":2}\n\nevent: response.completed\ndata: {"type":"response.completed","id":"test4","sequence_number":3}\n\n`
     );
   });
 });

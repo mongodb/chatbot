@@ -1,4 +1,5 @@
 - questions:
+    - How do I register for MongoDB Atlas?
     - How do I register for Atlas?
     - Register for Atlas
     - Sign up for Atlas
@@ -16,28 +17,40 @@
       title: MongoDB Atlas Registration
     - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot
       title: MongoDB Atlas Tutorial
-- answer: |
-    To get started with MongoDB, you can try the 5-minute interactive tutorial
-    that connects you to a MongoDB Atlas cluster and walks you through
-    inserting, querying, and deleting data in MongoDB. You do not need to
-    install anything for this tutorial. Simply click the Launch button of the
-    in-browser Integrated Development Environment to start the tutorial.
-
-    After completing the tutorial, you can also deploy a free cluster without any installation overhead by following the instructions in the "Getting Started with Atlas" documentation.
-
-    Let me know if you have any other questions!
-  author_email: ian.fogelman@mongodb.com
-  questions:
+- questions:
     - Get started with MongoDB
+    - How do I get started with MongoDB?
+    - How do I get started with MongoDB Atlas?
+  author_email: jessica.roberts@mongodb.com
+  answer: |
+    To get started with MongoDB Atlas, the easiest way is through the Atlas UI. Here are the steps to get started:
+
+    - Register for Atlas: register for Atlas by visiting our [registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
+    - Choose your connection method: using a driver, developer tool, or programmatic connection method.
+    - Load sample data: using our sample data sets, data migration tools, or by generating mock/synthetic data.
+
+    Atlas also supports getting started via the Atlas CLI, Kubernetes Operator, or a preferred Infrastructure-as-Code (IaC) tool. Install the Atlas CLI using brew install mongodb-atlas and configure your database with atlas setup.
+
+    If migrating from another database, Atlas provides migration resources to help streamline the process.
+
+    For a fast hands-on experience, try this 5-minute interactive tutorial—no setup needed. It walks through inserting, querying, and deleting data using a browser-based IDE.
+
+    - [Step by Step Guide](https://www.mongodb.com/docs/guides/?tck=mongodb_ai_chatbot)
+    - [Migrate or Import Data](https://www.mongodb.com/docs/atlas/import/?tck=mongodb_ai_chatbot)
+    - [MongoDB Migrators, Tools, and Connectors](https://www.mongodb.com/docs/tools-and-connectors/?tck=mongodb_ai_chatbot)
+    - [Generate Synthetic Data](https://www.mongodb.com/docs/atlas/synthetic-data/?tck=mongodb_ai_chatbot)
   references:
     - url: https://mongodb.com/docs/manual/tutorial/getting-started/
       title: Getting Started with MongoDB
-    - url: https://learn.mongodb.com/learn/course/start-here-introduction-to-mongodb/welcome-to-the-introduction-to-mongodb-course/learn
-      title: Welcome to the Introduction to MongoDB Course
-    - url: https://mongodb.com/docs/develop-applications
-      title: Develop Applications
-    - url: https://mongodb.com/docs/manual/
-      title: MongoDB Manual
+    - url: https://www.mongodb.com/docs/guides/
+      title: MongoDB Guides
+    - url: https://www.mongodb.com/docs/atlas/import/
+      title: Migrate or Import Data
+    - url: https://www.mongodb.com/docs/tools-and-connectors/
+      title: Migrators, Tools, and Connectors
+    - url: https://www.mongodb.com/docs/atlas/synthetic-data/
+      title: Generate Synthetic Data
+
 - answer: |
     To install MongoDB on Windows, you can follow these steps:
 
@@ -1462,7 +1475,7 @@
       title: Using Atlas Search from Java
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-search/conclusion/learn
       title: MongoDB Atlas Search - Conclusion - Learn
-- answer: |
+- answer: >
     MongoDB and Oracle are both popular database management systems, but they
     have some key differences. Here are a few of the main differences between
     MongoDB and Oracle:
@@ -1594,8 +1607,8 @@
     Our student benefits, including free certification, are available through the GitHub Student Developer Pack. 
     To be eligible for free certification, students must: 
     1. Be enrolled in the [GitHub Student Developer Pack](https://education.github.com/pack)
-    2. Verify their student status by entering their GitHub information at [mongodb.com/students](http://mongodb.com/students)
-    3. Complete and pass all courses associated with a [MongoDB University learning path](https://learn.mongodb.com/pages/certification-learning-paths)
+    2. Verify their student status by entering their GitHub information at [mongodb.com/students](https://mongodb.com/students?tck=mongodb_ai_chatbot)
+    3. Complete and pass all courses associated with a [MongoDB University learning path](https://learn.mongodb.com/pages/certification-learning-paths?tck=mongodb_ai_chatbot)
     For more information on our student benefits, please review the [Student Resource Guide](https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view) or take a look at the FAQ section on [MongoDB for Students](https://www.mongodb.com/students).
   author_email: aiyana.mcconnell@mongodb.com
   questions:
@@ -1603,7 +1616,7 @@
   references:
     - url: https://education.github.com/pack
       title: "GitHub Student Developer Pack"
-    - url: http://mongodb.com/students
+    - url: https://mongodb.com/students
       title: "MongoDB Student Pack"
     - url: https://learn.mongodb.com/pages/certification-learning-paths
       title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
@@ -1624,7 +1637,7 @@
   questions:
     - I submitted an application for a free certification voucher through MongoDB for Students and I haven’t received a voucher yet.
   references:
-    - url: http://mongodb.com/students
+    - url: https://mongodb.com/students
       title: "MongoDB Student Pack"
     - url: https://education.github.com/pack
       title: "GitHub Student Developer Pack"
@@ -1640,7 +1653,7 @@
   questions:
     - How do I receive benefits through MongoDB for Students?
   references:
-    - url: http://mongodb.com/students
+    - url: https://mongodb.com/students
       title: "MongoDB Student Pack"
     - url: https://education.github.com/pack
       title: "GitHub Student Developer Pack"
@@ -1651,12 +1664,12 @@
 - answer: |
     MongoDB offers a variety of free resources specifically curated to support educators in equipping students with modern database knowledge. 
 
-    Through the [MongoDB for Educators](http://mongodb.com/academia) program, verified professors, teachers and other educators can access a range of valuable materials and benefits at including: 
+    Through the [MongoDB for Educators](https://mongodb.com/academia?tck=mongodb_ai_chatbot) program, verified professors, teachers and other educators can access a range of valuable materials and benefits at including:
     - Slide-based lecture materials to seamlessly integrate MongoDB into your existing curriculum
     - $500 in MongoDB Atlas credits to support hands-on learning with our cloud-hosted database platform. 
     - Stay current with industry standards and showcase your dedication to ongoing professional development with MongoDB certification. 
 
-    All of our educator resources are completely free and signing up for MongoDB for Educators only takes a few minutes. To learn more or to register for the program, go to [mongodb.com/academia](http://mongodb.com/academia). 
+    All of our educator resources are completely free and signing up for MongoDB for Educators only takes a few minutes. To learn more or to register for the program, go to [mongodb.com/academia](https://mongodb.com/academia?tck=mongodb_ai_chatbot).
   author_email: aiyana.mcconnell@mongodb.com
   questions:
     - I'm an educator and I'm interested in teaching MongoDB to my students/in my classes.
@@ -1664,7 +1677,7 @@
     - I'm a teacher and I'm interested in teaching MongoDB to my students/in my classes.
     - I'm an instructor and I'm interested in teaching MongoDB to my students/in my classes.
   references:
-    - url: http://mongodb.com/academia
+    - url: https://mongodb.com/academia
       title: "MongoDB for Educators"
     - url: https://drive.google.com/file/d/1W_i_DkOeROY9raLesiEbS5PCasLAvlRb/view?usp=sharing
       title: "How to Register for MongoDB for Educators"
@@ -1679,9 +1692,9 @@
   references:
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
-    - url: http://mongodb.com/students
+    - url: https://mongodb.com/students
       title: "MongoDB Student Pack"
-    - url: http://mongodb.com/academia
+    - url: https://mongodb.com/academia
       title: "MongoDB for Educators"
 - answer: |
     To reschedule your exam, simply navigate to your learner dashboard at learn.mongodb.com and select the "Manage" button for the exam you wish to reschedule. You will be taken to our proctoring partner's site where you can reschedule to a date/time that works better for you.
@@ -1700,7 +1713,7 @@
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
 - answer: |
-    If you need extra time for your certificaiton due to a learning disability or because English is a second language for you, please purchase and schedule your exam and then send a support ticket to [certification@mongodb.com](mailto:certification@mongodb.com) requesting extra time. 
+    If you need extra time for your certificaiton due to a learning disability or because English is a second language for you, please purchase and schedule your exam and then send a support ticket to [certification@mongodb.com](mailto:certification@mongodb.com) requesting extra time.
   author_email: carol.dibert@mongodb.com
   questions:
     - How do I request extended time for my certification exam?
@@ -1749,11 +1762,11 @@
     - **Atlas Free Tier**: You can start with the free tier, which provides 512MB of storage and shared resources. This is suitable for learning and initial development.
     - **Atlas Flex Tier**: This option offers flexible pricing at $0.011/hour, with a $30 monthly limit, suitable for development and testing.
     - **Atlas Dedicated Tier**: For production applications, dedicated clusters start at $57/month, with options to scale storage, RAM, and CPU based on your needs.
-    
+
     Community Edition is available for free if you prefer to self-manage your database locally or in a hybrd/private cloud.
-    
+
     Enterprise Advanced is also available with a license for on-premises deployment or the cloud, while providing several capabilities unavailable in Community Edition.
-    
+
     For more detailed information on pricing and customizing your deployment, you may want to [contact MongoDB sales](https://www.mongodb.com/company/contact) or [explore the pricing options further](https://www.mongodb.com/pricing).
   author_email: bill.mitchell@mongodb.com
   questions:
@@ -1775,3 +1788,129 @@
       title: Atlas Registration
     - url: https://www.mongodb.com/try/download/community
       title: Community Edition Download
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What is MongoDB Atlas?
+  answer: >
+    MongoDB Atlas is a fully managed cloud database service that simplifies
+    deploying, scaling, and managing MongoDB databases in the cloud. It
+    eliminates infrastructure setup and database management by automating
+    critical tasks such as provisioning, backups, scaling, and performance
+    optimization. Atlas database supports multi-cloud deployments on AWS, Azure,
+    and Google Cloud, enabling global scalability and resilience. Atlas is
+    designed to ensure engineering teams focus on building and innovating
+    applications rather than managing database infrastructure.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/
+      title: What is MongoDB Atlas?
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What types of use cases are best for MongoDB?
+  answer: |
+    MongoDB is a versatile, flexible, and enterprise-ready general purpose database platform. It supports a wide range of use cases—from traditional applications to modern, AI-powered workloads like search and vector search.
+
+    Here are some common use cases where MongoDB excels:
+
+    - Search and vector search (no extensions required)
+    - AI-driven applications
+    - High-performance applications
+    - Hybrid/multi-cloud deployments
+    - Agile and collaborative development
+    - Complex or evolving data structures
+  references:
+    - url: https://www.mongodb.com/solutions/use-cases
+      title: MongoDB Use Cases
+    - url: https://www.mongodb.com/atlas
+      title: MongoDB Atlas
+    - url: https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/
+      title: Atlas Solutions Library
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What’s the difference between MongoDB Atlas and Community Edition?
+  answer: |
+    MongoDB Atlas is a fully managed, cloud-based database service provided by the creators of MongoDB. It simplifies deploying, managing, and scaling MongoDB databases in the cloud, offering features like automated backups, monitoring, security, and integrations with other cloud services.
+
+    MongoDB Community Edition, on the other hand, is a self-managed version of MongoDB. You are responsible for installing, configuring, maintaining, and scaling the database yourself, either on your local machine or on your own cloud infrastructure.
+
+    Key differences:
+
+    - Atlas is managed by MongoDB and runs in the cloud, while Community Edition is self-managed and can run locally or in the cloud.
+    - Atlas provides built-in automation, security, and cloud integrations, whereas Community Edition requires you to handle these aspects manually.
+    - Atlas is ideal for most use cases that require cloud deployment and management, while Community Edition is often chosen for local development or when you want full control over your deployment.
+
+    Let me know if you want more details about either option!
+  references:
+    - url: https://www.mongodb.com/products/self-managed/community-edition
+      title: MongoDB Community Edition
+    - url: https://mongodb.com/docs/atlas/
+      title: MongoDB Atlas Documentation
+    - url: https://www.mongodb.com/atlas
+      title: MongoDB Atlas
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I deploy a free cluster on MongoDB Atlas?
+  answer: |
+    You can create Free clusters through the Atlas CLI, Atlas User Interface, and Atlas Administration API.
+
+    For detailed instructions, refer to the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/?tck=mongodb_ai_chatbot).
+
+    Most users like to start with the Atlas UI and follow these steps:
+
+    1. Log in to your MongoDB Atlas account.
+    2. Go to the Overview page for your project.
+    3. Click the Create button to create a cluster.
+    4. Select the M0 option.
+    5. Select your preferred Provider (AWS, GCP, or Azure)
+    6. Select your preferred Region (only regions that support M0 Free clusters will be shown)
+    7. Specify a name for your cluster
+    8. Click Create to deploy the cluster.
+
+    Once you deploy your cluster, it can take up to 10 minutes for your cluster to provision and become ready to use. After deployment:
+
+    - Create a database user by specifying a username and password.
+    - Add your IP address to the IP access list to allow connections.
+    - Click Finish and Close, then Go to Overview.
+
+    Atlas Free clusters provide a small-scale development environment to host your data and test proof of concepts. Free clusters never expire, and provide access to a subset of Atlas features and functionality. You can only deploy one free cluster per Atlas project.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/
+      title: Deploy a Free Cluster
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What are the differences between Atlas cluster types?
+  answer: |
+    MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
+
+    - Free Tier (M0): Best for learning and exploring, with [limited resources](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/?tck=mongodb_ai_chatbot).
+    - Flex: Ideal for development and testing, offering the lowest cost option with certain [feature limitations](https://www.mongodb.com/docs/atlas/reference/flex-limitations/#std-label-atlas-flex-limitations?tck=mongodb_ai_chatbot).
+    - Dedicated (M10 & M20): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
+    - Dedicated (M30+): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
+
+    Clusters can always be scaled up from any tier as requirements expand. If unsure, MongoDB recommends starting with a lower tier and [monitoring performance](https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/?tck=mongodb_ai_chatbot) before adjusting. For all Dedicated tiers, use auto-scaling to adjust cluster tier and storage as workloads evolve.
+
+    [How to select your cluster tier](https://www.mongodb.com/docs/atlas/manage-clusters/?tck=mongodb_ai_chatbot#select-cluster-tier)
+    [Atlas cluster sizing and tier selection](https://www.mongodb.com/docs/atlas/sizing-tier-selection/?tck=mongodb_ai_chatbot)
+  # answer: |
+  #   MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
+
+  #   - Free Tier (`M0`): Best for learning and exploring, with limited resources.
+  #   - Flex: Ideal for development and testing, offering the lowest cost option with certain feature limitations.
+  #   - Dedicated (`M10` & `M20`): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
+  #   - Dedicated (`M30+`): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
+
+  #   Clusters can always be scaled up from any tier as requirements expand. If
+  #   you're unsure, MongoDB recommends starting with a lower tier and monitoring
+  #   performance before adjusting. For all Dedicated tiers, use auto-scaling to
+  #   adjust cluster tier and storage as workloads evolve.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/manage-clusters/#select-cluster-tier
+      title: Select Cluster Tier
+    - url: https://www.mongodb.com/docs/atlas/sizing-tier-selection/
+      title: Atlas Cluster Sizing and Tier Selection
+    - url: https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/
+      title: Atlas M0 (Free Cluster) Limits
+    - url: https://www.mongodb.com/docs/atlas/reference/flex-limitations/#std-label-atlas-flex-limitations
+      title: Atlas Flex Limitations
+    - url: https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/
+      title: Guidance for Atlas Monitoring and Alerts

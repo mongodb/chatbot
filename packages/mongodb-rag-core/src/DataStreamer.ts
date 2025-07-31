@@ -16,6 +16,7 @@ interface ServerSentEventDispatcher<Data extends object | string> {
   disconnect(): void;
   sendData(data: Data): void;
   sendEvent(eventType: string, data: Data): void;
+  sendResponsesEvent(data: OpenAI.Responses.ResponseStreamEvent): void;
 }
 
 type ServerSentEventData = object | string;
@@ -43,6 +44,10 @@ function makeServerSentEventDispatcher<
       res.write(`event: ${eventType}\n`);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     },
+    sendResponsesEvent(data) {
+      res.write(`event: ${data.type}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    },
   };
 }
 
@@ -52,6 +57,66 @@ interface StreamParams {
 }
 
 type StreamEvent = { type: string; data: unknown };
+
+export type ResponseStreamCreated = Omit<
+  OpenAI.Responses.ResponseCreatedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamInProgress = Omit<
+  OpenAI.Responses.ResponseInProgressEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputTextDelta = Omit<
+  OpenAI.Responses.ResponseTextDeltaEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputTextAnnotationAdded = Omit<
+  OpenAI.Responses.ResponseOutputTextAnnotationAddedEvent,
+  "sequence_number" | "annotation"
+> & {
+  annotation: OpenAI.Responses.ResponseOutputText.URLCitation;
+};
+export type ResponseStreamOutputTextDone = Omit<
+  OpenAI.Responses.ResponseTextDoneEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputItemAdded = Omit<
+  OpenAI.Responses.ResponseOutputItemAddedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamFunctionCallArgumentsDelta = Omit<
+  OpenAI.Responses.ResponseFunctionCallArgumentsDeltaEvent,
+  "sequence_number"
+>;
+export type ResponseStreamFunctionCallArgumentsDone = Omit<
+  OpenAI.Responses.ResponseFunctionCallArgumentsDoneEvent,
+  "sequence_number"
+>;
+export type ResponseStreamOutputItemDone = Omit<
+  OpenAI.Responses.ResponseOutputItemDoneEvent,
+  "sequence_number"
+>;
+export type ResponseStreamCompleted = Omit<
+  OpenAI.Responses.ResponseCompletedEvent,
+  "sequence_number"
+>;
+export type ResponseStreamError = Omit<
+  OpenAI.Responses.ResponseErrorEvent,
+  "sequence_number"
+>;
+
+export type ResponsesStreamParams =
+  | ResponseStreamCreated
+  | ResponseStreamInProgress
+  | ResponseStreamOutputTextDelta
+  | ResponseStreamOutputTextAnnotationAdded
+  | ResponseStreamOutputTextDone
+  | ResponseStreamOutputItemAdded
+  | ResponseStreamFunctionCallArgumentsDelta
+  | ResponseStreamFunctionCallArgumentsDone
+  | ResponseStreamOutputItemDone
+  | ResponseStreamCompleted
+  | ResponseStreamError;
 
 /**
   Event when server streams additional message response to the client.
@@ -122,6 +187,7 @@ export interface DataStreamer {
   disconnect(): void;
   streamData(data: SomeStreamEvent): void;
   stream(params: StreamParams): Promise<string>;
+  streamResponses(data: ResponsesStreamParams): void;
 }
 
 /**
@@ -130,6 +196,7 @@ export interface DataStreamer {
 export function makeDataStreamer(): DataStreamer {
   let connected = false;
   let sse: ServerSentEventDispatcher<SomeStreamEvent> | undefined;
+  let responseSequenceNumber = 0;
 
   return {
     get connected() {
@@ -161,7 +228,7 @@ export function makeDataStreamer(): DataStreamer {
     /**
       Streams single item of data in an event stream.
      */
-    streamData(data: SomeStreamEvent) {
+    streamData(data) {
       if (!this.connected) {
         throw new Error(
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
@@ -173,7 +240,7 @@ export function makeDataStreamer(): DataStreamer {
     /**
       Streams all message events in an event stream.
      */
-    async stream({ stream }: StreamParams) {
+    async stream({ stream }) {
       if (!this.connected) {
         throw new Error(
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
@@ -196,6 +263,20 @@ export function makeDataStreamer(): DataStreamer {
         }
       }
       return streamedData;
+    },
+
+    async streamResponses(data) {
+      if (!this.connected) {
+        throw new Error(
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+        );
+      }
+      sse?.sendResponsesEvent({
+        ...data,
+        sequence_number: responseSequenceNumber,
+      } satisfies OpenAI.Responses.ResponseStreamEvent);
+
+      responseSequenceNumber++;
     },
   };
 }

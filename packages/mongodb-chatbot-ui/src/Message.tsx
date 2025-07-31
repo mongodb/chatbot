@@ -15,6 +15,7 @@ import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { getMessageLinks } from "./messageLinks";
 import { type RatingCommentStatus } from "./MessageRating";
+import { Reference } from "./references";
 
 const MessageRatingWithFeedbackComment = lazy(async () => ({
   default: (await import("./MessageRating")).MessageRatingWithFeedbackComment,
@@ -43,6 +44,8 @@ export type MessageProps = {
   messageData: MessageData;
   suggestedPrompts?: string[];
   showSuggestedPrompts?: boolean;
+  bottomContent?: React.ReactNode;
+  onReferenceClick?: (reference: Reference) => void;
   onSuggestedPromptClick?: (prompt: string) => void;
   canSubmitSuggestedPrompt?: (prompt: string) => boolean;
   isLoading: boolean;
@@ -64,10 +67,12 @@ export const Message = ({
   suggestedPrompts = [],
   showSuggestedPrompts = true,
   canSubmitSuggestedPrompt = () => true,
+  onReferenceClick,
   onSuggestedPromptClick,
   isLoading,
   showRating,
   conversation,
+  bottomContent,
 }: MessageProps) => {
   const { maxCommentCharacters } = useChatbotContext();
   const user = useUser();
@@ -112,7 +117,10 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks = getMessageLinks(messageData, { tck });
+  const messageLinks = getMessageLinks(messageData, {
+    tck,
+    onReferenceClick,
+  });
 
   return (
     <Fragment key={messageData.id}>
@@ -165,6 +173,7 @@ export const Message = ({
             />
           ) : null}
         </Suspense>
+        {bottomContent ?? null}
       </LGMessage>
       <Suspense fallback={null}>
         {showSuggestedPrompts && (

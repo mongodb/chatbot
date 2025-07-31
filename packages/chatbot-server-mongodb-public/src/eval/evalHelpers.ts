@@ -1,9 +1,9 @@
 import "dotenv/config";
-import { assertEnvVars } from "mongodb-chatbot-server";
-import { AZURE_OPENAI_ENV_VARS, EVAL_ENV_VARS } from "../EnvVars";
+import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-chatbot-server";
+import { EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { wrapOpenAI } from "mongodb-rag-core/braintrust";
-import { createAzure } from "mongodb-rag-core/aiSdk";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 
 export const {
   JUDGE_EMBEDDING_MODEL,
@@ -13,16 +13,16 @@ export const {
   OPENAI_ENDPOINT,
   OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_RESOURCE_NAME,
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
 } = assertEnvVars({
   ...EVAL_ENV_VARS,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
-  ...AZURE_OPENAI_ENV_VARS,
   OPENAI_API_KEY: "",
   OPENAI_ENDPOINT: "",
   OPENAI_API_VERSION: "",
-  OPENAI_RESOURCE_NAME: "",
+  ...BRAINTRUST_ENV_VARS,
 });
 
 export const openAiClient = wrapOpenAI(
@@ -33,8 +33,7 @@ export const openAiClient = wrapOpenAI(
   })
 );
 
-export const azureOpenAiProvider = createAzure({
-  apiKey: OPENAI_API_KEY,
-  resourceName: OPENAI_RESOURCE_NAME,
-  apiVersion: OPENAI_API_VERSION,
+export const openAiProvider = createOpenAI({
+  apiKey: BRAINTRUST_API_KEY,
+  baseURL: BRAINTRUST_ENDPOINT,
 });

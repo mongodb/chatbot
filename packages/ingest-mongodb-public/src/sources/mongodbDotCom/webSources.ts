@@ -26,6 +26,12 @@ export type InitialWebSource = {
    Optional additional metadata determined by the web source.
    */
   staticMetadata?: Record<string, string | string[]>;
+
+  /**
+    URL normalization options for this source.
+    */
+  removeHash?: boolean;
+  removeQueryString?: boolean;
 };
 
 export const initialWebSources: InitialWebSource[] = [
@@ -184,10 +190,6 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/basics/vector-search",
       "https://www.mongodb.com/resources/basics/vector-stores/",
       "https://www.mongodb.com/resources/basics/what-is-stream-processing",
-      "https://www.mongodb.com/resources/compare/mongodb-atlas-search-vs-elastic-elasticsearch",
-      "https://www.mongodb.com/resources/compare/mongodb-oracle",
-      "https://www.mongodb.com/resources/compare/mongodb-postgresql",
-      "https://www.mongodb.com/resources/compare/mongodb-postgresql/dsl-migrating-postgres-to-mongodb",
       "https://www.mongodb.com/resources/products/capabilities/stored-procedures",
       "https://www.mongodb.com/resources/products/compatibilities/kubernetes",
       "https://www.mongodb.com/resources/products/fundamentals/why-use-mongodb",
@@ -209,6 +211,8 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/resources/compare/couchbase-vs-mongodb",
       "https://www.mongodb.com/resources/compare/mongodb-oracle",
       "https://www.mongodb.com/resources/compare/mongodb-postgresql",
+      "https://www.mongodb.com/resources/compare/mongodb-atlas-search-vs-elastic-elasticsearch",
+      "https://www.mongodb.com/resources/compare/mongodb-postgresql/dsl-migrating-postgres-to-mongodb",
     ],
     sourceType: "marketing",
     staticMetadata: {
@@ -437,7 +441,10 @@ export const initialWebSources: InitialWebSource[] = [
   },
   {
     name: "mongodb-university-web",
-    urls: ["https://learn.mongodb.com"],
+    urls: [
+      "https://learn.mongodb.com",
+      "https://learn.mongodb.com/pages/instructor-led-training-schedule",
+    ],
     sourceType: "university-content",
     staticMetadata: {
       tags: ["MongoDB University"],
@@ -446,16 +453,19 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "university-skills",
     urls: [
-      "https://learn.mongodb.com/skills",
-      "https://learn.mongodb.com/courses/relational-to-document-model",
-      "https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns",
-      "https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns",
-      "https://learn.mongodb.com/courses/schema-design-optimization",
+      "https://learn.mongodb.com/skills?openTab=data+modeling",
+      "https://learn.mongodb.com/skills?openTab=gen%20ai",
+      "https://learn.mongodb.com/skills?openTab=query",
+      "https://learn.mongodb.com/skills?openTab=aggregation",
+      "https://learn.mongodb.com/skills?openTab=security",
     ],
     sourceType: "university-content",
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
+      description:
+        "MongoDB Skill Badges are free, focused credentials designed to help you quickly learn and validate specific MongoDB skills. They are designed to be completed in 1-2 hours and can be earned by completing a short quiz or hands-on lab.",
     },
+    removeQueryString: false,
   },
   {
     name: "voyageai-blog",
@@ -502,7 +512,12 @@ export async function getUrlsFromSitemap(
 
 export type WebSource = Pick<
   InitialWebSource,
-  "name" | "sourceType" | "staticMetadata" | "urls"
+  | "name"
+  | "sourceType"
+  | "staticMetadata"
+  | "urls"
+  | "removeHash"
+  | "removeQueryString"
 >;
 
 type PrepareWebSourcesParams = {
@@ -521,7 +536,8 @@ export const prepareWebSources = async ({
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
   for (const initialWebSource of initialWebSources) {
-    const { name, staticMetadata, sourceType } = initialWebSource;
+    const { name, staticMetadata, sourceType, removeHash, removeQueryString } =
+      initialWebSource;
     let urls = initialWebSource.urls || [];
     if (initialWebSource.directoryUrls?.length) {
       for (const directoryUrl of initialWebSource.directoryUrls) {
@@ -536,6 +552,8 @@ export const prepareWebSources = async ({
       staticMetadata,
       urls,
       sourceType,
+      removeHash,
+      removeQueryString,
     });
   }
   return webSources;

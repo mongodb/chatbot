@@ -2,7 +2,7 @@ import "dotenv/config";
 import { analyzeMessage, MessageAnalysis } from "./analyzeMessage";
 import { Eval } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
-import { azureOpenAiProvider } from "../../eval/evalHelpers";
+import { openAiProvider } from "../../eval/evalHelpers";
 import { assertEnvVars } from "mongodb-rag-core";
 import { ANALYZER_ENV_VARS } from "../../EnvVars";
 
@@ -156,7 +156,7 @@ Eval("analyze-message", {
   timeout: 30000,
   async task(input) {
     try {
-      return await analyzeMessage(input, azureOpenAiProvider(model));
+      return await analyzeMessage(input, openAiProvider(model));
     } catch (error) {
       console.log(`Error evaluating input: ${input}`);
       console.log(error);

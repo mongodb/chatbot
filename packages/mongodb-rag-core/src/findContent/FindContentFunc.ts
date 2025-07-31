@@ -4,6 +4,7 @@ import { WithScore } from "../VectorStore";
 export type FindContentFuncArgs = {
   query: string;
   filters?: QueryFilters;
+  limit?: number;
 };
 
 export type FindContentFunc = (

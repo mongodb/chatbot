@@ -18,6 +18,7 @@ import { logger } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import cloneDeep from "lodash.clonedeep";
+import { makeContentRouter, MakeContentRouterParams } from "./routes";
 
 /**
   Configuration for the server Express.js app.
@@ -28,6 +29,11 @@ export interface AppConfig {
    */
   conversationsRouterConfig: ConversationsRouterParams;
 
+  /**
+    Configuration for the content router.
+   */
+  contentRouterConfig?: MakeContentRouterParams;
+  
   /**
     Configuration for the responses router.
    */
@@ -134,6 +140,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
     expressAppConfig,
+    contentRouterConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -156,6 +163,10 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     makeConversationsRouter(conversationsRouterConfig)
   );
   app.use(`${apiPrefix}/responses`, makeResponsesRouter(responsesRouterConfig));
+
+  if (contentRouterConfig) {
+    app.use(`${apiPrefix}/content`, makeContentRouter(contentRouterConfig));
+  }
 
   app.get("/health", (_req, res) => {
     const data = {

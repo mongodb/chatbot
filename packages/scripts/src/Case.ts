@@ -19,9 +19,15 @@ export type PromptAndEmbeddings = z.infer<typeof PromptAndEmbeddings>;
   embedding of the original prompt.
  */
 export const RelevanceMetrics = z.object({
-  // normalized square magnitude difference (lower = closer = better)
+  /**
+    Normalized square magnitude difference. Lower = closer = better. This gives
+    an idea of how close the vectors are to each other in their N-dimensional
+    space, but doesn't seem to work as well as cos_similarity.
+   */
   norm_sq_mag_diff: z.number(),
-  // cosine similarity (are vectors pointing the same way?) [-1, 1]
+  /**
+    Cosine similarity: are vectors pointing the same way? Range [-1, 1].
+   */
   cos_similarity: z.number(),
 });
 

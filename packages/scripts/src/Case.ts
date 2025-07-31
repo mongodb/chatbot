@@ -40,6 +40,7 @@ export const LlmAsJudgment = z
     specificity: z.number(),
     fit: z.number(),
     assumption: z.number(),
+    impact: z.number(),
     guidance: z.string(),
   })
   .partial();

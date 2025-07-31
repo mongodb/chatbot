@@ -50,7 +50,7 @@ const assessRelevanceMain = async () => {
   const client = await MongoClient.connect(FROM_CONNECTION_URI);
   try {
     console.log(
-      `Fetching unscored cases from ${FROM_DATABASE_NAME}.${CASE_COLLECTION_NAME}...`
+      `Fetching cases ${FROM_DATABASE_NAME}.${CASE_COLLECTION_NAME}...`
     );
     const db = client.db(FROM_DATABASE_NAME);
     const collection = db.collection<Case>(CASE_COLLECTION_NAME);

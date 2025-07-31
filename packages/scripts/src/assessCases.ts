@@ -185,14 +185,15 @@ export const rateWithLlm = async ({
   const [response] = await generate({
     prompt: `
 Evaluate the quality of the following prompt-expected answer pair across
-multiple dimensions. Return your evaluation as a JSON object with numeric scores
-from 1 (poor) to 10 (excellent). Return only a JSON object with the following keys:
+multiple dimensions. Return your evaluation as a JSON object with numeric percentage scores
+from 0 (poor) to 1 (excellent) up to 3 decimal places. Return only a JSON object (NOT IN MARKDOWN) with the following keys:
 
-- reasonableness (1-10): how reasonable it would be to expect an LLM to produce the given response from the given prompt.
-- clarity (1-10): how well formulated and clear the prompt is.
-- fit (1-10): how well the expected answer actually matches the prompt.
-- assumption (1-10): how much domain-specific knowledge is required to effectively answer the prompt.
-- guidance (string, optional): a text string containing detailing the issue and suggesting how to improve. Only include this if the above scores are low.
+- reasonableness: how reasonable it would be to expect an LLM to produce the given response from the given prompt.
+- clarity: how well formulated and clear the prompt is.
+- fit: how well the expected answer actually matches the prompt.
+- assumption: how much domain-specific knowledge is required to effectively answer the prompt.
+- impact: the business impact/relevance of the question and answer. Good examples: competitor questions, technical questions. Bad exaples: when was MongoDB founded?
+- guidance (string, optional): TERSELY and DIRECTLY detail the issue; suggest how to improve. Only include this if the above scores are low.
 
 Now evaluate this pair, returning only the JSON object:
 
@@ -208,6 +209,7 @@ EXPECTED ANSWER: ${expected}
     const judgment = LlmAsJudgment.parse(JSON.parse(response));
     console.log(`Judgment of '${shortName}':
 ${JSON.stringify(judgment, undefined, 2)}`);
+    return judgment;
   } catch (e) {
     console.error(
       `Failed to parse response "${response}" into LlmAsJudgment: ${

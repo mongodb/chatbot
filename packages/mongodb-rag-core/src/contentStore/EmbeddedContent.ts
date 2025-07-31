@@ -107,14 +107,17 @@ export type QueryFilters = {
 */
 export type DataSourceMetadata = {
   id: string;
-  versions?: { label: string, isCurrent: boolean; }[];
+  versions?: { label: string; isCurrent: boolean }[];
   type?: string;
-}
+};
 
 /**
   Data store of the embedded content.
  */
-export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
+export type EmbeddedContentStore = VectorStore<
+  EmbeddedContent,
+  QueryFilters
+> & {
   /**
     Load the embedded content for the given page.
    */

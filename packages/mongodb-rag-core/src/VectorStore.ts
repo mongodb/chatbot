@@ -1,13 +1,16 @@
 /**
   Generic vector store for vector-searchable data.
  */
-export type VectorStore<T> = {
+export type VectorStore<
+  T,
+  Filter extends Record<string, unknown> = Record<string, unknown>
+> = {
   /**
     Find nearest neighbors to the given vector.
    */
   findNearestNeighbors(
     vector: number[],
-    options?: Partial<FindNearestNeighborsOptions>
+    options?: Partial<FindNearestNeighborsOptions<Filter>>
   ): Promise<WithScore<T>[]>;
 
   close?(): Promise<void>;
@@ -18,7 +21,9 @@ export type WithScore<T> = T & { score: number };
 /**
   Options for performing a nearest-neighbor search.
  */
-export type FindNearestNeighborsOptions = {
+export type FindNearestNeighborsOptions<
+  Filter extends Record<string, unknown> = Record<string, unknown>
+> = {
   /**
     The name of the index to use.
    */
@@ -49,5 +54,5 @@ export type FindNearestNeighborsOptions = {
   /**
     Search filter expression.
    */
-  filter: Record<string, unknown>;
+  filter: Filter;
 };

@@ -96,10 +96,8 @@ const UserMessageSchema = z.object({
 });
 
 const AssistantMessageSchema = z.object({
-  id: z.string(),
+  type: z.literal("message").optional(),
   role: z.literal("assistant"),
-  type: z.literal("message"),
-  status: z.enum(["in_progress", "completed", "incomplete"]),
   content: z
     .array(
       z.object({

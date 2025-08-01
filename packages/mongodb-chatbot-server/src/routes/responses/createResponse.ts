@@ -105,15 +105,6 @@ const AssistantMessageSchema = z.object({
         z.object({
           type: z.literal("output_text"),
           text: z.string(),
-          annotations: z.array(
-            z.object({
-              type: z.literal("url_citation"),
-              title: z.string(),
-              url: z.string(),
-              start_index: z.number(),
-              end_index: z.number(),
-            })
-          ),
         })
       )
       .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_ASSISTANT_CONTENT_ARRAY),

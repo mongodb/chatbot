@@ -80,7 +80,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array input", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
@@ -94,7 +94,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a valid request with instructions", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         instructions: "You are a helpful chatbot.",
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -103,7 +103,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid max_output_tokens", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         max_output_tokens: 4000,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -112,7 +112,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid metadata", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         metadata: { key1: "value1", key2: "value2" },
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -121,7 +121,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid temperature", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         temperature: 0,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -136,7 +136,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         previous_response_id,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -153,7 +153,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         previous_response_id,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -162,7 +162,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with user", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         user: "some-user-id",
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -171,7 +171,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with store=false", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store: false,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -180,7 +180,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with store=true", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store: true,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -189,7 +189,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with tools and tool_choice", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         tools: [
           {
             type: "function",
@@ -213,7 +213,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with a specific function tool_choice", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         tools: [
           {
             type: "function",
@@ -240,7 +240,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array with function_call", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -258,7 +258,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array with function_call_output", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -275,7 +275,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with a valid tool_choice", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         tool_choice: "auto",
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -284,7 +284,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with an empty tools array", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         tools: [],
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -293,7 +293,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array with input_text content type", async () => {
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         input: [
           {
             role: "user",
@@ -318,7 +318,7 @@ describe("POST /responses", () => {
 
       const store = true;
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         previous_response_id,
         store,
       };
@@ -349,7 +349,7 @@ describe("POST /responses", () => {
         [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
         notAllowedMetadataKey: "please STORE me in this scenario",
       };
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store,
         metadata,
         user: userId,
@@ -387,7 +387,7 @@ describe("POST /responses", () => {
         [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
         notAllowedMetadataKey: "",
       };
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store,
         metadata,
         user: userId,
@@ -435,7 +435,7 @@ describe("POST /responses", () => {
         [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "",
         notAllowedMetadataKey: "",
       };
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store,
         metadata,
         user: userId,
@@ -472,7 +472,7 @@ describe("POST /responses", () => {
       const functionCallArguments = `{"query": "value"}`;
       const functionCallOutputType = "function_call_output";
       const functionCallOutput = `{"result": "success"}`;
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store,
         input: [
           {
@@ -521,7 +521,7 @@ describe("POST /responses", () => {
       const store = false;
       const functionCallName = "my_function";
       const functionCallOutputType = "function_call_output";
-      const requestBody: Partial<RequestBody> = {
+      const requestBody: RequestBody = {
         store,
         input: [
           {
@@ -1050,7 +1050,7 @@ const expectInvalidResponses = async ({
 
 interface ExpectValidResponsesParams {
   stream: Stream;
-  requestBody: Partial<RequestBody>;
+  requestBody: RequestBody;
 }
 
 const expectValidResponses = async ({

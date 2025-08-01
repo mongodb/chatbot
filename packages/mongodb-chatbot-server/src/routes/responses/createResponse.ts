@@ -98,23 +98,26 @@ const UserMessageSchema = z.object({
 const AssistantMessageSchema = z.object({
   type: z.literal("message").optional(),
   role: z.literal("assistant"),
-  content: z
-    .array(
-      z.object({
-        type: z.literal("output_text"),
-        text: z.string(),
-        annotations: z.array(
-          z.object({
-            type: z.literal("url_citation"),
-            title: z.string(),
-            url: z.string(),
-            start_index: z.number(),
-            end_index: z.number(),
-          })
-        ),
-      })
-    )
-    .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_ASSISTANT_CONTENT_ARRAY),
+  content: z.union([
+    z.string(),
+    z
+      .array(
+        z.object({
+          type: z.literal("output_text"),
+          text: z.string(),
+          annotations: z.array(
+            z.object({
+              type: z.literal("url_citation"),
+              title: z.string(),
+              url: z.string(),
+              start_index: z.number(),
+              end_index: z.number(),
+            })
+          ),
+        })
+      )
+      .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_ASSISTANT_CONTENT_ARRAY),
+  ]),
 });
 
 const InputMessageSchema = z.union([

@@ -82,10 +82,7 @@ describe("POST /responses", () => {
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
           {
-            id: "assistant-message-id",
             role: "assistant",
-            type: "message",
-            status: "completed",
             content: [
               {
                 type: "output_text",

@@ -73,7 +73,7 @@ describe("Responses API with OpenAI Client", () => {
   });
 
   const createResponseRequestStream = async (
-    body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
+    body?: Parameters<typeof openAiClient.responses.create>[0]
   ) => {
     return await openAiClient.responses.create({
       model: MONGO_CHAT_MODEL,
@@ -111,10 +111,7 @@ describe("Responses API with OpenAI Client", () => {
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
           {
-            id: "assistant-message-id",
             role: "assistant",
-            type: "message",
-            status: "completed",
             content: [
               {
                 type: "output_text",

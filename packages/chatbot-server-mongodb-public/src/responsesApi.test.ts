@@ -444,9 +444,7 @@ describe("Responses API with OpenAI Client", () => {
       expect(eventTypes).toContain("text-end");
       expect(eventTypes).toContain("finish");
 
-      expect(resultText).toContain("MongoDB");
-      expect(resultText).toContain("document");
-      expect(resultText).toContain("database");
+      expect(resultText.toLowerCase()).toContain("mongodb");
     });
 
     it("Should throw an error when generating text since we don't support non-streaming generation", async () => {

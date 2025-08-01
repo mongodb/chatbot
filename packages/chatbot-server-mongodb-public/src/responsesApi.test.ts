@@ -413,7 +413,7 @@ describe("Responses API with OpenAI Client", () => {
     });
   });
 
-  describe("Real AI SDK integration", () => {
+  describe("AI SDK integration", () => {
     it("Should handle basic text streaming", async () => {
       const result = await streamText({
         model: aiSDKClient.responses(MONGO_CHAT_MODEL),

@@ -27,7 +27,6 @@ import {
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import {
-  AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
 import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
@@ -36,6 +35,7 @@ import {
   GenerateResponse,
   GenerateResponseParams,
 } from "../../processors/GenerateResponse";
+import { AddCustomDataFunc } from "../../processors";
 import { hasTooManyUserMessagesInConversation } from "../responses/createResponse";
 import { creationInterface } from "./constants";
 

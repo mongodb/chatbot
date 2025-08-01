@@ -17,9 +17,10 @@ import {
   AddCustomDataFunc,
   FilterPreviousMessages,
   makeDefaultFindVerifiedAnswer,
-  defaultCreateConversationCustomData,
-  defaultAddMessageToConversationCustomData,
   makeVerifiedAnswerGenerateResponse,
+  addDefaultCustomData,
+  ConversationsRouterLocals,
+  ContentRouterLocals,
   addMessageToConversationVerifiedAnswerStream,
   responsesVerifiedAnswerStream,
   type MakeVerifiedAnswerGenerateResponseParams,
@@ -34,8 +35,18 @@ import {
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { makeMongoDbPageStore, logger } from "mongodb-rag-core";
-import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
+import {
+  makeMongoDbPageStore,
+  makeMongoDbSearchResultsStore,
+  logger,
+} from "mongodb-rag-core";
+import { createAzure, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import {
+  makeBraintrustLogger,
+  BraintrustMiddleware,
+  wrapOpenAI,
+  wrapTraced,
+} from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
@@ -57,13 +68,9 @@ import {
   responsesApiStream,
   addMessageToConversationStream,
 } from "./processors/generateResponseWithTools";
-import {
-  makeBraintrustLogger,
-  BraintrustMiddleware,
-} from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
-import { createAzure, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWithMongoDbMetadata";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
@@ -127,6 +134,11 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
+});
+
+export const searchResultsStore = makeMongoDbSearchResultsStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const verifiedAnswerConfig = {
@@ -306,7 +318,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
-    const customData = await defaultCreateConversationCustomData(req, res);
+    const customData = await addDefaultCustomData(req, res);
     if (req.cookies.auth_user) {
       customData.authUser = req.cookies.auth_user;
     }
@@ -350,11 +362,20 @@ export async function closeDbConnections() {
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 export const config: AppConfig = {
+  contentRouterConfig: {
+    findContent: makeFindContentWithMongoDbMetadata({
+      findContent,
+      classifierModel: languageModel,
+    }),
+    searchResultsStore,
+    embeddedContentStore,
+    middleware: [requireValidIpAddress<ContentRouterLocals>(), requireRequestOrigin<ContentRouterLocals>()],
+  },
   conversationsRouterConfig: {
     middleware: [
       blockGetRequests,
-      requireValidIpAddress(),
-      requireRequestOrigin(),
+      requireValidIpAddress<ConversationsRouterLocals>(),
+      requireRequestOrigin<ConversationsRouterLocals>(),
       useSegmentIds(),
       redactConnectionUri(),
       cookieParser(),
@@ -363,10 +384,7 @@ export const config: AppConfig = {
       ? createConversationCustomDataWithAuthUser
       : undefined,
     addMessageToConversationCustomData: async (req, res) => {
-      const defaultCustomData = await defaultAddMessageToConversationCustomData(
-        req,
-        res
-      );
+      const defaultCustomData = await addDefaultCustomData(req, res);
       const customData = {
         ...defaultCustomData,
       };

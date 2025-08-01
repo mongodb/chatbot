@@ -24,7 +24,6 @@ export type MakeFindContentArgs = {
   embedder: Embedder;
   embeddedContentStore: EmbeddedContentStore;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  // searchBoosters?: SearchBooster[];
 };
 
 export function makeFindContent({

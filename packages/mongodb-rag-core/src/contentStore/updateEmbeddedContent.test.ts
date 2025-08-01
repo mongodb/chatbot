@@ -13,6 +13,7 @@ import {
 import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
 import {
+  DataSourceMetadata,
   EmbeddedContentStore,
   EmbeddedContent,
   GetSourcesMatchParams,
@@ -43,6 +44,9 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
     },
     metadata: {
       embeddingName: "test",
+    },
+    async listDataSources(): Promise<DataSourceMetadata[]> {
+      return [];
     },
     async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {
       return [];

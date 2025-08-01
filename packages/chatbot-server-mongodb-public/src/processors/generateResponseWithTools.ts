@@ -48,6 +48,11 @@ import {
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 
+/**
+  Hidden tools are internal to the MongoDB Responses API.
+  The model may choose to call them under the hood,
+  but their usage should not be exposed to the client through streaming.
+ */
 const HIDDEN_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
 
 export interface GenerateResponseWithToolsParams {

@@ -8,10 +8,7 @@ import {
   streamText,
   generateText,
 } from "mongodb-rag-core/aiSdk";
-import {
-  CreateResponseRequest,
-  CREATE_RESPONSE_ERR_MSG,
-} from "mongodb-chatbot-server";
+import { CREATE_RESPONSE_ERR_MSG } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
 import { Logger, makeBraintrustLogger } from "mongodb-rag-core/braintrust";
@@ -72,9 +69,12 @@ describe("Responses API with OpenAI Client", () => {
     }
   });
 
-  const createResponseRequestStream = async (
-    body?: Parameters<typeof openAiClient.responses.create>[0]
-  ) => {
+  type RequestBody = Omit<
+    Parameters<typeof openAiClient.responses.create>[0],
+    "stream"
+  >;
+
+  const createResponseRequestStream = async (body?: RequestBody) => {
     return await openAiClient.responses.create({
       model: MONGO_CHAT_MODEL,
       input: "What is MongoDB?",
@@ -106,20 +106,11 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses given a message array input", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
-          {
-            role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "MongoDB is a document database.",
-                annotations: [],
-              },
-            ],
-          },
+          { role: "assistant", content: "MongoDB is a document database." },
           { role: "user", content: "What is a document database?" },
         ],
       };
@@ -129,7 +120,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses given a message array with input_text content type", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         input: [
           {
             role: "user",
@@ -143,7 +134,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses given a valid request with instructions", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         instructions: "You are a helpful chatbot.",
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -152,7 +143,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with valid max_output_tokens", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         max_output_tokens: 4000,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -161,7 +152,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with valid metadata", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         metadata: { key1: "value1", key2: "value2" },
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -176,7 +167,7 @@ describe("Responses API with OpenAI Client", () => {
       const conversation = await conversations.create({ initialMessages });
 
       const previous_response_id = conversation.messages.at(-1)?.id?.toString();
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         previous_response_id,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -185,7 +176,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with user", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         user: "some-user-id",
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -194,7 +185,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with store=false", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: false,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -203,7 +194,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with store=true", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: true,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -212,7 +203,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with tools and tool_choice=auto", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         tools: [
           {
             type: "function",
@@ -236,7 +227,7 @@ describe("Responses API with OpenAI Client", () => {
     });
     // Skipping this test for the CI as it requires a real OpenAI client, which we don't do in the CI environment
     it.skip("Should return correct tool choice for tool_choice=someTool", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         tools: [sampleTool],
         tool_choice: {
           type: "function",
@@ -292,7 +283,6 @@ describe("Responses API with OpenAI Client", () => {
 
     it("Should return error responses if empty message array", async () => {
       const stream = createResponseRequestStream({
-        // @ts-expect-error - empty array is valid input
         input: [],
       });
 
@@ -490,7 +480,7 @@ describe("Responses API with OpenAI Client", () => {
     });
 
     it("Should return responses with tracing", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: true,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -498,7 +488,7 @@ describe("Responses API with OpenAI Client", () => {
       await expectValidResponses({ stream, requestBody });
     });
     it("should return responses without tracing", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: false,
       };
       const stream = await createResponseRequestStream(requestBody);
@@ -510,7 +500,7 @@ describe("Responses API with OpenAI Client", () => {
 
 interface ExpectValidResponsesArgs {
   stream: any;
-  requestBody?: Partial<CreateResponseRequest["body"]>;
+  requestBody?: any;
 }
 
 const expectValidResponses = async ({

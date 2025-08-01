@@ -48,6 +48,13 @@ import {
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 
+/**
+  Hidden tools are internal to the MongoDB Responses API.
+  The model may choose to call them under the hood,
+  but their usage should not be exposed to the client through streaming.
+ */
+const HIDDEN_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
+
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
@@ -475,6 +482,7 @@ export function makeGenerateResponseWithTools({
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end
           let toolCallId = "";
+          let hiddenToolActivated = false;
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -521,6 +529,10 @@ export function makeGenerateResponseWithTools({
                 if (streamingModeActive) {
                   const { id, toolName } = chunk;
                   toolCallId = id;
+                  hiddenToolActivated = HIDDEN_TOOLS.includes(toolName);
+
+                  if (hiddenToolActivated) break;
+
                   stream.onFunctionCallStart?.({
                     dataStreamer,
                     toolCallId,
@@ -543,7 +555,7 @@ export function makeGenerateResponseWithTools({
               case "tool-input-end":
                 break;
               case "tool-call":
-                if (streamingModeActive) {
+                if (streamingModeActive && !hiddenToolActivated) {
                   const { input, toolCallId, toolName } = chunk;
                   stream.onFunctionCallDone?.({
                     dataStreamer,
@@ -552,6 +564,8 @@ export function makeGenerateResponseWithTools({
                     input,
                     chunkId: "",
                   });
+                } else {
+                  hiddenToolActivated = false;
                 }
                 break;
               case "finish":

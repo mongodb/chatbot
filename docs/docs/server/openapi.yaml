@@ -120,8 +120,6 @@ paths:
         Start a new conversation.
 
         This endpoint is deprecated. Use the [createResponse](#operation/createResponse) endpoint instead.
-      tags:
-        - Conversations
       deprecated: true
       responses:
         200:
@@ -141,8 +139,6 @@ paths:
       tags:
         - Conversations
       summary: Add message to the conversation
-      tags:
-        - Conversations
       deprecated: true
       description: |
         Add a message to the conversation and get a response back from chatbot.
@@ -254,8 +250,6 @@ paths:
       tags:
         - Conversations
       summary: Rate message
-      tags:
-        - Conversations
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"
@@ -280,8 +274,6 @@ paths:
       tags:
         - Conversations
       summary: Add comment to assistant message
-      tags:
-        - Conversations
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
 
@@ -336,6 +328,28 @@ paths:
           console.log(event);
         }
         ```
+
+        Example usage with Vercel AI SDK client `@ai-sdk/openai` and `ai`:
+        ```ts
+        import { streamText } from "ai";
+        // NOTE: we are using the AI SDK v5-beta with LanguageModelV2
+        import { createOpenAI } from "@ai-sdk/openai";
+
+        const model = createOpenAI({
+          baseURL: origin + API_PREFIX,
+          apiKey: TEST_OPENAI_API_KEY,
+        }).responses("mongodb-chat-latest");
+
+        const result = await streamText({
+          model,
+          prompt: "What is MongoDB?",
+        });
+
+        for await (const chunk of result.toUIMessageStream()) {
+          console.log(chunk);
+        }
+        ```
+        **NOTE:** We currently only support streaming responses via `streamText`. Methods like `generateText` will not work.
 
         ### Features
 

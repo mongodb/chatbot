@@ -78,8 +78,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@ai-sdk/azure": "2.0.0-beta.13",
-    "@ai-sdk/openai": "2.0.0-beta.13",
+    "@ai-sdk/azure": "2.0.2",
+    "@ai-sdk/openai": "2.0.2",
     "@apidevtools/swagger-parser": "^10.1.0",
     "@langchain/anthropic": "^0.3.6",
     "@langchain/community": "^0.3.10",
@@ -89,7 +89,7 @@
     "@supercharge/promise-pool": "^3.2.0",
     "acquit": "^1.3.0",
     "acquit-require": "^0.1.1",
-    "ai": "5.0.0-beta.28",
+    "ai": "5.0.2",
     "braintrust": "^0.2.1",
     "common-tags": "^1",
     "deep-equal": "^2.2.3",

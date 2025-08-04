@@ -464,16 +464,21 @@ export function makeGenerateResponseWithTools({
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
                   userMessageCustomData = {
                     ...userMessageCustomData,
-                    ...toolCall.input,
+                    ...(toolCall.input as Record<string, unknown>),
                   };
                 }
               });
               toolResults?.forEach((toolResult) => {
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.output?.references
+                  toolResult.toolName === SEARCH_TOOL_NAME
                 ) {
-                  references.push(...toolResult.output.references);
+                  const output = toolResult.output as {
+                    references?: References;
+                  };
+                  if (output.references) {
+                    references.push(...output.references);
+                  }
                 }
               });
             },

@@ -65,6 +65,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       tracingData: mockTracingData,
       embeddingModelName: "test-embedding-model",
       reqId: "test-req-id",
+      storedMessageContent: true,
     });
 
     // Assertions

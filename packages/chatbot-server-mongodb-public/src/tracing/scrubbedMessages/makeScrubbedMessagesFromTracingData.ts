@@ -11,6 +11,7 @@ export async function makeScrubbedMessagesFromTracingData({
   analysis,
   embeddingModelName,
   reqId,
+  storedMessageContent,
 }: {
   tracingData: ReturnType<typeof extractTracingData>;
   analysis?: {
@@ -18,6 +19,7 @@ export async function makeScrubbedMessagesFromTracingData({
   };
   embeddingModelName: string;
   reqId: string;
+  storedMessageContent: boolean;
 }): Promise<ScrubbedMessage<MessageAnalysis>[]> {
   const { userMessage, assistantMessage } = tracingData;
   if (!userMessage) {
@@ -27,20 +29,21 @@ export async function makeScrubbedMessagesFromTracingData({
   const { redactedText: redactedUserContent, piiFound: userMessagePii } =
     redactPii(userMessage.content);
 
-  const userAnalysis = analysis
-    ? await analyzeMessage(redactedUserContent, analysis.model).catch(
-        (error) => {
-          logRequest({
-            reqId,
-            message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
-              error
-            )}`,
-            type: "error",
-          });
-          return undefined;
-        }
-      )
-    : undefined;
+  const userAnalysis =
+    analysis && storedMessageContent
+      ? await analyzeMessage(redactedUserContent, analysis.model).catch(
+          (error) => {
+            logRequest({
+              reqId,
+              message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
+                error
+              )}`,
+              type: "error",
+            });
+            return undefined;
+          }
+        )
+      : undefined;
 
   const scrubbedUserMessage = {
     _id: userMessage.id,
@@ -70,7 +73,7 @@ export async function makeScrubbedMessagesFromTracingData({
   } = redactPii(assistantMessage.content);
 
   const assistantAnalysis =
-    analysis && !tracingData.isVerifiedAnswer
+    analysis && storedMessageContent && !tracingData.isVerifiedAnswer
       ? await analyzeMessage(redactedAssistantContent, analysis.model).catch(
           (error) => {
             logRequest({

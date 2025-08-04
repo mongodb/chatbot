@@ -58,7 +58,7 @@ import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
-} from "./tracing/routesUpdateTraceHandlers";
+} from "./tracing/traceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";

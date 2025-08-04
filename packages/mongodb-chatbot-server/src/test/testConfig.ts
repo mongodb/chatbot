@@ -211,7 +211,9 @@ export const basicResponsesRequestBody = {
   input: "What is MongoDB?",
 };
 
-export const mockUpdateTrace: UpdateTraceFunc = jest.fn();
+export const mockUpdateTrace: UpdateTraceFunc = jest
+  .fn()
+  .mockResolvedValue(undefined);
 
 export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);

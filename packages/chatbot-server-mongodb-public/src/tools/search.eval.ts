@@ -2,6 +2,7 @@ import "dotenv/config";
 import {
   Eval,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "mongodb-rag-core/braintrust";
@@ -62,8 +63,10 @@ const { k } = retrievalConfig.findNearestNeighborsOptions;
 const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput,
-  RetrievalEvalCaseExpected
-> = async function (data) {
+  RetrievalEvalCaseExpected,
+  void,
+  EvalParameters
+> = async function (data: RetrievalEvalCaseInput) {
   // TODO: (EAI-991) implement retrieval task for evaluation
   const extractedMetadata: MongoDbSearchToolArgs = {
     productName: null,

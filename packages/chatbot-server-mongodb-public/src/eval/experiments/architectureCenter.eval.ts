@@ -11,7 +11,6 @@ import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "../ConversationEval";
 import { makeGenerateResponse } from "../../config";
-import { addMessageToConversationStream } from "../../processors/generateResponseWithSearchTool";
 
 async function conversationEval() {
   // Get ONLY architecture center conversations

@@ -9,7 +9,6 @@ import {
 } from "../evalHelpers";
 import { makeConversationEval } from "../ConversationEval";
 import { closeDbConnections, makeGenerateResponse } from "../../config";
-import { responsesApiStream } from "../../processors/generateResponseWithSearchTool";
 
 const conversationEvalCases: ConversationEvalCase[] = [
   // Test 1: Basic custom system prompt override

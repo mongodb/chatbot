@@ -7,7 +7,6 @@ import {
   systemPrompt,
   basicResponsesRequestBody,
 } from "./testConfig";
-import type { CreateResponseRequest } from "../routes/responses/createResponse";
 
 export async function makeTestAppConfig(
   defaultConfigOverrides?: PartialAppConfig
@@ -110,7 +109,7 @@ export type Stream = Awaited<
 
 export const makeCreateResponseRequestStream = async (
   openAiClient: OpenAI,
-  body?: Omit<Partial<CreateResponseRequest["body"]>, "stream">
+  body?: Parameters<typeof openAiClient.responses.create>[0]
 ) => {
   return await openAiClient.responses.create({
     ...basicResponsesRequestBody,

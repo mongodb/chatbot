@@ -17,16 +17,109 @@ servers:
 security:
   - CustomHeaderAuth: []
 paths:
+  /content/search:
+    post:
+      operationId: searchContent
+      tags:
+        - Content
+      summary: Search content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: The search query string.
+                dataSources:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      type:
+                        type: string
+                      versionLabel:
+                        type: string
+                    required: [name]
+                  description: An array of data sources to search. If not provided, latest version of all data sources will be searched.
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 5
+                  description: The maximum number of results to return.
+            required:
+              - query
+      responses:
+        200:
+          description: OK
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        400:
+          description: Bad Request
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/BadRequest"
+        500:
+          description: Internal Server Error
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/InternalServerError"
+
+  /content/sources:
+    get:
+      operationId: listDataSources
+      tags:
+        - Content
+      summary: List available data sources
+      description: Returns metadata about all available data sources.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListDataSourcesResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /conversations:
     post:
       operationId: createConversation
+      tags:
+        - Conversations
       summary: Start new conversation
       description: |
         Start a new conversation.
 
         This endpoint is deprecated. Use the [createResponse](#operation/createResponse) endpoint instead.
-      tags:
-        - Conversations
       deprecated: true
       responses:
         200:
@@ -43,9 +136,9 @@ paths:
   /conversations/{conversationId}/messages:
     post:
       operationId: addMessage
-      summary: Add message to the conversation
       tags:
         - Conversations
+      summary: Add message to the conversation
       deprecated: true
       description: |
         Add a message to the conversation and get a response back from chatbot.
@@ -133,6 +226,8 @@ paths:
   # /conversations/{conversationId}:
   #   get:
   #     operationId: getConversation
+  #     tags:
+  #       - Conversations
   #     summary: Get a conversation
   #     parameters:
   #       - $ref: "#/components/parameters/conversationId"
@@ -152,9 +247,9 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
-      summary: Rate message
       tags:
         - Conversations
+      summary: Rate message
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"
@@ -176,9 +271,9 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
       operationId: commentMessage
-      summary: Add comment to assistant message
       tags:
         - Conversations
+      summary: Add comment to assistant message
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
 
@@ -233,6 +328,28 @@ paths:
           console.log(event);
         }
         ```
+
+        Example usage with Vercel AI SDK client `@ai-sdk/openai` and `ai`:
+        ```ts
+        import { streamText } from "ai";
+        // NOTE: we are using the AI SDK v5-beta with LanguageModelV2
+        import { createOpenAI } from "@ai-sdk/openai";
+
+        const model = createOpenAI({
+          baseURL: origin + API_PREFIX,
+          apiKey: TEST_OPENAI_API_KEY,
+        }).responses("mongodb-chat-latest");
+
+        const result = await streamText({
+          model,
+          prompt: "What is MongoDB?",
+        });
+
+        for await (const chunk of result.toUIMessageStream()) {
+          console.log(chunk);
+        }
+        ```
+        **NOTE:** We currently only support streaming responses via `streamText`. Methods like `generateText` will not work.
 
         ### Features
 
@@ -356,7 +473,9 @@ components:
           description: The model to use for generating the response
         instructions:
           type: string
-          description: System instructions for the model
+          minLength: 1
+          maxLength: 50000
+          description: System instructions for the model (1-50,000 characters, ~10,000 tokens)
         input:
           oneOf:
             - $ref: "#/components/schemas/StringInput"
@@ -415,7 +534,7 @@ components:
         tool_choice:
           oneOf:
             - type: string
-              enum: [none, auto, required]
+              enum: [auto]
             - type: object
               properties:
                 type:
@@ -425,9 +544,15 @@ components:
                   type: string
               required: [type, name]
           default: auto
-          description: Tool choice for the model
+          description: |
+            Tool choice for the model.
+            
+            Note that the OpenAI Responses API options `none` and `required` are not supported by our implementation.
+            We do not support them because it would be complex to use them with the internal tool call system that our API uses for RAG.
+            If you need these options supported, please [contact the Education AI team](../contact).
         tools:
           type: array
+          maxItems: 10
           items:
             type: object
             properties:
@@ -445,7 +570,12 @@ components:
                 description: A JSON schema object describing the parameters of the function
                 additionalProperties: true
             required: [type, strict, name, parameters]
-          description: Tools for the model to use
+          description: |
+            Tools for the model to use. 
+            
+            Limitations:
+            - Maximum 10 tools
+            - Total serialized content must be ≤25,000 characters (~5,000 tokens)
         user:
           type: string
           description: |
@@ -890,11 +1020,18 @@ components:
     StringInput:
       type: string
       minLength: 1
-      description: A string input message from the user
+      maxLength: 250000
+      description: A string input message from the user (1-250,000 characters, ~50,000 tokens)
     MessageArrayInput:
       type: array
       minItems: 1
-      description: Array of messages or function calls/outputs
+      maxItems: 50
+      description: |
+        Array of messages or function calls/outputs.
+        
+        Limitations:
+        - Maximum 50 items
+        - Total serialized content must be ≤250,000 characters (~50,000 tokens)
       items:
         oneOf:
           - $ref: "#/components/schemas/MessageItem"
@@ -952,6 +1089,68 @@ components:
       required: [type, call_id, output, status]
     ErrorResponse:
       type: object
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chunk"
+    Chunk:
+      type: object
+      properties:
+        url:
+          type: string
+          description: The URL of the search result.
+        title:
+          type: string
+          description: Title of the search result.
+        text:
+          type: string
+          description: Chunk text
+        metadata:
+          type: object
+          properties:
+            sourceName:
+              type: string
+              description: The name of the source.
+            sourceType:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+          additionalProperties: true
+    ListDataSourcesResponse:
+      type: object
+      properties:
+        dataSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataSourceMetadata"
+    DataSourceMetadata:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: The name of the data source.
+        versions:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+                description: Version label
+              isCurrent:
+                type: boolean
+                description: Whether this version is current active version.
+          description: List of versions for this data source.
+        type:
+          type: string
+          description: The type of the data source.
   parameters:
     conversationId:
       name: conversationId
@@ -967,3 +1166,19 @@ components:
       schema:
         type: string
       description: The unique identifier for a message.
+
+tags:
+  - name: Content
+    x-displayName: Search Content
+    description: Search MongoDB content
+  - name: Conversations
+    x-displayName: Conversations
+    description: Interact with MongoDB Chatbot
+
+x-tagGroups:
+  - name: Content
+    tags:
+      - Content
+  - name: Conversations
+    tags:
+      - Conversations

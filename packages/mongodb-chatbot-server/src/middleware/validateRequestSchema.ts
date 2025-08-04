@@ -5,12 +5,12 @@ import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 
 export const SomeExpressRequest = z.object({
   headers: z.object({}).optional(),
-  params: z.object({}).optional(),
+  params: z.object({}),
   query: z.object({}).optional(),
   body: z.object({}).optional(),
 });
 
-function generateZodErrorMessage(error: ZodError) {
+export function generateZodErrorMessage(error: ZodError) {
   return generateErrorMessage(error.issues, {
     delimiter: {
       error: "\n",

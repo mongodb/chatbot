@@ -5,6 +5,7 @@ import type {
   Conversation,
   ConversationsService,
   SomeMessage,
+  ToolMessage,
 } from "mongodb-rag-core";
 import { type AppConfig } from "../../app";
 import {
@@ -13,11 +14,26 @@ import {
   makeCreateResponseRequestStream,
   type Stream,
 } from "../../test/testHelpers";
-import { makeDefaultConfig } from "../../test/testConfig";
-import { ERR_MSG, type CreateResponseRequest } from "./createResponse";
+import {
+  TEST_ALWAYS_ALLOWED_METADATA_KEYS,
+  makeDefaultConfig,
+} from "../../test/testConfig";
+import {
+  CREATE_RESPONSE_ERR_MSG,
+  MAX_INPUT_LENGTH,
+  MAX_INPUT_ARRAY_LENGTH,
+  MAX_INSTRUCTIONS_LENGTH,
+  MAX_TOOLS,
+  MAX_TOOLS_CONTENT_LENGTH,
+  creationInterface,
+} from "./createResponse";
 import { ERROR_CODE, ERROR_TYPE } from "./errors";
 
 jest.setTimeout(100000);
+
+type RequestBody = NonNullable<
+  Parameters<typeof makeCreateResponseRequestStream>[1]
+>;
 
 describe("POST /responses", () => {
   let appConfig: AppConfig;
@@ -45,9 +61,14 @@ describe("POST /responses", () => {
   });
 
   const makeClientAndRequest = (
-    body?: Partial<CreateResponseRequest["body"]>
+    body?: RequestBody,
+    overrideOrigin?: string,
+    overrideIpAddress?: string
   ) => {
-    const openAiClient = makeOpenAiClient(origin, ipAddress);
+    const openAiClient = makeOpenAiClient(
+      overrideOrigin ?? origin,
+      overrideIpAddress ?? ipAddress
+    );
     return makeCreateResponseRequestStream(openAiClient, body);
   };
 
@@ -59,7 +80,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array input", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: "What is MongoDB?" },
@@ -73,7 +94,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a valid request with instructions", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         instructions: "You are a helpful chatbot.",
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -82,7 +103,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid max_output_tokens", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         max_output_tokens: 4000,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -91,7 +112,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid metadata", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         metadata: { key1: "value1", key2: "value2" },
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -100,7 +121,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with valid temperature", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         temperature: 0,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -115,7 +136,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         previous_response_id,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -132,7 +153,7 @@ describe("POST /responses", () => {
       const { messages } = await conversations.create({ initialMessages });
 
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         previous_response_id,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -141,7 +162,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with user", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         user: "some-user-id",
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -150,7 +171,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with store=false", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: false,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -159,7 +180,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with store=true", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store: true,
       };
       const stream = await makeClientAndRequest(requestBody);
@@ -168,7 +189,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with tools and tool_choice", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         tools: [
           {
             type: "function",
@@ -192,7 +213,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with a specific function tool_choice", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         tools: [
           {
             type: "function",
@@ -219,7 +240,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array with function_call", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -237,7 +258,7 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses given a message array with function_call_output", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         input: [
           { role: "user", content: "What is MongoDB?" },
           {
@@ -254,8 +275,8 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with a valid tool_choice", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
-        tool_choice: "none",
+      const requestBody: RequestBody = {
+        tool_choice: "auto",
       };
       const stream = await makeClientAndRequest(requestBody);
 
@@ -263,8 +284,22 @@ describe("POST /responses", () => {
     });
 
     it("Should return responses with an empty tools array", async () => {
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         tools: [],
+      };
+      const stream = await makeClientAndRequest(requestBody);
+
+      await expectValidResponses({ requestBody, stream });
+    });
+
+    it("Should return responses given a message array with input_text content type", async () => {
+      const requestBody: RequestBody = {
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "What is MongoDB?" }],
+          },
+        ],
       };
       const stream = await makeClientAndRequest(requestBody);
 
@@ -283,7 +318,7 @@ describe("POST /responses", () => {
 
       const store = true;
       const previous_response_id = messages.at(-1)?.id.toString();
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         previous_response_id,
         store,
       };
@@ -306,14 +341,15 @@ describe("POST /responses", () => {
       });
     });
 
-    it("Should store conversation messages when `store: true`", async () => {
+    it("Should store conversation messages with all metadata keys when `store: true`", async () => {
       const store = true;
       const userId = "customUserId";
       const metadata = {
-        customMessage1: "customMessage1",
-        customMessage2: "customMessage2",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please STORE me in this scenario",
       };
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const requestBody: RequestBody = {
         store,
         metadata,
         user: userId,
@@ -338,14 +374,20 @@ describe("POST /responses", () => {
       });
     });
 
-    it("Should not store conversation messages when `store: false`", async () => {
+    it("Should not store message content or metadata fields (except alwaysAllowedMetadataKeys) when `store: false`", async () => {
       const store = false;
       const userId = "customUserId";
       const metadata = {
-        customMessage1: "customMessage1",
-        customMessage2: "customMessage2",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please REMOVE me in this scenario",
       };
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const expectedMetadata = {
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "",
+      };
+      const requestBody: RequestBody = {
         store,
         metadata,
         user: userId,
@@ -366,21 +408,126 @@ describe("POST /responses", () => {
         updatedConversation,
         userId,
         store,
-        metadata,
+        metadata: expectedMetadata,
       });
+    });
+
+    it("Should not store message content or ANY metadata fields when `store: false` and `alwaysAllowedMetadataKeys` is empty", async () => {
+      const customConfig = await makeDefaultConfig();
+      const testPort = 5201; // Use a different port
+      customConfig.responsesRouterConfig.createResponse.alwaysAllowedMetadataKeys =
+        [];
+      const {
+        server: customServer,
+        ipAddress: customIpAddress,
+        origin: customOrigin,
+      } = await makeTestLocalServer(customConfig, testPort);
+
+      const store = false;
+      const userId = "customUserId";
+      const metadata = {
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "127.0.0.1",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "http://localhost:3000",
+        notAllowedMetadataKey: "please REMOVE all fields in this scenario",
+      };
+      const expectedMetadata = {
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[0]]: "",
+        [TEST_ALWAYS_ALLOWED_METADATA_KEYS[1]]: "",
+        notAllowedMetadataKey: "",
+      };
+      const requestBody: RequestBody = {
+        store,
+        metadata,
+        user: userId,
+      };
+      const stream = await makeClientAndRequest(
+        requestBody,
+        customOrigin,
+        customIpAddress
+      );
+
+      const results = await expectValidResponses({ requestBody, stream });
+
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
+
+      expect(updatedConversation.storeMessageContent).toEqual(store);
+      expectDefaultMessageContent({
+        updatedConversation,
+        userId,
+        store,
+        metadata: expectedMetadata,
+      });
+
+      customServer.close();
     });
 
     it("Should store function_call messages when `store: true`", async () => {
       const store = true;
-      const functionCallType = "function_call";
+      const functionCallName = "my_function";
+      const functionCallArguments = `{"query": "value"}`;
       const functionCallOutputType = "function_call_output";
-      const requestBody: Partial<CreateResponseRequest["body"]> = {
+      const functionCallOutput = `{"result": "success"}`;
+      const requestBody: RequestBody = {
         store,
         input: [
           {
-            type: functionCallType,
+            type: "function_call",
             call_id: "call123",
-            name: "my_function",
+            name: functionCallName,
+            arguments: functionCallArguments,
+            status: "in_progress",
+          },
+          {
+            type: functionCallOutputType,
+            call_id: "call123",
+            output: functionCallOutput,
+            status: "completed",
+          },
+          {
+            role: "user",
+            content: "What is MongoDB?",
+          },
+        ],
+      };
+      const stream = await makeClientAndRequest(requestBody);
+
+      const results = await expectValidResponses({ requestBody, stream });
+
+      const updatedConversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      if (!updatedConversation) {
+        return expect(updatedConversation).not.toBeNull();
+      }
+      const messages = updatedConversation.messages as Array<ToolMessage>;
+
+      expect(updatedConversation.storeMessageContent).toEqual(store);
+
+      expect(messages[0].role).toEqual("tool");
+      expect(messages[0].name).toEqual(functionCallName);
+      expect(messages[0].content).toEqual(functionCallArguments);
+
+      expect(messages[1].role).toEqual("tool");
+      expect(messages[1].name).toEqual(functionCallOutputType);
+      expect(messages[1].content).toEqual(functionCallOutput);
+    });
+
+    it("Should not store function_call message content when `store: false`", async () => {
+      const store = false;
+      const functionCallName = "my_function";
+      const functionCallOutputType = "function_call_output";
+      const requestBody: RequestBody = {
+        store,
+        input: [
+          {
+            type: "function_call",
+            call_id: "call123",
+            name: functionCallName,
             arguments: `{"query": "value"}`,
             status: "in_progress",
           },
@@ -406,16 +553,33 @@ describe("POST /responses", () => {
       if (!updatedConversation) {
         return expect(updatedConversation).not.toBeNull();
       }
+      const messages = updatedConversation.messages as Array<ToolMessage>;
 
       expect(updatedConversation.storeMessageContent).toEqual(store);
 
-      expect(updatedConversation.messages[0].role).toEqual("system");
-      expect(updatedConversation.messages[0].content).toEqual(functionCallType);
+      expect(messages[0].role).toEqual("tool");
+      expect(messages[0].name).toEqual(functionCallName);
+      expect(messages[0].content).toEqual("");
 
-      expect(updatedConversation.messages[1].role).toEqual("system");
-      expect(updatedConversation.messages[1].content).toEqual(
-        functionCallOutputType
-      );
+      expect(messages[1].role).toEqual("tool");
+      expect(messages[1].name).toEqual(functionCallOutputType);
+      expect(messages[1].content).toEqual("");
+    });
+    it("should store conversation", async () => {
+      const stream = await makeClientAndRequest({
+        input: "What is MongoDB?",
+      });
+
+      const results: any[] = [];
+      for await (const event of stream) {
+        results.push(event);
+      }
+      const conversation = await conversations.findByMessageId({
+        messageId: getMessageIdFromResults(results),
+      });
+      expect(conversation).not.toBeNull();
+      expect(conversation?.messages.length).toBeGreaterThan(0);
+      expect(conversation?.creationInterface).toBe(creationInterface);
     });
   });
 
@@ -427,18 +591,19 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input - ${ERR_MSG.INPUT_STRING}`,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
       });
     });
 
     it("Should return error responses if empty message array", async () => {
       const stream = await makeClientAndRequest({
-        input: [],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        input: [] as any,
       });
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.input - ${ERR_MSG.INPUT_ARRAY}`,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY}`,
       });
     });
 
@@ -450,7 +615,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
+        message: CREATE_RESPONSE_ERR_MSG.MODEL_NOT_SUPPORTED(invalidModel),
       });
     });
 
@@ -462,7 +627,10 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MAX_OUTPUT_TOKENS(max_output_tokens, 4000),
+        message: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
+          max_output_tokens,
+          4000
+        ),
       });
     });
 
@@ -477,7 +645,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.metadata - ${ERR_MSG.METADATA_LENGTH}`,
+        message: `Path: body.metadata - ${CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH}`,
       });
     });
 
@@ -500,7 +668,103 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: `Path: body.temperature - ${ERR_MSG.TEMPERATURE}`,
+        message: `Path: body.temperature - ${CREATE_RESPONSE_ERR_MSG.TEMPERATURE}`,
+      });
+    });
+
+    it("Should return error responses if instructions are too long", async () => {
+      const stream = await makeClientAndRequest({
+        instructions: "a".repeat(MAX_INSTRUCTIONS_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.instructions - ${CREATE_RESPONSE_ERR_MSG.INSTRUCTIONS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if string input is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: "a".repeat(MAX_INPUT_LENGTH + 1),
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array has too many items", async () => {
+      const input = Array.from(
+        { length: MAX_INPUT_ARRAY_LENGTH + 1 },
+        (_, i) => ({
+          type: "message" as const,
+          role: "user" as const,
+          content: `Message ${i}`,
+        })
+      );
+      const stream = await makeClientAndRequest({
+        input: input as any,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if input array content is too long", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            type: "message" as const,
+            role: "user" as const,
+            content: "a".repeat(MAX_INPUT_LENGTH + 1),
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input - ${CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools array has too many items", async () => {
+      const tools = Array.from({ length: MAX_TOOLS + 1 }, (_, i) => ({
+        type: "function" as const,
+        strict: true,
+        name: `tool_${i}`,
+        description: `Tool ${i}`,
+        parameters: { type: "object", properties: {} },
+      }));
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH}`,
+      });
+    });
+
+    it("Should return error responses if tools content is too long", async () => {
+      const tools = [
+        {
+          type: "function" as const,
+          strict: true,
+          name: "large_tool",
+          description: "a".repeat(MAX_TOOLS_CONTENT_LENGTH),
+          parameters: { type: "object", properties: {} },
+        },
+      ];
+      const stream = await makeClientAndRequest({
+        tools,
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.tools - ${CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH}`,
       });
     });
 
@@ -589,7 +853,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.INVALID_OBJECT_ID(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.INVALID_OBJECT_ID(previous_response_id),
       });
     });
 
@@ -601,7 +866,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MESSAGE_NOT_FOUND(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_FOUND(previous_response_id),
       });
     });
 
@@ -620,7 +886,8 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.MESSAGE_NOT_LATEST(previous_response_id),
+        message:
+          CREATE_RESPONSE_ERR_MSG.MESSAGE_NOT_LATEST(previous_response_id),
       });
     });
 
@@ -641,7 +908,9 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.TOO_MANY_MESSAGES(maxUserMessagesInConversation),
+        message: CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
+          maxUserMessagesInConversation
+        ),
       });
     });
 
@@ -665,7 +934,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.CONVERSATION_USER_ID_CHANGED,
+        message: CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED,
       });
     });
 
@@ -677,7 +946,7 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.STORE_NOT_SUPPORTED,
+        message: CREATE_RESPONSE_ERR_MSG.STORE_NOT_SUPPORTED,
       });
     });
 
@@ -698,7 +967,42 @@ describe("POST /responses", () => {
 
       await expectInvalidResponses({
         stream,
-        message: ERR_MSG.CONVERSATION_STORE_MISMATCH,
+        message: CREATE_RESPONSE_ERR_MSG.CONVERSATION_STORE_MISMATCH,
+      });
+    });
+
+    it("Should return error responses if input content array has invalid type", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_image" as any, text: "What is MongoDB?" }],
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: "Path: body.input - Invalid input",
+      });
+    });
+
+    it("Should return error responses if input content array has more than one input_text element", async () => {
+      const stream = await makeClientAndRequest({
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: "What is MongoDB?" },
+              { type: "input_text", text: "Tell me more about it." },
+            ],
+          },
+        ],
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.input[0].content - ${CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY}`,
       });
     });
   });
@@ -746,7 +1050,7 @@ const expectInvalidResponses = async ({
 
 interface ExpectValidResponsesParams {
   stream: Stream;
-  requestBody: Partial<CreateResponseRequest["body"]>;
+  requestBody: RequestBody;
 }
 
 const expectValidResponses = async ({
@@ -767,6 +1071,13 @@ const expectValidResponses = async ({
   expect(responses[3].type).toBe("response.output_text.annotation.added");
   expect(responses[4].type).toBe("response.output_text.done");
   expect(responses[5].type).toBe("response.completed");
+  expect(responses[5].response.usage).toEqual({
+    input_tokens: 0,
+    input_tokens_details: { cached_tokens: 0 },
+    output_tokens: 0,
+    output_tokens_details: { reasoning_tokens: 0 },
+    total_tokens: 0,
+  });
 
   // skip mock events that don't have the extra data
   const skipIndexes = [2, 3, 4];

@@ -1,24 +1,24 @@
-import express, {
-  Express,
-  ErrorRequestHandler,
-  RequestHandler,
-  NextFunction,
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from "express";
-import cors from "cors";
 import "dotenv/config";
+import express, {
+  type Express,
+  type ErrorRequestHandler,
+  type RequestHandler,
+  type NextFunction,
+  type Request as ExpressRequest,
+  type Response as ExpressResponse,
+} from "express";
+import cors, { type CorsOptions } from "cors";
 import {
-  ConversationsRouterParams,
   makeConversationsRouter,
-  ResponsesRouterParams,
   makeResponsesRouter,
+  type ConversationsRouterParams,
+  type ResponsesRouterParams,
 } from "./routes";
 import { logger } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
-import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";
+import { makeContentRouter, MakeContentRouterParams } from "./routes";
 
 /**
   Configuration for the server Express.js app.
@@ -29,6 +29,11 @@ export interface AppConfig {
    */
   conversationsRouterConfig: ConversationsRouterParams;
 
+  /**
+    Configuration for the content router.
+   */
+  contentRouterConfig?: MakeContentRouterParams;
+  
   /**
     Configuration for the responses router.
    */
@@ -62,6 +67,14 @@ export interface AppConfig {
    */
   expressAppConfig?: (app: Express) => Promise<void>;
 }
+
+const makeCorsHandler =
+  (corsOptions?: CorsOptions) =>
+  (req: ExpressRequest, res: ExpressResponse, next: NextFunction) =>
+    cors(corsOptions)(req, res, (err) => {
+      if (err) err.status = 403;
+      next(err);
+    });
 
 /**
   General error handler. Called at usage of `next()` in routes.
@@ -127,6 +140,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
     expressAppConfig,
+    contentRouterConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -141,14 +155,18 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   // MongoDB chatbot server logic
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors(corsOptions));
-  app.use(express.json());
+  app.use(makeCorsHandler(corsOptions));
+  app.use(express.json({ limit: "10mb" }));
   app.use(reqHandler);
   app.use(
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
   app.use(`${apiPrefix}/responses`, makeResponsesRouter(responsesRouterConfig));
+
+  if (contentRouterConfig) {
+    app.use(`${apiPrefix}/content`, makeContentRouter(contentRouterConfig));
+  }
 
   app.get("/health", (_req, res) => {
     const data = {

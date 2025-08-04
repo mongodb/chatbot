@@ -1,14 +1,14 @@
-import { EmbeddedContentStore } from "../contentStore";
+import { EmbeddedContentStore, QueryFilters } from "../contentStore";
 import { Embedder } from "../embed";
 import { FindContentFunc } from "./FindContentFunc";
-import { SearchBooster } from "./SearchBooster";
 import { FindNearestNeighborsOptions } from "../VectorStore";
 
 export type MakeDefaultFindContentFuncArgs = {
   embedder: Embedder;
   store: EmbeddedContentStore;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
+  findNearestNeighborsOptions?: Partial<
+    FindNearestNeighborsOptions<QueryFilters>
+  >;
 };
 
 /**
@@ -18,27 +18,18 @@ export const makeDefaultFindContent = ({
   embedder,
   store,
   findNearestNeighborsOptions,
-  searchBoosters,
 }: MakeDefaultFindContentFuncArgs): FindContentFunc => {
-  return async ({ query, filters = {} }) => {
+  return async ({ query, filters = {}, limit }) => {
     const { embedding } = await embedder.embed({
       text: query,
     });
 
-    let content = await store.findNearestNeighbors(embedding, {
+    const content = await store.findNearestNeighbors(embedding, {
       ...findNearestNeighborsOptions,
       filter: filters,
+      ...(limit ? { k: limit } : {}),
     });
 
-    for (const booster of searchBoosters ?? []) {
-      if (await booster.shouldBoost({ text: query })) {
-        content = await booster.boost({
-          existingResults: content,
-          embedding,
-          store,
-        });
-      }
-    }
     return {
       queryEmbedding: embedding,
       content,

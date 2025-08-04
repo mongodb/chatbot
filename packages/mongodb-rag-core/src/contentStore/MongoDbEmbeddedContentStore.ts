@@ -1,6 +1,7 @@
 import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
+  DataSourceMetadata,
   EmbeddedContent,
   EmbeddedContentStore,
   GetSourcesMatchParams,
@@ -78,6 +79,21 @@ function makeMatchQuery({ sourceNames, chunkAlgoHash }: GetSourcesMatchParams) {
   };
 }
 
+/**
+  24-hour cache of listDataSources aggregation as query is a full scan of all documents in collection
+ */
+export const listDataSourcesCache: {
+  data: DataSourceMetadata[] | null;
+  expiresAt: number;
+  isRefreshing: boolean;
+} = {
+  data: null,
+  expiresAt: 0,
+  isRefreshing: false,
+};
+const CACHE_STALE_AGE = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
+
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
@@ -101,6 +117,10 @@ export function makeMongoDbEmbeddedContentStore({
         type: "filter",
         path: "sourceType",
       },
+      {
+        type: "filter",
+        path: "url",
+      },
     ],
     name = "vector_index",
   },
@@ -113,6 +133,71 @@ export function makeMongoDbEmbeddedContentStore({
   const embeddedContentCollection =
     db.collection<EmbeddedContent>(collectionName);
   const embeddingPath = `embeddings.${embeddingName}`;
+
+  async function fetchFreshListDataSources(): Promise<DataSourceMetadata[]> {
+    const freshData = await embeddedContentCollection
+      .aggregate<DataSourceMetadata>([
+        {
+          $group: {
+            _id: "$sourceName",
+            versions: {
+              $addToSet: {
+                $cond: [
+                  { $ifNull: ["$metadata.version.label", false] },
+                  {
+                    label: "$metadata.version.label",
+                    isCurrent: "$metadata.version.isCurrent",
+                  },
+                  "$$REMOVE",
+                ],
+              },
+            },
+            sourceType: { $addToSet: "$sourceType" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: "$_id",
+            versions: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$versions",
+                    as: "v",
+                    cond: { $ne: ["$$v.label", null] },
+                  },
+                },
+                as: "v",
+                in: {
+                  label: "$$v.label",
+                  isCurrent: { $ifNull: ["$$v.isCurrent", false] },
+                },
+              },
+            },
+            type: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$sourceType",
+                    as: "t",
+                    cond: { $ne: ["$$t", null] },
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+      ])
+      .toArray();
+
+    listDataSourcesCache.data = freshData;
+    listDataSourcesCache.expiresAt = Date.now() + CACHE_STALE_AGE;
+    listDataSourcesCache.isRefreshing = false;
+
+    return freshData;
+  }
 
   return {
     drop,
@@ -274,6 +359,35 @@ export function makeMongoDbEmbeddedContentStore({
       }
     },
 
+    async listDataSources(): Promise<DataSourceMetadata[]> {
+      const now = Date.now();
+
+      // If cache is fresh (< 24h), return it immediately
+      if (listDataSourcesCache.data && now < listDataSourcesCache.expiresAt) {
+        return listDataSourcesCache.data;
+      }
+
+      // If cache exists but is stale (< 7 days), return it and refresh in background
+      if (
+        listDataSourcesCache.data &&
+        now - listDataSourcesCache.expiresAt < CACHE_MAX_AGE
+      ) {
+        if (!listDataSourcesCache.isRefreshing) {
+          listDataSourcesCache.isRefreshing = true;
+
+          void fetchFreshListDataSources().catch((err) => {
+            listDataSourcesCache.isRefreshing = false;
+            console.error("Error refreshing listDataSources cache:", err);
+          });
+        }
+
+        return listDataSourcesCache.data;
+      }
+
+      // Cache is too old (>= 7 days) — fetch fresh and set cache
+      return await fetchFreshListDataSources();
+    },
+
     async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {
       const result = await embeddedContentCollection
         .aggregate([
@@ -294,10 +408,10 @@ export function makeMongoDbEmbeddedContentStore({
 }
 
 type MongoDbAtlasVectorSearchFilter = {
-  sourceName?: string;
-  "metadata.version.label"?: string;
+  sourceName?: string | { $in: string[] };
+  "metadata.version.label"?: string | { $in: string[] };
   "metadata.version.isCurrent"?: boolean | { $ne: boolean };
-  sourceType?: string;
+  sourceType?: string | { $in: string[] };
 };
 
 const handleFilters = (
@@ -305,15 +419,21 @@ const handleFilters = (
 ): MongoDbAtlasVectorSearchFilter => {
   const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {
-    vectorSearchFilter["sourceName"] = filter.sourceName;
+    vectorSearchFilter["sourceName"] = Array.isArray(filter.sourceName)
+      ? { $in: filter.sourceName }
+      : filter.sourceName;
   }
   if (filter.sourceType) {
-    vectorSearchFilter["sourceType"] = filter.sourceType;
+    vectorSearchFilter["sourceType"] = Array.isArray(filter.sourceType)
+      ? { $in: filter.sourceType }
+      : filter.sourceType;
   }
   // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
   const { current, label } = filter.version ?? {};
   if (label) {
-    vectorSearchFilter["metadata.version.label"] = label;
+    vectorSearchFilter["metadata.version.label"] = Array.isArray(label)
+      ? { $in: label }
+      : label;
   }
   // Return current embeddings if either:
   // 1. current=true was explicitly requested, or

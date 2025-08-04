@@ -61,12 +61,14 @@ export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGen
 export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
   {
     onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      const itemId = Date.now().toString();
+
       dataStreamer.streamResponses({
         type: "response.output_text.delta",
         delta: verifiedAnswer.answer,
         content_index: 0,
         output_index: 0,
-        item_id: "",
+        item_id: itemId,
       } satisfies ResponseStreamOutputTextDelta);
 
       verifiedAnswer.references.forEach(({ title, url }, annotation_index) => {
@@ -82,7 +84,7 @@ export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponsePa
           annotation_index,
           content_index: 0,
           output_index: 0,
-          item_id: "",
+          item_id: itemId,
         } satisfies ResponseStreamOutputTextAnnotationAdded);
       });
 
@@ -91,7 +93,7 @@ export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponsePa
         text: verifiedAnswer.answer,
         content_index: 0,
         output_index: 0,
-        item_id: "",
+        item_id: itemId,
       } satisfies ResponseStreamOutputTextDone);
     },
   };
@@ -108,7 +110,17 @@ export const makeVerifiedAnswerGenerateResponse = ({
   stream,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
-    const { latestMessageText, shouldStream, dataStreamer } = args;
+    const {
+      latestMessageText,
+      shouldStream,
+      dataStreamer,
+      customSystemPrompt,
+      toolDefinitions,
+      toolChoice,
+    } = args;
+    if (customSystemPrompt || toolDefinitions || toolChoice) {
+      return await onNoVerifiedAnswerFound(args);
+    }
     const { answer: foundVerifiedAnswer, queryEmbedding } =
       await findVerifiedAnswer({
         query: latestMessageText,

@@ -9,7 +9,7 @@ describe("makeDefaultReferenceLinks()", () => {
   // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
   const chunk1 = {
     _id: new ObjectId(),
-    url: "https://mongodb.com/docs/realm/sdk/node/",
+    url: "https://mongodb.com/docs/realm/sdk/node",
     text: "blah blah blah",
     tokenCount: 100,
     embeddings,
@@ -18,7 +18,7 @@ describe("makeDefaultReferenceLinks()", () => {
   };
   const chunk2 = {
     _id: new ObjectId(),
-    url: "https://mongodb.com/docs/realm/sdk/node/",
+    url: "https://mongodb.com/docs/realm/sdk/node",
     text: "blah blah blah",
     tokenCount: 100,
     embeddings,
@@ -46,6 +46,24 @@ describe("makeDefaultReferenceLinks()", () => {
     updated: new Date(),
     sourceName: "realm",
   };
+  const chunkWithNormalizedUrl = {
+    _id: new ObjectId(),
+    url: "mongodb.com/docs/different/page",
+    text: "blah blah blah",
+    tokenCount: 100,
+    embeddings,
+    updated: new Date(),
+    sourceName: "docs",
+  };
+  const chunkWithNormalizedUrlAndSubdomain = {
+    _id: new ObjectId(),
+    url: "learn.mongodb.com/course/course-name",
+    text: "blah blah blah",
+    tokenCount: 100,
+    embeddings,
+    updated: new Date(),
+    sourceName: "university",
+  };
   test("No sources should return empty string", () => {
     const noChunks: EmbeddedContent[] = [];
     const noReferences = makeDefaultReferenceLinks(noChunks);
@@ -56,8 +74,8 @@ describe("makeDefaultReferenceLinks()", () => {
     const oneReference = makeDefaultReferenceLinks(oneChunk);
     const expectedOneReference = [
       {
-        title: "https://mongodb.com/docs/realm/sdk/node/",
-        url: "https://mongodb.com/docs/realm/sdk/node/",
+        title: "https://mongodb.com/docs/realm/sdk/node",
+        url: "https://mongodb.com/docs/realm/sdk/node",
         metadata: {
           sourceName: "realm",
           tags: [],
@@ -65,6 +83,31 @@ describe("makeDefaultReferenceLinks()", () => {
       },
     ];
     expect(oneReference).toEqual(expectedOneReference);
+  });
+  test("Should handle normalized URLs and return references with protocol", () => {
+    const chunks: EmbeddedContent[] = [
+      chunkWithNormalizedUrl,
+      chunkWithNormalizedUrlAndSubdomain,
+    ];
+    const references = makeDefaultReferenceLinks(chunks);
+    expect(references).toEqual([
+      {
+        url: "https://mongodb.com/docs/different/page",
+        title: "https://mongodb.com/docs/different/page",
+        metadata: {
+          sourceName: "docs",
+          tags: [],
+        },
+      },
+      {
+        url: "https://learn.mongodb.com/course/course-name",
+        title: "https://learn.mongodb.com/course/course-name",
+        metadata: {
+          sourceName: "university",
+          tags: [],
+        },
+      },
+    ]);
   });
   test("Chunk with title should return title in reference", () => {
     const oneChunk: EmbeddedContent[] = [chunkWithTitle];
@@ -86,8 +129,8 @@ describe("makeDefaultReferenceLinks()", () => {
     const oneReferenceSamePage = makeDefaultReferenceLinks(twoChunksSamePage);
     const expectedOneReferenceSamePage = [
       {
-        title: "https://mongodb.com/docs/realm/sdk/node/",
-        url: "https://mongodb.com/docs/realm/sdk/node/",
+        title: "https://mongodb.com/docs/realm/sdk/node",
+        url: "https://mongodb.com/docs/realm/sdk/node",
         metadata: {
           sourceName: "realm",
           tags: [],
@@ -103,8 +146,8 @@ describe("makeDefaultReferenceLinks()", () => {
     );
     const expectedMultipleReferencesDifferentPage = [
       {
-        title: "https://mongodb.com/docs/realm/sdk/node/",
-        url: "https://mongodb.com/docs/realm/sdk/node/",
+        title: "https://mongodb.com/docs/realm/sdk/node",
+        url: "https://mongodb.com/docs/realm/sdk/node",
         metadata: {
           sourceName: "realm",
           tags: [],
@@ -128,8 +171,8 @@ describe("makeDefaultReferenceLinks()", () => {
       makeDefaultReferenceLinks(threeChunks);
     const expectedMultipleSourcesWithSomePageOverlap = [
       {
-        title: "https://mongodb.com/docs/realm/sdk/node/",
-        url: "https://mongodb.com/docs/realm/sdk/node/",
+        title: "https://mongodb.com/docs/realm/sdk/node",
+        url: "https://mongodb.com/docs/realm/sdk/node",
         metadata: {
           sourceName: "realm",
           tags: [],

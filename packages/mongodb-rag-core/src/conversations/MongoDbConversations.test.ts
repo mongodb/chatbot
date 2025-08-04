@@ -80,6 +80,20 @@ describe("Conversations Service", () => {
       storeMessageContent
     );
   });
+  test("Should create a conversation with creationInterface", async () => {
+    const creationInterface = "some-api";
+    const conversation = await conversationsService.create({
+      creationInterface,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty(
+      "creationInterface",
+      creationInterface
+    );
+  });
   test("Should add a message to a conversation", async () => {
     const conversation = await conversationsService.create({
       initialMessages: [systemPrompt],

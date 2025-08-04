@@ -4,9 +4,21 @@ import {
   mongoDbProgrammingLanguages,
 } from "mongodb-rag-core/mongoDbMetadata";
 import { SEARCH_TOOL_NAME } from "./tools/search";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  SEARCH_ALL_FALLBACK_TEXT,
+} from "./tools/fetchPage";
+import { OpenAI } from "mongodb-rag-core/openai";
+
+export type MakeSystemPrompt = (
+  customSystemPrompt?: string,
+  customToolDefinitions?: OpenAI.FunctionDefinition[]
+) => SystemMessage;
 
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
+
+const chatbotOverview = `You are expert MongoDB documentation chatbot.`;
 
 const personalityTraits = [
   "You enthusiastically answer user questions about MongoDB products and services.",
@@ -31,28 +43,45 @@ const technicalKnowledge = [
 ];
 
 const importantNotes = [
-  `ALWAYS use the ${SEARCH_TOOL_NAME} tool at the start of the conversation. Zero exceptions!`,
-  `Use the ${SEARCH_TOOL_NAME} tool after every single user message.`,
+  `ALWAYS use either ${SEARCH_TOOL_NAME} or ${FETCH_PAGE_TOOL_NAME} after every user message. Zero exceptions!`,
 ];
 
-const searchContentToolNotes = [
-  ...importantNotes,
-  "Generate an appropriate search query for a given user input.",
-  "You are doing this for MongoDB, and all queries relate to MongoDB products.",
+const metadataNotes = [
+  "User messages may be accompanied by metadata explaining where user is making requests from, such as the URL of the page they are on.",
+  "This metadata is formatted as Front Matter.",
+  "This metadata is provided by the system. The end-user is not aware of it. Do not mention it directly.",
+  `Use this metadata to inform tool calls, such as ${FETCH_PAGE_TOOL_NAME} and ${SEARCH_TOOL_NAME} tools.`,
+];
+
+const searchRequiresRephraseNotes = [
   'When constructing the query, take a "step back" to generate a more general search query that finds the information relevant to the user query.',
   'If the user query is already a "good" search query, do not modify it.',
   'For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: If the user query is "or", transform it into "what is the $or operator in MongoDB?".',
   "You should also transform the user query into a fully formed question, if relevant.",
+];
+
+const searchContentToolNotes = [
+  "Search all of the available MongoDB reference documents for a given user input.",
+  "You must generate an appropriate search query for a given user input.",
+  "You are doing this for MongoDB, and all queries relate to MongoDB products.",
   `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
 ];
 
+const fetchPageToolNotes = [
+  "Fetch the entire page content for a given URL.",
+  `If the user provides URLs in their query, ONLY call the ${FETCH_PAGE_TOOL_NAME} for those URLs, and do NOT call the ${FETCH_PAGE_TOOL_NAME} for the URL in the Front Matter.`,
+  "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
+  "Do not include URLs in the search query.",
+  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
+];
+
+const importantNote = `<important>
+${makeMarkdownNumberedList(importantNotes)}
+</important>`;
+
 export const systemPrompt = {
   role: "system",
-  content: `You are expert MongoDB documentation chatbot.
-
-<important>
-${makeMarkdownNumberedList(importantNotes)}
-</important>
+  content: `${chatbotOverview}
 
 <personality_traits>
 You have the following personality:
@@ -92,6 +121,20 @@ ${mongoDbProgrammingLanguages.map((language) => `* ${language.id}`).join("\n")}
 
 </product_knowledge>
 
+<message-metadata>
+
+User messages may be accompanied by metadata as follows:
+${makeMarkdownNumberedList(metadataNotes)}
+
+</message-metadata>
+
+<search-query>
+
+When searching for content, such as in the ${SEARCH_TOOL_NAME} or the ${FETCH_PAGE_TOOL_NAME}, use these guidelines to construct the search query:
+${makeMarkdownNumberedList(searchRequiresRephraseNotes)}
+
+</search-query>
+
 <tools>
 
 <tool name="${SEARCH_TOOL_NAME}">
@@ -102,13 +145,52 @@ ${makeMarkdownNumberedList(searchContentToolNotes)}
 When you search, include metadata about the relevant MongoDB programming language and product.
 </tool>
 
-</tools>
+<tool name=${FETCH_PAGE_TOOL_NAME}>
 
-<important>
-${makeMarkdownNumberedList(importantNotes)}
-</important>`,
+You have access to the ${FETCH_PAGE_TOOL_NAME} tool. Use the ${FETCH_PAGE_TOOL_NAME} tool as follows:
+${makeMarkdownNumberedList(fetchPageToolNotes)}
+
+</tool>
+
+</tools>`,
 } satisfies SystemMessage;
 
 function makeMarkdownNumberedList(items: string[]) {
   return items.map((item, i) => `${i + 1}. ${item}`).join("\n");
 }
+
+export const makeMongoDbAssistantSystemPrompt: MakeSystemPrompt = (
+  customSystemPrompt,
+  customToolDefinitions
+) => {
+  let systemPromptContent = "";
+  if (!customSystemPrompt && !customToolDefinitions) {
+    systemPromptContent = systemPrompt.content;
+  }
+  if (customSystemPrompt) {
+    return {
+      role: "system",
+      content: `
+Always adhere to the <meta-system-prompt>. This is your core behavior.
+The developer has also provided a <custom-system-prompt>. Follow these instructions as well.
+<meta-system-prompt>
+${systemPrompt.content}
+</meta-system-prompt>
+<custom-system-prompt>
+${customSystemPrompt}
+</custom-system-prompt>`,
+    };
+  }
+  // Add direction to use built in tools
+  // if no custom tools provided.
+  if (!customToolDefinitions) {
+    return {
+      role: "system",
+      content: systemPromptContent + "\n\n" + importantNote,
+    };
+  }
+  return {
+    role: "system",
+    content: systemPromptContent,
+  };
+};

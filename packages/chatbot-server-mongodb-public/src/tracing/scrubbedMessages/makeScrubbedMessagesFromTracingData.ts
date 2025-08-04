@@ -26,24 +26,25 @@ export async function makeScrubbedMessagesFromTracingData({
     throw new Error("User message not found");
   }
 
+  const shouldAnalyzeUserMessage = analysis && storedMessageContent;
+
   const { redactedText: redactedUserContent, piiFound: userMessagePii } =
     redactPii(userMessage.content);
 
-  const userAnalysis =
-    analysis && storedMessageContent
-      ? await analyzeMessage(redactedUserContent, analysis.model).catch(
-          (error) => {
-            logRequest({
-              reqId,
-              message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
-                error
-              )}`,
-              type: "error",
-            });
-            return undefined;
-          }
-        )
-      : undefined;
+  const userAnalysis = shouldAnalyzeUserMessage
+    ? await analyzeMessage(redactedUserContent, analysis.model).catch(
+        (error) => {
+          logRequest({
+            reqId,
+            message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
+              error
+            )}`,
+            type: "error",
+          });
+          return undefined;
+        }
+      )
+    : undefined;
 
   const scrubbedUserMessage = {
     _id: userMessage.id,
@@ -73,7 +74,7 @@ export async function makeScrubbedMessagesFromTracingData({
   } = redactPii(assistantMessage.content);
 
   const assistantAnalysis =
-    analysis && storedMessageContent && !tracingData.isVerifiedAnswer
+    shouldAnalyzeUserMessage && !tracingData.isVerifiedAnswer
       ? await analyzeMessage(redactedAssistantContent, analysis.model).catch(
           (error) => {
             logRequest({

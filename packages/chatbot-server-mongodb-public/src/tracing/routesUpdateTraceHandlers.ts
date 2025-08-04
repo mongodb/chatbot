@@ -108,6 +108,16 @@ export function makeAddMessageToConversationUpdateTrace({
       });
     }
 
+    // Short circuit if storeMessageContent=false
+    if (conversation.storeMessageContent === false) {
+      logRequest({
+        reqId,
+        message: `Not performing analysis for conversation ${conversation._id} because storeMessageContent=false`,
+        type: "info",
+      });
+      return;
+    }
+
     // classify metadata
     try {
       const metadata = await classifyMongoDbMetadata(

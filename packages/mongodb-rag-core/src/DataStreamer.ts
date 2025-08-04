@@ -70,12 +70,16 @@ export type ResponseStreamOutputTextDelta = Omit<
   OpenAI.Responses.ResponseTextDeltaEvent,
   "sequence_number"
 >;
+
 export type ResponseStreamOutputTextAnnotationAdded = Omit<
   OpenAI.Responses.ResponseOutputTextAnnotationAddedEvent,
   "sequence_number" | "annotation"
 > & {
-  annotation: OpenAI.Responses.ResponseOutputText.URLCitation;
+  annotation:
+    | OpenAI.Responses.ResponseOutputText.FileCitation
+    | OpenAI.Responses.ResponseOutputText.URLCitation;
 };
+
 export type ResponseStreamOutputTextDone = Omit<
   OpenAI.Responses.ResponseTextDoneEvent,
   "sequence_number"

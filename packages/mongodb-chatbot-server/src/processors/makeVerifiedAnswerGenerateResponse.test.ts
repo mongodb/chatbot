@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   makeVerifiedAnswerGenerateResponse,
+  responsesVerifiedAnswerStream,
   type StreamFunction,
 } from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
@@ -204,6 +205,82 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       });
     });
 
+    it("streams verified answer annotations when shouldStream is true", async () => {
+      const mockDataStreamer = createMockDataStreamer();
+
+      // Create a separate generateResponse that uses the actual responsesVerifiedAnswerStream
+      const generateResponseWithActualStream =
+        makeVerifiedAnswerGenerateResponse({
+          findVerifiedAnswer: async ({ query }) => ({
+            queryEmbedding,
+            answer:
+              query === MAGIC_VERIFIABLE
+                ? createMockVerifiedAnswer()
+                : undefined,
+          }),
+          onNoVerifiedAnswerFound: async () => ({
+            messages: noVerifiedAnswerFoundMessages,
+          }),
+          stream: responsesVerifiedAnswerStream,
+        });
+
+      await generateResponseWithActualStream(
+        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer)
+      );
+
+      // Check that streamResponses was called for text delta first
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.delta",
+        delta: verifiedAnswerContent,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for URL citations (one per reference)
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "url_citation",
+          url: "url",
+          title: "title",
+          start_index: 0,
+          end_index: 0,
+        },
+        annotation_index: 0,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for file citation annotation
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "file_citation",
+          file_id: verifiedAnswerId,
+          filename: "verified_answer",
+          index: testDate.getTime(), // Uses updated time, falls back to created time
+        },
+        annotation_index: references.length, // One more than the last reference
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for text done
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.done",
+        text: verifiedAnswerContent,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Verify total number of streamResponses calls
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledTimes(4); // 1 text delta + 1 URL citation + 1 file citation + 1 text done
+    });
+
     it("doesn't stream data when shouldStream is false", async () => {
       const mockDataStreamer = createMockDataStreamer();
 
@@ -212,6 +289,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();
+      expect(mockDataStreamer.streamResponses).not.toHaveBeenCalled();
     });
 
     it("throws an error when shouldStream is true but dataStreamer is missing", async () => {
@@ -228,6 +306,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();
+      expect(mockDataStreamer.streamResponses).not.toHaveBeenCalled();
     });
   });
 });

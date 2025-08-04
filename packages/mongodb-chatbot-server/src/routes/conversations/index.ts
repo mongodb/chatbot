@@ -1,2 +1,2 @@
 export * from "./conversationsRouter";
-export * from "./UpdateTraceFunc";
+export * from "../../processors/UpdateTraceFunc";

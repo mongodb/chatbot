@@ -17,6 +17,7 @@ import {
 import {
   TEST_ALWAYS_ALLOWED_METADATA_KEYS,
   makeDefaultConfig,
+  mockUpdateTrace,
 } from "../../test/testConfig";
 import {
   CREATE_RESPONSE_ERR_MSG,
@@ -580,6 +581,13 @@ describe("POST /responses", () => {
       expect(conversation).not.toBeNull();
       expect(conversation?.messages.length).toBeGreaterThan(0);
       expect(conversation?.creationInterface).toBe(creationInterface);
+    });
+    it("should update trace", async () => {
+      jest.clearAllMocks(); // clear all mocks to ensure this test is isolated
+      const stream = await makeClientAndRequest();
+
+      await expectValidResponses({ requestBody: {}, stream });
+      expect(mockUpdateTrace).toHaveBeenCalled();
     });
   });
 

@@ -1,6 +1,6 @@
 import { Conversation, ConversationsService } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { logRequest } from "../../utils";
+import { logRequest } from "../utils";
 
 export type UpdateTraceFuncParams = {
   reqId: string;

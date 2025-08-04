@@ -25,6 +25,10 @@ import {
   type SomeOpenAIAPIError,
 } from "./errors";
 import { traced, wrapNoTrace, wrapTraced } from "mongodb-rag-core/braintrust";
+import {
+  UpdateTraceFunc,
+  updateTraceIfExists,
+} from "../../processors/UpdateTraceFunc";
 
 export const MIN_INSTRUCTIONS_LENGTH = 1;
 export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
@@ -255,6 +259,7 @@ export interface CreateResponseRouteParams {
   /** These metadata keys will persist in conversations and messages even if `Conversation.store: false`.
    * Otherwise, keys will have their values set to an empty string `""` if `Conversation.store: false`. */
   alwaysAllowedMetadataKeys: string[];
+  updateTrace?: UpdateTraceFunc;
 }
 
 export function makeCreateResponseRoute({
@@ -264,6 +269,7 @@ export function makeCreateResponseRoute({
   maxOutputTokens,
   maxUserMessagesInConversation,
   alwaysAllowedMetadataKeys,
+  updateTrace,
 }: CreateResponseRouteParams) {
   return async (req: ExpressRequest, res: ExpressResponse) => {
     const reqId = getRequestId(req);
@@ -446,6 +452,13 @@ export function makeCreateResponseRoute({
           },
         },
       } satisfies ResponseStreamCompleted);
+      await updateTraceIfExists({
+        updateTrace,
+        reqId,
+        conversations,
+        conversationId: conversation._id,
+        assistantResponseMessageId: responseId,
+      });
     } catch (error) {
       const standardError =
         (error as SomeOpenAIAPIError)?.type === ERROR_TYPE

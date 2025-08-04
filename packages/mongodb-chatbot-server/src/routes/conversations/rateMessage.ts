@@ -8,7 +8,10 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
+import {
+  UpdateTraceFunc,
+  updateTraceIfExists,
+} from "../../processors/UpdateTraceFunc";
 import { Logger } from "mongodb-rag-core/braintrust";
 
 export type RateMessageRequest = z.infer<typeof RateMessageRequest>;

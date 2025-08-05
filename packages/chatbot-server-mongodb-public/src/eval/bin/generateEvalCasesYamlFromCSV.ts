@@ -124,7 +124,7 @@ async function main({
   );
   const urlsNotIngested = await pageStore.getMissingPagesByUrl({
     expectedUrls,
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   if (urlsNotIngested.length > 0) {
     console.warn(

@@ -14,6 +14,8 @@
     ".": "./build/lib.js"
   },
   "scripts": {
+    "build:check": "tsc --noEmit --project tsconfig.json",
+    "prebuild": "npm run build:check",
     "build": "rm -rf ./build/ && tsc -b tsconfig.build.json",
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",

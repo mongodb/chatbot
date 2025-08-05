@@ -35,12 +35,19 @@ async function conversationEval() {
     datasetName: "voyage-ai",
   });
   assert(voyageCases.length > 0);
+  const systemPromptCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "system_prompt_conversations.yml"),
+      "utf8"
+    )
+  );
 
   const conversationEvalCases = [
-    ...miscCases,
-    ...faqCases,
-    ...dotComCases,
-    ...voyageCases,
+    // ...miscCases,
+    // ...faqCases,
+    // ...dotComCases,
+    // ...voyageCases,
+    ...systemPromptCases,
   ];
 
   try {

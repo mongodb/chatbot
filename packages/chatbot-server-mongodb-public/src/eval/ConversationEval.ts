@@ -4,15 +4,17 @@ import {
   EvalCase,
   EvalScorer,
   traced,
+  wrapOpenAI,
 } from "mongodb-rag-core/braintrust";
 import {
   Conversation,
   GenerateResponse,
+  GenerateResponseReturnValue,
   logger,
   Message,
 } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
@@ -20,16 +22,18 @@ import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
 import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";
 import { extractTracingData } from "../tracing/extractTracingData";
-import { closeDbConnections } from "../config";
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
   latestMessageText: string;
   customSystemPrompt?: string;
+  // customTools
 }
 
 type ConversationEvalCaseExpected = {
   links?: string[];
+  promptAdherence?: string[];
+  messages?: Record<string, unknown>[]; // TODO - This type should be more strict
   reference?: string;
   expectation?: string;
   reject?: boolean;
@@ -48,6 +52,7 @@ interface ConversationEvalCase
 }
 
 interface ConversationTaskOutput {
+  messages: GenerateResponseReturnValue["messages"];
   assistantMessageContent: string;
   context?: string[];
   urls?: string[];
@@ -185,6 +190,115 @@ const makeFactuality: ConversationEvalScorerConstructor =
       });
   };
 
+const makeJudgeModel = (config: JudgeModelConfig) => {
+  return wrapOpenAI(new AzureOpenAI(config.azureOpenAi));
+};
+
+const PromptAdherenceAssessmentPrompt = `You are assessing whether the given text aligns with the expectation for that text. If the text meets the expected criterion, you will score it as 1. 
+Otherwise, if the text does not meet the expected criterion, you will score it as 0.
+
+The input will be well-formatted JSON with the following structure:
+{
+  "context": <string: the text to evaluate.>,
+  "criteria" : [<string: criteria 1>, ...,  <string: criteria n>],
+}
+
+You must output well-formatted JSON with the following structure. Each criteria should have a corresponding assessment in the response.
+{
+  "assessments": [
+    {
+      "score": <int: 0 or 1>,
+      "reason": <string: your reasoning for the score given.>,
+    }, ...
+  ]
+}
+
+Do not return any preamble or explanations, return only a pure JSON string.
+`;
+
+const makePromptAdherence: ConversationEvalScorerConstructor = (judgeModelConfig) => {
+  const judgeModel = makeJudgeModel(judgeModelConfig);
+
+  return async (args) => {
+    const name = "PromptAdherence";
+    if (
+      !args.expected?.promptAdherence ||
+      args.expected.promptAdherence.length === 0
+    ) {
+      // No 
+      return {
+        name,
+        score: null,
+      };
+    }
+    // Use LLM to score against all the criteria
+    const response = await judgeModel.chat.completions.create({
+      model: judgeModelConfig.model,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: PromptAdherenceAssessmentPrompt,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            context: args.output.assistantMessageContent,
+            criteria: args.expected.promptAdherence,
+          }),
+        },
+      ],
+    });
+
+    const responseScores = JSON.parse(
+      response.choices[0].message.content ?? "[]"
+    );
+    const assessments: Array<{ score: number; reason: string }> =
+      responseScores?.assessments;
+    assert(assessments.length > 0, "No assessments found");
+
+    return {
+      name,
+      score:
+        assessments.reduce(
+          (accumulator, current) => accumulator + current.score,
+          0
+        ) / args.expected?.promptAdherence.length,
+      metadata: {
+        scores: response.choices[0].message.content,
+      },
+    };
+  };
+};
+
+const MessageOrderCorrect: ConversationEvalScorer = (args) => {
+  const name = "MessageOrderCorrect";
+  if (args.expected?.messages === undefined) {
+    return {
+      name,
+      score: null,
+    };
+  }
+  return {
+    name,
+    score: null, // TODO
+  };
+};
+
+const ToolArgumentsCorrect: ConversationEvalScorer = (args) => {
+  const name = "ToolArgumentsCorrect";
+  if (args.expected?.messages === undefined) {
+    return {
+      name,
+      score: null,
+    };
+  }
+  return {
+    name,
+    score: null, // TODO
+  };
+};
+
 export interface MakeConversationEvalParams {
   conversationEvalCases: ConversationEvalCaseSource[];
   judgeModelConfig: JudgeModelConfig;
@@ -206,6 +320,7 @@ export async function makeConversationEval({
   const Factuality = makeFactuality(judgeModelConfig);
   const Faithfullness = makeConversationFaithfulness(judgeModelConfig);
   const ContextRelevancy = makeConversationContextRelevancy(judgeModelConfig);
+  const PromptAdherence = makePromptAdherence(judgeModelConfig);
 
   return Eval(projectName, {
     data: async () => {
@@ -236,6 +351,8 @@ export async function makeConversationEval({
           expected: {
             expectation: evalCase.expectation,
             reference: evalCase.reference,
+            promptAdherence: evalCase.expectedPromptAdherence,
+            messages: evalCase.expectedMessageDetail,
             links: evalCase.expectedLinks,
             reject: evalCase.reject,
           },
@@ -277,6 +394,7 @@ export async function makeConversationEval({
         assert(contextContent, "No context content found");
         assert(userMessage, "No user message found");
         return {
+          messages,
           assistantMessageContent: assistantMessage.content,
           context: contextContent.map((c) => c.text),
           urls: assistantMessage.references?.map((r) => r.url),
@@ -296,6 +414,9 @@ export async function makeConversationEval({
       Faithfullness,
       InputGuardrailExpected,
       ContextRelevancy,
+      PromptAdherence,
+      MessageOrderCorrect,
+      ToolArgumentsCorrect,
     ],
   });
 }

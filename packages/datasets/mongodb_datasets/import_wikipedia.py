@@ -9,12 +9,14 @@ and imports it into MongoDB with proper batching and error handling.
 import os
 import sys
 import logging
+import argparse
 from typing import Dict, Any, Optional
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.errors import BulkWriteError
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
+from jsonc_parser import JsoncParser
 
 from .config import load_environment
 
@@ -30,7 +32,6 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 BATCH_SIZE = 1000
-MAX_DOCUMENTS = None  # Set to None for full dataset
 DATABASE_NAME = "wikipedia_dataset"
 COLLECTION_NAME = "articles"
 
@@ -60,6 +61,22 @@ class WikipediaImporter:
             logger.info("Created unique index on 'id' field")
         except Exception as error:
             logger.warning(f"Index creation failed (may already exist): {error}")
+        
+        try:
+            with open("atlas_search_dataset_index.jsonc", "r") as file:
+                jsonc_content = file.read()
+            
+            # Parse JSONC to Python dictionary
+            atlas_search_dataset_index: Dict[str, Any] = JsoncParser.parse_text(jsonc_content)
+            
+            self.collection.create_search_index(
+                name=atlas_search_dataset_index["name"],
+                definition=atlas_search_dataset_index["mappings"]
+            )
+        except Exception as error:
+            logger.warning(f"Search index creation failed (may already exist): {error}")
+                
+        
 
     def load_wikipedia_dataset(self) -> Dataset:
         """Load the Wikipedia dataset from HuggingFace."""
@@ -198,14 +215,69 @@ class WikipediaImporter:
         logger.info("MongoDB connection closed")
 
 
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Import Wikipedia dataset from HuggingFace to MongoDB",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Import full dataset (all ~240k articles)
+  uv run import-wikipedia
+
+  # Import first 1000 articles for testing
+  uv run import-wikipedia --max-documents 1000
+
+  # Import 50k articles with custom connection
+  uv run import-wikipedia --max-documents 50000 --mongodb-connection-uri mongodb://localhost:27017
+
+  # Import full dataset with custom batch size
+  uv run import-wikipedia --batch-size 2000
+        """.strip()
+    )
+    
+    parser.add_argument(
+        "--max-documents",
+        type=int,
+        default=None,
+        help="Maximum number of documents to import (default: None - import all documents)"
+    )
+    
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=BATCH_SIZE,
+        help=f"Number of documents per batch (default: {BATCH_SIZE})"
+    )
+    
+    parser.add_argument(
+        "--mongodb-connection-uri",
+        type=str,
+        default=None,
+        help="MongoDB connection URI (default: uses MONGODB_ATLAS_SEARCH_CONNECTION_URI env var)"
+    )
+    
+    return parser.parse_args()
+
+
 def main() -> None:
     """Main entry point."""
-    # Get MongoDB connection string from environment
-    connection_uri = os.getenv("MONGODB_ATLAS_SEARCH_CONNECTION_URI")
+    # Parse command line arguments
+    args = parse_args()
+    
+    # Get MongoDB connection string - CLI arg takes precedence over env var
+    connection_uri = args.mongodb_connection_uri or os.getenv("MONGODB_ATLAS_SEARCH_CONNECTION_URI")
     if not connection_uri:
-        logger.error("MONGODB_ATLAS_SEARCH_CONNECTION_URI environment variable is required")
-        logger.error("Please set it in your .env file or export it directly")
+        logger.error("MongoDB connection URI is required")
+        logger.error("Provide via --mongodb-connection-uri or set MONGODB_ATLAS_SEARCH_CONNECTION_URI env var")
         sys.exit(1)
+    
+    # Log configuration
+    if args.max_documents:
+        logger.info(f"Importing up to {args.max_documents:,} documents")
+    else:
+        logger.info("Importing full dataset (all documents)")
+    logger.info(f"Using batch size: {args.batch_size}")
     
     importer = None
     try:
@@ -213,8 +285,8 @@ def main() -> None:
         importer = WikipediaImporter(connection_uri)
         logger.info("Connected to MongoDB")
         
-        # Import dataset
-        importer.import_dataset(max_documents=MAX_DOCUMENTS)
+        # Import dataset with CLI arguments
+        importer.import_dataset(max_documents=args.max_documents)
         
         logger.info("Wikipedia dataset import completed successfully")
         

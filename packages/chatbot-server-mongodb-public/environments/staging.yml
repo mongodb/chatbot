@@ -103,3 +103,40 @@ prometheusRules:
     annotations:
       summary: High HTTP 500 Error rate on {$labels.job}
       description: Too many HTTP 500 Errors on {$labels.job} in the last 5 minutes
+  - alert: HighRateLimitErrors
+    expr: |
+      (
+        rate(http_requests_total{namespace="docs",container="docs-chat",code="429"}[5m]) > 0.1
+      ) or (
+        increase(http_requests_total{namespace="docs",container="docs-chat",code="429"}[10m]) > 10
+      )
+    for: 2m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "High rate of 429 (rate limit) errors detected"
+      description: |
+        Service {{ $labels.service }} is experiencing high rate limit errors.
+        Current rate: {{ $value | printf "%.2f" }} errors/second
+        This may indicate:
+        - Client retry storms
+        - Insufficient rate limiting configuration
+        - Upstream service throttling
+  - alert: CriticalRateLimitErrors
+    expr: |
+      (
+        rate(http_requests_total{namespace="docs",container="docs-chat",code="429"}[5m]) > 1.0
+      ) or (
+        increase(http_requests_total{namespace="docs",container="docs-chat",code="429"}[5m]) > 50
+      )
+    for: 1m
+    labels:
+      severity: critical
+      category: performance
+    annotations:
+      summary: "Critical rate of 429 (rate limit) errors"
+      description: |
+        Service {{ $labels.service }} is experiencing critical rate limit errors.
+        Current rate: {{ $value | printf "%.2f" }} errors/second
+        Immediate investigation required - service may be degraded.

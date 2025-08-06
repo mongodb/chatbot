@@ -744,22 +744,9 @@ components:
           type: integer
           description: Index of the annotation
         annotation:
-          type: object
-          properties:
-            type:
-              type: string
-              enum: [text_annotation]
-            text:
-              type: string
-              description: The annotation text content
-            start:
-              type: integer
-              description: Start position of the annotation
-            end:
-              type: integer
-              description: End position of the annotation
-          required: [type, text, start, end]
-          description: The annotation object
+          oneOf:
+            - $ref: "#/components/schemas/ResponseOutputTextAnnotationUrlCitation"
+            - $ref: "#/components/schemas/ResponseOutputTextAnnotationVerifiedAnswer"
         sequence_number:
           type: integer
           description: Sequence number of the event
@@ -767,6 +754,61 @@ components:
       description: |
         Event sent when a text annotation is added to response output.
         This is used to include references used by the internal search tool.
+    ResponseOutputTextAnnotationUrlCitation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [url_citation]
+        url:
+          type: string
+          format: uri
+          description: |
+            URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started".
+        title:
+          type: string
+          description: |
+            Title of the reference. This is what shows up in
+            rendered links. For example, "How to connect to
+            MongoDB Atlas".
+        start_index:
+          type: integer
+          description: Start position of the annotation
+        end_index:
+          type: integer
+          description: End position of the annotation
+      required: [type, url, title, start_index, end_index]
+    ResponseOutputTextAnnotationVerifiedAnswer:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [file_citation]
+          # Note: placing description on the first property
+          # b/c our OpenAI spec renderer doesn't show
+          # descriptions for the top level object here :/
+          description: |
+            This annotation contains metadata about a verified answer. 
+
+            Note that this is a bit of a hack of the Responses API,
+            repurposing the `file_citation` type to include metadata
+            about a verified answer.
+            While a bit hacky, there aren't clear alternative better paths
+            that stay fully compliant with the Responses API.
+        file_id:
+          type: string
+          description: |
+            ID of the verified answer. 
+        filename:
+          type: string
+          enum: [verified_answer]
+        index:
+          type: integer
+          format: timestamp
+          description: |
+            Timestamp for when the verified answer was updated/created.
+            `0` if unknown.
+      required: [type, file_id, filename, index]
     ResponseOutputTextDeltaEvent:
       type: object
       properties:
@@ -1174,6 +1216,9 @@ tags:
   - name: Conversations
     x-displayName: Conversations
     description: Interact with MongoDB Chatbot
+  - name: Responses
+    x-displayName: Responses
+    description: Responses API
 
 x-tagGroups:
   - name: Content
@@ -1182,3 +1227,6 @@ x-tagGroups:
   - name: Conversations
     tags:
       - Conversations
+  - name: Responses
+    tags:
+      - Responses

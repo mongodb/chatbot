@@ -12,11 +12,12 @@ import logging
 import argparse
 from typing import Dict, Any, Optional
 from pymongo import MongoClient
+from pymongo.operations import SearchIndexModel
 from pymongo.collection import Collection
 from pymongo.errors import BulkWriteError
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
-from jsonc_parser import JsoncParser
+from jsonc_parser.parser import JsoncParser
 
 from .config import load_environment
 
@@ -63,16 +64,32 @@ class WikipediaImporter:
             logger.warning(f"Index creation failed (may already exist): {error}")
         
         try:
-            with open("atlas_search_dataset_index.jsonc", "r") as file:
-                jsonc_content = file.read()
+            # Look for the index file in the same directory as this script
+            import pathlib
+            script_dir = pathlib.Path(__file__).parent
+            index_file = script_dir / "atlas_search_dataset_index.jsonc"
             
+          
             # Parse JSONC to Python dictionary
-            atlas_search_dataset_index: Dict[str, Any] = JsoncParser.parse_text(jsonc_content)
+            parser = JsoncParser()
+            atlas_search_dataset_index: Dict[str, Any] = parser.parse_file(index_file)
             
-            self.collection.create_search_index(
+            # Create the search index definition without the name
+            definition = {
+                "mappings": atlas_search_dataset_index["mappings"],
+                "analyzers": atlas_search_dataset_index["analyzers"]
+            }
+            
+            # Create the search index
+            result = self.collection.create_search_index(model=SearchIndexModel(
                 name=atlas_search_dataset_index["name"],
-                definition=atlas_search_dataset_index["mappings"]
-            )
+                definition=definition,
+                type="search"
+            ))
+            logger.info(f"Search index creation result: {result}")
+            logger.info(f"Created search index {atlas_search_dataset_index['name']} for {DATABASE_NAME}.{COLLECTION_NAME}")
+        except FileNotFoundError:
+            logger.info("Atlas search index file not found, skipping search index creation")
         except Exception as error:
             logger.warning(f"Search index creation failed (may already exist): {error}")
                 
@@ -161,13 +178,17 @@ class WikipediaImporter:
             self.stats["errors"] += len(batch)
             return 0
 
-    def import_dataset(self, max_documents: Optional[int] = None) -> None:
+    def import_dataset(self, max_documents: Optional[int] = None, only_create_index: bool = False) -> None:
         """Import the Wikipedia dataset to MongoDB."""
-        logger.info(f"Starting Wikipedia dataset import to {DATABASE_NAME}.{COLLECTION_NAME}")
         
+        logger.info(f"Starting building DB indexes for {DATABASE_NAME}.{COLLECTION_NAME}")
         # Setup database
         self.setup_indexes()
+        if only_create_index:
+            logger.info(f"Only creating DB indexes for {DATABASE_NAME}.{COLLECTION_NAME}. Exiting...")
+            return
         
+        logger.info(f"Starting Wikipedia dataset import to {DATABASE_NAME}.{COLLECTION_NAME}")
         # Load dataset
         dataset = self.load_wikipedia_dataset()
         
@@ -257,6 +278,12 @@ Examples:
         help="MongoDB connection URI (default: uses MONGODB_ATLAS_SEARCH_CONNECTION_URI env var)"
     )
     
+    parser.add_argument(
+        "--only-create-index",
+        action="store_true",
+        help="Only create the Atlas search index, skip importing data"
+    )
+    
     return parser.parse_args()
 
 
@@ -286,7 +313,7 @@ def main() -> None:
         logger.info("Connected to MongoDB")
         
         # Import dataset with CLI arguments
-        importer.import_dataset(max_documents=args.max_documents)
+        importer.import_dataset(max_documents=args.max_documents, only_create_index=args.only_create_index)
         
         logger.info("Wikipedia dataset import completed successfully")
         

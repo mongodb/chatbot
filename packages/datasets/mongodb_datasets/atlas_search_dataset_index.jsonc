@@ -49,26 +49,15 @@
         "analyzer": "text_analyzer"
       },
       /**
-        URL for filtering and exact matching
+        URL for filtering
        */
       "url": [
-        {
-          /**
-            For exact, case-insensitive matching on the original URL
-           */
-          "type": "string",
-          "analyzer": "lucene.keyword"
-        },
         {
           /**
             For normalized, fuzzy, flexible matching
            */
           "type": "string",
-          "analyzer": "url_normalizer_analyzer",
-          /**
-            This creates a sub-field called "url.normalized"
-           */
-          "name": "normalized"
+          "analyzer": "url_normalizer_analyzer"
         }
       ]
     }
@@ -83,28 +72,32 @@
     {
       "name": "text_analyzer",
       "tokenizer": {
+        /**
+          Standard tokenizer.
+          From the docs: It divides text into terms based on word boundaries,
+          which makes it language-neutral for most use cases. 
+          It converts all terms to lower case and removes punctuation. 
+         */
         "type": "standard"
       },
       "tokenFilters": [
         /**
-          Convert all text to lowercase
+          Remove accents
          */
         {
-          "type": "lowercase"
+          "type": "icuFolding"
         },
         /**
-          Remove stopwords, such as "the", "and", "is", etc.
+          Remove possessive suffixes, e.g., "John's" -> "John"
          */
         {
-          "type": "stop",
-          "stopwords": "_english_"
+          "type": "englishPossessive"
         },
         /**
           Stem words to their root form, e.g., "running" -> "run"
          */
         {
-          "type": "stemmer",
-          "language": "english"
+          "type": "kStemming"
         }
       ]
     },
@@ -121,25 +114,28 @@
           /**
             Remove http:// or https:// from the beginning
            */
-          "type": "pattern",
+          "type": "regex",
           "pattern": "^(https|http)://",
-          "replacement": ""
+          "replacement": "",
+          "matches": "first"
         },
         {
           /**
             Remove www. from the beginning
            */
-          "type": "pattern",
+          "type": "regex",
           "pattern": "^www\\.",
-          "replacement": ""
+          "replacement": "",
+          "matches": "first"
         },
         {
           /**
             Remove all trailing slashes
            */
-          "type": "pattern",
+          "type": "regex",
           "pattern": "/+$",
-          "replacement": ""
+          "replacement": "",
+          "matches": "first"
         }
       ]
     }

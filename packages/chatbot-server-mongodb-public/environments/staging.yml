@@ -108,7 +108,7 @@ prometheusRules:
       (
         rate(http_requests_total{namespace="docs",container="docs-chat",code="429"}[5m]) > 0.1
       ) or (
-        increase(http_requests_total{namespace="docs",container="docs-chat",code="429"}[10m]) > 10
+        increase(http_requests_total{namespace="docs",container="docs-chat",code="429"}[5m]) > 10
       )
     for: 2m
     labels:

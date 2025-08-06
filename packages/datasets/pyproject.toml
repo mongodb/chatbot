@@ -1,0 +1,25 @@
+[project]
+name = "mongodb-datasets"
+version = "0.1.0"
+description = "MongoDB dataset utilities for importing and processing datasets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "datasets>=2.18.0",
+    "pymongo>=4.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+import-wikipedia = "mongodb_datasets.import_wikipedia:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "ruff>=0.1.0",
+]

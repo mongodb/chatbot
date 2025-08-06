@@ -376,7 +376,7 @@ paths:
         #### Tracing and Storage
 
         All messages to the chatbot are traced and stored if `store: true`.
-        
+
         For access to chatbot data, reach out to the Education AI team (`#ask-education-ai` on Slack).
 
         All data retention is in line with MongoDB data retention policies.
@@ -421,7 +421,8 @@ paths:
                         tools: []
                         top_p: null
                         user: "user123"
-                        metadata: null
+                        metadata:
+                          conversation_id: "6893810e1c3ad24c26485687"
         400:
           $ref: "#/components/responses/BadRequest"
         404:
@@ -491,7 +492,11 @@ components:
             type: string
             maxLength: 512
           maxProperties: 16
-          description: Additional metadata with max 16 fields, each value max 512 chars. These are stored in the database.
+          description: |
+            Additional metadata with max 16 fields, each value max 512 chars.
+            These are stored in the database.
+
+            Note that the `conversation_id` key is reserved and is not allowed in metadata.
         previous_response_id:
           type: string
           description: |
@@ -507,7 +512,7 @@ components:
           default: true
           description: |
             Whether to store the response in the database.
-            
+
             If store is `true`:
 
             - The response is stored in the database.
@@ -515,17 +520,17 @@ components:
             - The response is traced and annotated with metadata.
 
             If store is `false`:
-            
+
             - Only metadata about the response is stored in the database.
             - The response is not traced.
             - You cannot add staefully interact with the converastion via `previous_response_id`.
-            
+
         stream:
           type: boolean
           enum: [true]
-          description: | 
-              Stream response. Must always be `true` for current implementation.
-              Non-streaming is not yet supported.
+          description: |
+            Stream response. Must always be `true` for current implementation.
+            Non-streaming is not yet supported.
         temperature:
           type: number
           enum: [0]
@@ -546,7 +551,7 @@ components:
           default: auto
           description: |
             Tool choice for the model.
-            
+
             Note that the OpenAI Responses API options `none` and `required` are not supported by our implementation.
             We do not support them because it would be complex to use them with the internal tool call system that our API uses for RAG.
             If you need these options supported, please [contact the Education AI team](../contact).
@@ -572,7 +577,7 @@ components:
             required: [type, strict, name, parameters]
           description: |
             Tools for the model to use. 
-            
+
             Limitations:
             - Maximum 10 tools
             - Total serialized content must be ≤25,000 characters (~5,000 tokens)
@@ -580,9 +585,9 @@ components:
           type: string
           description: |
             The ID of the user. Can be any arbitrary string.
-            
+
             If used in combination with `previous_response_id`, the value for `user` must be the same for all requests on the same conversation.
-            
+
     Conversation:
       type: object
       required:
@@ -763,7 +768,16 @@ components:
         sequence_number:
           type: integer
           description: Sequence number of the event
-      required: [type, item_id, output_index, content_index, annotation_index, annotation, sequence_number]
+      required:
+        [
+          type,
+          item_id,
+          output_index,
+          content_index,
+          annotation_index,
+          annotation,
+          sequence_number,
+        ]
       description: |
         Event sent when a text annotation is added to response output.
         This is used to include references used by the internal search tool.
@@ -788,7 +802,8 @@ components:
         sequence_number:
           type: integer
           description: Sequence number of the event
-      required: [type, item_id, output_index, content_index, delta, sequence_number]
+      required:
+        [type, item_id, output_index, content_index, delta, sequence_number]
       description: Event sent for each piece of streaming text content
     ResponseOutputTextDoneEvent:
       type: object
@@ -811,7 +826,8 @@ components:
         sequence_number:
           type: integer
           description: Sequence number of the event
-      required: [type, item_id, output_index, content_index, text, sequence_number]
+      required:
+        [type, item_id, output_index, content_index, text, sequence_number]
       description: Event sent when text output is complete with the final content
     ResponseFunctionCallArgumentsDeltaEvent:
       type: object
@@ -945,11 +961,32 @@ components:
           description: User ID
         metadata:
           type: object
-          nullable: true
+          properties:
+            conversation_id:
+              type: string
+              description: Conversation ID
           additionalProperties:
             type: string
-          description: Additional metadata
-      required: [id, object, created_at, error, incomplete_details, model, output_text, output, parallel_tool_calls, store, temperature, stream, tool_choice, tools, top_p]
+          description: Additional metadata and conversation ID
+      required:
+        [
+          id,
+          object,
+          created_at,
+          error,
+          incomplete_details,
+          model,
+          output_text,
+          output,
+          parallel_tool_calls,
+          store,
+          temperature,
+          stream,
+          tool_choice,
+          tools,
+          top_p,
+          metadata,
+        ]
     StreamEventDelta:
       description: Assistant response text.
       type: object
@@ -1028,7 +1065,7 @@ components:
       maxItems: 50
       description: |
         Array of messages or function calls/outputs.
-        
+
         Limitations:
         - Maximum 50 items
         - Total serialized content must be ≤250,000 characters (~50,000 tokens)

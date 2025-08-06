@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
 import { getConversationEvalCasesFromBraintrust } from "mongodb-rag-core/eval";
-import { closeDbConnections, config } from "./config";
+import { closeDbConnections, makeGenerateResponse } from "./config";
 import { strict as assert } from "assert";
 
 export const CONVERSATION_EVAL_PROJECT_NAME = "mongodb-chatbot-conversations";
@@ -41,13 +41,27 @@ async function conversationEval() {
       "utf8"
     )
   );
+  const secretToolCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "generate_response_with_tools.yml"),
+      "utf8"
+    )
+  );
+  const customToolCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "custom_tool_conversations.yml"),
+      "utf8"
+    )
+  );
 
   const conversationEvalCases = [
-    // ...miscCases,
-    // ...faqCases,
-    // ...dotComCases,
-    // ...voyageCases,
+    ...miscCases,
+    ...faqCases,
+    ...dotComCases,
+    ...voyageCases,
     ...systemPromptCases,
+    ...secretToolCases,
+    ...customToolCases,
   ];
 
   try {
@@ -70,7 +84,7 @@ async function conversationEval() {
           apiVersion: OPENAI_API_VERSION,
         },
       },
-      generateResponse: config.conversationsRouterConfig.generateResponse,
+      generateResponse: makeGenerateResponse(),
     });
     console.log("Eval result", evalResult.summary);
   } catch (error) {

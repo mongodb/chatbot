@@ -1,6 +1,35 @@
 import yaml from "yaml";
 import { z } from "zod";
 
+/**
+  Zod schema loosely based on the OpenAI.FunctionDefinition interface.
+  Validates input tool definitions passed to generateResponse.
+ */
+export const ToolDefinitionSchema = z.object({
+  name: z.string().describe("The name of the function to be called."),
+  description: z
+    .string()
+    .optional()
+    .describe("A description of what the function does."),
+  parameters: z
+    .record(
+      z.string(),
+      z.object({
+        type: z.string().optional(),
+        description: z.string().optional(),
+      })
+    )
+    .optional()
+    .describe(
+      "The parameters the tool accepts, as a map of parameter name to its definition."
+    ),
+  strict: z
+    .boolean()
+    .nullable()
+    .optional()
+    .describe("Whether to enable strict parameter schema adherence."),
+});
+
 export const ConversationEvalCaseSchema = z.object({
   name: z.string(),
   expectation: z // Not used by scorers - This is just for our reference
@@ -43,7 +72,7 @@ export const ConversationEvalCaseSchema = z.object({
     .array(z.string())
     .optional()
     .describe(
-      "System prompt adherance criteria for the response. Do not add criteria for response quality, only evaluate whether instructions were followed."
+      "System prompt adherance criteria for the response. Do not add criteria for response quality."
     ),
   expectedLinks: z
     .array(z.string())
@@ -56,11 +85,11 @@ export const ConversationEvalCaseSchema = z.object({
   customSystemPrompt: z
     .string()
     .optional()
-    .describe("Custom system prompt to use for this test case"),
+    .describe("Custom, user-defined system prompt to use for this test case."),
   customTools: z
-    .object({})
+    .array(ToolDefinitionSchema)
     .optional()
-    .describe("Custom tools to pass to LLM for use during generation"),
+    .describe("Any additional user-defined tools to give the LLM access to."),
   customData: z
     .record(z.unknown())
     .optional()
@@ -68,6 +97,7 @@ export const ConversationEvalCaseSchema = z.object({
 });
 
 export type ConversationEvalCase = z.infer<typeof ConversationEvalCaseSchema>;
+
 /**
   Get conversation eval cases from YAML file.
   Throws if the YAML is not correctly formatted.

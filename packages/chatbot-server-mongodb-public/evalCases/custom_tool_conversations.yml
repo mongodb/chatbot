@@ -1,0 +1,54 @@
+- name: custom_tool_no_parameters
+  messages:
+    - role: user
+      content: What MongoDB courses are available? 
+  expectation: A 'mongodb_university_lookup' is returned
+  customTools:
+    - name: mongodb_university_lookup
+      description: Fetches the current catalog of MongoDB University courses. 
+  tags:
+    - customTools
+- name: custom_tool_with_parameters
+  messages:
+    - role: user
+      content: >
+        Can you help debug my code? It's not doing anything
+        
+        def bubble_sort(arr):
+          n = len(arr)
+          for i in range(n):
+              for j in range(0, n - i):
+                  if arr[j] > arr[j + 1]:
+                      arr[j], arr[j + 1] = arr[j + 1], arr[j]
+  expectation: A 'code_execution' tool call is returned
+  customTools:
+    - name: code_execution
+      description: Executes a given code snippet and returns the output. This tool should be called when debugging  or troubleshooting to get code execution results
+      parameters:
+        code:
+          type: string
+          description: The code snippet to execute.
+        language:
+          type: string
+          description: The programming language of the code snippet.
+      strict: true
+  tags:
+  - customTools
+- name: custom_tool_multiple_tools
+  messages:
+    - role: user
+      content: I am using MongoDB Atlas but it says my database version is outdated, what's the current version of MongoDB?
+  expectation: The correct tool for the question, 'mongodb_version', is called.
+  customTools:
+    - name: mongodb_version
+      description: Gets the current, most up-to-date MongoDB version.
+    - name: mongodb_person
+      description: Gets the (public) information about a MongoDB-affiliated person using the MongoDB org chart.
+      parameters:
+        name: 
+          type: string
+          description: The MongoDB person name to look up information for. Must be formatted as "lastName, firstName".
+    - name: mongodb_news
+      description: Searches the web for current news related to MongoDB.
+  tags: 
+    - customTools

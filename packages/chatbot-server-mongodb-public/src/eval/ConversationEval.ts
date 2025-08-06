@@ -13,8 +13,9 @@ import {
   logger,
   Message,
 } from "mongodb-chatbot-server";
+import { AssistantMessage, SomeMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
 import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
@@ -26,14 +27,21 @@ import { extractTracingData } from "../tracing/extractTracingData";
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
   latestMessageText: string;
+  customData?: Record<string, unknown>;
   customSystemPrompt?: string;
-  // customTools
+  customToolDefinitions?: OpenAI.FunctionDefinition[] | undefined;
 }
+
+type ConversationExpectedMessage = {
+  role: SomeMessage["role"] | "assistant-tool";
+  toolCallName?: string;
+  toolCallArgs?: Record<string, string>;
+};
 
 type ConversationEvalCaseExpected = {
   links?: string[];
   promptAdherence?: string[];
-  messages?: Record<string, unknown>[]; // TODO - This type should be more strict
+  messages?: ConversationExpectedMessage[];
   reference?: string;
   expectation?: string;
   reject?: boolean;
@@ -69,6 +77,7 @@ type ConversationEvalScorer = EvalScorer<
 const RetrievedContext: ConversationEvalScorer = async (args) => {
   const name = "RetrievedContext";
   if (!args.output.context) {
+    // Might want to not run this metric if custom tools are given, since they can end early
     return {
       name,
       score: null,
@@ -190,6 +199,7 @@ const makeFactuality: ConversationEvalScorerConstructor =
       });
   };
 
+// TODO - can we use BT proxy?
 const makeJudgeModel = (config: JudgeModelConfig) => {
   return wrapOpenAI(new AzureOpenAI(config.azureOpenAi));
 };
@@ -216,7 +226,9 @@ You must output well-formatted JSON with the following structure. Each criteria 
 Do not return any preamble or explanations, return only a pure JSON string.
 `;
 
-const makePromptAdherence: ConversationEvalScorerConstructor = (judgeModelConfig) => {
+const makePromptAdherence: ConversationEvalScorerConstructor = (
+  judgeModelConfig
+) => {
   const judgeModel = makeJudgeModel(judgeModelConfig);
 
   return async (args) => {
@@ -225,7 +237,6 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (judgeModelConfig
       !args.expected?.promptAdherence ||
       args.expected.promptAdherence.length === 0
     ) {
-      // No 
       return {
         name,
         score: null,
@@ -271,6 +282,43 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (judgeModelConfig
   };
 };
 
+const ToolCallAmountCorrect: ConversationEvalScorer = (args) => {
+  const name = "ToolCallAmountCorrect";
+  if (args.expected?.messages === undefined) {
+    return {
+      name,
+      score: null,
+    };
+  }
+
+  const expectedToolCallCount = args.expected.messages.filter(
+    (message) => message.role === "assistant-tool"
+  ).length;
+  const actualToolCallCount = args.output.messages.filter(
+    (message) => message.role === "assistant" && message?.toolCall !== undefined
+  ).length;
+
+  if (expectedToolCallCount === 0) {
+    return {
+      name,
+      score: actualToolCallCount === 0 ? 1 : 0,
+      metadata: {
+        actualToolCallCount,
+        expectedToolCallCount,
+      },
+    };
+  }
+  return {
+    name,
+    score: actualToolCallCount / expectedToolCallCount,
+    metadata: {
+      actualToolCallCount,
+      expectedToolCallCount,
+    },
+  };
+};
+
+/** Verify the messages called in the correct order with the correct tool calls */
 const MessageOrderCorrect: ConversationEvalScorer = (args) => {
   const name = "MessageOrderCorrect";
   if (args.expected?.messages === undefined) {
@@ -279,12 +327,59 @@ const MessageOrderCorrect: ConversationEvalScorer = (args) => {
       score: null,
     };
   }
+
+  if (args.output.messages.length !== args.expected.messages.length) {
+    return {
+      name: name,
+      score: 0,
+      metadata: {
+        message: "Output and expected messages length were different",
+      },
+    };
+  }
+
+  const score =
+    args.output.messages
+      .map((outputMessage, idx) => {
+        const expectedMessage = args.expected.messages?.[idx];
+
+        // If the expected message is undefined, score 0
+        if (!expectedMessage) {
+          return 0;
+        }
+
+        const sameRole =
+          (expectedMessage.role === "assistant-tool" &&
+            outputMessage.role === "assistant") ||
+          expectedMessage.role === outputMessage.role;
+
+        // If different role, score 0
+        if (!sameRole) {
+          return 0;
+        }
+
+        // Also validate the correct tool was called (by name)
+        const hasExpectedToolCall =
+          outputMessage.role === "assistant"
+            ? outputMessage.toolCall?.function.name ===
+              expectedMessage.toolCallName
+            : true;
+
+        const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
+        return messageScore;
+      })
+      .reduce((acc, score) => acc + score, 0) / args.output.messages.length;
+
   return {
-    name,
-    score: null, // TODO
+    name: name,
+    score,
+    metadata: {
+      message: `Scored ${score} based on matching roles`,
+    },
   };
 };
 
+/** Verify the correct args were generated for the tool call(s) */
 const ToolArgumentsCorrect: ConversationEvalScorer = (args) => {
   const name = "ToolArgumentsCorrect";
   if (args.expected?.messages === undefined) {
@@ -293,9 +388,59 @@ const ToolArgumentsCorrect: ConversationEvalScorer = (args) => {
       score: null,
     };
   }
+  let totalToolArgsCorrect = 0;
+  let totalToolArgs = 0;
+
+  args.output.messages.forEach((outputMessage, idx) => {
+    const expectedMessage = args.expected.messages?.[idx];
+
+    // We're not expecting anything.
+    if (!expectedMessage) return;
+
+    const sameRole =
+      (expectedMessage.role === "assistant-tool" &&
+        outputMessage.role === "assistant") ||
+      expectedMessage.role === outputMessage.role;
+
+    // There's a role mismatch (already caught in MessageOrderCorrect)
+    if (!sameRole) return;
+
+    const hasExpectedToolCallAndArgs =
+      expectedMessage.role === "assistant-tool" &&
+      expectedMessage.toolCallArgs !== undefined;
+
+    // Check the correct args were passed to the tool
+    if (hasExpectedToolCallAndArgs) {
+      const outputArguments = JSON.parse(
+        (outputMessage as AssistantMessage).toolCall?.function.arguments ?? "{}"
+      );
+      for (const [key, value] of Object.entries(
+        expectedMessage.toolCallArgs as Record<string, string>
+      )) {
+        totalToolArgs++;
+        if (outputArguments?.[key] && outputArguments[key] === value) {
+          totalToolArgsCorrect++;
+        } else {
+          console.log(
+            `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`
+          );
+        }
+      }
+    }
+  });
+  if (totalToolArgs === 0) {
+    return {
+      name,
+      score: null,
+      metadata: {
+        message: "No evaluation to peform - Zero expected args passed.",
+      },
+    };
+  }
   return {
     name,
-    score: null, // TODO
+    score: totalToolArgsCorrect / totalToolArgs,
+    metadata: { totalToolArgsCorrect, totalToolArgs },
   };
 };
 
@@ -346,7 +491,25 @@ export async function makeConversationEval({
               _id: new ObjectId(),
               createdAt: new Date(),
             },
+            customData: evalCase.customData,
             customSystemPrompt: evalCase.customSystemPrompt,
+            customToolDefinitions:
+              evalCase.customTools !== undefined
+                ? evalCase.customTools.map((tool) => {
+                    const functionDefinition: OpenAI.FunctionDefinition = {
+                      name: tool.name,
+                      description: tool.description,
+                      strict: tool.strict,
+                    };
+                    if (tool.parameters) {
+                      functionDefinition.parameters = {
+                        type: "object",
+                        properties: tool.parameters,
+                      };
+                    }
+                    return functionDefinition;
+                  })
+                : undefined,
           },
           expected: {
             expectation: evalCase.expectation,
@@ -374,6 +537,8 @@ export async function makeConversationEval({
               reqId: id.toHexString(),
               shouldStream: false,
               customSystemPrompt: input.customSystemPrompt,
+              toolDefinitions: input.customToolDefinitions,
+              customData: input.customData,
             }),
           {
             name: "generateResponse",
@@ -415,6 +580,7 @@ export async function makeConversationEval({
       InputGuardrailExpected,
       ContextRelevancy,
       PromptAdherence,
+      ToolCallAmountCorrect,
       MessageOrderCorrect,
       ToolArgumentsCorrect,
     ],

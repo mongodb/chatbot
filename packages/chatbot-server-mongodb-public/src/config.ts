@@ -308,7 +308,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),
-        { name: "generateResponseWithSearchTool" }
+        { name: "generateResponseWithTools" }
       ),
     }),
     {
@@ -369,7 +369,10 @@ export const config: AppConfig = {
     }),
     searchResultsStore,
     embeddedContentStore,
-    middleware: [requireValidIpAddress<ContentRouterLocals>(), requireRequestOrigin<ContentRouterLocals>()],
+    middleware: [
+      requireValidIpAddress<ContentRouterLocals>(),
+      requireRequestOrigin<ContentRouterLocals>(),
+    ],
   },
   conversationsRouterConfig: {
     middleware: [

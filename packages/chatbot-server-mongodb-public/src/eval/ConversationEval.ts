@@ -199,11 +199,6 @@ const makeFactuality: ConversationEvalScorerConstructor =
       });
   };
 
-// TODO - can we use BT proxy?
-const makeJudgeModel = (config: JudgeModelConfig) => {
-  return wrapOpenAI(new AzureOpenAI(config.azureOpenAi));
-};
-
 const PromptAdherenceAssessmentPrompt = `You are assessing whether the given text aligns with the expectation for that text. If the text meets the expected criterion, you will score it as 1. 
 Otherwise, if the text does not meet the expected criterion, you will score it as 0.
 
@@ -229,7 +224,7 @@ Do not return any preamble or explanations, return only a pure JSON string.
 const makePromptAdherence: ConversationEvalScorerConstructor = (
   judgeModelConfig
 ) => {
-  const judgeModel = makeJudgeModel(judgeModelConfig);
+  const judgeModel = wrapOpenAI(new AzureOpenAI(judgeModelConfig.azureOpenAi));
 
   return async (args) => {
     const name = "PromptAdherence";

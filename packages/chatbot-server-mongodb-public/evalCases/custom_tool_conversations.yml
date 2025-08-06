@@ -3,6 +3,10 @@
     - role: user
       content: What MongoDB courses are available? 
   expectation: A 'mongodb_university_lookup' is returned
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: mongodb_university_lookup
   customTools:
     - name: mongodb_university_lookup
       description: Fetches the current catalog of MongoDB University courses. 
@@ -21,6 +25,10 @@
                   if arr[j] > arr[j + 1]:
                       arr[j], arr[j + 1] = arr[j + 1], arr[j]
   expectation: A 'code_execution' tool call is returned
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: code_execution
   customTools:
     - name: code_execution
       description: Executes a given code snippet and returns the output. This tool should be called when debugging  or troubleshooting to get code execution results
@@ -39,6 +47,10 @@
     - role: user
       content: I am using MongoDB Atlas but it says my database version is outdated, what's the current version of MongoDB?
   expectation: The correct tool for the question, 'mongodb_version', is called.
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: mongodb_version
   customTools:
     - name: mongodb_version
       description: Gets the current, most up-to-date MongoDB version.
@@ -51,4 +63,70 @@
     - name: mongodb_news
       description: Searches the web for current news related to MongoDB.
   tags: 
+    - customTools
+- name: custom_tool_infer_and_format_parameter
+  messages:
+    - role: user
+      content: Can you tell me about Dev Ittycheria?
+  expectation: The LLM correctly infers and formats the 'name' parameter as required by the tool's schema.
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: mongodb_person
+      toolCallArgs:
+        name: "Ittycheria, Dev"
+  customTools:
+    - name: mongodb_person
+      description: Gets the (public) information about a MongoDB-affiliated person using the MongoDB org chart.
+      parameters:
+        name:
+          type: string
+          description: The MongoDB person name to look up information for. Must be formatted as "lastName, firstName".
+      strict: true
+  tags:
+    - customTools
+- name: custom_tool_ambiguous_query
+  messages:
+    - role: user
+      content: What are the latest updates for MongoDB?
+  expectation: The LLM chooses the 'mongodb_news' tool over 'mongodb_version' for a vague query about "updates".
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: mongodb_news
+  customTools:
+    - name: mongodb_version
+      description: Gets the current, most up-to-date MongoDB version number.
+    - name: mongodb_news
+      description: Searches the web for current news, articles, and updates related to MongoDB.
+  tags:
+    - customTools
+- name: custom_tool_multiple_related_parameters
+  messages:
+    - role: user
+      content: I need to set up a daily backup for my 'production-cluster' and keep the backups for 30 days.
+  expectation: The LLM correctly extracts multiple related parameters from a single user sentence.
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: schedule_backup
+      toolCallArgs:
+        clusterName: production-cluster
+        frequency: daily
+        retentionDays: "30"
+  customTools:
+    - name: schedule_backup
+      description: Schedules a new backup job for a specified cluster.
+      parameters:
+        clusterName:
+          type: string
+          description: The name of the cluster to back up.
+        frequency:
+          type: string
+          description: How often the backup should run. e.g., 'daily', 'weekly'.
+        retentionDays:
+          type: number
+          description: The number of days to keep the backup.
+      strict: true
+  tags:
     - customTools

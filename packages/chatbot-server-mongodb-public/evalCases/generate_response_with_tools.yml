@@ -329,3 +329,29 @@
   tags:
     - fetch_page
     - fallback_to_search
+- name: use_secret_and_custom_tools
+  expectation: should use secret tool 'search_content' then follow up with the custom tool
+  messages:
+    - role: user
+      content: How do I insert a document into a MongoDB collection using Typescript?
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: search_content
+    - role: tool
+    - role: assistant-tool
+      toolCallName: run_sandbox_code 
+  customTools:
+    - name: run_sandbox_code
+      description: Runs code in a sandbox environment so we can demonstrate to the user what it does. This tool should ALWAYS be used after code is generated.
+      parameters:
+        code:
+          type: string
+          description: The code snippet to execute.
+        language:
+          type: string
+          description: The programming language of the code snippet.
+      strict: true
+  tags:
+    - search_content
+    - customTools

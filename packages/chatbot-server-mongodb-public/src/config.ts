@@ -58,7 +58,7 @@ import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
-} from "./tracing/routesUpdateTraceHandlers";
+} from "./tracing/traceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeSearchTool } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
@@ -361,6 +361,23 @@ export async function closeDbConnections() {
 
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
+const addMessageToConversationUpdateTrace =
+  makeAddMessageToConversationUpdateTrace({
+    k: retrievalConfig.findNearestNeighborsOptions.k,
+    llmAsAJudge: {
+      ...llmAsAJudgeConfig,
+      percentToJudge: isProduction ? 0.1 : 1,
+    },
+    segment: segmentConfig,
+    braintrustLogger,
+    embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+    scrubbedMessageStore,
+    analyzerModel: wrapLanguageModel({
+      model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+      middleware: [BraintrustMiddleware({ debug: true })],
+    }),
+  });
+
 export const config: AppConfig = {
   contentRouterConfig: {
     findContent: makeFindContentWithMongoDbMetadata({
@@ -369,7 +386,10 @@ export const config: AppConfig = {
     }),
     searchResultsStore,
     embeddedContentStore,
-    middleware: [requireValidIpAddress<ContentRouterLocals>(), requireRequestOrigin<ContentRouterLocals>()],
+    middleware: [
+      requireValidIpAddress<ContentRouterLocals>(),
+      requireRequestOrigin<ContentRouterLocals>(),
+    ],
   },
   conversationsRouterConfig: {
     middleware: [
@@ -397,22 +417,7 @@ export const config: AppConfig = {
       }
       return customData;
     },
-    addMessageToConversationUpdateTrace:
-      makeAddMessageToConversationUpdateTrace({
-        k: retrievalConfig.findNearestNeighborsOptions.k,
-        llmAsAJudge: {
-          ...llmAsAJudgeConfig,
-          percentToJudge: isProduction ? 0.1 : 1,
-        },
-        segment: segmentConfig,
-        braintrustLogger,
-        embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-        scrubbedMessageStore,
-        analyzerModel: wrapLanguageModel({
-          model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
-          middleware: [BraintrustMiddleware({ debug: true })],
-        }),
-      }),
+    addMessageToConversationUpdateTrace,
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
       segment: segmentConfig,
@@ -462,6 +467,7 @@ export const config: AppConfig = {
       maxOutputTokens: 4000,
       maxUserMessagesInConversation: 6,
       alwaysAllowedMetadataKeys: ["ip", "origin", "userAgent"],
+      updateTrace: addMessageToConversationUpdateTrace,
     },
   },
   maxRequestTimeoutMs: 60000,

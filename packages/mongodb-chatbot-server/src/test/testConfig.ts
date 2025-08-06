@@ -17,6 +17,7 @@ import { AppConfig } from "../app";
 import { GenerateResponse, makeFilterNPreviousMessages } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
 import { MONGO_MEMORY_SERVER_URI } from "./constants";
+import { UpdateTraceFunc } from "../processors/UpdateTraceFunc";
 
 let mongoClient: MongoClient | undefined;
 export let memoryDb: Db;
@@ -210,6 +211,10 @@ export const basicResponsesRequestBody = {
   input: "What is MongoDB?",
 };
 
+export const mockUpdateTrace: UpdateTraceFunc = jest
+  .fn()
+  .mockResolvedValue(undefined);
+
 export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);
   return {
@@ -225,6 +230,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
         maxOutputTokens: 4000,
         maxUserMessagesInConversation: 6,
         alwaysAllowedMetadataKeys: TEST_ALWAYS_ALLOWED_METADATA_KEYS,
+        updateTrace: mockUpdateTrace,
       },
     },
     maxRequestTimeoutMs: 30000,

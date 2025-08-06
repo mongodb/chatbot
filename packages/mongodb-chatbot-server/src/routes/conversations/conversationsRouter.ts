@@ -29,7 +29,7 @@ import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
-import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { UpdateTraceFunc } from "../../processors/UpdateTraceFunc";
 import { GenerateResponse } from "../../processors/GenerateResponse";
 import { Logger } from "mongodb-rag-core/braintrust";
 import { AddCustomDataFunc, addDefaultCustomData } from "../../processors";
@@ -193,7 +193,10 @@ export function makeConversationsRouter({
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
   rateLimitConfig,
-  middleware = [requireValidIpAddress<ConversationsRouterLocals>(), requireRequestOrigin<ConversationsRouterLocals>()],
+  middleware = [
+    requireValidIpAddress<ConversationsRouterLocals>(),
+    requireRequestOrigin<ConversationsRouterLocals>(),
+  ],
   createConversationCustomData = addDefaultCustomData,
   addMessageToConversationCustomData = addDefaultCustomData,
   addMessageToConversationUpdateTrace,

@@ -11,6 +11,7 @@ export async function makeScrubbedMessagesFromTracingData({
   analysis,
   embeddingModelName,
   reqId,
+  storedMessageContent,
 }: {
   tracingData: ReturnType<typeof extractTracingData>;
   analysis?: {
@@ -18,16 +19,19 @@ export async function makeScrubbedMessagesFromTracingData({
   };
   embeddingModelName: string;
   reqId: string;
+  storedMessageContent: boolean;
 }): Promise<ScrubbedMessage<MessageAnalysis>[]> {
   const { userMessage, assistantMessage } = tracingData;
   if (!userMessage) {
     throw new Error("User message not found");
   }
 
+  const shouldAnalyzeUserMessage = analysis && storedMessageContent;
+
   const { redactedText: redactedUserContent, piiFound: userMessagePii } =
     redactPii(userMessage.content);
 
-  const userAnalysis = analysis
+  const userAnalysis = shouldAnalyzeUserMessage
     ? await analyzeMessage(redactedUserContent, analysis.model).catch(
         (error) => {
           logRequest({
@@ -70,7 +74,7 @@ export async function makeScrubbedMessagesFromTracingData({
   } = redactPii(assistantMessage.content);
 
   const assistantAnalysis =
-    analysis && !tracingData.isVerifiedAnswer
+    shouldAnalyzeUserMessage && !tracingData.isVerifiedAnswer
       ? await analyzeMessage(redactedAssistantContent, analysis.model).catch(
           (error) => {
             logRequest({

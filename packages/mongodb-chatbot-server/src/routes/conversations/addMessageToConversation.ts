@@ -26,11 +26,12 @@ import {
 } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import {
-  ConversationsRouterLocals,
-} from "./conversationsRouter";
+import { ConversationsRouterLocals } from "./conversationsRouter";
 import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
-import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
+import {
+  UpdateTraceFunc,
+  updateTraceIfExists,
+} from "../../processors/UpdateTraceFunc";
 import {
   GenerateResponse,
   GenerateResponseParams,

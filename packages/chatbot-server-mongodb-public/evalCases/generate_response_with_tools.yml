@@ -307,7 +307,51 @@
     - role: assistant
   tags:
     - search_content
-
+- name: search_tool_ignores_related_url_when_no_instruction
+  expectation: The search tool should be used when no user instruction is given otherwise.
+  messages:
+    - role: user
+      content: How do I set up billing alerts for Atlas
+  customData: 
+    origin: https://www.mongodb.com/docs/atlas/billing/
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: search_content 
+    - role: tool
+    - role: assistant
+  tags:
+    - search_content
+- name: search_tool_ignores_related_url_when_no_instruction_2
+  expectation: The search tool should be used when no user instruction is given otherwise.
+  messages: 
+    - role: user
+      content: how to backup Atlas cluster when using GCP
+  customData: 
+    origin: https://www.mongodb.com/docs/atlas/backup-restore-cluster/
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: search_content 
+    - role: tool
+    - role: assistant
+  tags:
+    - search_content
+- name: search_tool_ignores_related_url_when_no_instruction_3
+  expectation: The search tool should be used when no user instruction is given otherwise.
+  messages: 
+    - role: user
+      content: count documents with a condition
+  customData: 
+    origin: https://www.mongodb.com/docs/php-library/current/crud/query/count/
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: search_content 
+    - role: tool
+    - role: assistant
+  tags:
+    - search_content
 - name: fetch_page_answer_not_on_long_page_search_fallback
   expectation: should fall back to search if required information is not on a long (>150000 character) page
   messages:

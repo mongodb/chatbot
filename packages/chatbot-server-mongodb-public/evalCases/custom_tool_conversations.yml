@@ -33,12 +33,12 @@
     - name: code_execution
       description: Executes a given code snippet and returns the output. This tool should be called when debugging  or troubleshooting to get code execution results
       parameters:
-        code:
-          type: string
-          description: The code snippet to execute.
         language:
           type: string
           description: The programming language of the code snippet.
+        code:
+          type: string
+          description: The code snippet to execute.
       strict: true
   tags:
   - customTools

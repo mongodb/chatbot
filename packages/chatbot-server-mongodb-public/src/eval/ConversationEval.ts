@@ -246,8 +246,8 @@ You must output well-formatted JSON with the following structure. Each criteria 
 {
   "assessments": [
     {
-      "score": <int: 0 or 1>,
       "reason": <string: your reasoning for the score given.>,
+      "score": <int: 0 or 1>,
     }, ...
   ]
 }
@@ -371,43 +371,43 @@ const MessageOrderCorrect: ConversationEvalScorer = (args) => {
     };
   }
 
-  const score =
-    args.output.messages
-      .map((outputMessage, idx) => {
-        const expectedMessage = args.expected.messages?.[idx];
+  const numMatchingMessages = args.output.messages
+    .map((outputMessage, idx) => {
+      const expectedMessage = args.expected.messages?.[idx];
 
-        // If the expected message is undefined, score 0
-        if (!expectedMessage) {
-          return 0;
-        }
+      // If the expected message is undefined, score 0
+      if (!expectedMessage) {
+        return 0;
+      }
 
-        const sameRole =
-          (expectedMessage.role === "assistant-tool" &&
-            outputMessage.role === "assistant") ||
-          expectedMessage.role === outputMessage.role;
+      const sameRole =
+        (expectedMessage.role === "assistant-tool" &&
+          outputMessage.role === "assistant") ||
+        expectedMessage.role === outputMessage.role;
 
-        // If different role, score 0
-        if (!sameRole) {
-          return 0;
-        }
+      // If different role, score 0
+      if (!sameRole) {
+        return 0;
+      }
 
-        // Also validate the correct tool was called (by name)
-        const hasExpectedToolCall =
-          outputMessage.role === "assistant"
-            ? outputMessage.toolCall?.function.name ===
-              expectedMessage.toolCallName
-            : true;
+      // Also validate the correct tool was called (by name)
+      const hasExpectedToolCall =
+        outputMessage.role === "assistant"
+          ? outputMessage.toolCall?.function.name ===
+            expectedMessage.toolCallName
+          : true;
 
-        const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
-        return messageScore;
-      })
-      .reduce((acc, score) => acc + score, 0) / args.output.messages.length;
+      const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
+      return messageScore;
+    })
+    .reduce((acc, score) => acc + score, 0);
 
   return {
     name: name,
-    score,
+    score: numMatchingMessages / args.output.messages.length,
     metadata: {
-      message: `Scored ${score} based on matching roles`,
+      numMatchingMessages,
+      totalMessages: args.output.messages.length,
     },
   };
 };

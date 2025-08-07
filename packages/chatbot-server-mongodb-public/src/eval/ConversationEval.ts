@@ -12,23 +12,18 @@ import {
   logger,
   Message,
 } from "mongodb-chatbot-server";
-import {
-  assertEnvVars,
-  BRAINTRUST_ENV_VARS,
-  AssistantMessage,
-  SomeMessage,
-} from "mongodb-rag-core";
+import { AssistantMessage, SomeMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { models, ModelConfig } from "mongodb-rag-core/models";
 import {
-  models,
-  ModelConfig,
-} from "mongodb-rag-core/models";
-import { createOpenAI } from "mongodb-rag-core/aiSdk";
+  createOpenAI,
+  wrapLanguageModel,
+  generateObject,
+} from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
-import { wrapLanguageModel, generateObject } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
@@ -89,7 +84,6 @@ type ConversationEvalScorer = EvalScorer<
 const RetrievedContext: ConversationEvalScorer = async (args) => {
   const name = "RetrievedContext";
   if (!args.output.context) {
-    // Might want to not run this metric if custom tools are given, since they can end early
     return {
       name,
       score: null,

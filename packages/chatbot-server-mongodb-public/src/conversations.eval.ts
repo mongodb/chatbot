@@ -43,7 +43,7 @@ async function conversationEval() {
       "utf8"
     )
   );
-  const secretToolCases = await getConversationsEvalCasesFromYaml(
+  const internalToolCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "generate_response_with_tools.yml"),
       "utf8"
@@ -62,7 +62,7 @@ async function conversationEval() {
     ...dotComCases,
     ...voyageCases,
     ...systemPromptCases,
-    ...secretToolCases,
+    ...internalToolCases,
     ...customToolCases,
   ];
 

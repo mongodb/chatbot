@@ -125,8 +125,8 @@
           type: string
           description: How often the backup should run. e.g., 'daily', 'weekly'.
         retentionDays:
-          type: number
-          description: The number of days to keep the backup.
+          type: string
+          description: The number of days, as an integer, to keep the backup.
       strict: true
   tags:
     - customTools

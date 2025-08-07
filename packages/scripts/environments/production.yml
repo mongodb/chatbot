@@ -57,7 +57,7 @@ cronJobs:
     backoffLimit: 2
 
   - name: process-citations-for-metrics
-    schedule: "1 0 * * *" # every day at 00:01 (12:01 AM) UTC
+    schedule: "1 4 * * *" # every day at 04:01 UTC, after Profound is done processing prompts for the day
     command: ["npm", "run", "scripts:getLLMAnswers"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-prod

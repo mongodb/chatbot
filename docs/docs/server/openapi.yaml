@@ -1011,7 +1011,7 @@ components:
               description: Conversation ID
           additionalProperties:
             type: string
-          description: Additional metadata
+          description: Additional metadata and conversation ID
       required:
         [
           id,
@@ -1029,6 +1029,7 @@ components:
           tool_choice,
           tools,
           top_p,
+          metadata,
         ]
     StreamEventDelta:
       description: Assistant response text.

@@ -12,13 +12,7 @@ export const ToolDefinitionSchema = z.object({
     .optional()
     .describe("A description of what the function does."),
   parameters: z
-    .record(
-      z.string(),
-      z.object({
-        type: z.string().optional(),
-        description: z.string().optional(),
-      })
-    )
+    .record(z.string(), z.any())
     .optional()
     .describe(
       "The parameters the tool accepts, as a map of parameter name to its definition."

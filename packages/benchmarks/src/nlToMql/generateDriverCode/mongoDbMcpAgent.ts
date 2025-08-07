@@ -4,8 +4,8 @@ import {
   ModelMessage,
   stepCountIs,
   StopCondition,
+  streamText
   experimental_createMCPClient,
-  Experimental_StdioMCPTransport,
 } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 
@@ -30,12 +30,13 @@ export function makeMongoDbMcpAgent({
     messages,
     maxSteps = 10,
   }: MongoDbMcpAgentParams) {
-    const response = await generateText({
+    const response = await streamText({
       model,
       system: systemPrompt,
       messages,
       stopWhen: [...(stopConditions ?? []), stepCountIs(maxSteps)],
     });
-    return response.text;
+
+    const sources = await response.sources;
   });
 }

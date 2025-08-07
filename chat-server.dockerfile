@@ -10,8 +10,8 @@ ENV VITE_GIT_COMMIT=${GIT_COMMIT}
 WORKDIR /app
 COPY . ./
 RUN npm install lerna
-RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui}'
-RUN npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui}'
+RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui,mongodb-chatbot-verified-answers}'
+RUN npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui,mongodb-chatbot-verified-answers}'
 
 ENV NODE_ENV=production
 

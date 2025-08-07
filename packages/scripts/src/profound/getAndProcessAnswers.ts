@@ -144,21 +144,19 @@ const model: ModelConfig = {
 
 export const main = async (startDateArg?: string, endDateArg?: string) => {
   // START setup
-  // Parse optional startDate and endDate from command line arguments
-  let start: Date, end: Date;
-  if (startDateArg) {
-    const startDate = new Date(startDateArg);
-    const endDate = endDateArg ? new Date(endDateArg) : startDate;
-    ({ start, end } = getFullDayRange(startDate, endDate));
-  } else {
-    // Default to yesterday
-    const now = new Date();
-    const utcYear = now.getUTCFullYear();
-    const utcMonth = now.getUTCMonth();
-    const utcDate = now.getUTCDate();
-    const yesterday = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1));
-    ({ start, end } = getFullDayRange(yesterday, yesterday));
-  }
+
+  // Determine date range from command line arguments, or default to yesterday --> today
+  // Note: The Profound API expects date inputs in EST, bc they execute prompts within a 24 hour EST window.
+  let start: string, end: string;
+  const today: Date = new Date();
+  const yesterday: Date = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  start = startDateArg 
+    ? startDateArg 
+    : `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+  end = endDateArg 
+    ? endDateArg 
+    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   const db = client.db(MONGODB_DATABASE_NAME);
@@ -174,13 +172,13 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   // END set up
 
   const answers = await getAnswers({
-    startDate: start.toISOString(),
-    endDate: end.toISOString(),
+    startDate: start,
+    endDate: end,
   });
   console.log(
     `Processing ${
       answers.length
-    } answers generated between ${start.toISOString()} and ${end.toISOString()}`
+    } answers generated between ${start} and ${end}`
   );
 
   // get reference alignment scores for answers
@@ -316,7 +314,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const inserted = result.upsertedCount || 0;
       const updated = result.modifiedCount || 0;
       console.log(
-        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start.toISOString()} and ${end.toISOString()}).`
+        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start} and ${end}).`
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);
@@ -334,15 +332,17 @@ if (process.argv.includes("--help")) {
 Usage: node getAndProcessAnswers.js [startDate] [endDate]
 
 Optional arguments:
-  startDate   ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
-  endDate     ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
+  startDate   date string (e.g., 2025-06-01). If omitted, defaults to yesterday (EST).
+  endDate     date string (e.g., 2025-06-02). If omitted, defaults to today (EST).
 
-Date range is inclusive: the start date will have the time set to T00:00:00.000Z and the end date will have the time set to T23:59:59.999Z.
+The end date is exclusive. 
+For example, if you want to process answers from June 1st to June 5th, you should use 2025-06-01 and 2025-06-06.
+If you want to process one day, like June 1st, you should use 2025-06-01 and 2025-06-02.
 
 Examples:
   node getAndProcessAnswers.js
-  node getAndProcessAnswers.js 2025-06-20
-  node getAndProcessAnswers.js 2025-06-20 2025-06-30
+  node getAndProcessAnswers.js 2025-06-01
+  node getAndProcessAnswers.js 2025-06-01 2025-06-06
 `);
   process.exit(0);
 }

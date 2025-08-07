@@ -20,14 +20,6 @@ const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } = assertEnvVars({
 
 const profoundAPI = new ProfoundApi();
 
-const getFullDayRange = (from: Date, to: Date) => {
-  const start = new Date(from);
-  start.setUTCHours(0, 0, 0, 0);
-  const end = new Date(to);
-  end.setUTCHours(23, 59, 59, 999);
-  return { start, end };
-};
-
 export interface GetAnswersArgs {
   startDate: string;
   endDate: string;
@@ -77,7 +69,7 @@ interface CaseByProfoundPromptId {
     caseId: ObjectId;
     metadata: {
       category: string;
-    }
+    };
   };
 }
 const casesByPromptId = async (
@@ -108,9 +100,7 @@ interface DatasetByTag {
     slug: string;
   };
 }
-const datasetsByTag = async (
-  collection: Collection
-): Promise<DatasetByTag> => {
+const datasetsByTag = async (collection: Collection): Promise<DatasetByTag> => {
   const documents = await collection.find().toArray();
   return documents.reduce((map, doc) => {
     map[doc.query.tags] = {
@@ -121,15 +111,18 @@ const datasetsByTag = async (
   }, {} as DatasetByTag);
 };
 
-const getDataset = (tags: string[], datasetsByTagMap: DatasetByTag): { name: string; slug: string; } | null => {
+const getDataset = (
+  tags: string[],
+  datasetsByTagMap: DatasetByTag
+): { name: string; slug: string } | null => {
   for (const tag of tags) {
     if (datasetsByTagMap[tag]) {
       return datasetsByTagMap[tag];
     }
   }
-  console.error('No matching dataset found for tags:', tags);
+  console.error("No matching dataset found for tags:", tags);
   return null;
-}
+};
 
 const model: ModelConfig = {
   label: "gpt-4.1",
@@ -147,16 +140,21 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
 
   // Determine date range from command line arguments, or default to yesterday --> today
   // Note: The Profound API expects date inputs in EST, bc they execute prompts within a 24 hour EST window.
-  let start: string, end: string;
   const today: Date = new Date();
   const yesterday: Date = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  start = startDateArg 
-    ? startDateArg 
-    : `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-  end = endDateArg 
-    ? endDateArg 
-    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const start: string = startDateArg
+    ? startDateArg
+    : `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(yesterday.getDate()).padStart(2, "0")}`;
+  const end: string = endDateArg
+    ? endDateArg
+    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(today.getDate()).padStart(2, "0")}`;
 
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   const db = client.db(MONGODB_DATABASE_NAME);
@@ -176,9 +174,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
     endDate: end,
   });
   console.log(
-    `Processing ${
-      answers.length
-    } answers generated between ${start} and ${end}`
+    `Processing ${answers.length} answers generated between ${start} and ${end}`
   );
 
   // get reference alignment scores for answers
@@ -191,7 +187,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   };
   const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
-  const promptsWithNoAssociatedCase = new Set()
+  const promptsWithNoAssociatedCase = new Set();
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
     .process(async (currentAnswer) => {
@@ -207,7 +203,9 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentPromptId = currentAnswer.prompt_id;
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
-        promptsWithNoAssociatedCase.add(`${currentPromptId} - ${currentPrompt}`);
+        promptsWithNoAssociatedCase.add(
+          `${currentPromptId} - ${currentPrompt}`
+        );
       }
 
       // calculate reference alignment score
@@ -286,14 +284,18 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         expectedResponse: currentCase?.expected,
         profoundPromptId: currentAnswer.prompt_id,
         profoundRunId: currentAnswer.run_id,
-        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null,
-        category: currentCase ? currentCase.metadata.category : null
+        dataset: currentCase
+          ? getDataset(currentCase.tags, datasetsByTagMap)
+          : null,
+        category: currentCase ? currentCase.metadata.category : null,
       };
       answerRecords.push(answerEngineRecord);
       return answerEngineRecord;
     });
 
-  console.log(`Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`)
+  console.log(
+    `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
+  );
   promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
     console.log(` - ${promptInfo}`);
   });

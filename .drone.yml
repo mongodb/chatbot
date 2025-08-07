@@ -17,6 +17,10 @@ trigger:
       - packages/**/*
       - package-lock.json
       - package.json
+      - chat-server.dockerfile
+      - ingest-service.dockerfile
+      - scripts-service.dockerfile
+      - datasets.dockerfile
 
 steps:
   - name: test

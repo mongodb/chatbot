@@ -513,10 +513,20 @@ const expectValidResponses = async ({
   expect(Array.isArray(responses)).toBe(true);
   expect(responses.length).toBeGreaterThan(0);
 
+  const genericTypes = [
+    "response.created",
+    "response.in_progress",
+    "response.completed",
+  ];
+
   const responseTypes = responses.map((r) => r.type);
-  expect(responseTypes).toContain("response.created");
-  expect(responseTypes).toContain("response.in_progress");
-  expect(responseTypes).toContain("response.completed");
+  for (const type of genericTypes) {
+    expect(responseTypes).toContain(type);
+  }
+  const genericResponses = responses.filter((r) =>
+    genericTypes.includes(r.type)
+  );
+  expect(genericResponses).toHaveLength(3);
 
   responses.forEach(({ response }) => {
     if (response) {
@@ -534,8 +544,16 @@ const expectValidResponses = async ({
       if (requestBody.max_output_tokens) {
         expect(response.max_output_tokens).toBe(requestBody.max_output_tokens);
       }
+      const baseMetadata = {
+        conversation_id: expect.any(String),
+      };
       if (requestBody.metadata) {
-        expect(response.metadata).toEqual(requestBody.metadata);
+        expect(response.metadata).toMatchObject(requestBody.metadata);
+        if (genericTypes.includes(response.type)) {
+          expect(response.metadata).toMatchObject(baseMetadata);
+        }
+      } else {
+        expect(response.metadata).toBeNull();
       }
     }
   });

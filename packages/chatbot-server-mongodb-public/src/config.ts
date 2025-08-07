@@ -466,7 +466,12 @@ export const config: AppConfig = {
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
       maxUserMessagesInConversation: 6,
-      alwaysAllowedMetadataKeys: ["ip", "origin", "userAgent"],
+      alwaysAllowedMetadataKeys: [
+        "ip",
+        "origin",
+        "userAgent",
+        "conversation_id",
+      ],
       updateTrace: addMessageToConversationUpdateTrace,
     },
   },

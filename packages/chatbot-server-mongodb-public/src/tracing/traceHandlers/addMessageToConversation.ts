@@ -112,7 +112,6 @@ export function makeAddMessageToConversationUpdateTrace({
       });
       return;
     }
-    console.log("made it past the return");
 
     // classify metadata
     try {

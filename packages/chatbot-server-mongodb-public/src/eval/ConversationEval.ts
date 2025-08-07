@@ -472,6 +472,16 @@ export async function makeConversationEval({
               role: m.role,
               id: new ObjectId(),
               createdAt: new Date(),
+              toolCall: m.toolCallName
+                ? {
+                    id: "tool-id",
+                    type: "function",
+                    function: {
+                      name: m.toolCallName,
+                      arguments: "{}",
+                    },
+                  }
+                : undefined,
             } satisfies Message)
         );
         const latestMessageText = evalCase.messages.at(-1)?.content;

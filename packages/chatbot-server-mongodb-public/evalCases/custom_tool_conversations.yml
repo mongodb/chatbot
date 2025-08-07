@@ -130,3 +130,53 @@
       strict: true
   tags:
     - customTools
+- name: custom_tools_handles_multiturn_context
+  expectation: should understand the previous context of the conversation from tools
+  messages:
+    - role: user
+      content: What is the latest MongoDB version?
+    - role: assistant
+      content: ""
+      toolCallName: mongodb_version
+    - role: assistant
+      content: The current MongoDB version is 8.0.0. It was released in October 2024.
+    - role: user
+      content: What changed in that version?
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      name: search_content
+    - role: tool
+    - role: assistant
+  customTools:
+    - name: mongodb_version
+      description: Gets the current, most up-to-date MongoDB version number.
+    - name: mongodb_news
+      description: Searches the web for current news, articles, and updates related to MongoDB.
+  tags:
+    - multiturn_conversation
+    - customTools
+- name: custom_tools_handles_multiturn_toolcall
+  expectation: should understand the previous context of the conversation and use the correct tool
+  messages:
+    - role: user
+      content: What is the latest MongoDB version?
+    - role: assistant
+      content: ""
+      toolCallName: mongodb_version
+    - role: assistant
+      content: The current MongoDB version is 8.0.0. It was released in October 2024.
+    - role: user
+      content: Oh, that's old. What about recent MongoDB news?
+  expectedMessageDetail:
+    - role: user
+    - role: assistant-tool
+      toolCallName: mongodb_news
+  customTools:
+    - name: mongodb_version
+      description: Gets the current, most up-to-date MongoDB version number.
+    - name: mongodb_news
+      description: Searches the web for current news, articles, and updates related to MongoDB.
+  tags:
+    - multiturn_conversation
+    - customTools

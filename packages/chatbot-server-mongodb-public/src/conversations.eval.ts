@@ -18,10 +18,10 @@ export const CONVERSATION_EVAL_PROJECT_NAME = "mongodb-chatbot-conversations";
 async function conversationEval() {
   // Get all the conversation eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "evalCases");
-  const miscCases = getConversationsEvalCasesFromYaml(
+  const miscCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
   );
-  const faqCases = getConversationsEvalCasesFromYaml(
+  const faqCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
   );
   const dotComCases = await getConversationsEvalCasesFromYaml(

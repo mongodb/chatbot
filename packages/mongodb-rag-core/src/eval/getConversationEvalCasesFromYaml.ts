@@ -41,6 +41,12 @@ export const ConversationEvalCaseSchema = z.object({
       z.object({
         role: z.enum(["assistant", "user", "system"]),
         content: z.string(),
+        toolCallName: z
+          .string()
+          .optional()
+          .describe(
+            "Only required for tool call messages. Name of the tool being called."
+          ),
       })
     )
     .min(1),
@@ -50,7 +56,6 @@ export const ConversationEvalCaseSchema = z.object({
     .boolean()
     .optional()
     .describe("The system should reject this message"),
-  // Can probably simplify this by excluding assistant-tool and just check for toolargs/name instead in assistant msgs.
   expectedMessageDetail: z
     .array(
       z.object({
@@ -67,7 +72,10 @@ export const ConversationEvalCaseSchema = z.object({
           ),
       })
     )
-    .optional(),
+    .optional()
+    .describe(
+      "Expected new messages. This array starts with the final messages in 'messages'."
+    ),
   expectedPromptAdherence: z
     .array(z.string())
     .optional()

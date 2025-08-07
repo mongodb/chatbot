@@ -1,0 +1,143 @@
+/**
+  Atlas Search index definitions for the `articles` collection.
+ */
+{
+  "name": "article_search",
+  "mappings": {
+    "dynamic": false,
+    /**
+      Fields to index:
+      - title: Full-text and autocomplete
+      - text: Full-text
+      - url: Exact and normalized
+     */
+    "fields": {
+      /**
+       Title with both full-text and autocomplete capabilities
+       */
+      "title": [
+        {
+          "type": "string",
+          "analyzer": "lucene.standard"
+        },
+        /**
+          Index optimized for autocomplete/type-ahead search.
+         */
+        {
+          "type": "autocomplete",
+          "analyzer": "lucene.standard",
+          /**
+            Min length of n-grams indexed is 2 characters.
+           */
+          "minGrams": 2,
+          /**
+            Max length of n-grams indexed is 15 characters.
+            This is a reasonable compromise between search relevance, performance, and storage cost.
+           */
+          "maxGrams": 15,
+          /**
+            Fold diacritics to their base characters, e.g., "á" -> "a".
+           */
+          "foldDiacritics": true
+        }
+      ],
+      /**
+        Full-text search over the `text` field, which contains the article content.
+       */
+      "text": {
+        "type": "string",
+        "analyzer": "text_analyzer"
+      },
+      /**
+        URL for filtering
+       */
+      "url": [
+        {
+          /**
+            For normalized, fuzzy, flexible matching
+           */
+          "type": "string",
+          "analyzer": "url_normalizer_analyzer"
+        }
+      ]
+    }
+  },
+  /**
+    Analyzers configuration for better text processing
+   */
+  "analyzers": [
+    /**
+      Optimized for text search over full documents in the `text` field
+     */
+    {
+      "name": "text_analyzer",
+      "tokenizer": {
+        /**
+          Standard tokenizer.
+          From the docs: It divides text into terms based on word boundaries,
+          which makes it language-neutral for most use cases. 
+          It converts all terms to lower case and removes punctuation. 
+         */
+        "type": "standard"
+      },
+      "tokenFilters": [
+        /**
+          Remove accents
+         */
+        {
+          "type": "icuFolding"
+        },
+        /**
+          Remove possessive suffixes, e.g., "John's" -> "John"
+         */
+        {
+          "type": "englishPossessive"
+        },
+        /**
+          Stem words to their root form, e.g., "running" -> "run"
+         */
+        {
+          "type": "kStemming"
+        }
+      ]
+    },
+    {
+      "name": "url_normalizer_analyzer",
+      "tokenizer": {
+        "type": "keyword"
+      },
+      "tokenFilters": [
+        {
+          "type": "lowercase"
+        },
+        {
+          /**
+            Remove http:// or https:// from the beginning
+           */
+          "type": "regex",
+          "pattern": "^(https|http)://",
+          "replacement": "",
+          "matches": "first"
+        },
+        {
+          /**
+            Remove www. from the beginning
+           */
+          "type": "regex",
+          "pattern": "^www\\.",
+          "replacement": "",
+          "matches": "first"
+        },
+        {
+          /**
+            Remove all trailing slashes
+           */
+          "type": "regex",
+          "pattern": "/+$",
+          "replacement": "",
+          "matches": "first"
+        }
+      ]
+    }
+  ]
+}

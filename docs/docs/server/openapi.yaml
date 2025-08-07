@@ -504,6 +504,8 @@ components:
             Including `previous_response_id` in the request causes the model
             to use the previous response as context.
 
+            Note that conversations support a maximum of 50 `user` messages. If you want to append more messages, create a new conversation. With previous content consolidated.
+
             Usage notes:
             - You can only use `previous_response_id` if `store: true`. 
             - All requests on the same conversation must have the same `user` ID leave it undefined.
@@ -812,7 +814,7 @@ components:
         file_id:
           type: string
           description: |
-            ID of the verified answer. 
+            ID of the verified answer.
         filename:
           type: string
           enum: [verified_answer]
@@ -1009,7 +1011,7 @@ components:
               description: Conversation ID
           additionalProperties:
             type: string
-          description: Additional metadata and conversation ID
+          description: Additional metadata
       required:
         [
           id,
@@ -1027,7 +1029,6 @@ components:
           tool_choice,
           tools,
           top_p,
-          metadata,
         ]
     StreamEventDelta:
       description: Assistant response text.

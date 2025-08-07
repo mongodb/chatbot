@@ -6,7 +6,7 @@ import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { multipleChoiceBenchmarkConfig } from "../quizQuestions/config";
 import { nlPromptResponseBenchmark } from "../nlPromptResponse/config";
 import { discoveryBenchmarkConfig } from "../discovery/config";
-import { nlToMongoshBenchmarkConfig } from "../nlToMql/config";
+import { nlToMongoshBenchmarkConfig } from "../nlToMql/nlToMongoshBenchmarkConfig";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);

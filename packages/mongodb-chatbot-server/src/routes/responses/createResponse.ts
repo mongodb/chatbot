@@ -57,6 +57,8 @@ export const CREATE_RESPONSE_ERR_MSG = {
   CONVERSATION_USER_ID_CHANGED:
     "Path: body.user - User ID has changed since the conversation was created.",
   METADATA_LENGTH: "Too many metadata fields. Max 16.",
+  METADATA_CONVERSATION_ID_NOT_ALLOWED:
+    "The 'conversation_id' key is not allowed in metadata",
   TEMPERATURE: "Temperature must be 0 or unset",
   STREAM: "'stream' must be true",
   INVALID_OBJECT_ID: (id: string) =>
@@ -181,6 +183,10 @@ const CreateResponseRequestBodySchema = z.object({
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
       CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH
+    )
+    .refine(
+      (metadata) => !metadata || !("conversation_id" in metadata),
+      CREATE_RESPONSE_ERR_MSG.METADATA_CONVERSATION_ID_NOT_ALLOWED
     ),
   previous_response_id: z
     .string()
@@ -376,6 +382,7 @@ export function makeCreateResponseRoute({
       const baseResponse = makeBaseResponseData({
         responseId,
         data: data.body,
+        conversationId: conversation._id,
       });
 
       dataStreamer.streamResponses({
@@ -729,10 +736,18 @@ const formatMetadata = ({
 
 interface BaseResponseData {
   responseId: ObjectId;
+  conversationId: ObjectId;
   data: CreateResponseRequest["body"];
 }
 
-const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
+const makeBaseResponseData = ({
+  responseId,
+  conversationId,
+  data,
+}: BaseResponseData) => {
+  const baseMetadata = {
+    conversation_id: conversationId.toString(),
+  };
   return {
     id: responseId.toString(),
     object: "response" as const,
@@ -752,7 +767,9 @@ const makeBaseResponseData = ({ responseId, data }: BaseResponseData) => {
     tools: data.tools ?? [],
     top_p: null,
     user: data.user,
-    metadata: data.metadata ?? null,
+    metadata: data.metadata
+      ? { ...baseMetadata, ...data.metadata }
+      : baseMetadata,
   };
 };
 

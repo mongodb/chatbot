@@ -547,13 +547,13 @@ const expectValidResponses = async ({
       const baseMetadata = {
         conversation_id: expect.any(String),
       };
+      // For user-provided metadata
       if (requestBody.metadata) {
         expect(response.metadata).toMatchObject(requestBody.metadata);
-        if (genericTypes.includes(response.type)) {
-          expect(response.metadata).toMatchObject(baseMetadata);
-        }
-      } else {
-        expect(response.metadata).toBeNull();
+      }
+      // For generic conversation_id metadata
+      if (genericTypes.includes(response.type)) {
+        expect(response.metadata).toMatchObject(baseMetadata);
       }
     }
   });

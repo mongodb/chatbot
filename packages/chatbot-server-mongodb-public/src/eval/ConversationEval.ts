@@ -4,7 +4,6 @@ import {
   EvalCase,
   EvalScorer,
   traced,
-  wrapOpenAI,
 } from "mongodb-rag-core/braintrust";
 import {
   Conversation,
@@ -13,11 +12,24 @@ import {
   logger,
   Message,
 } from "mongodb-chatbot-server";
-import { AssistantMessage, SomeMessage } from "mongodb-rag-core";
+import {
+  assertEnvVars,
+  BRAINTRUST_ENV_VARS,
+  AssistantMessage,
+  SomeMessage,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
+import {
+  models,
+  ModelConfig,
+} from "mongodb-rag-core/models";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
+import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
+import { wrapLanguageModel, generateObject } from "mongodb-rag-core/aiSdk";
+import { z } from "zod";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
@@ -162,6 +174,10 @@ export interface JudgeModelConfig {
     apiVersion: string;
     endpoint: string;
   };
+  braintrustProxy: {
+    apiKey: string;
+    endpoint: string;
+  };
 }
 
 type ConversationEvalScorerConstructor = (
@@ -199,6 +215,24 @@ const makeFactuality: ConversationEvalScorerConstructor =
       });
   };
 
+const createEvalJudgeModel = async (judgeModelConfig: JudgeModelConfig) => {
+  const modelConfig: ModelConfig | undefined = models.find(
+    (m) => m.label === judgeModelConfig.model
+  );
+  assert(
+    modelConfig !== undefined,
+    "No model config for the requested judge model."
+  );
+
+  return wrapLanguageModel({
+    model: createOpenAI({
+      apiKey: judgeModelConfig.braintrustProxy.apiKey,
+      baseURL: judgeModelConfig.braintrustProxy.endpoint,
+    }).chat(modelConfig.deployment),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  });
+};
+
 const PromptAdherenceAssessmentPrompt = `You are assessing whether the given text aligns with the expectation for that text. If the text meets the expected criterion, you will score it as 1. 
 Otherwise, if the text does not meet the expected criterion, you will score it as 0.
 
@@ -221,11 +255,18 @@ You must output well-formatted JSON with the following structure. Each criteria 
 Do not return any preamble or explanations, return only a pure JSON string.
 `;
 
+const PromptAdherenceAssessmentSchema = z.object({
+  assessments: z.array(
+    z.object({
+      reason: z.string(),
+      score: z.number().int().min(0).max(1),
+    })
+  ),
+});
+
 const makePromptAdherence: ConversationEvalScorerConstructor = (
   judgeModelConfig
 ) => {
-  const judgeModel = wrapOpenAI(new AzureOpenAI(judgeModelConfig.azureOpenAi));
-
   return async (args) => {
     const name = "PromptAdherence";
     if (
@@ -237,10 +278,12 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (
         score: null,
       };
     }
+
     // Use LLM to score against all the criteria
-    const response = await judgeModel.chat.completions.create({
-      model: judgeModelConfig.model,
-      response_format: { type: "json_object" },
+    const judgeModel = await createEvalJudgeModel(judgeModelConfig);
+    const { object } = await generateObject({
+      model: judgeModel,
+      schema: PromptAdherenceAssessmentSchema,
       messages: [
         {
           role: "system",
@@ -256,13 +299,8 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (
       ],
     });
 
-    const responseScores = JSON.parse(
-      response.choices[0].message.content ?? "[]"
-    );
-    const assessments: Array<{ score: number; reason: string }> =
-      responseScores?.assessments;
+    const assessments = object.assessments;
     assert(assessments.length > 0, "No assessments found");
-
     return {
       name,
       score:
@@ -271,7 +309,7 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (
           0
         ) / args.expected?.promptAdherence.length,
       metadata: {
-        scores: response.choices[0].message.content,
+        scores: JSON.stringify(object),
       },
     };
   };

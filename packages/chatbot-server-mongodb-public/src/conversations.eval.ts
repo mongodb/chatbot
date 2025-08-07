@@ -5,6 +5,8 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
 } from "./eval/evalHelpers";
 import fs from "fs";
 import path from "path";
@@ -82,6 +84,10 @@ async function conversationEval() {
           apiKey: OPENAI_API_KEY,
           endpoint: OPENAI_ENDPOINT,
           apiVersion: OPENAI_API_VERSION,
+        },
+        braintrustProxy: {
+          apiKey: BRAINTRUST_API_KEY,
+          endpoint: BRAINTRUST_ENDPOINT,
         },
       },
       generateResponse: makeGenerateResponse(),

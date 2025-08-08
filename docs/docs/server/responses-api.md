@@ -314,7 +314,7 @@ If your use case requires back-and-forth AND `store: true | undefined`, prefer u
 
 In stateful conversations, the server manages conversation history. You reference previous messages using the `previous_response_id` parameter, and the server maintains the context automatically.
 
-By setting `previous_response_id`, all messages in conversation are stored together in the database. This makes conversations easier to work with for analytical purporses.
+By setting `previous_response_id`, all messages in conversation are stored together in the database. This makes conversations easier to analyze.
 
 **Requirements for stateful conversations:**
 1. Must set `store: true | undefined`

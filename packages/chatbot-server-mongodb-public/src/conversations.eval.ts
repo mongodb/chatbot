@@ -45,7 +45,7 @@ async function conversationEval() {
   );
   const internalToolCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
-      path.resolve(basePath, "generate_response_with_tools.yml"),
+      path.resolve(basePath, "internal_tools_conversations.yml"),
       "utf8"
     )
   );

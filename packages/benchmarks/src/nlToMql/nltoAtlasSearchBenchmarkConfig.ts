@@ -7,18 +7,21 @@ import {
   TextToDriverOutput,
 } from "./TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "./evaluationMetrics";
+
 import { annotatedDbSchemas } from "./generateDriverCode/annotatedDbSchemas";
 import { makeLlmOptions } from "./bin/mongoshBenchmarks/config";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeGenerateMongoshCodeAgenticTask } from "./generateDriverCode/generateMongoshCodeAgentic";
-import { makeGenerateMongoshCodePromptCompletionTask } from "./generateDriverCode/generateMongoshCodePromptCompletion";
-import { makeGenerateMongoshCodeToolCallTask } from "./generateDriverCode/generateMongoshCodeToolCall";
+import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
+import { atlasSearchPrompt } from "./generateDriverCode/languagePrompts/atlasSearch";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 export const NL_TO_MONGOSH_PROJECT_NAME = "natural-language-to-atlas-search";
 
 const NL_TO_MONGOSH_DATASET_NAME = "TODO: add";
+
+const mongoClient = new MongoClient(MONGODB_TEXT_TO_DRIVER_CONNECTION_URI);
 
 export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -48,18 +51,19 @@ export const nlToMongoshBenchmarkConfig: BenchmarkConfig<
         const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
           MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
         });
-        return makeGenerateMongoshCodeAgenticTask({
-          uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-          databaseInfos: annotatedDbSchemas,
-          llmOptions: makeLlmOptions(modelConfig),
-          openai: wrapLanguageModel({
+        return makeGenerateAtlasSearchCodeAgenticTask({
+          model: wrapLanguageModel({
             model: createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment),
+            }),
             middleware: [BraintrustMiddleware({ debug: true })],
           }),
+          systemPrompt: atlasSearchPrompt,
+          mongoClient,
+          httpMcpServerConnectionUrl: new URL("http://localhost:8080"),
         });
+        // TODO: Add afterEval to clean up the database
       },
     },
   },

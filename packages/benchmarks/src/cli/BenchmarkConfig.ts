@@ -23,7 +23,7 @@ export interface BenchmarkTask<
   taskFunc: (
     modelProvider: ModelProvider,
     deployment: ModelConfig
-  ) => EvalTask<Input, Output, Expected, Metadata, Parameters>;
+  ) => Promise<EvalTask<Input, Output, Expected, Metadata, Parameters>>;
   description?: string;
 }
 

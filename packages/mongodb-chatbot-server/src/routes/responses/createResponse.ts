@@ -339,16 +339,49 @@ export function makeCreateResponseRoute({
         });
       }
 
-      // --- LOAD CONVERSATION ---
-      const conversation = await loadConversationByMessageId({
-        messageId: previous_response_id,
-        conversations,
-        headers,
-        metadata,
-        userId: user,
-        storeMessageContent: store,
-        alwaysAllowedMetadataKeys,
-      });
+      // --- INITIALIZE CONVERSATION ---
+      let conversation: Conversation;
+      if (
+        !previous_response_id &&
+        typeof input !== "string" &&
+        input?.length > 1
+      ) {
+        // No previous response and there are multiple input messages,
+        // so create a new conversation.
+        // The last message is stored after generation, so we should exclude it.
+        const messagesToAdd = [
+          ...convertInputToDBMessages(
+            input.slice(0, input.length - 1) as Exclude<typeof input, string>,
+            store,
+            alwaysAllowedMetadataKeys,
+            metadata
+          ),
+        ];
+
+        conversation = await conversations.create({
+          initialMessages: messagesToAdd,
+          userId: user,
+          storeMessageContent: true,
+          creationInterface,
+          customData: {
+            metadata: formatMetadata({
+              shouldStore: store,
+              alwaysAllowedMetadataKeys,
+              metadata,
+            }),
+          },
+        });
+      } else {
+        conversation = await loadConversationByMessageId({
+          messageId: previous_response_id,
+          conversations,
+          headers,
+          metadata,
+          userId: user,
+          storeMessageContent: store,
+          alwaysAllowedMetadataKeys,
+        });
+      }
 
       // --- CONVERSATION USER ID CHECK ---
       if (hasConversationUserIdChanged(conversation, user)) {
@@ -432,7 +465,7 @@ export function makeCreateResponseRoute({
         reqId,
       });
 
-      // --- STORE MESSAGES IN CONVERSATION ---
+      // --- STORE NEW MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({
         conversations,
         conversation,
@@ -524,7 +557,6 @@ const loadConversationByMessageId = async ({
 
     return await conversations.create({
       userId,
-      storeMessageContent,
       customData: { metadata: formattedMetadata },
       creationInterface,
     });
@@ -615,18 +647,11 @@ const saveMessagesToConversation = async ({
   conversation,
   store,
   metadata,
-  input,
   messages,
   responseId,
   alwaysAllowedMetadataKeys,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
-    ...convertInputToDBMessages(
-      input,
-      store,
-      alwaysAllowedMetadataKeys,
-      metadata
-    ),
     ...messages.map((message) =>
       formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
     ),

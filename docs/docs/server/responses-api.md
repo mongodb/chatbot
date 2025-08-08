@@ -12,7 +12,7 @@ The Responses API includes the following features:
   - To learn more about augmenting the personality, refer to [Set Custom Instructions](#set-custom-instructions).
 1. **Custom Tools**: You can add custom function tools to the Responses API, allowing you to extend the functionality of the Responses API to support additional use cases.
   - For more information, refer to the [Use Custom Tools](#use-custom-tools) section.
-1. **Stateful and Stateless**: The API supports stateful and stateless conversation management. If you're using stateful conversation management, the conversation history is managed on the server. To use stateless converation management, define the conversation context in each request from the client.
+1. **Stateful and Stateless**: The API supports stateful and stateless conversation management. If you're using stateful conversation management, the conversation history is managed on the server. To use stateless conversation management, define the conversation context in each request from the client.
   - For more information, refer to the [Conversation Management](#conversation-management) section.
 1. **Guardrails**: The API features guardrails that helps ensure the input and output are appropriate for a MongoDB assistant. This protects the API from generating irrelevant or malicious responses.
   - For more information, refer to the [Guardrails](#guardrails) section.
@@ -101,7 +101,7 @@ curl -v -X POST POST 'https://knowledge.mongodb.com/api/v1/responses' \
 ## Retrieval-Augmented Generation
 
 By default, the API performs retrieval-augmented generation under the hood
-to generate accurate and up-to-date responses about MongoDB products. Retrieval is managed by internal search tools. These interal search tools cannot be removed from the API.
+to generate accurate and up-to-date responses about MongoDB products. Retrieval is managed by internal search tools. These internal search tools cannot be removed from the API.
 
 The API returns references to any sources used to generate the response in the `"response.output_text.annotation.added"` stream event. These stream events are only included if an internal search tool was called.
 
@@ -304,7 +304,7 @@ The Responses API supports both stateful and stateless conversation management.
 The `store` parameter determines how the server persists conversations, and whether or not you can use stateful conversations.
 By default if store `store: undefined`, the server stores conversations. You can also explicitly set `store: true` for the same behavior.
 
-If you set `store: false`, the database does not persist conversation messages, though it does perist non-sensitive metadata about the messages.
+If you set `store: false`, the database does not persist conversation messages, though it does persist non-sensitive metadata about the messages.
 
 Only set `store: false` if your use case requires that the server does not persist conversation messages. For example, you should not store conversations if they contain sensitive customer data.
 
@@ -424,13 +424,13 @@ const followUpResponse = await openai.responses.create({
 
 ## Guardrails
 
-The API features a few levels of guardrails to prevent use for irrelvant or malicious purposes. For security reasons, you cannot configure or turn the guardrails off.
+The API features a few levels of guardrails to prevent use for irrelevant or malicious purposes. For security reasons, you cannot configure or turn the guardrails off.
 
 Guardrails:
 
 1. **Input guardrail**: Before generating a response, the server runs a separate LLM call to check that all natural language input is relevant and not malicious. The input guardrail checks the `input` messages, `instructions` system prompt, and custom `tools`.
 1. **System prompt**: The system prompt used with all responses specifies that the model output should not speak negatively toward MongoDB and represent the company well.
-1. **LLM content filter**: The LLM API used by the Responses API has guardrails to make sure that the model does not respons to inappropriate or offensive content.
+1. **LLM content filter**: The LLM API used by the Responses API has guardrails to make sure that the model does not response to inappropriate or offensive content.
 
 ## Tracing and Storage
 

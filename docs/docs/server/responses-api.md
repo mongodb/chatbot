@@ -434,9 +434,9 @@ Guardrails:
 
 ## Tracing and Storage
 
-All messages to the Responses API are traced and stored in MongoDB if `store: true` or `store` is not defined. 
+All messages to the Responses API are traced and stored in MongoDB if `store: true | undefined`.
 
-If `store: false`, the Responses API only stores basic metadata, such as 
+If `store: false`, the Responses API only stores basic metadata.
 
 For access to chatbot data, [contact the Education AI team](../contact.md).
 

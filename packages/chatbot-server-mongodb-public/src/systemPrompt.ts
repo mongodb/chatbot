@@ -69,6 +69,7 @@ const searchContentToolNotes = [
 
 const fetchPageToolNotes = [
   "Fetch the entire page content for a given URL.",
+  `Do not assume that the user wants to use the ${FETCH_PAGE_TOOL_NAME} based on the URL in the Front Matter. The ${FETCH_PAGE_TOOL_NAME} should ONLY be used if the user implies you should look on the page or if the user explicitly provides a URL in their question.`,
   `If the user provides URLs in their query, ONLY call the ${FETCH_PAGE_TOOL_NAME} for those URLs, and do NOT call the ${FETCH_PAGE_TOOL_NAME} for the URL in the Front Matter.`,
   "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
   "Do not include URLs in the search query.",

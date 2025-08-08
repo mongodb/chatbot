@@ -308,7 +308,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),
-        { name: "generateResponseWithSearchTool" }
+        { name: "generateResponseWithTools" }
       ),
     }),
     {

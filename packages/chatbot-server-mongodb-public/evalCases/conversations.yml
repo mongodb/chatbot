@@ -1689,3 +1689,35 @@
   reject: false
   tags:
     - fetch_page
+# Based on EAI-1202
+- name: handles_multiturn_conversation_context
+  expectation: should understand the previous context of the conversation
+  reference: |
+    To run a command in mongosh:
+      1. Open your terminal and start mongosh by typing:
+        `mongosh`
+
+      2. Connect to your MongoDB deployment if you haven't already.
+
+      3. Once connected, you can run commands directly. 
+
+      You can enter any valid MongoDB shell command or JavaScript expression at the prompt, and mongosh will execute it. 
+      <META: An example may be included, but this is optional.>
+  messages:
+    - role: user
+      content: what is mongosh used for
+    - role: assistant
+      content: |
+        mongosh is the MongoDB Shell, a JavaScript and Node.js REPL (Read Eval Print Loop) environment used for interacting with MongoDB deployments. You can use mongosh to:
+
+        - Connect to MongoDB databases (locally, on Atlas, or on remote hosts)
+        - Test queries and commands
+        - Interact with and manipulate data in your MongoDB database
+        - Access session logs and use built-in or external editors for multiline functions
+
+        It's a powerful tool for database administration, development, and troubleshooting in MongoDB environments.
+    - role: user
+      content: how do i run command on it?
+  reject: false
+  tags:
+    - multiturn_conversation

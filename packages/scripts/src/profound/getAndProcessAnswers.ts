@@ -138,6 +138,13 @@ const model: ModelConfig = {
 export const main = async (startDateArg?: string, endDateArg?: string) => {
   // START setup
 
+  // validate date format in args
+  if (startDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(startDateArg)) {
+    throw new Error("Invalid start date format. Please use YYYY-MM-DD.");
+  }
+  if (endDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(endDateArg)) {
+    throw new Error("Invalid end date format. Please use YYYY-MM-DD.");
+  }
   // Determine date range from command line arguments, or default to yesterday --> today
   // Note: The Profound API expects date inputs in EST, bc they execute prompts within a 24 hour EST window.
   const today: Date = new Date();
@@ -145,16 +152,20 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   yesterday.setDate(yesterday.getDate() - 1);
   const start: string = startDateArg
     ? startDateArg
-    : `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}-${String(yesterday.getDate()).padStart(2, "0")}`;
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(yesterday);
   const end: string = endDateArg
     ? endDateArg
-    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}-${String(today.getDate()).padStart(2, "0")}`;
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(today);
 
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   const db = client.db(MONGODB_DATABASE_NAME);
@@ -334,8 +345,8 @@ if (process.argv.includes("--help")) {
 Usage: node getAndProcessAnswers.js [startDate] [endDate]
 
 Optional arguments:
-  startDate   date string (e.g., 2025-06-01). If omitted, defaults to yesterday (EST).
-  endDate     date string (e.g., 2025-06-02). If omitted, defaults to today (EST).
+  startDate   YYYY-MM-DD date string (e.g., 2025-06-01). If omitted, defaults to yesterday (EST).
+  endDate     YYYY-MM-DD date string (e.g., 2025-06-02). If omitted, defaults to today (EST).
 
 The end date is exclusive. 
 For example, if you want to process answers from June 1st to June 5th, you should use 2025-06-01 and 2025-06-06.

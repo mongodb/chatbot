@@ -102,6 +102,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       },
     },
   },
+  // TODO: add scorers
   scorers: {},
   description: "Natural language to Atlas Search code generation",
 };

@@ -114,7 +114,6 @@ export async function makeMongoDbMcpAgent({
       tools: mcpToolSet,
     });
 
-    // TODO: only return stuff we care about
     return response;
   });
 }

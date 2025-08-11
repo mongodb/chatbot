@@ -4,7 +4,6 @@ import {
   ModelMessage,
   stepCountIs,
   experimental_createMCPClient,
-  tool,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
@@ -13,6 +12,10 @@ import { z } from "zod";
 // Note odd import path here, but it's the only way to get class
 // ...too much vibe coding on the Anthropic team me thinks.
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  getAtlasSearchIndexesToolName,
+  makeGetAtlasSearchIndexesTool,
+} from "./tools/getAtlasSearchIndexes";
 
 export interface MakeMongoDbMcpAgentParams {
   model: LanguageModel;
@@ -22,25 +25,6 @@ export interface MakeMongoDbMcpAgentParams {
   availableMongoDbMcpTools?: MongoDbMcpToolName[];
   maxSteps?: number;
 }
-
-const getAtlasSearchIndexesToolName = "atlas-search-indexes";
-const makeGetAtlasSearchIndexesTool = (mongoClient: MongoClient) => {
-  return tool({
-    name: getAtlasSearchIndexesToolName,
-    description: "Get the Atlas Search indexes for a collection",
-    inputSchema: z.object({
-      databaseName: z.string(),
-      collectionName: z.string(),
-    }),
-    execute: async ({ databaseName, collectionName }) => {
-      const collection = mongoClient
-        .db(databaseName)
-        .collection(collectionName);
-      const indexes = await collection.listSearchIndexes().toArray();
-      return indexes;
-    },
-  });
-};
 
 const availableToolNames = [
   "connect",

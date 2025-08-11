@@ -1,9 +1,11 @@
-import { tool } from "mongodb-rag-core/aiSdk";
+import { tool, Tool } from "mongodb-rag-core/aiSdk";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { z } from "zod";
 
 export const getAtlasSearchIndexesToolName = "atlas-search-indexes";
-export const makeGetAtlasSearchIndexesTool = (mongoClient: MongoClient) => {
+export const makeGetAtlasSearchIndexesTool = (
+  mongoClient: MongoClient
+): Tool => {
   return tool({
     name: getAtlasSearchIndexesToolName,
     description: "Get the Atlas Search indexes for a collection",

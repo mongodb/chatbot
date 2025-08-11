@@ -1,4 +1,4 @@
-import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
 import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import {
   TextToDriverExpected,
@@ -6,12 +6,18 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
 import { atlasSearchPrompt } from "./generateDriverCode/languagePrompts/atlasSearch";
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { SuccessfulExecution } from "./scorers/evaluationMetrics";
+import {
+  makeNdcgAtK,
+  NonEmptyArrayOutput,
+  SearchOperatorUsed,
+} from "./scorers/atlasSearch";
+import { MatchFunc } from "mongodb-rag-core/eval";
 
 export const NL_TO_MONGOSH_PROJECT_NAME = "natural-language-to-atlas-search";
 
@@ -19,6 +25,24 @@ const NL_TO_MONGOSH_DATASET_NAME = "TODO: add";
 
 let mongoClient: MongoClient;
 let httpMcpServerConnectionUrl: URL;
+
+interface MatchableDocument {
+  _id: string | ObjectId | number;
+}
+const ndcgMatchFunc: MatchFunc<MatchableDocument> = (
+  a: MatchableDocument,
+  b: MatchableDocument
+) => {
+  // Can't just use === for ObjectId because it's a class
+  if (ObjectId.isValid(a._id) && ObjectId.isValid(b._id)) {
+    return a._id.toString() === b._id.toString();
+  }
+  // Otherwise, it's a number or string, and we can use ===
+  if (a._id === b._id) {
+    return true;
+  }
+  return false;
+};
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -102,7 +126,24 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       },
     },
   },
-  // TODO: add scorers
-  scorers: {},
+  scorers: {
+    successful_execution: {
+      description: "Successful execution of the generated code",
+      scorerFunc: SuccessfulExecution,
+    },
+    non_empty_array_output: {
+      description: "Non-empty array output",
+      scorerFunc: NonEmptyArrayOutput,
+    },
+    search_operator_used: {
+      description:
+        "Search operator ($search or $knnBeta) used in the generated code",
+      scorerFunc: SearchOperatorUsed,
+    },
+    ndcg_at_10: {
+      description: "NDCG@10 score",
+      scorerFunc: makeNdcgAtK({ k: 10, matchFunc: ndcgMatchFunc }),
+    },
+  },
   description: "Natural language to Atlas Search code generation",
 };

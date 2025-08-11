@@ -3,9 +3,9 @@ import {
   TextToDriverInput,
   TextToDriverMetadata,
   TextToDriverOutput,
-} from "./TextToDriverEval";
+} from "../TextToDriverEval";
 import {
-  SuccessfulExecution,
+  SuccessfulExecutionAndCorrectOutput,
   ReasonableOutput,
   makeQueryPerformanceMongosh,
 } from "./evaluationMetrics";
@@ -63,7 +63,7 @@ describe("SuccessfulExecution", () => {
       },
       generatedCode,
     } satisfies TextToDriverOutput;
-    const result = await SuccessfulExecution({
+    const result = await SuccessfulExecutionAndCorrectOutput({
       output,
       input,
       expected,
@@ -90,7 +90,7 @@ describe("SuccessfulExecution", () => {
       },
       generatedCode,
     } satisfies TextToDriverOutput;
-    const result = await SuccessfulExecution({
+    const result = await SuccessfulExecutionAndCorrectOutput({
       output,
       input,
       expected,
@@ -119,7 +119,7 @@ describe("SuccessfulExecution", () => {
       },
       generatedCode,
     } satisfies TextToDriverOutput;
-    const result = await SuccessfulExecution({
+    const result = await SuccessfulExecutionAndCorrectOutput({
       output,
       input,
       expected,
@@ -147,7 +147,7 @@ describe("SuccessfulExecution", () => {
       },
       generatedCode,
     } satisfies TextToDriverOutput;
-    const result = await SuccessfulExecution({
+    const result = await SuccessfulExecutionAndCorrectOutput({
       output,
       input,
       expected,

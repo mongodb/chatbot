@@ -12,11 +12,13 @@ import { strict as assert } from "assert";
 import { retrievalConfig } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
-import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
-import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
-import { f1AtK } from "../eval/scorers/f1AtK";
-import { precisionAtK } from "../eval/scorers/precisionAtK";
-import { recallAtK } from "../eval/scorers/recallAtK";
+import {
+  averagePrecisionAtK,
+  binaryNdcgAtK,
+  f1AtK,
+  precisionAtK,
+  recallAtK,
+} from "mongodb-rag-core/eval";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { MongoDbSearchToolArgs } from "./search";
 

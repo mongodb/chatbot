@@ -124,7 +124,6 @@ export const openAiClient = wrapOpenAI(
 export const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: OPENAI_RESOURCE_NAME,
-  apiVersion: OPENAI_API_VERSION,
 });
 
 export const llmConfig = {

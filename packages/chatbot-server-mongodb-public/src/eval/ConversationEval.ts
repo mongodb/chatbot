@@ -17,10 +17,11 @@ import { ContextRelevancy, Faithfulness, Factuality } from "autoevals";
 import { strict as assert } from "assert";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
-import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
-import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";
+import {
+  binaryNdcgAtK,
+  ConversationEvalCase as ConversationEvalCaseSource,
+} from "mongodb-rag-core/eval";
 import { extractTracingData } from "../tracing/extractTracingData";
-import { closeDbConnections } from "../config";
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;

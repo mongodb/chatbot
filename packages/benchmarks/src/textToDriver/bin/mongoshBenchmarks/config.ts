@@ -7,7 +7,7 @@ import {
   SchemaStrategy,
   SystemPromptStrategy,
 } from "../../generateDriverCode/languagePrompts/PromptStrategies";
-import { makeMongoshBenchmarkMetrics } from "../../evaluationMetrics";
+import { makeMongoshBenchmarkMetrics } from "../../scorers/evaluationMetrics";
 
 export { MODELS } from "../../../benchmarkModels";
 

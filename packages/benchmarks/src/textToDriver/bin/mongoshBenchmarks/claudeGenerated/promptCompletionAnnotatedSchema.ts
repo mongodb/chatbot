@@ -3,7 +3,7 @@ import { loadTextToDriverBraintrustEvalCases } from "../../../loadBraintrustData
 import {
   ReasonableOutput,
   SuccessfulExecution,
-} from "../../../evaluationMetrics";
+} from "../../../scorers/evaluationMetrics";
 import { annotatedDbSchemas } from "../../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";

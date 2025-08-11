@@ -7,7 +7,10 @@ import {
   TextToDriverOutput,
 } from "./TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
-import { ReasonableOutput, SuccessfulExecution } from "./evaluationMetrics";
+import {
+  ReasonableOutput,
+  SuccessfulExecution,
+} from "./scorers/evaluationMetrics";
 import { annotatedDbSchemas } from "./generateDriverCode/annotatedDbSchemas";
 import { makeLlmOptions } from "./bin/mongoshBenchmarks/config";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";

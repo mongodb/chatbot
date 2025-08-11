@@ -13,7 +13,7 @@ import {
   TextToDriverEvalResult,
   makeTextToDriverEval,
 } from "./TextToDriverEval";
-import { SuccessfulExecution } from "./evaluationMetrics";
+import { SuccessfulExecution } from "./scorers/evaluationMetrics";
 import { strict as assert } from "assert";
 import { executeNodeJsDriverCode } from "mongodb-rag-core/executeCode";
 

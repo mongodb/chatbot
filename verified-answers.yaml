@@ -311,54 +311,43 @@
       title: Count Documents - Java Sync Driver
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
       title: db.collection.countDocuments() - MongoDB Manual
-- answer: |
-    To query data in MongoDB, you can use CRUD operations or an aggregation
-    pipeline. You can return all documents in your collection or specify a
-    subset of documents.
-
-    To query your data with CRUD operations, use the `find()` method. Here's an example that uses the `find()` method in the MongoDB shell: 
-
-
-    ```
-
-    use sample_mflix  // Use the sample_mflix database
-
-    db.movies.find( { rated: "G" } )
-
-    ```
-
-
-    To query your data with an aggregation pipeline, include the `$match` stage in your pipeline. Here's a sample aggregation pipeline that uses the `$match` stage in the MongoDB shell: 
-
-
-    ```
-
-    use sample_mflix  // Uses the sample_mflix database
-
-    db.movies.aggregate( 
-      { $match: { rated: "G" } }
-    )
-
-    ```
-
-
-    Both examples find all G-rated movies in the `movies` collection.
-
-    Specific syntax and usage may vary depending on the programming language and driver you are using. Let me know if you have any more questions!
-  author_email: alison.huh@mongodb.com
+- author_email: jessica.roberts@mongodb.com
   questions:
     - how to query
+    - How do I run a query?
+  answer: |
+    The **MongoDB Query API** is the mechanism that you use to query your data in your preferred language.
+
+    The Query API comprises two ways to query data in MongoDB:
+    - CRUD Operations
+    - Aggregation pipelines
+
+    You can run queries in MongoDB Atlas using several different methods:
+
+    - **MongoDB Atlas UI:** Use Data Explorer to run basic `find()` queries directly from a browser.
+    - **MongoDB Shell (mongosh):** Run queries from the command line using MongoDB’s interactive shell.
+    - **MongoDB Compass:** Use the GUI to build and run queries, including aggregations and filters. Take advantage of Compass’ Natural Language Query Generation to quickly draft queries from plain English, and the Aggregation Pipeline Builder to visually construct and test complex pipelines stage by stage.
+    - **MongoDB Drivers:** Programmatically run queries in an app using drivers for languages like Node.js, Python, Java, Go, and more.
+
+    In general, you can use the Query API to:
+
+    - Perform ad hoc queries to explore your data.
+    - Transform data using aggregation.
+    - Join documents across collections.
+    - Run graph and geospatial queries.
+    - Perform full-text and semantic search.
+    - Use indexes to optimize query performance.
+    - Create materialized views and analyze time series data.
   references:
-    - url: https://www.mongodb.com/docs/manual/tutorial/query-documents/
-      title: Query Documents - MongoDB Manual
-    - url: https://www.mongodb.com/docs/manual/reference/method/db.collection.find/
-      title: db.collection.find() - MongoDB Manual
-    - url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/
-      title: $match (aggregation) - MongoDB Manual
-    - url: https://www.mongodb.com/docs/manual/tutorial/query-documents/#std-label-query-documents-atlas-ui
-      title: Query Documents - MongoDB Manual
-    - url: https://mongodb.com/docs/guides/crud/read_queries/
-      title: Read Data from MongoDB With Queries - Start with Guides
+    - url: https://www.mongodb.com/docs/guides/
+      title: Step by Step CRUD Guide
+    - url: https://www.mongodb.com/docs/manual/query-api/
+      title: How to Use the Query API
+    - url: https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+      title: Aggregation Pipeline Manual
+    - url: https://learn.mongodb.com/courses/crud-operations-in-mongodb
+      title: 90-minute CRUD Operations video tutorial
+
 - answer: |
     To remove documents, use the `deleteOne()` or `deleteMany()` method. If you
     use the `deleteMany()` method, you can search for and remove multiple
@@ -1466,6 +1455,7 @@
   author_email: jeffrey.vincent@mongodb.com
   questions:
     - Why should I use Atlas Search?
+    - How do I get started with Atlas Search or Vector Search?
   references:
     - url: https://www.mongodb.com/developer/products/atlas/atlas-search-soccer
       title: Atlas Search is a Game Changer!
@@ -1659,7 +1649,7 @@
       title: "GitHub Student Developer Pack"
     - url: https://learn.mongodb.com/pages/certification-learning-paths
       title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
-    - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
+    - url: https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
       title: "MongoDB for Students Resource Guide"
 - answer: |
     MongoDB offers a variety of free resources specifically curated to support educators in equipping students with modern database knowledge. 
@@ -1891,18 +1881,6 @@
 
     [How to select your cluster tier](https://www.mongodb.com/docs/atlas/manage-clusters/?tck=mongodb_ai_chatbot#select-cluster-tier)
     [Atlas cluster sizing and tier selection](https://www.mongodb.com/docs/atlas/sizing-tier-selection/?tck=mongodb_ai_chatbot)
-  # answer: |
-  #   MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
-
-  #   - Free Tier (`M0`): Best for learning and exploring, with limited resources.
-  #   - Flex: Ideal for development and testing, offering the lowest cost option with certain feature limitations.
-  #   - Dedicated (`M10` & `M20`): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
-  #   - Dedicated (`M30+`): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
-
-  #   Clusters can always be scaled up from any tier as requirements expand. If
-  #   you're unsure, MongoDB recommends starting with a lower tier and monitoring
-  #   performance before adjusting. For all Dedicated tiers, use auto-scaling to
-  #   adjust cluster tier and storage as workloads evolve.
   references:
     - url: https://www.mongodb.com/docs/atlas/manage-clusters/#select-cluster-tier
       title: Select Cluster Tier
@@ -1914,3 +1892,133 @@
       title: Atlas Flex Limitations
     - url: https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/
       title: Guidance for Atlas Monitoring and Alerts
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How can I migrate data to MongoDB?
+  answer: |
+    If you're migrating data from a relational database then you have several options.
+
+    **MongoDB Relational Migrator:**
+
+    This tool is specifically designed to simplify the migration process from relational databases like Oracle, MySQL, SQL Server, PostgreSQL, and more to MongoDB. It provides features to map and model relational schema into a MongoDB schema using a schema visualizer. You can perform one-time snapshot migrations or continuous synchronization using Change Data Capture (CDC). It also offers generative AI capabilities to convert SQL queries, stored procedures, and views into MongoDB-compatible code. Relational Migrator supports integration with Apache Kafka and Confluent Cloud for large-scale migrations.
+
+    **Export and Import using mongoimport:**
+
+    You can export data from a relational database to a file format like JSON, CSV, or TSV. Then you can use the `mongoimport` tool to import the exported data into MongoDB collections. This method is suitable for straightforward data imports where the data is already in a compatible format.
+
+    **Custom Scripts and Bulk Write Operations:**
+
+    You can write custom scripts using MongoDB drivers in various programming languages to read data from a relational database and insert it into MongoDB using bulk write operations. This approach allows for fine-grained control over the data transformation and migration process.
+
+    These options provide flexibility depending on specific needs, whether a simple data import is required or a comprehensive migration with schema transformation and code conversion.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/manage-clusters/#select-cluster-tier
+      title: Select Cluster Tier
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I load data into MongoDB Atlas?
+  answer: |
+    There are several ways to load data into MongoDB Atlas, depending on your specific needs:
+
+    - **Use a sample dataset:** Easily load sample data into a cluster via the Atlas UI to explore queries and features right away.
+
+    - **Migrate existing data:** Use tools such as the MongoDB Relational Migrator, `mongoimport`, or custom scripts using MongoDB drivers to import data from other databases or local sources.
+
+    - **Generate mock or synthetic data:** Perfect for testing or prototyping, Atlas supports generating realistic data sets.
+  references:
+    - url: https://www.mongodb.com/docs/guides/atlas/sample-data/
+      title: Load Sample Data Guide
+    - url: https://www.mongodb.com/docs/tools-and-connectors/
+      title: MongoDB Migrators, Tools, and Connectors
+    - url: https://www.mongodb.com/docs/atlas/import/
+      title: Migrate or Import Data
+    - url: https://www.mongodb.com/docs/atlas/synthetic-data/
+      title: Generate Synthetic Data
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I get my connection string to connect to my cluster?
+  answer: |
+    To connect to a MongoDB Atlas cluster, follow these steps:
+
+    1. Go to the Clusters page in the Atlas UI and click **“Connect”** on the cluster you want to access.
+
+    2. Choose a connection method, including any of the following:
+       - **MongoDB Drivers:** Programmatically connect using a driver for your preferred language (e.g., Node.js, Python, Java, C#, Go, Rust, and more).
+       - **MongoDB Shell (mongosh):** An interactive command-line shell for MongoDB.
+       - **MongoDB Compass:** A GUI for querying, analyzing, and visualizing data.
+       - **MongoDB Atlas CLI:** Script and manage Atlas resources from a terminal.
+       - **MongoDB Kubernetes Operator:** Automate deployments in Kubernetes.
+       - **MongoDB Atlas Terraform Provider:** Manage infrastructure with code.
+
+    3. Follow the connection instructions, which primarily involve copying a connection string and using it in a tool or app.
+
+    ## Common Connection Errors & Fixes
+
+    **If Authentication to the Cluster Failed**
+
+    - Use your MongoDB database user credentials (not your Atlas login information).
+    - Remove angle brackets (`<` and `>`) from the password.
+    - If using `mongodb://`, ensure `authSource` is correctly specified.
+    - Encode special characters like `?` and `#` in your password.
+    - Confirm the authentication mechanism matches the server config.
+
+    **If Unable to Establish a Connection**
+
+    - Ensure port `27017` is open on the network/firewall.
+    - Check the IP Access List settings in Atlas.
+    - Verify VPC settings if connecting from a private network.
+    - For DNS errors, double-check your connection string.
+  references:
+    - url: https://www.mongodb.com/docs/tools-and-connectors/
+      title: MongoDB Migrators, Tools, and Connectors
+    - url: https://www.mongodb.com/docs/atlas/troubleshoot-connection/
+      title: Troubleshoot Atlas Connections
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I get started with the MongoDB MCP Server?
+    - How can I interact with my database using natural language?
+  answer: |
+    The MongoDB Model Context Protocol (MCP) Server allows you to interact with your MongoDB data and deployments from AI clients using natural language, like Claude, VSCode, Cursor, and Windsurf. It works with any MongoDB deployment, including Atlas, Community Edition, and Enterprise Advanced.
+
+    **Configure the MCP Server**
+
+    There are multiple ways to configure and use the MongoDB MCP Server in your AI client. To use the MongoDB MCP server, you must have the following:
+
+    - An Atlas cluster or a self-hosted MongoDB deployment.
+
+    - Any [MCP client](https://modelcontextprotocol.io/clients).
+
+    - Node.js version 20.19.0 or later.
+
+    Complete the steps in the [MongoDB MCP Server GitHub repository quick start](https://github.com/mongodb-js/mongodb-mcp-server) to get started.
+
+    Most MCP clients require a configuration file to be created or modified to add the MCP server. The configuration file syntax can be different across clients. Please refer to the following links for the latest expected syntax:
+
+    - [Windsurf](https://docs.windsurf.com/windsurf/getting-started)
+    - [VSCode](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
+    - [Claude Desktop](https://modelcontextprotocol.io/quickstart/user#claude-desktop)
+    - [Cursor](https://docs.cursor.com/en/context/mcp)
+
+    After configuring the MCP Server, use it to interact with your MongoDB data from your AI client. To verify the server is running, check in your AI client that the list of MCP tools includes the MongoDB MCP tools.
+  references:
+    - url: https://www.mongodb.com/docs/mcp-server/get-started/?deployment-type=atlas
+      title: Get Started with the MongoDB MCP Server
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I create an aggregation?
+  answer: |
+    You can create and run aggregations in MongoDB using several different tools depending on the workflow:
+
+    - **MongoDB Compass (recommended):** A GUI with the Aggregation Pipeline Builder that enables building, testing, and visualizing each stage of an aggregation.
+    - **MongoDB Atlas UI:** Use the Aggregation tab in the Data Explorer to build and run pipelines in the browser.
+    - **MongoDB Shell (mongosh):** Write aggregation queries manually using the $aggregate method.
+    - **MongoDB Drivers:** Run aggregations in application code using the driver for your language (Node.js, Python, Java, etc.).
+
+    If you are just getting started with aggregations in MongoDB, Compass' Aggregation Pipeline Builder lets you build queries stage-by-stage, making complex logic easier to develop, debug, and understand.
+  references:
+    - url: https://learn.mongodb.com/courses/fundamentals-of-data-transformation
+      title: Fundamentals of Data Transformation
+    - url: https://www.mongodb.com/docs/manual/aggregation/
+      title: Aggregation Operations

@@ -4,27 +4,41 @@ The MongoDB Knowledge Service Responses API lets you get LLM-generated answers t
 
 The Responses API includes the following features:
 
-1. **Multi-Client Support**: The interface of the MongoDB Knowledge Service Responses API is a subset of the official [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses). This means you can call the MongoDB Responses API through any client that supports the OpenAI Responses API.
-  - To learn more, refer to the [Call the Responses API](#call-the-responses-api) section.
-1. **Retrieval-Augmented Generation**: By default, the API performs retrieval-augmented generation under the hood to generate accurate and up-to-date responses about MongoDB products.
-  - To learn more, refer to the [Retrieval-Augmented Generation](#retrieval-augmented-generation) section.
-1. **Personality**: The AI API has the personality of a helpful MongoDB assistant. You cannot change this core personality. You can augment the personality via custom instructions. (E.g. "You are a technical services engineer at MongoDB. Use that as context to inform your response.")
-  - To learn more about augmenting the personality, refer to [Set Custom Instructions](#set-custom-instructions).
-1. **Custom Tools**: You can add custom function tools to the Responses API, allowing you to extend the functionality of the Responses API to support additional use cases.
-  - For more information, refer to the [Use Custom Tools](#use-custom-tools) section.
-1. **Stateful and Stateless**: The API supports stateful and stateless conversation management. If you're using stateful conversation management, the conversation history is managed on the server. To use stateless conversation management, define the conversation context in each request from the client.
-  - For more information, refer to the [Conversation Management](#conversation-management) section.
-1. **Guardrails**: The API features guardrails that helps ensure the input and output are appropriate for a MongoDB assistant. This protects the API from generating irrelevant or malicious responses.
-  - For more information, refer to the [Guardrails](#guardrails) section.
-1. **Tracing & Storage**: All messages to the chatbot can be traced and stored or not depending on how you configure your request.
-  - For more information, refer to [Tracing and Storage](#tracing-and-storage)
-1. **Collect User Feedback**: You can rate and comment all messages from the Responses API. This is useful for tracking user feedback and API performance for your use case. 
-  - For more information, refer to the [Collect User Feedback](#collect-user-feedback) section.
+1. **Multi-Client Support:** The interface of the MongoDB Knowledge Service Responses API is a subset of the official [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses). This means you can call the MongoDB Responses API through any client that supports the OpenAI Responses API.
+
+   To learn more, refer to the [Call the Responses API](#call-the-responses-api) section.
+
+2. **Retrieval-Augmented Generation:** By default, the API performs retrieval-augmented generation under the hood to generate accurate and up-to-date responses about MongoDB products.
+
+   To learn more, refer to the [Retrieval-Augmented Generation](#retrieval-augmented-generation) section.
+
+3. **Personality:** The AI API has the personality of a helpful MongoDB assistant. You cannot change this core personality. You can augment the personality via custom instructions. (E.g. "You are a technical services engineer at MongoDB. Use that as context to inform your response.")
+
+   To learn more about augmenting the personality, refer to [Set Custom Instructions](#set-custom-instructions).
+
+4. **Custom Tools:** You can add custom function tools to the Responses API, allowing you to extend the functionality of the Responses API to support additional use cases.
+
+   For more information, refer to the [Use Custom Tools](#use-custom-tools) section.
+
+5. **Stateful and Stateless:** The API supports stateful and stateless conversation management. If you're using stateful conversation management, the conversation history is managed on the server. To use stateless conversation management, define the conversation context in each request from the client.
+
+   For more information, refer to the [Conversation Management](#conversation-management) section.
+
+6. **Guardrails:** The API features guardrails that helps ensure the input and output are appropriate for a MongoDB assistant. This protects the API from generating irrelevant or malicious responses.
+
+   For more information, refer to the [Guardrails](#guardrails) section.
+
+7. **Tracing & Storage:** All messages to the chatbot can be traced and stored or not depending on how you configure your request.
+
+   For more information, refer to [Tracing and Storage](#tracing-and-storage)
+
+8. **Collect User Feedback:** You can rate and comment all messages from the Responses API. This is useful for tracking user feedback and API performance for your use case.
+
+   For more information, refer to the [Collect User Feedback](#collect-user-feedback) section.
 
 ## API Specification
 
 For a complete reference on the MongoDB Responses API, refer to the [OpenAPI specification](./openapi#tag/Responses).
-å
 ## Call the Responses API
 
 As the MongoDB Knowledge Service Responses API uses the same interface as the OpenAI responses API, all clients that support the official OpenAI Responses API should also work for this API.
@@ -65,7 +79,7 @@ for await (const event of response) {
 Example usage with [Vercel AI SDK](https://ai-sdk.dev/docs/introduction) `@ai-sdk/openai` and `ai` libraries:
 
 ```ts
-// NOte: The Responses API currently only support streaming responses via methods like `streamText`. Methods that do not use streaming like `generateText` will not work.
+// NOTE: The Responses API currently only support streaming responses via methods like `streamText`. Methods that do not use streaming like `generateText` will not work.
 import { streamText } from "ai";
 // NOTE: we are using the AI SDK v5 with LanguageModelV2
 import { createOpenAI } from "@ai-sdk/openai";
@@ -101,12 +115,15 @@ curl -v -X POST POST 'https://knowledge.mongodb.com/api/v1/responses' \
 ## Retrieval-Augmented Generation
 
 By default, the API performs retrieval-augmented generation under the hood
-to generate accurate and up-to-date responses about MongoDB products. Retrieval is managed by internal search tools. These internal search tools cannot be removed from the API.
+to generate accurate and up-to-date responses about MongoDB products.
+Retrieval is managed by internal search tools.
+These internal search tools cannot be removed from the API.
 
 The API returns references to any sources used to generate the response in the `"response.output_text.annotation.added"` stream event. These stream events are only included if an internal search tool was called.
 
 If you provide custom tools to the API via the `tools` parameter,
-the API will choose to use the tool or the retrieval tool based on the `tool_choice` parameter. Default behavior is to allow the model to choose the tool to use (`tool_choice: "auto"`).
+the API will choose to use the tool or the retrieval tool based on the `tool_choice` parameter.
+Default behavior is to allow the model to choose the tool to use (`tool_choice: "auto"`).
 
 ```ts
 const stream = await openai.responses.create({
@@ -302,7 +319,8 @@ The Responses API supports both stateful and stateless conversation management.
 ### Message Storage
 
 The `store` parameter determines how the server persists conversations, and whether or not you can use stateful conversations.
-By default if store `store: undefined`, the server stores conversations. You can also explicitly set `store: true` for the same behavior.
+By default if store `store: undefined`, the server stores conversations.
+You can also explicitly set `store: true` for the same behavior.
 
 If you set `store: false`, the database does not persist conversation messages, though it does persist non-sensitive metadata about the messages.
 

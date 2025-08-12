@@ -7,7 +7,11 @@ description: MongoDB Knowledge Service
 
 The MongoDB Knowledge Service lets you learn about MongoDB using generative AI.
 
-## Server
+## Responses API
+
+To build MongoDB-related conversational AI applications, use the [Responses API](./server/responses-api.md). The Responses API is compatible with the OpenAI API and provides MongoDB-specific knowledge through retrieval-augmented generation.
+ 
+## Server OpenAPI Specification
 
 To call the MongoDB Knowledge Service API, refer to the [OpenAPI specification](/server/openapi/).
 

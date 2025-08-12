@@ -27,8 +27,10 @@ import { strict as assert } from "assert";
 import { z } from "zod";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
-import { binaryNdcgAtK } from "./scorers/binaryNdcgAtK";
-import { ConversationEvalCase as ConversationEvalCaseSource } from "mongodb-rag-core/eval";
+import {
+  binaryNdcgAtK,
+  ConversationEvalCase as ConversationEvalCaseSource,
+} from "mongodb-rag-core/eval";
 import { extractTracingData } from "../tracing/extractTracingData";
 
 interface ConversationEvalCaseInput {

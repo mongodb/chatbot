@@ -28,6 +28,8 @@ describe("runBenchmark", () => {
   let mockScorerFunc: jest.Mock;
   let mockProcessFunction: jest.Mock;
   let mockPromisePoolInstance: any;
+  let mockBeforeAll: jest.Mock;
+  let mockAfterAll: jest.Mock;
 
   beforeEach(() => {
     mockDataset1 = [
@@ -38,6 +40,8 @@ describe("runBenchmark", () => {
 
     mockTaskFunc = jest.fn().mockReturnValue("mock-task-result");
     mockScorerFunc = jest.fn().mockReturnValue("mock-scorer-result");
+    mockBeforeAll = jest.fn();
+    mockAfterAll = jest.fn();
 
     mockModels = [
       {
@@ -64,6 +68,10 @@ describe("runBenchmark", () => {
       },
       benchmarks: {
         "test-benchmark": {
+          environment: {
+            beforeAll: mockBeforeAll,
+            afterAll: mockAfterAll,
+          },
           description: "Test benchmark",
           projectName: "test-project",
           datasets: {
@@ -628,6 +636,13 @@ describe("runBenchmark", () => {
         mockConfig.modelProvider,
         mockConfig.models[1]
       );
+    });
+
+    it("should call beforeAll and afterAll functions", async () => {
+      await runBenchmark(mockConfig, mockArgs);
+
+      expect(mockBeforeAll).toHaveBeenCalled();
+      expect(mockAfterAll).toHaveBeenCalled();
     });
   });
 });

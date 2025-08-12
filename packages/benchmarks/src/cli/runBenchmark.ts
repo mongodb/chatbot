@@ -53,65 +53,72 @@ export async function runBenchmark(
   console.log(`Task: ${task}`);
   console.log(`Model concurrency: ${modelConcurrency}`);
 
-  // Run benchmarks with model concurrency
-  const { results } = await PromisePool.for(models)
-    .withConcurrency(modelConcurrency)
-    .handleError((error) => {
-      console.error(error);
-    })
-    .process(async (model) => {
-      const maxConcurrency = taskConcurrency ?? model.maxConcurrency ?? 1;
+  // Setup environment
+  await benchmarkConfig.environment?.beforeAll?.();
 
-      console.log(`Running experiments for model: ${model.label}`);
+  try {
+    // Run benchmarks with model concurrency
+    const { results } = await PromisePool.for(models)
+      .withConcurrency(modelConcurrency)
+      .handleError((error) => {
+        console.error(error);
+      })
+      .process(async (model) => {
+        const maxConcurrency = taskConcurrency ?? model.maxConcurrency ?? 1;
 
-      // Run each task-dataset combination
+        console.log(`Running experiments for model: ${model.label}`);
 
-      const dataset = (
-        await Promise.all(
-          datasetsToRun.map(([_datasetName, datasetConfig]) =>
-            datasetConfig.getDataset()
+        // Run each task-dataset combination
+
+        const dataset = (
+          await Promise.all(
+            datasetsToRun.map(([_datasetName, datasetConfig]) =>
+              datasetConfig.getDataset()
+            )
           )
-        )
-      ).flat();
-      const datasetName = datasetsToRun.map(([name]) => name).join("+");
+        ).flat();
+        const datasetName = datasetsToRun.map(([name]) => name).join("+");
 
-      const experimentName = makeExperimentName({
-        baseName: type,
-        experimentType: task,
-        datasets: datasetName,
-        model: model.label,
-      });
-
-      console.log(`Running experiment: ${experimentName}`);
-
-      const scores = Object.values(benchmarkConfig.scorers).map(
-        (scorer) => scorer.scorerFunc
-      );
-
-      try {
-        // Load dataset
-        // Run evaluation
-        const evalResult = await Eval(benchmarkConfig.projectName, {
-          data: dataset,
-          experimentName,
-          maxConcurrency,
-          metadata: {
-            model: model.label,
-            task,
-            dataset: datasetName,
-            taskConcurrency,
-          },
-          task: taskToRun.taskFunc(config.modelProvider, model),
-          scores,
+        const experimentName = makeExperimentName({
+          baseName: type,
+          experimentType: task,
+          datasets: datasetName,
+          model: model.label,
         });
 
-        console.log(`✓ Completed experiment: ${experimentName}`);
-        return { evalResult, dataset, experimentName };
-      } catch (error) {
-        console.error(`✗ Failed experiment: ${experimentName}`, error);
-      }
-    });
+        console.log(`Running experiment: ${experimentName}`);
 
-  console.log("Benchmark run completed");
-  return results;
+        const scores = Object.values(benchmarkConfig.scorers).map(
+          (scorer) => scorer.scorerFunc
+        );
+
+        try {
+          // Load dataset
+          // Run evaluation
+          const evalResult = await Eval(benchmarkConfig.projectName, {
+            data: dataset,
+            experimentName,
+            maxConcurrency,
+            metadata: {
+              model: model.label,
+              task,
+              dataset: datasetName,
+              taskConcurrency,
+            },
+            task: await taskToRun.taskFunc(config.modelProvider, model),
+            scores,
+          });
+
+          console.log(`✓ Completed experiment: ${experimentName}`);
+          return { evalResult, dataset, experimentName };
+        } catch (error) {
+          console.error(`✗ Failed experiment: ${experimentName}`, error);
+        }
+      });
+
+    console.log("Benchmark run completed");
+    return results;
+  } finally {
+    await benchmarkConfig.environment?.afterAll?.();
+  }
 }

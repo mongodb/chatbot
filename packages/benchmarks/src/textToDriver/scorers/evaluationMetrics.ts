@@ -6,53 +6,64 @@ import {
   isReasonableResult,
   profileMongoshQuery,
 } from "mongodb-rag-core/executeCode";
-import { TextToDriverEvalScorer } from "./TextToDriverEval";
+import {
+  TextToDriverEvalScorer,
+  TextToDriverOutput,
+} from "../TextToDriverEval";
 import { Score } from "autoevals";
+
+export const SuccessfulExecution = ({
+  output,
+}: {
+  output: TextToDriverOutput;
+}): Score => {
+  const noOutput = output.execution.result === null;
+  const successfulExecution = {
+    name: "SuccessfulExecution",
+    score: noOutput ? 0 : 1,
+  };
+  return successfulExecution;
+};
 
 /**
   Check if the generated query successfully executed.
   Note that if the query isn't valid, then the "SuccessfulExecution"
   metric will always fail.
  */
-export const SuccessfulExecution: TextToDriverEvalScorer = async ({
-  output,
-  expected,
-  metadata,
-}): Promise<Score[]> => {
-  const noOutput = output.execution.result === null;
-  const successfulExecution = {
-    name: "SuccessfulExecution",
-    score: noOutput ? 0 : 1,
-  };
+export const SuccessfulExecutionAndCorrectOutput: TextToDriverEvalScorer =
+  async ({ output, expected, metadata }): Promise<Score[]> => {
+    const successfulExecution = SuccessfulExecution({
+      output,
+    });
 
-  const correctOutputFuzzy: ReturnType<TextToDriverEvalScorer> = {
-    name: "CorrectOutputFuzzy",
-    score: 0,
-  };
-  try {
-    const isFuzzyMatch =
-      output.execution.result !== null
-        ? fuzzyMatchExecutionResults({
-            mongoDbOutput: output.execution.result,
-            expected: expected.result,
-            orderMatters: metadata.orderMatters,
-            isAggregation: metadata.isAggregation,
-          })
-        : 0;
-    correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
-    if (isFuzzyMatch === 0) {
+    const correctOutputFuzzy: ReturnType<TextToDriverEvalScorer> = {
+      name: "CorrectOutputFuzzy",
+      score: 0,
+    };
+    try {
+      const isFuzzyMatch =
+        output.execution.result !== null
+          ? fuzzyMatchExecutionResults({
+              mongoDbOutput: output.execution.result,
+              expected: expected.result,
+              orderMatters: metadata.orderMatters,
+              isAggregation: metadata.isAggregation,
+            })
+          : 0;
+      correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
+      if (isFuzzyMatch === 0) {
+        correctOutputFuzzy.metadata = {
+          error: "Fuzzy match failed",
+        };
+      }
+    } catch (err) {
       correctOutputFuzzy.metadata = {
-        error: "Fuzzy match failed",
+        error: err,
       };
     }
-  } catch (err) {
-    correctOutputFuzzy.metadata = {
-      error: err,
-    };
-  }
 
-  return [successfulExecution, correctOutputFuzzy];
-};
+    return [successfulExecution, correctOutputFuzzy];
+  };
 
 /**
  Checks if the output is reasonable. Uses {@link isReasonableResult} to determine if the output is reasonable.
@@ -137,7 +148,9 @@ export const makeMongoshBenchmarkMetrics = (
   connectionUri: string
 ): TextToDriverEvalScorer => {
   const compoundScorer: TextToDriverEvalScorer = async (args) => {
-    const successfulExecution = (await SuccessfulExecution(args)) as Score[];
+    const successfulExecution = (await SuccessfulExecutionAndCorrectOutput(
+      args
+    )) as Score[];
     const reasonableOutput = (await ReasonableOutput(args)) as Score[];
 
     // Note doing casting b/c of limitations of the Braintrust typing used here.

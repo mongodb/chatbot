@@ -406,6 +406,17 @@ const firstResponse = await openai.responses.create({
   store: false // Does not store conversation on server
 });
 
+// Get first response text to include in subsequent requests
+let firstResponseOutputText = "";
+for await (const event of firstResponse) {
+  switch (event.type) {
+    case "response.completed":
+      firstResponseOutputText = event.response.output_text;
+      break;
+    default:
+      continue;
+  }
+}
 
 // Follow-up message with full conversation history
 const followUpResponse = await openai.responses.create({
@@ -417,7 +428,7 @@ const followUpResponse = await openai.responses.create({
     {
       type: "message",
       role: "assistant",
-      content: "...some assistant response..."
+      content: firstResponseOutputText,
     },
     {
       type: "message",

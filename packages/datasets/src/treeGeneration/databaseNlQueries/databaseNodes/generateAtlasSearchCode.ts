@@ -1,0 +1,144 @@
+import { makeGenerateNChoiceChildrenWithOpenAi } from "../../generateChildren";
+import {
+  DatabaseNlQueryNode,
+  DatabaseCodeNode,
+  DatabaseCodeSchema,
+  DatabaseCode,
+} from "./nodeTypes";
+import {
+  makePromptDbInfo,
+  makePromptNaturalLanguageQueryInfo,
+} from "./makePromptComponents";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { makeOpenAiClient } from "../../../openAi";
+
+const abstractOutputExample: DatabaseCode = {
+  queryPlan: "<query plan here>",
+  code: "<aggregation pipeline code here>",
+  language: "json",
+};
+
+const nlQuerySystemPrompt = `You are an expert data analyst experienced at using MongoDB and MongoDB Atlas Search.
+Your job is to take information about a MongoDB database plus a natural language query and generate a MongoDB shell (mongosh) query to execute to retrieve the information needed to answer the natural language query. The query must use Atlas Search via the \`$search\` operator.
+
+In your response include a query plan, where you think step-by-step about how to best execute the query before providing the final mongosh output.
+
+<format>
+Format the mongosh query as an array of aggregation pipeline stages to insert into a query like \`db.<collection name>.aggregate({/* query using '$search' */})\`.
+
+For example, the output should look like:
+\`\`\`
+[
+  { $search: { /* search stage here */ } },
+  { /* other stages here */ }
+]
+\`\`\`
+
+<mongodb-extended-json-format>
+The output should be in MongoDB Extended JSON format if you need to use any non-JSON types.
+
+Use MongoDB Extended JSON format for BSON types:
+- ObjectId: \`{"$oid": "507f1f77bcf86cd799439011"}\`
+- Date: \`{"$date": "2015-02-23T23:19:54.674Z"}\` or \`{"$date": {"$numberLong": "1423872000000"}}\`
+- Regex: \`{"$regex": "pattern", "$options": "flags"}\`
+- NumberLong: \`{"$numberLong": "123456789"}\`
+- NumberDecimal: \`{"$numberDecimal": "123.45"}\`
+
+Examples:
+\`\`\`json
+// ObjectId field
+{ "_id": { "$oid": "507f1f77bcf86cd799439011" } }
+
+// Date range query
+{
+  "publishedDate": {
+    "$gte": { "$date": "2023-01-01T00:00:00.000Z" },
+    "$lt": { "$date": "2024-01-01T00:00:00.000Z" }
+  }
+}
+\`\`\`
+</mongodb-extended-json-format>
+</format>
+
+<<query-authoring-tips>
+Some general query-authoring tips:
+
+${markdownList([
+  "Always use the $search stage as the first stage in the aggregation pipeline, followed by other stages as needed",
+  "Use the compound operator to combine multiple search conditions with must, should, and filter clauses appropriately",
+  "Place non-scoring operators (equals, range, exists) in filter clause to optimize performance and avoid unnecessary scoring",
+  "Use must clause for required conditions that should affect scoring, should clause for preferred conditions, and filter for required conditions that shouldn't affect scoring",
+  "Leverage text search with appropriate analyzers - use text operator for full-text search, phrase for exact matches, autocomplete for type-ahead",
+  "Apply scoring and boosting strategically - use boost option to increase importance of certain fields or conditions",
+  "Include proper field specifications in your operators - specify which indexed fields to search against",
+  "Use limit and sort stages after $search to manage result sets, but avoid blocking operations when possible",
+  "For complex text matching, consider wildcard or regex operators but note they are resource-intensive",
+  "Utilize stored source fields when you need specific fields in subsequent pipeline stages to avoid full document lookup",
+  "When using autocomplete, configure appropriate minGrams and maxGrams values (typically maxGrams of 10 for English)",
+  "Consider using $searchMeta for metadata queries (counts, facets) when you don't need the actual documents",
+])}</query-authoring-tips>
+
+<query-plan>
+Before writing the aggregation pipeline, think step-by-step about what the query should do in the "queryPlan" field. In your thoughts consider:
+
+${markdownList([
+  "Which collections have Atlas Search indexes and which indexed fields are relevant for the search query",
+  "What type of search operation to use (text search, autocomplete, phrase matching, wildcard, regex, etc.)",
+  "Whether to use compound operator and which clauses (must, should, filter) are appropriate for each condition",
+  "What search terms, phrases, or patterns need to be matched and against which indexed fields",
+  "How to structure scoring and boosting - which conditions should affect relevance scoring vs filtering only",
+  "What additional pipeline stages are needed after $search (sorting, limiting, projecting, grouping, etc.)",
+  "Whether to use $search or $searchMeta stage (documents vs metadata like counts/facets)",
+  "How to handle text analysis - which analyzers are configured for the indexed fields",
+  "Performance considerations - avoiding resource-intensive operators like complex regex or wildcard when possible",
+  "Whether stored source fields are available and should be used to optimize subsequent pipeline stages",
+  "Any specific search features needed like fuzzy matching, synonyms, or proximity searches",
+  "How to structure the query for optimal search index utilization and minimal blocking operations",
+])}</query-plan>
+
+<language>
+For the language field, always put '${abstractOutputExample.language}'. 
+</language>
+
+<abstract-output-example>
+For example the output should look like: 
+${JSON.stringify(abstractOutputExample)}
+</abstract-output-example>`;
+
+function markdownList(items: string[]) {
+  return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+}
+export const generateMongoshCode = wrapTraced(
+  makeGenerateNChoiceChildrenWithOpenAi<DatabaseNlQueryNode, DatabaseCodeNode>({
+    openAiClient: makeOpenAiClient(),
+    childType: "database_code",
+    makePromptMessages: async ({
+      data: naturalLanguageQuery,
+      parent: {
+        parent: {
+          parent: { data: databaseInfo },
+        },
+      },
+    }) => {
+      const message = `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
+
+${makePromptDbInfo(databaseInfo)}
+
+  ${makePromptNaturalLanguageQueryInfo(naturalLanguageQuery)}
+`;
+
+      return [
+        { role: "system", content: nlQuerySystemPrompt },
+        { role: "user", content: message },
+      ];
+    },
+    response: {
+      schema: DatabaseCodeSchema,
+      name: "generate_db_code",
+      description: "A MongoDB Shell (mongosh) query for the database use case",
+    },
+  }),
+  {
+    name: "generateMongoshCode",
+  }
+);

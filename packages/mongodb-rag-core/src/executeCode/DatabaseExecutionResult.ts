@@ -2,10 +2,8 @@ import { ExecOptions } from "child_process";
 import { Document } from "mongodb";
 
 export interface ExecuteMongoDbQueryParams {
-  query: string;
-  uri: string;
+  query: string | Document[];
   databaseName: string;
-  execOptions?: ExecOptions;
 }
 
 export type ExecuteMongoDbQuery = (

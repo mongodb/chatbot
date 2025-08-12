@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
-import { executeMongoshQuery } from "./executeMongoshQuery";
+import { makeExecuteMongoshQuery } from "./executeMongoshQuery";
 
 jest.setTimeout(1000 * 60);
 
@@ -31,6 +31,10 @@ describe.skip("executeMqlQuery", () => {
     await collection.drop();
   });
 
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: MONGO_MEMORY_SERVER_URI,
+    execOptions: {},
+  });
   it("should execute a mongosh .find() query and return results", async () => {
     // Execute the function
     const res = await executeMongoshQuery({
@@ -47,6 +51,7 @@ describe.skip("executeMqlQuery", () => {
 
   it("should execute a mongosh .aggregate() query and return results", async () => {
     // Execute the function with a simple aggregation pipeline
+
     const res = await executeMongoshQuery({
       query: "db.users.aggregate([{ $match: { age: { $gt: 25 } } }])",
       uri: MONGO_MEMORY_SERVER_URI,
@@ -92,7 +97,6 @@ describe.skip("executeMqlQuery", () => {
   it("should not postfix .toArray() if already present", async () => {
     // Test the appendToArrayIfNeeded function directly
     const queryWithToArray = "db.users.find().toArray()";
-
     const res = await executeMongoshQuery({
       query: queryWithToArray,
       uri: MONGO_MEMORY_SERVER_URI,

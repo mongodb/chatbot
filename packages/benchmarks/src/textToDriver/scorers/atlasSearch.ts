@@ -31,7 +31,9 @@ export const SearchOperatorUsed = ({
   output: TextToDriverOutput;
 }): Score => {
   const generatedCode = output.generatedCode;
-  const correctOperatorUsed = generatedCode.includes("$search");
+  const correctOperatorUsed =
+    generatedCode.includes("$search") ||
+    generatedCode.includes("$vectorSearch");
   const deprecatedOperatorUsed = generatedCode.includes("$knnBeta");
   return {
     name: "SearchOperatorUsed",

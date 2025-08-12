@@ -187,14 +187,125 @@ ${resultsSchemaGuidelines}
 
 ${outputGuidelines(numChildren)}`;
 
-// TODO: make atlas search system message
 const makeAtlasSearchSystemMessage = (
   numChildren: number
 ) => `${baseSystemMessage}
 
 <query_specificity_guidelines>
-TODO: fill in...
-</query_specificity_guidelines
+Regarding the specificity of the natural language queries for Atlas Search:
+- Focus on text search capabilities and full-text search scenarios that Atlas Search excels at
+- Include queries that would benefit from search relevance scoring and ranking
+- Create queries that leverage specific Atlas Search features like autocomplete, phrase matching, and fuzzy search
+- Specify search terms that would work well with text analyzers (stemming, synonyms, etc.)
+
+To create more specific Atlas Search queries:
+- Use specific search terms and phrases for full-text search
+  - For example, "Find the top 5 articles containing both 'MongoDB' and 'performance' in the title or content"
+- Include autocomplete/type-ahead scenarios with partial terms
+  - For example, "Show suggestions for articles starting with 'databas'"
+- Specify phrase searches for exact matches
+  - For example, "Find documents containing the exact phrase 'MongoDB Atlas'"
+- Use fuzzy matching scenarios with approximate terms
+  - For example, "Search for articles about 'databse' (misspelled database)"
+- Include queries that would benefit from text analysis features like stemming
+  - For example, "Find articles about 'running' that should also match 'run', 'runs', 'ran'"
+
+</query_specificity_guidelines>
+
+<query_complexity_guidelines>
+Be sure to include varying levels of complexity among the Atlas Search queries. The complexity levels are:
+
+- simple
+- moderate
+- complex
+
+Below is some specific guidance for each complexity level:
+
+<simple_queries>
+Simple Atlas Search queries should follow these criteria:
+
+Requirements:
+- Single search operator (text, autocomplete, phrase, etc.)
+- Basic text search functionality
+
+Guidelines:
+- Use basic text search with simple terms
+- Single field searches
+- Autocomplete with straightforward prefixes
+- Exact phrase matches
+- Basic wildcard or regex patterns
+
+Examples:
+- "Find articles with the word 'database' in the title"
+- "Show autocomplete suggestions for 'mong'"
+- "Search for the exact phrase 'getting started'"
+- "Find documents containing 'tutorial'"
+
+</simple_queries>
+
+<moderate_queries>
+Moderate Atlas Search queries should follow these criteria:
+
+Requirements:
+- Multiple search conditions combined with compound operator
+- 2-4 search criteria using Atlas Search features
+
+Guidelines:
+- Combine multiple operators (text + autocomplete, phrase + wildcard)
+- Search across multiple fields
+- Use scoring and boosting
+- Include fuzzy matching or synonyms
+- Basic faceting or filtering
+
+Examples:
+- "Find articles containing 'MongoDB' in title and 'performance' in content, ranked by relevance"
+- "Search for articles with 'database' in title or starting with 'NoSQL' autocomplete"
+- "Find documents with exact phrase 'Atlas Search' and fuzzy match for 'indexs' (misspelled)"
+- "Search articles by author 'John' and containing words similar to 'optimization'"
+
+</moderate_queries>
+
+<complex_queries>
+Complex Atlas Search queries should follow these criteria:
+
+Requirements:
+- Multiple compound search operations
+- Advanced Atlas Search features and operators
+- Complex scoring and ranking requirements
+- Multiple search contexts or conditions
+
+Guidelines:
+- Complex compound queries with must, should, mustNot clauses
+- Advanced operators like span, moreLikeThis, or complex regex
+- Multiple faceting dimensions
+- Geospatial search combined with text search
+- Time-based relevance with text search
+- Cross-field analysis and scoring
+
+Examples:
+- "Find articles similar to a given document that contain 'machine learning' in title, were published in last 6 months, and have high engagement, excluding articles tagged 'deprecated'"
+- "Search for documents where 'MongoDB' and 'Atlas' appear within 5 words of each other in content, boost results with 'tutorial' in title, and facet by publication date and author"
+- "Find articles with autocomplete suggestions for 'data' in title, fuzzy match 'analitycs' (misspelled) in content, near geolocation of San Francisco, and sort by combined relevance and recency score"
+
+</complex_queries>
+
+<query_complexity_distribution_guidelines>
+- When generating the natural language queries, ensure a balanced distribution across all complexity levels to properly test Atlas Search capabilities.
+- You should generate a similar number of queries for each complexity level.
+- Focus on search-specific functionality rather than general database operations.
+</query_complexity_distribution_guidelines>
+
+</query_complexity_guidelines>
+
+<query_limiting_guidelines>
+Limiting Atlas Search queries: 
+- IMPORTANT: Design queries that will return a specific small number of results (ideally fewer than 20 documents), as search results are typically paginated and ranked by relevance.
+  - For example, instead of saying "Find articles about MongoDB", say "Find the top 10 most relevant articles about MongoDB"
+- Include specific search constraints and filters to narrow down the result set
+- Use relevance ranking and scoring to limit to most relevant results
+- Leverage Atlas Search's natural ranking capabilities by requesting "top N" or "most relevant" results
+- Include specific field constraints when possible (e.g., search in title vs. content vs. both)
+</query_limiting_guidelines>
 
 ${temporalGuidelines}
 

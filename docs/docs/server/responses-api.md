@@ -30,7 +30,7 @@ The Responses API includes the following features:
 
 7. **Tracing & Storage:** All messages to the chatbot can be traced and stored or not depending on how you configure your request.
 
-   For more information, refer to [Tracing and Storage](#tracing-and-storage)
+   For more information, refer to the [Tracing and Storage](#tracing-and-storage) section.
 
 8. **Collect User Feedback:** You can rate and comment all messages from the Responses API. This is useful for tracking user feedback and API performance for your use case.
 

@@ -21,15 +21,10 @@ export interface MakeGenerateNaturalLanguageQueryPromptParams {
   useCase: DatabaseUseCase;
   user: DatabaseUser;
   databaseInfo: DatabaseInfo;
+  queryType?: "mql" | "atlas_search";
 }
 
-export function makeGenerateNaturalLanguageQueryPrompt({
-  numChildren,
-  useCase,
-  user,
-  databaseInfo,
-}: MakeGenerateNaturalLanguageQueryPromptParams): OpenAI.ChatCompletionMessageParam[] {
-  const systemMessage = `You are an expert in natural language processing and database query understanding. Given a database use case, generate realistic natural language queries that a user might ask to fulfill their information needs.
+const baseSystemMessage = `You are an expert in natural language processing and database query understanding. Given a database use case, generate realistic natural language queries that a user might ask to fulfill their information needs.
 
 These queries will be used in a benchmarking dataset that measures large language models' ability to generate MongoDB database queries from natural language. The queries should be of similar type to those used in modern natural language-to-SQL benchmarks like Spider-SQL or BirdBench.
 
@@ -43,7 +38,39 @@ For each natural language query:
 - Ensure the query would retrieve the information needed to satisfy the use case
 - The query should sound conversational, as if the user were asking them to an AI chatbot.
 - For most users, avoid using technical database terminology (e.g., "documents", "collections") - use domain-specific terms instead
-</general_guidelines>
+</general_guidelines>`;
+
+const temporalGuidelines = `<temporal_guidelines>
+If the use case relates to time windows or temporal analysis:
+- Include a variety of different time expressions (last 30 days, year 1998, past quarter, last summer, etc.)
+- Mix absolute time references (e.g., "in 2020", "during the 1990s") with relative ones (e.g., "in the past month", "over the last year")
+- Include some queries with multiple time constraints when appropriate (e.g., "movies released between 2010 and 2020")
+- Use both specific dates and general time periods 
+- Make sure to keep the date provided in the 'Latest Date' field in mind when crafting the query.
+
+Note: not all databases will have temporal data. If the database does not have temporal data, ignore the temporal guidelines.
+</temporal_guidelines>`;
+
+const indexGuidelines = `<index_guidelines>
+- Make use of the indexes available in the database when designing the query, if relevant to the use case.
+- For example if there are geo or text based indexes, consider writing queries that use them. However, only use the indexes if relevant to the use case.
+</index_guidelines>`;
+
+const resultsSchemaGuidelines = `<results_schema_guidelines>
+For the output \`resultsSchema\`, include the actual type definition, for instance given the query "Find the titles and ratings of the 10 most popular movies from 2010 with a rating above 8.5", the output should be:
+\`\`\`typescript
+/**
+ * Title and rating of movies
+ */
+type QueryResults = {title: string, rating: number}[];
+\`\`\`
+</results_schema_guidelines>`;
+
+const outputGuidelines = (numChildren: number) => `<output_guidelines>
+Generate ${numChildren} natural language queries with multiple variations for each use case, maintaining the same complexity level as specified in the use case.
+</output_guidelines>`;
+
+const makeMqlSystemMessage = (numChildren: number) => `${baseSystemMessage}
 
 <query_specificity_guidelines>
 Regarding the specificity of the natural language queries:
@@ -152,36 +179,38 @@ Limiting queries:
 - Avoid overly broad queries that might return the entire collection or a large subset of it
 </query_limiting_guidelines>
 
-<temporal_guidelines>
-If the use case relates to time windows or temporal analysis:
-- Include a variety of different time expressions (last 30 days, year 1998, past quarter, last summer, etc.)
-- Mix absolute time references (e.g., "in 2020", "during the 1990s") with relative ones (e.g., "in the past month", "over the last year")
-- Include some queries with multiple time constraints when appropriate (e.g., "movies released between 2010 and 2020")
-- Use both specific dates and general time periods 
-- Make sure to keep the date provided in the 'Latest Date' field in mind when crafting the query.
+${temporalGuidelines}
 
-Note: not all databases will have temporal data. If the database does not have temporal data, ignore the temporal guidelines.
-</temporal_guidelines>
+${indexGuidelines}
 
-<index_guidelines>
-- Make use of the indexes available in the database when designing the query, if relevant to the use case.
-- For example if there are geo or text based indexes, consider writing queries that use them. However, only use the indexes if relevant to the use case.
-</index_guidelines>
+${resultsSchemaGuidelines}
 
-<results_schema_guidelines>
-For the output \`resultsSchema\`, include the actual type definition, for instance given the query "Find the titles and ratings of the 10 most popular movies from 2010 with a rating above 8.5", the output should be:
-\`\`\`typescript
-/**
- * Title and rating of movies
- */
-type QueryResults = {title: string, rating: number}[];
-\`\`\`
-</results_schema_guidelines>
+${outputGuidelines(numChildren)}`;
 
-<output_guidelines>
-Generate ${numChildren} natural language queries with multiple variations for each use case, maintaining the same complexity level as specified in the use case.
-</output_guidelines>`;
+// TODO: make atlas search system message
+const makeAtlasSearchSystemMessage = (
+  numChildren: number
+) => `${baseSystemMessage}
 
+<query_specificity_guidelines>
+TODO: fill in...
+</query_specificity_guidelines
+
+${temporalGuidelines}
+
+${indexGuidelines}
+
+${resultsSchemaGuidelines}
+
+${outputGuidelines(numChildren)}`;
+
+export function makeGenerateNaturalLanguageQueryPrompt({
+  numChildren,
+  useCase,
+  user,
+  queryType = "mql",
+  databaseInfo,
+}: MakeGenerateNaturalLanguageQueryPromptParams): OpenAI.ChatCompletionMessageParam[] {
   const message = `Generate natural language queries for the following database use case:
 
 ${makePromptUseCaseInfo(useCase)}
@@ -191,7 +220,10 @@ ${makePromptDbUserInfo(user)}
 ${makePromptDbInfo(databaseInfo)}`;
 
   return [
-    { role: "system", content: systemMessage },
+    {
+      role: "system",
+      content: getSystemMessage(queryType, numChildren),
+    },
     { role: "user", content: message },
   ];
 }
@@ -227,3 +259,15 @@ export const generateNaturalLanguageQueries = wrapTraced(
     name: "generateNaturalLanguageQueries",
   }
 );
+
+function getSystemMessage(
+  queryType: Required<MakeGenerateNaturalLanguageQueryPromptParams>["queryType"],
+  numChildren: number
+) {
+  switch (queryType) {
+    case "mql":
+      return makeMqlSystemMessage(numChildren);
+    case "atlas_search":
+      return makeAtlasSearchSystemMessage(numChildren);
+  }
+}

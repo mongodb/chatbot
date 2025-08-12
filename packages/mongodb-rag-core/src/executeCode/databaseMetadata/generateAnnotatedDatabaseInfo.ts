@@ -17,6 +17,13 @@ export const DatabaseInfoSchema = z.object({
       description: z.string(),
       schema: z.any(),
       examples: z.array(z.any()),
+      // Note: Since LLMs are generally quite bad at generating search indexes,
+      // you should include annotations on the indexes passed to the pipeline.
+      // If you don't provide the annotations, expect bad results.
+      searchIndexes: z
+        .array(z.any())
+        .optional()
+        .describe("Indexes that are used for Atlas Search"),
       indexes: z
         .array(
           z.object({

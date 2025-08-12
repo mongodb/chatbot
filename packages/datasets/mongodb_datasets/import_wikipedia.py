@@ -18,11 +18,10 @@ from pymongo.errors import BulkWriteError
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from jsonc_parser.parser import JsoncParser
-
-from .config import load_environment
+from dotenv import load_dotenv
 
 # Load environment variables
-load_environment()
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(

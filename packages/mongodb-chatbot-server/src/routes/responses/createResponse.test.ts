@@ -669,6 +669,17 @@ describe("POST /responses", () => {
       });
     });
 
+    it("Should return error responses if metadata has conversation_id", async () => {
+      const stream = await makeClientAndRequest({
+        metadata: { conversation_id: "123" },
+      });
+
+      await expectInvalidResponses({
+        stream,
+        message: `Path: body.metadata - ${CREATE_RESPONSE_ERR_MSG.METADATA_CONVERSATION_ID_NOT_ALLOWED}`,
+      });
+    });
+
     it("Should return error responses if temperature is not 0", async () => {
       const stream = await makeClientAndRequest({
         temperature: 0.5 as any,
@@ -1106,6 +1117,9 @@ const expectValidResponses = async ({
     expect(response.temperature).toBe(0);
     expect(response.stream).toBe(true);
     expect(response.top_p).toBeNull();
+    expect(response.metadata).toMatchObject({
+      conversation_id: expect.any(String),
+    });
 
     // conditional upon request body properties
     if (requestBody.instructions) {
@@ -1146,9 +1160,7 @@ const expectValidResponses = async ({
       expect(response.user).toBeUndefined();
     }
     if (requestBody.metadata) {
-      expect(response.metadata).toEqual(requestBody.metadata);
-    } else {
-      expect(response.metadata).toBeNull();
+      expect(response.metadata).toMatchObject(requestBody.metadata);
     }
   });
 

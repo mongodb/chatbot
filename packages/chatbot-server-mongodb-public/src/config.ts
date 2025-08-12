@@ -308,7 +308,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),
-        { name: "generateResponseWithSearchTool" }
+        { name: "generateResponseWithTools" }
       ),
     }),
     {
@@ -465,8 +465,13 @@ export const config: AppConfig = {
       }),
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
-      maxUserMessagesInConversation: 6,
-      alwaysAllowedMetadataKeys: ["ip", "origin", "userAgent"],
+      maxUserMessagesInConversation: 50,
+      alwaysAllowedMetadataKeys: [
+        "ip",
+        "origin",
+        "userAgent",
+        "conversation_id",
+      ],
       updateTrace: addMessageToConversationUpdateTrace,
     },
   },

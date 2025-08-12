@@ -87,6 +87,22 @@ export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponsePa
           item_id: itemId,
         } satisfies ResponseStreamOutputTextAnnotationAdded);
       });
+      dataStreamer.streamResponses({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "file_citation",
+          file_id: verifiedAnswer._id,
+          filename: "verified_answer",
+          index:
+            verifiedAnswer.updated?.getTime() ??
+            verifiedAnswer.created?.getTime() ??
+            0,
+        },
+        annotation_index: verifiedAnswer.references.length, // One more than the last reference
+        content_index: 0,
+        output_index: 0,
+        item_id: itemId,
+      } satisfies ResponseStreamOutputTextAnnotationAdded);
 
       dataStreamer.streamResponses({
         type: "response.output_text.done",

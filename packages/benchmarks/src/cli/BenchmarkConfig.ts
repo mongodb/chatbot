@@ -23,7 +23,9 @@ export interface BenchmarkTask<
   taskFunc: (
     modelProvider: ModelProvider,
     deployment: ModelConfig
-  ) => EvalTask<Input, Output, Expected, Metadata, Parameters>;
+  ) =>
+    | Promise<EvalTask<Input, Output, Expected, Metadata, Parameters>>
+    | EvalTask<Input, Output, Expected, Metadata, Parameters>;
   description?: string;
 }
 
@@ -48,6 +50,10 @@ export interface BenchmarkConfig<
   datasets: Record<string, BenchmarkDataset<Input, Expected, Metadata>>;
   tasks: Record<string, BenchmarkTask<Input, Output, Expected, Metadata>>;
   scorers: Record<string, BenchmarkScorer<Input, Output, Expected, Metadata>>;
+  environment?: {
+    beforeAll?: () => Promise<void>;
+    afterAll?: () => Promise<void>;
+  };
 }
 
 export type ModelProvider = {

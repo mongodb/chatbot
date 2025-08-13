@@ -552,6 +552,7 @@ const loadConversationByMessageId = async ({
       userId,
       customData: { metadata: formattedMetadata },
       creationInterface,
+      storeMessageContent,
     });
   }
 

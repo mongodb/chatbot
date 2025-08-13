@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   isReasonableResult,
   LlmOptions,
 } from "mongodb-rag-core/executeCode";
@@ -101,6 +101,10 @@ async function generateMongoshDataset({
     datasetOutDir,
     `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
   );
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: dataset.connectionUri,
+    execOptions: {},
+  });
 
   console.log(
     `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
@@ -192,6 +196,7 @@ async function generateMongoshDataset({
       );
       return dbCodeNodes;
     });
+
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
       .withConcurrency(

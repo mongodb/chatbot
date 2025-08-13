@@ -1,4 +1,3 @@
-import { ExecOptions } from "child_process";
 import { Document } from "mongodb";
 
 export interface ExecuteMongoDbQueryParams {

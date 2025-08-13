@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  executeMongoshQuery,
   isReasonableResult,
+  makeExecuteMongoshQuery,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
@@ -110,6 +110,11 @@ async function generateMongoshDataset({
   );
 
   const nodeStore = makeMongoDbNodeStore(persistence);
+
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: dataset.connectionUri,
+    execOptions: {},
+  });
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({

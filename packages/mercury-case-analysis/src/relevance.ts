@@ -179,33 +179,32 @@ export const assessRelevance = async ({
   });
   assert(variantCount === Object.values(scoredVariants).length);
 
-  const summedMetrics = scoredVariants.reduce(
-    (outer, { relevance }): RelevanceMetrics => {
-      const relevanceValues = Object.values(relevance);
-      const modelCount = relevanceValues.length;
-      assert(modelCount > 0);
-      // Sum metrics across models
-      const crossModel = relevanceValues.reduce(
-        (acc, { cos_similarity, norm_sq_mag_diff }) => ({
-          cos_similarity: acc.cos_similarity + cos_similarity,
-          norm_sq_mag_diff: acc.norm_sq_mag_diff + norm_sq_mag_diff,
-        }),
-        { cos_similarity: 0, norm_sq_mag_diff: 0 }
-      );
+  // Accumulate raw sums across all models and variants, then divide once at the end
+  const { totalCosSimilarity, totalNormSqMagDiff, totalCount } =
+    scoredVariants.reduce(
+      (
+        acc,
+        { relevance }
+      ): {
+        totalCosSimilarity: number;
+        totalNormSqMagDiff: number;
+        totalCount: number;
+      } => {
+        const relevanceValues = Object.values(relevance);
+        assert(relevanceValues.length > 0);
 
-      // Accumulate average scores across models
-      return {
-        cos_similarity:
-          (outer.cos_similarity + crossModel.cos_similarity) / modelCount,
-        norm_sq_mag_diff:
-          (outer.norm_sq_mag_diff + crossModel.norm_sq_mag_diff) / modelCount,
-      };
-    },
-    { cos_similarity: 0, norm_sq_mag_diff: 0 }
-  );
+        for (const { cos_similarity, norm_sq_mag_diff } of relevanceValues) {
+          acc.totalCosSimilarity += cos_similarity;
+          acc.totalNormSqMagDiff += norm_sq_mag_diff;
+          acc.totalCount += 1;
+        }
+        return acc;
+      },
+      { totalCosSimilarity: 0, totalNormSqMagDiff: 0, totalCount: 0 }
+    );
   const scores: RelevanceMetrics = {
-    cos_similarity: summedMetrics.cos_similarity / variantCount,
-    norm_sq_mag_diff: summedMetrics.norm_sq_mag_diff / variantCount,
+    cos_similarity: totalCosSimilarity / totalCount,
+    norm_sq_mag_diff: totalNormSqMagDiff / totalCount,
   };
 
   return {

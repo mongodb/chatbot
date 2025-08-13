@@ -53,7 +53,7 @@ export function makeGeneratorReturning(
 }
 
 describe("assessRelevance", () => {
-  const embedders = makeEmbedders([makeMockEmbeddingModel()]);
+  const singleEmbedder = makeEmbedders([makeMockEmbeddingModel()]);
 
   it("yields perfect similarity when generated prompts equal the original", async () => {
     const prompt = "When to use $pull and $push mongodb";
@@ -62,7 +62,7 @@ describe("assessRelevance", () => {
     const result = await assessRelevance({
       prompt,
       response: "irrelevant for deterministic generator",
-      embedders,
+      embedders: singleEmbedder,
       generateText,
     });
 
@@ -82,7 +82,7 @@ describe("assessRelevance", () => {
     const result = await assessRelevance({
       prompt,
       response: "irrelevant for deterministic generator",
-      embedders,
+      embedders: singleEmbedder,
       generateText,
     });
 
@@ -91,5 +91,28 @@ describe("assessRelevance", () => {
     expect(result.scores.norm_sq_mag_diff).toBeGreaterThan(0);
     expect(result.scores.cos_similarity).toBeGreaterThanOrEqual(-1);
     expect(result.scores.cos_similarity).toBeLessThanOrEqual(1);
+  });
+
+  it("averages correctly across multiple embedding models", async () => {
+    const prompt = "When to use $pull and $push mongodb";
+    const generateText = makeGeneratorReturning([prompt]);
+
+    const twoEmbedders = makeEmbedders([
+      makeMockEmbeddingModel("embedder-a"),
+      makeMockEmbeddingModel("embedder-b"),
+    ]);
+
+    const result = await assessRelevance({
+      prompt,
+      response: "irrelevant for deterministic generator",
+      embedders: twoEmbedders,
+      generateText,
+    });
+
+    expect(result.generated_prompts).toHaveLength(3);
+    // With identical prompts, cosine similarity should still be perfect
+    // and norm squared magnitude difference should be 0, even with multiple models
+    expect(result.scores.cos_similarity).toBe(1);
+    expect(result.scores.norm_sq_mag_diff).toBe(0);
   });
 });

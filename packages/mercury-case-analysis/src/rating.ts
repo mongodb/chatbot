@@ -1,5 +1,5 @@
 import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
-import { extracZodSchemaDescriptions } from "./utils";
+import { extractZodSchemaDescriptions } from "./utils";
 import z from "zod";
 import { stripIndent } from "common-tags";
 import YAML from "yaml";
@@ -123,7 +123,7 @@ export function makeGenerateRating({
 
         Here are the dimensions you will evaluate:
         ${YAML.stringify(
-          extracZodSchemaDescriptions(promptResponseRatingSchema),
+          extractZodSchemaDescriptions(promptResponseRatingSchema),
           {
             indent: 4,
           }

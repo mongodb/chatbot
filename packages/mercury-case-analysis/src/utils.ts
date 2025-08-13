@@ -50,7 +50,7 @@ export type ZodSchemaDescriptions<T extends ZodRawShape> = {
   //   age: "The age of the user",
   // }
  */
-export function extracZodSchemaDescriptions<T extends ZodRawShape>(
+export function extractZodSchemaDescriptions<T extends ZodRawShape>(
   schema: ZodObject<T>
 ): ZodSchemaDescriptions<T> {
   return Object.fromEntries(

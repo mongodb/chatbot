@@ -82,7 +82,7 @@ const assessRelevanceMain = async () => {
     );
     const db = client.db(MERCURY_DATABASE_NAME);
     const collection = db.collection<Case>(MERCURY_CASES_COLLECTION_NAME);
-    const cases = (await collection.find().toArray()).slice(0, 5);
+    const cases = await collection.find().toArray();
 
     console.log(`# cases`, cases.length);
 
@@ -106,9 +106,7 @@ const assessRelevanceMain = async () => {
       },
     }));
 
-    console.log(`bulk updates`, bulkUpdates.slice(0, 5));
-
-    // await collection.bulkWrite(bulkUpdates);
+    await collection.bulkWrite(bulkUpdates);
   } finally {
     await client.close();
   }

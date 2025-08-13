@@ -19,7 +19,7 @@ describe("analyzeCases", () => {
     };
 
     const analyzeCases = makeAnalyzeCases({
-      embeddindModels: [makeMockEmbeddingModel()],
+      embeddingModels: [makeMockEmbeddingModel()],
       generatorModel: new MockLanguageModelV2({
         doGenerate: async () => ({
           content: [{ type: "text", text: JSON.stringify(["q1", "q2", "q3"]) }],

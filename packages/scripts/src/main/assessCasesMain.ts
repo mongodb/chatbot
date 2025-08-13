@@ -54,7 +54,10 @@ const assessRelevanceMain = async () => {
 
   const analyzeCases = makeAnalyzeCases({
     embeddingModels: [
-      azure.textEmbeddingModel(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT),
+      createOpenAI({
+        apiKey: BRAINTRUST_API_KEY,
+        baseURL: BRAINTRUST_PROXY_ENDPOINT,
+      }).textEmbeddingModel(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT),
     ],
     generatorModel: wrapLanguageModel({
       model: createOpenAI({
@@ -79,7 +82,9 @@ const assessRelevanceMain = async () => {
     );
     const db = client.db(MERCURY_DATABASE_NAME);
     const collection = db.collection<Case>(MERCURY_CASES_COLLECTION_NAME);
-    const cases = await collection.find().toArray();
+    const cases = (await collection.find().toArray()).slice(0, 5);
+
+    console.log(`# cases`, cases.length);
 
     const results = await analyzeCases({
       cases: cases.map((c) => ({
@@ -89,19 +94,21 @@ const assessRelevanceMain = async () => {
     });
     console.log(results);
 
-    await collection.bulkWrite(
-      results.map((r) => ({
-        updateOne: {
-          filter: { _id: r.case._id },
-          update: {
-            $set: {
-              prompt_relevance: r.relevance,
-              prompt_quality: r.quality,
-            },
+    const bulkUpdates = results.map((r, idx) => ({
+      updateOne: {
+        filter: { _id: cases[idx]._id },
+        update: {
+          $set: {
+            prompt_relevance: r.relevance,
+            prompt_quality: r.quality,
           },
         },
-      }))
-    );
+      },
+    }));
+
+    console.log(`bulk updates`, bulkUpdates.slice(0, 5));
+
+    // await collection.bulkWrite(bulkUpdates);
   } finally {
     await client.close();
   }

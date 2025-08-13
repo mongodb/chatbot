@@ -6,7 +6,7 @@ import { PromisePool } from "@supercharge/promise-pool";
 import { makeShortName } from "./utils";
 
 export type MakeAnalyzeCaseParams = {
-  embeddindModels: EmbeddingModel<string>[];
+  embeddingModels: EmbeddingModel<string>[];
   generatorModel: LanguageModel;
   judgementModel: LanguageModel;
 };
@@ -26,7 +26,7 @@ export type CaseAnalysisInput = Parameters<AnalyzeCase>[0];
 export function makeAnalyzeCase(args: MakeAnalyzeCaseParams): AnalyzeCase {
   const generateRating = makeGenerateRating({ model: args.judgementModel });
   const generateText = makeSimpleTextGenerator({ model: args.generatorModel });
-  const embedders = makeEmbedders(args.embeddindModels);
+  const embedders = makeEmbedders(args.embeddingModels);
 
   return async ({ prompt, response }) => {
     console.log(`Analyzing case: '${makeShortName(prompt)}'...`);

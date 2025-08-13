@@ -1,7 +1,14 @@
 {
   "name": "mercury-case-analysis",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js"
+  },
+  "files": [
+    "build"
+  ],
   "scripts": {
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "clean": "rm -rf ./build",

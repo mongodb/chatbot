@@ -2,6 +2,7 @@ import "dotenv/config";
 import {
   Eval,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "mongodb-rag-core/braintrust";
@@ -11,11 +12,13 @@ import { strict as assert } from "assert";
 import { retrievalConfig } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
-import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
-import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
-import { f1AtK } from "../eval/scorers/f1AtK";
-import { precisionAtK } from "../eval/scorers/precisionAtK";
-import { recallAtK } from "../eval/scorers/recallAtK";
+import {
+  averagePrecisionAtK,
+  binaryNdcgAtK,
+  f1AtK,
+  precisionAtK,
+  recallAtK,
+} from "mongodb-rag-core/eval";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { MongoDbSearchToolArgs } from "./search";
 
@@ -62,8 +65,10 @@ const { k } = retrievalConfig.findNearestNeighborsOptions;
 const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput,
-  RetrievalEvalCaseExpected
-> = async function (data) {
+  RetrievalEvalCaseExpected,
+  void,
+  EvalParameters
+> = async function (data: RetrievalEvalCaseInput) {
   // TODO: (EAI-991) implement retrieval task for evaluation
   const extractedMetadata: MongoDbSearchToolArgs = {
     productName: null,

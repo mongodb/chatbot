@@ -20,14 +20,6 @@ const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } = assertEnvVars({
 
 const profoundAPI = new ProfoundApi();
 
-const getFullDayRange = (from: Date, to: Date) => {
-  const start = new Date(from);
-  start.setUTCHours(0, 0, 0, 0);
-  const end = new Date(to);
-  end.setUTCHours(23, 59, 59, 999);
-  return { start, end };
-};
-
 export interface GetAnswersArgs {
   startDate: string;
   endDate: string;
@@ -75,6 +67,9 @@ interface CaseByProfoundPromptId {
     expected: string;
     tags: string[];
     caseId: ObjectId;
+    metadata: {
+      category: string;
+    };
   };
 }
 const casesByPromptId = async (
@@ -86,6 +81,7 @@ const casesByPromptId = async (
       expected: doc.expected,
       tags: doc.tags,
       caseId: doc._id,
+      metadata: doc.metadata,
     };
     return map;
   }, {} as CaseByProfoundPromptId);
@@ -104,9 +100,7 @@ interface DatasetByTag {
     slug: string;
   };
 }
-const datasetsByTag = async (
-  collection: Collection
-): Promise<DatasetByTag> => {
+const datasetsByTag = async (collection: Collection): Promise<DatasetByTag> => {
   const documents = await collection.find().toArray();
   return documents.reduce((map, doc) => {
     map[doc.query.tags] = {
@@ -117,15 +111,18 @@ const datasetsByTag = async (
   }, {} as DatasetByTag);
 };
 
-const getDataset = (tags: string[], datasetsByTagMap: DatasetByTag): { name: string; slug: string; } | null => {
+const getDataset = (
+  tags: string[],
+  datasetsByTagMap: DatasetByTag
+): { name: string; slug: string } | null => {
   for (const tag of tags) {
     if (datasetsByTagMap[tag]) {
       return datasetsByTagMap[tag];
     }
   }
-  console.error('No matching dataset found for tags:', tags);
+  console.error("No matching dataset found for tags:", tags);
   return null;
-}
+};
 
 const model: ModelConfig = {
   label: "gpt-4.1",
@@ -140,21 +137,35 @@ const model: ModelConfig = {
 
 export const main = async (startDateArg?: string, endDateArg?: string) => {
   // START setup
-  // Parse optional startDate and endDate from command line arguments
-  let start: Date, end: Date;
-  if (startDateArg) {
-    const startDate = new Date(startDateArg);
-    const endDate = endDateArg ? new Date(endDateArg) : startDate;
-    ({ start, end } = getFullDayRange(startDate, endDate));
-  } else {
-    // Default to yesterday
-    const now = new Date();
-    const utcYear = now.getUTCFullYear();
-    const utcMonth = now.getUTCMonth();
-    const utcDate = now.getUTCDate();
-    const yesterday = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1));
-    ({ start, end } = getFullDayRange(yesterday, yesterday));
+
+  // validate date format in args
+  if (startDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(startDateArg)) {
+    throw new Error("Invalid start date format. Please use YYYY-MM-DD.");
   }
+  if (endDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(endDateArg)) {
+    throw new Error("Invalid end date format. Please use YYYY-MM-DD.");
+  }
+  // Determine date range from command line arguments, or default to yesterday --> today
+  // Note: The Profound API expects date inputs in EST, bc they execute prompts within a 24 hour EST window.
+  const today: Date = new Date();
+  const yesterday: Date = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const start: string = startDateArg
+    ? startDateArg
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(yesterday);
+  const end: string = endDateArg
+    ? endDateArg
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(today);
 
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   const db = client.db(MONGODB_DATABASE_NAME);
@@ -170,13 +181,11 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   // END set up
 
   const answers = await getAnswers({
-    startDate: start.toISOString(),
-    endDate: end.toISOString(),
+    startDate: start,
+    endDate: end,
   });
   console.log(
-    `Processing ${
-      answers.length
-    } answers generated between ${start.toISOString()} and ${end.toISOString()}`
+    `Processing ${answers.length} answers generated between ${start} and ${end}`
   );
 
   // get reference alignment scores for answers
@@ -189,6 +198,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   };
   const referenceAlignmentFn = makeReferenceAlignment(openAiClient, config);
   const answerRecords: any[] = [];
+  const promptsWithNoAssociatedCase = new Set();
   const { results, errors } = await PromisePool.for(answers)
     .withConcurrency(model.maxConcurrency ?? 5)
     .process(async (currentAnswer) => {
@@ -204,7 +214,9 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentPromptId = currentAnswer.prompt_id;
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
-        console.log(`No case found for ${currentPrompt}`);
+        promptsWithNoAssociatedCase.add(
+          `${currentPromptId} - ${currentPrompt}`
+        );
       }
 
       // calculate reference alignment score
@@ -239,8 +251,8 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       } catch (err) {
         console.error("Error in referenceAlignmentFn:", {
           prompt: currentAnswer.prompt,
-          response: currentAnswer.response,
-          expected: currentCase?.expected,
+          profoundPromptId: currentAnswer.prompt_id,
+          profoundRunId: currentAnswer.run_id,
           error: err,
         });
         referenceAlignment = {
@@ -283,12 +295,21 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         expectedResponse: currentCase?.expected,
         profoundPromptId: currentAnswer.prompt_id,
         profoundRunId: currentAnswer.run_id,
-        dataset: currentCase ? getDataset(currentCase.tags, datasetsByTagMap) : null
+        dataset: currentCase
+          ? getDataset(currentCase.tags, datasetsByTagMap)
+          : null,
+        category: currentCase ? currentCase.metadata.category : null,
       };
       answerRecords.push(answerEngineRecord);
       return answerEngineRecord;
     });
 
+  console.log(
+    `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
+  );
+  promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
+    console.log(` - ${promptInfo}`);
+  });
   // update the llm_answers collection
   if (answerRecords.length > 0) {
     const bulkOps = answerRecords.map((record) => ({
@@ -306,7 +327,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const inserted = result.upsertedCount || 0;
       const updated = result.modifiedCount || 0;
       console.log(
-        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records).`
+        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start} and ${end}).`
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);
@@ -324,15 +345,17 @@ if (process.argv.includes("--help")) {
 Usage: node getAndProcessAnswers.js [startDate] [endDate]
 
 Optional arguments:
-  startDate   ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
-  endDate     ISO date string (e.g., 2025-06-01). If omitted, defaults to yesterday (UTC).
+  startDate   YYYY-MM-DD date string (e.g., 2025-06-01). If omitted, defaults to yesterday (EST).
+  endDate     YYYY-MM-DD date string (e.g., 2025-06-02). If omitted, defaults to today (EST).
 
-Date range is inclusive: the start date will have the time set to T00:00:00.000Z and the end date will have the time set to T23:59:59.999Z.
+The end date is exclusive. 
+For example, if you want to process answers from June 1st to June 5th, you should use 2025-06-01 and 2025-06-06.
+If you want to process one day, like June 1st, you should use 2025-06-01 and 2025-06-02.
 
 Examples:
   node getAndProcessAnswers.js
-  node getAndProcessAnswers.js 2025-06-20
-  node getAndProcessAnswers.js 2025-06-20 2025-06-30
+  node getAndProcessAnswers.js 2025-06-01
+  node getAndProcessAnswers.js 2025-06-01 2025-06-06
 `);
   process.exit(0);
 }

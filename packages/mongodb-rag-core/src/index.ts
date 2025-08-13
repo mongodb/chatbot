@@ -24,3 +24,4 @@ export * from "./VectorStore";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";
 export * from "./getEnv";
+export * from "./mongoDbMetadata";

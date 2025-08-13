@@ -26,6 +26,7 @@ import {
   generateResponseCustomData,
   mockAssistantResponse,
 } from "../../test/testConfig";
+import { creationInterface } from "./constants";
 
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
@@ -290,6 +291,9 @@ describe("POST /conversations/:conversationId/messages", () => {
 
     test("Should respond 500 if error with conversation service", async () => {
       const mockBrokenConversationsService: ConversationsService = {
+        async init() {
+          throw new Error("mock error");
+        },
         async create() {
           throw new Error("mock error");
         },
@@ -301,6 +305,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         },
         async findById() {
           throw new Error("Error finding conversation");
+        },
+        async findByMessageId() {
+          throw new Error("Error finding conversation by message id");
         },
         async rateMessage() {
           throw new Error("mock error");
@@ -360,6 +367,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         content: message.message,
         role: "user",
       });
+      expect(conversation?.creationInterface).toBe(creationInterface);
     });
     test("should not create a new conversation with 'null' value for addMessageToConversation if NOT configured", async () => {
       const { app: appWithoutCustomData } = await makeTestApp({

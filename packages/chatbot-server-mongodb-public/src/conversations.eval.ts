@@ -5,12 +5,14 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
 } from "./eval/evalHelpers";
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
 import { getConversationEvalCasesFromBraintrust } from "mongodb-rag-core/eval";
-import { closeDbConnections, config } from "./config";
+import { closeDbConnections, makeGenerateResponse } from "./config";
 import { strict as assert } from "assert";
 
 export const CONVERSATION_EVAL_PROJECT_NAME = "mongodb-chatbot-conversations";
@@ -18,10 +20,10 @@ export const CONVERSATION_EVAL_PROJECT_NAME = "mongodb-chatbot-conversations";
 async function conversationEval() {
   // Get all the conversation eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "evalCases");
-  const miscCases = getConversationsEvalCasesFromYaml(
+  const miscCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
   );
-  const faqCases = getConversationsEvalCasesFromYaml(
+  const faqCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
   );
   const dotComCases = await getConversationsEvalCasesFromYaml(
@@ -35,12 +37,33 @@ async function conversationEval() {
     datasetName: "voyage-ai",
   });
   assert(voyageCases.length > 0);
+  const systemPromptCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "system_prompt_conversations.yml"),
+      "utf8"
+    )
+  );
+  const internalToolCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "internal_tools_conversations.yml"),
+      "utf8"
+    )
+  );
+  const customToolCases = await getConversationsEvalCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(basePath, "custom_tool_conversations.yml"),
+      "utf8"
+    )
+  );
 
   const conversationEvalCases = [
     // ...miscCases,
     // ...faqCases,
     // ...dotComCases,
     ...voyageCases,
+    ...systemPromptCases,
+    ...internalToolCases,
+    ...customToolCases,
   ];
 
   try {
@@ -62,8 +85,12 @@ async function conversationEval() {
           endpoint: OPENAI_ENDPOINT,
           apiVersion: OPENAI_API_VERSION,
         },
+        braintrustProxy: {
+          apiKey: BRAINTRUST_API_KEY,
+          endpoint: BRAINTRUST_ENDPOINT,
+        },
       },
-      generateResponse: config.conversationsRouterConfig.generateResponse,
+      generateResponse: makeGenerateResponse(),
     });
     console.log("Eval result", evalResult.summary);
   } catch (error) {

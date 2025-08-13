@@ -19,10 +19,6 @@
     "release": true
   },
   "hooks": {
-    "before:init": [
-      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
-      "npm run build",
-      "npm run lint"
-    ]
+    "before:init": ["npm run build", "npm run lint"]
   }
 }

@@ -9,7 +9,10 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { Logger } from "mongodb-rag-core/braintrust";
-import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
+import {
+  UpdateTraceFunc,
+  updateTraceIfExists,
+} from "../../processors/UpdateTraceFunc";
 
 export type CommentMessageRequest = z.infer<typeof CommentMessageRequest>;
 
@@ -136,11 +139,15 @@ export function makeCommentMessageRoute({
         });
       }
 
+      const shouldStoreComment =
+        conversationInDb.storeMessageContent === true ||
+        conversationInDb.storeMessageContent === undefined;
+
       try {
         await conversations.commentMessage({
           conversationId,
           messageId,
-          comment,
+          comment: shouldStoreComment ? comment : "",
         });
 
         res.sendStatus(204);

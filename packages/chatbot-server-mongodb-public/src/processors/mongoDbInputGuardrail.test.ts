@@ -1,4 +1,4 @@
-import { MockLanguageModelV1 } from "mongodb-rag-core/aiSdk";
+import { MockLanguageModelV2 } from "mongodb-rag-core/aiSdk";
 import {
   makeMongoDbInputGuardrail,
   UserMessageMongoDbGuardrailFunction,
@@ -14,13 +14,12 @@ describe("mongoDbInputGuardrail", () => {
     reasoning: "foo",
     type: "valid",
   } satisfies UserMessageMongoDbGuardrailFunction;
-  const mockModel = new MockLanguageModelV1({
-    defaultObjectGenerationMode: "json",
+  const mockModel = new MockLanguageModelV2({
     doGenerate: async () => ({
-      rawCall: { rawPrompt: null, rawSettings: {} },
+      content: [{ type: "text", text: JSON.stringify(mockGuardrailResult) }],
       finishReason: "stop",
-      usage: { promptTokens: 10, completionTokens: 20 },
-      text: JSON.stringify(mockGuardrailResult),
+      usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+      warnings: [],
     }),
   });
 

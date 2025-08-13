@@ -3,6 +3,7 @@ import {
   BaseMetadata,
   DefaultMetadataType,
   EvalCase,
+  EvalParameters,
   EvalScorer,
   EvalTask,
 } from "braintrust";
@@ -16,12 +17,15 @@ export interface BenchmarkTask<
   Input,
   Output,
   Expected,
-  Metadata extends BaseMetadata = DefaultMetadataType
+  Metadata extends BaseMetadata = DefaultMetadataType,
+  Parameters extends EvalParameters = EvalParameters
 > {
   taskFunc: (
     modelProvider: ModelProvider,
-    deployment: string
-  ) => EvalTask<Input, Output, Expected, Metadata>;
+    deployment: ModelConfig
+  ) =>
+    | Promise<EvalTask<Input, Output, Expected, Metadata, Parameters>>
+    | EvalTask<Input, Output, Expected, Metadata, Parameters>;
   description?: string;
 }
 
@@ -46,6 +50,10 @@ export interface BenchmarkConfig<
   datasets: Record<string, BenchmarkDataset<Input, Expected, Metadata>>;
   tasks: Record<string, BenchmarkTask<Input, Output, Expected, Metadata>>;
   scorers: Record<string, BenchmarkScorer<Input, Output, Expected, Metadata>>;
+  environment?: {
+    beforeAll?: () => Promise<void>;
+    afterAll?: () => Promise<void>;
+  };
 }
 
 export type ModelProvider = {

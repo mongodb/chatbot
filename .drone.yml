@@ -17,6 +17,10 @@ trigger:
       - packages/**/*
       - package-lock.json
       - package.json
+      - chat-server.dockerfile
+      - ingest-service.dockerfile
+      - scripts-service.dockerfile
+      - datasets.dockerfile
 
 steps:
   - name: test
@@ -96,6 +100,7 @@ trigger:
       - packages/mongodb-chatbot-ui/**/*
       - package-lock.json
       - package.json
+      - chat-server.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -151,6 +156,7 @@ trigger:
       - packages/mongodb-chatbot-ui/**/*
       - package-lock.json
       - package.json
+      - chat-server.dockerfile
   branch:
     - main
 
@@ -429,6 +435,7 @@ trigger:
       - packages/mongodb-rag-core/**/*
       - package-lock.json
       - package.json
+      - ingest-service.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -482,6 +489,7 @@ trigger:
       - packages/mongodb-rag-core/**/*
       - package-lock.json
       - package.json
+      - ingest-service.dockerfile
 
   branch:
     - main
@@ -903,6 +911,7 @@ trigger:
       - packages/mongodb-rag-core/**/*
       - package-lock.json
       - package.json
+      - datasets.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -947,6 +956,7 @@ trigger:
       - packages/mongodb-rag-core/**/*
       - package-lock.json
       - package.json
+      - datasets.dockerfile
 
   branch:
     - main

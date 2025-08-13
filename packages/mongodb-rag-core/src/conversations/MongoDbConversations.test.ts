@@ -55,6 +55,45 @@ describe("Conversations Service", () => {
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
   });
+  test("Should create a conversation with userId", async () => {
+    const userId = "123";
+    const conversation = await conversationsService.create({
+      userId,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty("userId", userId);
+  });
+  test("Should create a conversation with storeMessageContent", async () => {
+    const storeMessageContent = true;
+    const conversation = await conversationsService.create({
+      storeMessageContent,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty(
+      "storeMessageContent",
+      storeMessageContent
+    );
+  });
+  test("Should create a conversation with creationInterface", async () => {
+    const creationInterface = "some-api";
+    const conversation = await conversationsService.create({
+      creationInterface,
+    });
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+
+    expect(conversationInDb).toHaveProperty(
+      "creationInterface",
+      creationInterface
+    );
+  });
   test("Should add a message to a conversation", async () => {
     const conversation = await conversationsService.create({
       initialMessages: [systemPrompt],
@@ -198,6 +237,22 @@ describe("Conversations Service", () => {
   test("Should return null if cannot find a conversation by id", async () => {
     const conversationInDb = await conversationsService.findById({
       _id: new BSON.ObjectId(),
+    });
+    expect(conversationInDb).toBeNull();
+  });
+  test("should find a conversation by message id", async () => {
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
+    const messageId = conversation.messages[0].id;
+    const conversationInDb = await conversationsService.findByMessageId({
+      messageId,
+    });
+    expect(conversationInDb).toEqual(conversation);
+  });
+  test("should return null if cannot find a conversation by message id", async () => {
+    const conversationInDb = await conversationsService.findByMessageId({
+      messageId: new BSON.ObjectId(),
     });
     expect(conversationInDb).toBeNull();
   });

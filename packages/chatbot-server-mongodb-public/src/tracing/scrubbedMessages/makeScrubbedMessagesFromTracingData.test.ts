@@ -1,8 +1,30 @@
 import { ObjectId } from "mongodb";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { extractTracingData } from "../extractTracingData";
 import { makeScrubbedMessagesFromTracingData } from "./makeScrubbedMessagesFromTracingData";
+import { analyzeMessage } from "./analyzeMessage";
+
+// Mock the analyzeMessage function
+jest.mock("./analyzeMessage", () => ({
+  analyzeMessage: jest.fn().mockResolvedValue({
+    topics: ["test_topic"],
+    keywords: ["test_keyword"],
+    sentiment: "neutral",
+    relevance: 0.8,
+  }),
+}));
+
+const mockAnalyzeMessage = analyzeMessage as jest.MockedFunction<
+  typeof analyzeMessage
+>;
 
 describe("makeScrubbedMessagesFromTracingData", () => {
+  const mockAnalyzerModel = {} as LanguageModel;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const mockTracingData = {
     conversationId: new ObjectId(),
     tags: ["test_tag"],
@@ -43,6 +65,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       tracingData: mockTracingData,
       embeddingModelName: "test-embedding-model",
       reqId: "test-req-id",
+      storedMessageContent: true,
     });
 
     // Assertions
@@ -79,5 +102,63 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       metadata: mockTracingData.assistantMessage.metadata,
       messagePii: undefined,
     });
+  });
+
+  it("should perform message analysis when storedMessageContent is true", async () => {
+    const result = await makeScrubbedMessagesFromTracingData({
+      tracingData: mockTracingData,
+      analysis: {
+        model: mockAnalyzerModel,
+      },
+      embeddingModelName: "test-embedding-model",
+      reqId: "test-req-id",
+      storedMessageContent: true,
+    });
+
+    // Verify analyzeMessage was called for both user and assistant messages
+    expect(mockAnalyzeMessage).toHaveBeenCalledTimes(2);
+    expect(mockAnalyzeMessage).toHaveBeenCalledWith(
+      "user message content",
+      mockAnalyzerModel
+    );
+    expect(mockAnalyzeMessage).toHaveBeenCalledWith(
+      "assistant message content",
+      mockAnalyzerModel
+    );
+
+    // Verify the result includes analysis data
+    expect(result).toHaveLength(2);
+    expect(result[0].analysis).toEqual({
+      topics: ["test_topic"],
+      keywords: ["test_keyword"],
+      sentiment: "neutral",
+      relevance: 0.8,
+    });
+    expect(result[1].analysis).toEqual({
+      topics: ["test_topic"],
+      keywords: ["test_keyword"],
+      sentiment: "neutral",
+      relevance: 0.8,
+    });
+  });
+
+  it("should not perform message analysis when storedMessageContent is false", async () => {
+    const result = await makeScrubbedMessagesFromTracingData({
+      tracingData: mockTracingData,
+      analysis: {
+        model: mockAnalyzerModel,
+      },
+      embeddingModelName: "test-embedding-model",
+      reqId: "test-req-id",
+      storedMessageContent: false,
+    });
+
+    // Verify analyzeMessage was not called
+    expect(mockAnalyzeMessage).not.toHaveBeenCalled();
+
+    // Verify the result does not include analysis data
+    expect(result).toHaveLength(2);
+    expect(result[0].analysis).toBeUndefined();
+    expect(result[1].analysis).toBeUndefined();
   });
 });

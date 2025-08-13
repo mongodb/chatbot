@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { InputGuardrail } from "mongodb-chatbot-server";
-import { generateObject, LanguageModelV1 } from "mongodb-rag-core/aiSdk";
+import type {
+  InputGuardrail,
+  GenerateResponseParams,
+} from "mongodb-chatbot-server";
+import { generateObject, type LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -137,6 +140,14 @@ const fewShotExamples: {
       type: "unknown",
     },
   },
+  {
+    input: "how to use the Voyage embeddings API",
+    output: {
+      reasoning:
+        "This query is related to Voyage AI, a subsidary of MongoDB, and is therefore relevant.",
+      type: "valid",
+    },
+  },
 ];
 
 const systemPrompt = `You are the guardrail on an AI chatbot for MongoDB. You must determine whether a user query is valid, irrelevant, or inappropriate, or unknown.
@@ -163,6 +174,7 @@ Relevant topics include (this list is NOT exhaustive):
 - Non-English queries: Accept ALL queries in any language, regardless of content unless it is explicitly inappropriate or irrelevant
 - Vague or unclear queries: If it is unclear whether a query is relevant, ALWAYS accept it
 - Questions about MongoDB company, sales, support, or business inquiries
+- Questions about the company Voyage AI or its embedding models, as Voyage AI is owned by MongoDB
 - Single words, symbols, or short phrases that might be MongoDB-related
 - ANY technical question, even if the connection to MongoDB isn't immediately obvious
 - If there is ANY possible connection to technology, databases, or business, classify as valid.
@@ -222,14 +234,21 @@ ${JSON.stringify(examplePair.output, null, 2)}
   .join("\n")}
 </few-shot-examples>`;
 export interface MakeUserMessageMongoDbGuardrailParams {
-  model: LanguageModelV1;
+  model: LanguageModel;
 }
 export const makeMongoDbInputGuardrail = ({
   model,
 }: MakeUserMessageMongoDbGuardrailParams) => {
   const userMessageMongoDbGuardrail: InputGuardrail = async ({
     latestMessageText,
+    customSystemPrompt,
+    toolDefinitions,
   }) => {
+    const userMessage = makeInputGuardrailUserMessage({
+      latestMessageText,
+      customSystemPrompt,
+      toolDefinitions,
+    });
     const {
       object: { type, reasoning },
     } = await generateObject({
@@ -237,10 +256,7 @@ export const makeMongoDbInputGuardrail = ({
       schema: UserMessageMongoDbGuardrailFunctionSchema,
       schemaDescription: inputGuardrailMetadata.description,
       schemaName: inputGuardrailMetadata.name,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user" as const, content: latestMessageText },
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       mode: "json",
     });
     const rejected = type === "irrelevant" || type === "inappropriate";
@@ -252,3 +268,31 @@ export const makeMongoDbInputGuardrail = ({
   };
   return userMessageMongoDbGuardrail;
 };
+
+function makeInputGuardrailUserMessage({
+  latestMessageText,
+  customSystemPrompt,
+  toolDefinitions,
+}: Pick<
+  GenerateResponseParams,
+  "latestMessageText" | "customSystemPrompt" | "toolDefinitions"
+>) {
+  if (!customSystemPrompt && !toolDefinitions) {
+    return {
+      role: "user" as const,
+      content: latestMessageText,
+    };
+  }
+  return {
+    role: "user" as const,
+    content: `<latest-user-message>${latestMessageText}</latest-user-message>${
+      customSystemPrompt
+        ? `\n\n<custom-system-prompt>${customSystemPrompt}</custom-system-prompt>\n\n`
+        : ""
+    }${
+      toolDefinitions
+        ? `\n\n<tools>${JSON.stringify(toolDefinitions)}</tools>\n\n`
+        : ""
+    }`,
+  };
+}

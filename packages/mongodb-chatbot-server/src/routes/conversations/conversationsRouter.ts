@@ -29,9 +29,10 @@ import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
-import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { UpdateTraceFunc } from "../../processors/UpdateTraceFunc";
 import { GenerateResponse } from "../../processors/GenerateResponse";
 import { Logger } from "mongodb-rag-core/braintrust";
+import { AddCustomDataFunc, addDefaultCustomData } from "../../processors";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -61,16 +62,6 @@ export interface ConversationsRateLimitConfig {
    */
   addMessageSlowDownConfig?: SlowDownOptions;
 }
-
-/**
-  Function to add custom data to the {@link Conversation} persisted to the database.
-  Has access to the Express.js request and response plus the {@link ConversationsRouterLocals}
-  from the {@link Response.locals} object.
- */
-export type AddCustomDataFunc = (
-  request: Request,
-  response: ConversationsRouterResponse
-) => Promise<ConversationCustomData>;
 
 /**
   Express.js Request that exposes the app's {@link ConversationsService}.
@@ -193,95 +184,6 @@ export interface ConversationsRouterParams {
   braintrustLogger?: Logger<true>;
 }
 
-const addIpToCustomData: AddCustomDataFunc = async (req) =>
-  req.ip
-    ? {
-        ip: req.ip,
-      }
-    : undefined;
-
-const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
-  res.locals.customData.origin
-    ? {
-        origin: res.locals.customData.origin,
-      }
-    : undefined;
-
-export const originCodes = [
-  "LEARN",
-  "DEVELOPER",
-  "DOCS",
-  "DOTCOM",
-  "GEMINI_CODE_ASSIST",
-  "VSCODE",
-  "OTHER",
-] as const;
-
-export type OriginCode = (typeof originCodes)[number];
-
-interface OriginRule {
-  regex: RegExp;
-  code: OriginCode;
-}
-
-const ORIGIN_RULES: OriginRule[] = [
-  { regex: /learn\.mongodb\.com/, code: "LEARN" },
-  { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
-  { regex: /mongodb\.com\/docs/, code: "DOCS" },
-  { regex: /mongodb\.com\//, code: "DOTCOM" },
-  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
-  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
-];
-
-function getOriginCode(origin: string): OriginCode {
-  for (const rule of ORIGIN_RULES) {
-    if (rule.regex.test(origin)) {
-      return rule.code;
-    }
-  }
-  return "OTHER";
-}
-
-const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {
-  const origin = res.locals.customData.origin;
-  return typeof origin === "string" && origin.length > 0
-    ? {
-        originCode: getOriginCode(origin),
-      }
-    : undefined;
-};
-
-const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
-  req.headers["user-agent"]
-    ? {
-        userAgent: req.headers["user-agent"],
-      }
-    : undefined;
-
-export type AddDefinedCustomDataFunc = (
-  ...args: Parameters<AddCustomDataFunc>
-) => Promise<Exclude<ConversationCustomData, undefined>>;
-
-export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
-  async (req, res) => {
-    return {
-      ...(await addIpToCustomData(req, res)),
-      ...(await addOriginToCustomData(req, res)),
-      ...(await addOriginCodeToCustomData(req, res)),
-      ...(await addUserAgentToCustomData(req, res)),
-    };
-  };
-
-export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc =
-  async (req, res) => {
-    return {
-      ...(await addIpToCustomData(req, res)),
-      ...(await addOriginToCustomData(req, res)),
-      ...(await addOriginCodeToCustomData(req, res)),
-      ...(await addUserAgentToCustomData(req, res)),
-    };
-  };
-
 /**
   Constructor function to make the /conversations/* Express.js router.
  */
@@ -291,9 +193,12 @@ export function makeConversationsRouter({
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
   rateLimitConfig,
-  middleware = [requireValidIpAddress(), requireRequestOrigin()],
-  createConversationCustomData = defaultCreateConversationCustomData,
-  addMessageToConversationCustomData = defaultAddMessageToConversationCustomData,
+  middleware = [
+    requireValidIpAddress<ConversationsRouterLocals>(),
+    requireRequestOrigin<ConversationsRouterLocals>(),
+  ],
+  createConversationCustomData = addDefaultCustomData,
+  addMessageToConversationCustomData = addDefaultCustomData,
   addMessageToConversationUpdateTrace,
   rateMessageUpdateTrace,
   commentMessageUpdateTrace,

@@ -6,11 +6,13 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
 } from "../evalHelpers";
 import fs from "fs";
 import path from "path";
 import { makeConversationEval } from "../ConversationEval";
-import { generateResponse } from "../../config";
+import { makeGenerateResponse } from "../../config";
 
 async function conversationEval() {
   // Get dotcom question set eval cases from YAML
@@ -39,8 +41,12 @@ async function conversationEval() {
         endpoint: OPENAI_ENDPOINT,
         apiVersion: OPENAI_API_VERSION,
       },
+      braintrustProxy: {
+        apiKey: BRAINTRUST_API_KEY,
+        endpoint: BRAINTRUST_ENDPOINT,
+      },
     },
-    generateResponse,
+    generateResponse: makeGenerateResponse(),
   });
 }
 conversationEval();

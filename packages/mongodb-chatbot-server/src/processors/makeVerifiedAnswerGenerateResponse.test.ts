@@ -1,5 +1,9 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { makeVerifiedAnswerGenerateResponse } from "./makeVerifiedAnswerGenerateResponse";
+import {
+  makeVerifiedAnswerGenerateResponse,
+  responsesVerifiedAnswerStream,
+  type StreamFunction,
+} from "./makeVerifiedAnswerGenerateResponse";
 import { VerifiedAnswer, WithScore, DataStreamer } from "mongodb-rag-core";
 import { GenerateResponseReturnValue } from "./GenerateResponse";
 
@@ -23,6 +27,29 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       content: "Not verified!",
     },
   ] satisfies GenerateResponseReturnValue["messages"];
+
+  const streamVerifiedAnswer: StreamFunction<{
+    verifiedAnswer: VerifiedAnswer;
+  }> = async ({ dataStreamer, verifiedAnswer }) => {
+    dataStreamer.streamData({
+      type: "metadata",
+      data: {
+        verifiedAnswer: {
+          _id: verifiedAnswer._id,
+          created: verifiedAnswer.created,
+          updated: verifiedAnswer.updated,
+        },
+      },
+    });
+    dataStreamer.streamData({
+      type: "delta",
+      data: verifiedAnswer.answer,
+    });
+    dataStreamer.streamData({
+      type: "references",
+      data: verifiedAnswer.references,
+    });
+  };
 
   // Create a mock verified answer
   const createMockVerifiedAnswer = (): WithScore<VerifiedAnswer> => ({
@@ -55,6 +82,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     connect: jest.fn(),
     disconnect: jest.fn(),
     stream: jest.fn(),
+    streamResponses: jest.fn(),
   });
 
   // Create base request parameters
@@ -79,6 +107,9 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
     onNoVerifiedAnswerFound: async () => ({
       messages: noVerifiedAnswerFoundMessages,
     }),
+    stream: {
+      onVerifiedAnswerFound: streamVerifiedAnswer,
+    },
   });
 
   it("uses onNoVerifiedAnswerFound if no verified answer is found", async () => {
@@ -96,6 +127,47 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
 
     expect(answer.messages).toHaveLength(2);
     expect(answer.messages[0].content).toBe(MAGIC_VERIFIABLE);
+  });
+
+  it("skips verified answer if custom system prompt", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      customSystemPrompt: "Custom system prompt",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tools", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolDefinitions: [
+        { name: "tool", description: "description", parameters: {} },
+      ],
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
+  });
+
+  it("skips verified answer if tool choice", async () => {
+    const answer = await generateResponse({
+      ...createBaseRequestParams(
+        MAGIC_VERIFIABLE,
+        true,
+        createMockDataStreamer()
+      ),
+      toolChoice: "auto",
+    });
+
+    expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
   });
 
   describe("streaming functionality", () => {
@@ -133,6 +205,82 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       });
     });
 
+    it("streams verified answer annotations when shouldStream is true", async () => {
+      const mockDataStreamer = createMockDataStreamer();
+
+      // Create a separate generateResponse that uses the actual responsesVerifiedAnswerStream
+      const generateResponseWithActualStream =
+        makeVerifiedAnswerGenerateResponse({
+          findVerifiedAnswer: async ({ query }) => ({
+            queryEmbedding,
+            answer:
+              query === MAGIC_VERIFIABLE
+                ? createMockVerifiedAnswer()
+                : undefined,
+          }),
+          onNoVerifiedAnswerFound: async () => ({
+            messages: noVerifiedAnswerFoundMessages,
+          }),
+          stream: responsesVerifiedAnswerStream,
+        });
+
+      await generateResponseWithActualStream(
+        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer)
+      );
+
+      // Check that streamResponses was called for text delta first
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.delta",
+        delta: verifiedAnswerContent,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for URL citations (one per reference)
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "url_citation",
+          url: "url",
+          title: "title",
+          start_index: 0,
+          end_index: 0,
+        },
+        annotation_index: 0,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for file citation annotation
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "file_citation",
+          file_id: verifiedAnswerId,
+          filename: "verified_answer",
+          index: testDate.getTime(), // Uses updated time, falls back to created time
+        },
+        annotation_index: references.length, // One more than the last reference
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Check that streamResponses was called for text done
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
+        type: "response.output_text.done",
+        text: verifiedAnswerContent,
+        content_index: 0,
+        output_index: 0,
+        item_id: expect.any(String),
+      });
+
+      // Verify total number of streamResponses calls
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledTimes(4); // 1 text delta + 1 URL citation + 1 file citation + 1 text done
+    });
+
     it("doesn't stream data when shouldStream is false", async () => {
       const mockDataStreamer = createMockDataStreamer();
 
@@ -141,6 +289,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();
+      expect(mockDataStreamer.streamResponses).not.toHaveBeenCalled();
     });
 
     it("throws an error when shouldStream is true but dataStreamer is missing", async () => {
@@ -157,6 +306,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();
+      expect(mockDataStreamer.streamResponses).not.toHaveBeenCalled();
     });
   });
 });

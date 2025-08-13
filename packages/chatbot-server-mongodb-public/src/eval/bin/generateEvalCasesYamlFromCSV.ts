@@ -57,7 +57,8 @@ import {
 } from "mongodb-rag-core/eval";
 import { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } from "../../config";
 import { makeMongoDbPageStore } from "mongodb-rag-core";
-import { validateTags } from "mongodb-rag-core";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
+import { validateTags } from "mongodb-rag-core/mongoDbMetadata";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
 
@@ -94,15 +95,6 @@ const transformationMap: Record<
 };
 
 /**
- Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
- normalizeUrl('https://www.example.com') // returns 'example.com'
- normalizeUrl('http://example.com') // returns 'example.com'
- */
-function normalizeUrl(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/i, "");
-}
-
-/**
  Main function to read CSV file, transform evaluation cases, and write to YAML file.
  @param csvFilePath - Path to the input CSV file
  @param yamlFileName - Name of the output YAML file
@@ -132,7 +124,7 @@ async function main({
   );
   const urlsNotIngested = await pageStore.getMissingPagesByUrl({
     expectedUrls,
-    urlTransformer: normalizeUrl,
+    urlTransformer: (url) => normalizeUrl({ url }),
   });
   if (urlsNotIngested.length > 0) {
     console.warn(

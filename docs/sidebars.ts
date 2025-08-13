@@ -19,6 +19,7 @@ const sidebars: SidebarsConfig = {
       label: "OpenAPI Specification",
       href: "/server/openapi",
     },
+    "server/responses-api",
     "ui",
     "data-sources",
     "datasets",

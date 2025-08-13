@@ -1,4 +1,11 @@
-import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
+import {
+  VerifiedAnswer,
+  FindVerifiedAnswerFunc,
+  DataStreamer,
+  type ResponseStreamOutputTextDelta,
+  type ResponseStreamOutputTextAnnotationAdded,
+  type ResponseStreamOutputTextDone,
+} from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
   GenerateResponse,
@@ -17,7 +24,95 @@ export interface MakeVerifiedAnswerGenerateResponseParams {
   onVerifiedAnswerFound?: (verifiedAnswer: VerifiedAnswer) => VerifiedAnswer;
 
   onNoVerifiedAnswerFound: GenerateResponse;
+
+  stream?: {
+    onVerifiedAnswerFound: StreamFunction<{ verifiedAnswer: VerifiedAnswer }>;
+  };
 }
+
+export type StreamFunction<Params> = (
+  params: { dataStreamer: DataStreamer } & Params
+) => void;
+
+export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
+  {
+    onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      dataStreamer.streamData({
+        type: "metadata",
+        data: {
+          verifiedAnswer: {
+            _id: verifiedAnswer._id,
+            created: verifiedAnswer.created,
+            updated: verifiedAnswer.updated,
+          },
+        },
+      });
+      dataStreamer.streamData({
+        type: "delta",
+        data: verifiedAnswer.answer,
+      });
+      dataStreamer.streamData({
+        type: "references",
+        data: verifiedAnswer.references,
+      });
+    },
+  };
+
+export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =
+  {
+    onVerifiedAnswerFound: ({ verifiedAnswer, dataStreamer }) => {
+      const itemId = Date.now().toString();
+
+      dataStreamer.streamResponses({
+        type: "response.output_text.delta",
+        delta: verifiedAnswer.answer,
+        content_index: 0,
+        output_index: 0,
+        item_id: itemId,
+      } satisfies ResponseStreamOutputTextDelta);
+
+      verifiedAnswer.references.forEach(({ title, url }, annotation_index) => {
+        dataStreamer.streamResponses({
+          type: "response.output_text.annotation.added",
+          annotation: {
+            type: "url_citation",
+            url,
+            title,
+            start_index: 0,
+            end_index: 0,
+          },
+          annotation_index,
+          content_index: 0,
+          output_index: 0,
+          item_id: itemId,
+        } satisfies ResponseStreamOutputTextAnnotationAdded);
+      });
+      dataStreamer.streamResponses({
+        type: "response.output_text.annotation.added",
+        annotation: {
+          type: "file_citation",
+          file_id: verifiedAnswer._id,
+          filename: "verified_answer",
+          index:
+            verifiedAnswer.updated?.getTime() ??
+            verifiedAnswer.created?.getTime() ??
+            0,
+        },
+        annotation_index: verifiedAnswer.references.length, // One more than the last reference
+        content_index: 0,
+        output_index: 0,
+        item_id: itemId,
+      } satisfies ResponseStreamOutputTextAnnotationAdded);
+
+      dataStreamer.streamResponses({
+        type: "response.output_text.done",
+        text: verifiedAnswer.answer,
+        content_index: 0,
+        output_index: 0,
+        item_id: itemId,
+      } satisfies ResponseStreamOutputTextDone);
+    },
+  };
 
 /**
   Searches for verified answers for the user query.
@@ -28,9 +123,20 @@ export const makeVerifiedAnswerGenerateResponse = ({
   findVerifiedAnswer,
   onVerifiedAnswerFound,
   onNoVerifiedAnswerFound,
+  stream,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
-    const { latestMessageText, shouldStream, dataStreamer } = args;
+    const {
+      latestMessageText,
+      shouldStream,
+      dataStreamer,
+      customSystemPrompt,
+      toolDefinitions,
+      toolChoice,
+    } = args;
+    if (customSystemPrompt || toolDefinitions || toolChoice) {
+      return await onNoVerifiedAnswerFound(args);
+    }
     const { answer: foundVerifiedAnswer, queryEmbedding } =
       await findVerifiedAnswer({
         query: latestMessageText,
@@ -54,17 +160,11 @@ export const makeVerifiedAnswerGenerateResponse = ({
 
     if (shouldStream) {
       assert(dataStreamer, "Must have dataStreamer if shouldStream=true");
-      dataStreamer.streamData({
-        type: "metadata",
-        data: metadata,
-      });
-      dataStreamer.streamData({
-        type: "delta",
-        data: answer,
-      });
-      dataStreamer.streamData({
-        type: "references",
-        data: references,
+      assert(stream, "Must have stream if shouldStream=true");
+
+      stream.onVerifiedAnswerFound({
+        dataStreamer,
+        verifiedAnswer,
       });
     }
 

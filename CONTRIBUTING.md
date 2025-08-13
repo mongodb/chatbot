@@ -23,7 +23,7 @@ The monorepo has the following main projects, each of which correspond to a Java
 These packages power our RAG applications.
 
 - `mongodb-rag-core`: A set of common resources (modules, functions, types, etc.) shared across projects.
-  - You need to recompile `mongodb-rag-core` by running `npm run build` every time you update it for the changes to be accessible in the other projects that dependend on it.
+  - You need to recompile `mongodb-rag-core` by running `npm run build` every time you update it for the changes to be accessible in the other projects that depend on it.
 - `mongodb-rag-ingest`: CLI application that takes data from data sources and converts it to `embedded_content` used by Atlas Vector Search.
 
 ### MongoDB Chatbot Framework
@@ -40,7 +40,7 @@ general, we publish these as reusable packages on npm.
 These packages are our production chatbot. They build on top of the Chatbot
 Framework packages and add MongoDB-specific implementations.
 
-- `chatbot-eval-mongodb-public`: Test suites, evaluators, and reports for the MongoDB AI Chatbot
+- `chatbot-eval-mongodb-public`: Test suites, evaluators, and reports for the MongoDB AI Chatbot.
 - `chatbot-server-mongodb-public`: Chatbot server implementation with our MongoDB-specific configuration.
 - `ingest-mongodb-public`: RAG ingest service configured to ingest MongoDB Docs, DevCenter, MDBU, MongoDB Press, etc.
 
@@ -132,7 +132,7 @@ npm run dev
 
 ## Infrastructure
 
-The projects uses Drone for its CI/CD pipeline. All drone config is located in `.drone.yml`.
+The projects use Drone for their CI/CD pipeline. All drone configs are located in `.drone.yml`.
 
 Applications are deployed on Kubernetes using the Kanopy developer platform.
 Kubernetes/Kanopy configuration are found in the `<deployed project>/environments`

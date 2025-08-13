@@ -1,8 +1,14 @@
+import { strict as assert } from "assert";
 import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { extractTracingData } from "./extractTracingData";
 import { SEARCH_TOOL_NAME, SearchToolReturnValue } from "../tools/search";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  FetchPageToolResult,
+  SEARCH_ALL_FALLBACK_TEXT,
+} from "../tools/fetchPage";
 
 describe("extractTracingData", () => {
   const msgId = new ObjectId();
@@ -12,13 +18,49 @@ describe("extractTracingData", () => {
     createdAt: new Date(),
     id: new ObjectId(),
   };
-  const baseAssistantMessage: Message = {
+
+  const baseSearchToolCallMessage: Message = {
+    role: "assistant",
+    content: "",
+    toolCall: {
+      id: "tool-call-id",
+      type: "function",
+      function: {
+        name: SEARCH_TOOL_NAME,
+        arguments: "{}",
+      },
+    },
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
+
+  const baseFetchPageToolCallMessage: Message = {
+    role: "assistant",
+    content: "",
+    toolCall: {
+      id: "tool-call-id",
+      type: "function",
+      function: {
+        name: FETCH_PAGE_TOOL_NAME,
+        arguments: "{}",
+      },
+    },
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
+  const fetchPageToolCallMessage = { ...baseFetchPageToolCallMessage };
+  assert(fetchPageToolCallMessage.toolCall);
+  fetchPageToolCallMessage.toolCall.function.arguments =
+    '{"pageUrl":"https://mongodb.com/docs/page","query":"rephrased user query"}';
+
+  const baseAssistantResponseMessage: Message = {
     role: "assistant",
     content: "foo",
     createdAt: new Date(),
     id: msgId,
   };
-  const toolResults = {
+
+  const searchToolResults = {
     results: [
       {
         text: "text",
@@ -31,34 +73,49 @@ describe("extractTracingData", () => {
     ],
   } satisfies SearchToolReturnValue;
 
-  const baseToolMessage: DbMessage<ToolMessage> = {
+  const fetchPageToolResults = {
+    text: "mock page content",
+    references: [{ url: "http://fake-url.com", title: "mock title" }],
+  } satisfies FetchPageToolResult;
+
+  const baseSearchToolMessage: DbMessage<ToolMessage> = {
     role: "tool",
     name: SEARCH_TOOL_NAME,
-    content: JSON.stringify(toolResults),
+    content: JSON.stringify(searchToolResults),
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
+
+  const baseFetchPageToolMessage: DbMessage<ToolMessage> = {
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: JSON.stringify(fetchPageToolResults),
     createdAt: new Date(),
     id: new ObjectId(),
   };
 
   const conversationId = new ObjectId();
+
   test("should reject query", () => {
     const messages: Message[] = [
       {
         ...baseUserMessage,
         rejectQuery: true,
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(messages, msgId, conversationId);
     expect(tracingData.rejectQuery).toBe(true);
     expect(tracingData.tags.includes("rejected_query")).toBe(true);
   });
-  test("should get number of retrieved chunks", () => {
+  test("should get number of retrieved chunks in search tool", () => {
     const messagesNoContext: Message[] = [
       {
         ...baseUserMessage,
       },
-      { ...baseToolMessage, content: JSON.stringify([]) },
-      baseAssistantMessage,
+      baseSearchToolCallMessage,
+      { ...baseSearchToolMessage, content: JSON.stringify([]) },
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesNoContext,
@@ -72,8 +129,9 @@ describe("extractTracingData", () => {
       {
         ...baseUserMessage,
       },
-      baseToolMessage,
-      baseAssistantMessage,
+      baseSearchToolCallMessage,
+      baseSearchToolMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingDataWithContext = extractTracingData(
       messagesWithContext,
@@ -85,11 +143,84 @@ describe("extractTracingData", () => {
       false
     );
   });
+  test("should get number of retrieved chunks in fetch_page tool", () => {
+    const messagesNoContext: Message[] = [
+      baseUserMessage,
+      baseFetchPageToolCallMessage,
+      { ...baseFetchPageToolMessage, content: SEARCH_ALL_FALLBACK_TEXT },
+      baseAssistantResponseMessage,
+    ];
+    const tracingDataWithoutContext = extractTracingData(
+      messagesNoContext,
+      msgId,
+      conversationId
+    );
+    console.log(tracingDataWithoutContext.contextContent);
+    expect(tracingDataWithoutContext.numRetrievedChunks).toBe(0);
+    expect(
+      tracingDataWithoutContext.tags.includes("no_retrieved_content")
+    ).toBe(true);
+
+    const messagesWithContext: Message[] = [
+      baseUserMessage,
+      fetchPageToolCallMessage,
+      baseFetchPageToolMessage,
+      baseAssistantResponseMessage,
+    ];
+    const tracingDataWithContext = extractTracingData(
+      messagesWithContext,
+      msgId,
+      conversationId
+    );
+    expect(tracingDataWithContext.numRetrievedChunks).toBe(1);
+    expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
+      false
+    );
+  });
+  test("should get number of retrieved chunks in search+fetch_page tool", () => {
+    // Neither tool finds context
+    const messagesNoContext: Message[] = [
+      baseUserMessage,
+      fetchPageToolCallMessage,
+      { ...baseFetchPageToolMessage, content: SEARCH_ALL_FALLBACK_TEXT },
+      baseSearchToolCallMessage,
+      { ...baseSearchToolMessage, content: JSON.stringify({}) },
+      baseAssistantResponseMessage,
+    ];
+    const tracingDataWithoutContext = extractTracingData(
+      messagesNoContext,
+      msgId,
+      conversationId
+    );
+    console.log(tracingDataWithoutContext.contextContent);
+    expect(tracingDataWithoutContext.numRetrievedChunks).toBe(0);
+    expect(
+      tracingDataWithoutContext.tags.includes("no_retrieved_content")
+    ).toBe(true);
+
+    // Fetch_page finds no context, Search tool finds context
+    const messagesFallbackHasContext: Message[] = [
+      baseUserMessage,
+      fetchPageToolCallMessage,
+      { ...baseFetchPageToolMessage, content: JSON.stringify({}) },
+      baseSearchToolMessage,
+      baseAssistantResponseMessage,
+    ];
+    const tracingDataFallbackHasContext = extractTracingData(
+      messagesFallbackHasContext,
+      msgId,
+      conversationId
+    );
+    expect(tracingDataFallbackHasContext.numRetrievedChunks).toBe(2);
+    expect(
+      tracingDataFallbackHasContext.tags.includes("no_retrieved_content")
+    ).toBe(false);
+  });
   test("should capture verified answer", () => {
     const messagesNoContext: Message[] = [
       baseUserMessage,
       {
-        ...baseAssistantMessage,
+        ...baseAssistantResponseMessage,
         metadata: {
           verifiedAnswer: {
             _id: "123",
@@ -110,7 +241,7 @@ describe("extractTracingData", () => {
     const messagesNoContext: Message[] = [
       baseUserMessage,
       {
-        ...baseAssistantMessage,
+        ...baseAssistantResponseMessage,
         content: llmDoesNotKnowMessage,
       },
     ];
@@ -123,7 +254,7 @@ describe("extractTracingData", () => {
     expect(tracingData.tags.includes("llm_does_not_know")).toBe(true);
   });
   test("should capture message indexes", () => {
-    const messages: Message[] = [baseUserMessage, baseAssistantMessage];
+    const messages: Message[] = [baseUserMessage, baseAssistantResponseMessage];
     const tracingData = extractTracingData(messages, msgId, conversationId);
     expect(tracingData.userMessageIndex).toBe(0);
     expect(tracingData.assistantMessageIndex).toBe(1);
@@ -137,7 +268,7 @@ describe("extractTracingData", () => {
           origin: "https://example.com/chat",
         },
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesWithOrigin,
@@ -153,7 +284,7 @@ describe("extractTracingData", () => {
         ...baseUserMessage,
         customData: {},
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesNoOrigin,
@@ -171,7 +302,7 @@ describe("extractTracingData", () => {
           origin: 123, // non-string value
         },
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesInvalidOrigin,
@@ -189,7 +320,7 @@ describe("extractTracingData", () => {
           rejectionReason: "Query contains inappropriate content",
         },
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesWithRejection,
@@ -207,7 +338,7 @@ describe("extractTracingData", () => {
         ...baseUserMessage,
         customData: {},
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesNoRejection,
@@ -225,7 +356,7 @@ describe("extractTracingData", () => {
           rejectionReason: { reason: "complex object" }, // non-string value
         },
       },
-      baseAssistantMessage,
+      baseAssistantResponseMessage,
     ];
     const tracingData = extractTracingData(
       messagesInvalidRejection,

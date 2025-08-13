@@ -1,4 +1,9 @@
-import { generateText, LanguageModelV1, tool } from "ai";
+import {
+  generateText,
+  LanguageModel,
+  stepCountIs,
+  tool,
+} from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   DatabaseExecutionResult,
@@ -39,7 +44,7 @@ When you are satisfied with the results of '${GENERATE_DB_CODE_TOOL_NAME}', simp
 export interface MakeGenerateMongoshCodeAgenticParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
-  openai: LanguageModelV1;
+  openai: LanguageModel;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   includeOutputShape?: boolean;
 }
@@ -65,7 +70,7 @@ export function makeGenerateMongoshCodeAgenticTask({
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
-        maxTokens:
+        maxOutputTokens:
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,
@@ -74,7 +79,7 @@ export function makeGenerateMongoshCodeAgenticTask({
           [QUERY_PLAN_TOOL_NAME]: tool({
             description:
               "Think about the query plan given the natural language query and any previous results (if present). Plan the next query accordingly.",
-            parameters: z.object({
+            inputSchema: z.object({
               thoughts: z
                 .string()
                 .describe("Your thoughts and plan for the next query"),
@@ -86,7 +91,7 @@ export function makeGenerateMongoshCodeAgenticTask({
           [GENERATE_DB_CODE_TOOL_NAME]: tool({
             description:
               "A MongoDB Shell (mongosh) query for the database use case",
-            parameters: z.object({
+            inputSchema: z.object({
               code: z.string().describe("Executable mongosh code snippet"),
             }),
             execute: async (args) => {
@@ -105,7 +110,7 @@ export function makeGenerateMongoshCodeAgenticTask({
             },
           }),
         },
-        maxSteps: 10,
+        stopWhen: [stepCountIs(10)],
         messages: [
           {
             role: "system",

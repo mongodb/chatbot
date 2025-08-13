@@ -1,20 +1,24 @@
 {
   "name": "mercury-case-analysis",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": "./build/index.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "files": [
     "build"
   ],
   "scripts": {
     "build": "npm run clean && tsc -b tsconfig.build.json",
-    "clean": "rm -rf ./build",
+    "clean": "rm -rf ./build ./tsconfig.build.tsbuildinfo",
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
-    "test": "vitest run",
-    "release": "release-it"
+    "release": "release-it",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +26,7 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^24.2.1",
+    "@types/common-tags": "^1.8.4",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "autoevals": "^0.0.130",
@@ -33,7 +38,6 @@
   },
   "dependencies": {
     "@supercharge/promise-pool": "^3.2.0",
-    "@types/common-tags": "^1.8.4",
     "common-tags": "^1.8.2",
     "dotenv": "^17.2.1",
     "mongodb-rag-core": "*",

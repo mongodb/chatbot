@@ -12,6 +12,7 @@ import {
   type ResponseStreamCompleted,
   type ResponseStreamError,
   makeDataStreamer,
+  Message,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId, makeTraceConversation } from "../../utils";
@@ -339,48 +340,40 @@ export function makeCreateResponseRoute({
         });
       }
 
-      // --- INITIALIZE CONVERSATION ---
-      let conversation: Conversation;
-      if (
-        !previous_response_id &&
-        typeof input !== "string" &&
-        input?.length > 1
-      ) {
-        // No previous response and there are multiple input messages,
-        // so create a new conversation.
-        // The last message is stored after generation, so we should exclude it.
-        const messagesToAdd = [
-          ...convertInputToDBMessages(
-            input.slice(0, input.length - 1) as Exclude<typeof input, string>,
-            store,
-            alwaysAllowedMetadataKeys,
-            metadata
-          ),
-        ];
+      // --- LOAD CONVERSATION ---
+      const conversation = await loadConversationByMessageId({
+        messageId: previous_response_id,
+        conversations,
+        headers,
+        metadata,
+        userId: user,
+        storeMessageContent: store,
+        alwaysAllowedMetadataKeys,
+      });
 
-        conversation = await conversations.create({
-          initialMessages: messagesToAdd,
-          userId: user,
-          storeMessageContent: true,
-          creationInterface,
-          customData: {
-            metadata: formatMetadata({
-              shouldStore: store,
-              alwaysAllowedMetadataKeys,
-              metadata,
-            }),
-          },
-        });
-      } else {
-        conversation = await loadConversationByMessageId({
-          messageId: previous_response_id,
-          conversations,
-          headers,
-          metadata,
-          userId: user,
-          storeMessageContent: store,
+      // When input is a list length>1, we need to temporarily add the
+      // input messages to the conversation, since they're not stored yet.
+      if (typeof input !== "string" && input?.length > 1) {
+        const tempMessages = convertInputToDBMessages(
+          input,
+          store,
           alwaysAllowedMetadataKeys,
-        });
+          metadata
+        ).map(
+          (msg) =>
+            ({
+              ...msg,
+              id: new ObjectId(),
+              createdAt: new Date(),
+            } satisfies Message)
+        );
+        // Exclude the last user message. It'll be used later as latestMessageText.
+        const lastUserMessageIndex: number =
+          tempMessages.findLastIndex(isUserMessage);
+        const conversationMessages: Message[] = tempMessages.filter(
+          (_, index) => index !== lastUserMessageIndex
+        );
+        conversation.messages.push(...conversationMessages);
       }
 
       // --- CONVERSATION USER ID CHECK ---
@@ -647,11 +640,18 @@ const saveMessagesToConversation = async ({
   conversation,
   store,
   metadata,
+  input,
   messages,
   responseId,
   alwaysAllowedMetadataKeys,
 }: AddMessagesToConversationParams) => {
   const messagesToAdd = [
+    ...convertInputToDBMessages(
+      input,
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    ),
     ...messages.map((message) =>
       formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
     ),

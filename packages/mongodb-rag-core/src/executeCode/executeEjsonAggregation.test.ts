@@ -54,11 +54,11 @@ describe("executeEjsonAggregationQuery", () => {
 
   it("should execute aggregation query with regular JSON (no ejson formatting needed)", async () => {
     // Test case 1: basic aggregation pipeline that doesn't need EJSON formatting
-    const pipeline = [
+    const pipeline = JSON.stringify([
       { $match: { age: { $gt: 25 } } },
       { $project: { name: 1, age: 1 } },
       { $sort: { age: 1 } },
-    ];
+    ]);
 
     const result = await executeEjsonAggregation({
       query: pipeline,
@@ -81,7 +81,7 @@ describe("executeEjsonAggregationQuery", () => {
   it("should execute aggregation query with EJSON formatting", async () => {
     // Test case 2: aggregation pipeline that needs EJSON formatting (ObjectId, Date)
     const specificObjectId = users[0]._id;
-    const pipeline = [
+    const pipeline = JSON.stringify([
       {
         $match: {
           $or: [
@@ -91,7 +91,7 @@ describe("executeEjsonAggregationQuery", () => {
         },
       },
       { $project: { name: 1, age: 1, createdAt: 1 } },
-    ];
+    ]);
 
     const result = await executeEjsonAggregation({
       query: pipeline,
@@ -130,7 +130,7 @@ describe("executeEjsonAggregationQuery", () => {
 
   it("should handle database execution errors gracefully", async () => {
     // Test case: invalid aggregation pipeline
-    const invalidPipeline = [{ $invalidStage: {} }];
+    const invalidPipeline = JSON.stringify([{ $invalidStage: {} }]);
 
     const result = await executeEjsonAggregation({
       query: invalidPipeline,
@@ -145,7 +145,7 @@ describe("executeEjsonAggregationQuery", () => {
 
   it("should handle complex EJSON types correctly", async () => {
     // Test with more complex EJSON types like NumberLong, Decimal128
-    const pipeline = [
+    const pipeline = JSON.stringify([
       {
         $addFields: {
           bigNumber: { $numberLong: "9223372036854775807" },
@@ -163,7 +163,7 @@ describe("executeEjsonAggregationQuery", () => {
           decimalValue: 1,
         },
       },
-    ];
+    ]);
 
     const result = await executeEjsonAggregation({
       query: pipeline,

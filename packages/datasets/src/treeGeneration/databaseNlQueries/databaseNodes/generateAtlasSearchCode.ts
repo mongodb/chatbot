@@ -19,18 +19,25 @@ const abstractOutputExample: DatabaseCode = {
 };
 
 const nlQuerySystemPrompt = `You are an expert data analyst experienced at using MongoDB and MongoDB Atlas Search.
-Your job is to take information about a MongoDB database plus a natural language query and generate a MongoDB shell (mongosh) query to execute to retrieve the information needed to answer the natural language query. The query must use Atlas Search via the \`$search\` operator.
+Your job is to take information about a MongoDB database plus a natural language query and generate an aggregation pipeline to execute to retrieve the information needed to answer the natural language query. The query *must* use Atlas Search via the \`$search\` operator.
 
-In your response include a query plan, where you think step-by-step about how to best execute the query before providing the final mongosh output.
+In your response include a query plan, where you think step-by-step about how to best execute the query before providing the final aggregation pipeline output.
 
 <format>
-Format the mongosh query as an array of aggregation pipeline stages to insert into a query like \`db.<collection name>.aggregate({/* query using '$search' */})\`.
+Format the aggregation pipeline as an array of aggregation pipeline stages to insert into a query like \`db.<collection name>.aggregate({/* query using '$search' */})\`.
+
+<formatting-requirements>
+1. Always include the "index" name in the query.
+2. The query results MUST include the \`_id\` field for each document returned. This is incredibly important.
+</formatting-requirements>
 
 For example, the output should look like:
 \`\`\`
 [
-  { $search: { /* search stage here */ } },
+  { $search: { index: "<index name here>", /* search stage here */ } },
   { /* other stages here */ }
+  // Note again that the _id field MUST be included in the projection stage.
+  { $project: { _id: 1, ...other fields here } }
 ]
 \`\`\`
 
@@ -64,6 +71,7 @@ Examples:
 Some general query-authoring tips:
 
 ${markdownList([
+  'Always include the "index" name in the query',
   "Always use the $search stage as the first stage in the aggregation pipeline, followed by other stages as needed",
   "Use the compound operator to combine multiple search conditions with must, should, and filter clauses appropriately",
   "Place non-scoring operators (equals, range, exists) in filter clause to optimize performance and avoid unnecessary scoring",
@@ -82,7 +90,8 @@ ${markdownList([
 Before writing the aggregation pipeline, think step-by-step about what the query should do in the "queryPlan" field. In your thoughts consider:
 
 ${markdownList([
-  "Which collections have Atlas Search indexes and which indexed fields are relevant for the search query",
+  "Which collections have Atlas Search indexes and the index name to use",
+  "which indexed fields are relevant for the search query",
   "What type of search operation to use (text search, autocomplete, phrase matching, wildcard, regex, etc.)",
   "Whether to use compound operator and which clauses (must, should, filter) are appropriate for each condition",
   "What search terms, phrases, or patterns need to be matched and against which indexed fields",
@@ -108,7 +117,7 @@ ${JSON.stringify(abstractOutputExample)}
 function markdownList(items: string[]) {
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 }
-export const generateMongoshCode = wrapTraced(
+export const generateAtlasSearchCode = wrapTraced(
   makeGenerateNChoiceChildrenWithOpenAi<DatabaseNlQueryNode, DatabaseCodeNode>({
     openAiClient: makeOpenAiClient(),
     childType: "database_code",
@@ -120,7 +129,7 @@ export const generateMongoshCode = wrapTraced(
         },
       },
     }) => {
-      const message = `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
+      const message = `Generate aggregation pipeline for the following database and natural language query:
 
 ${makePromptDbInfo(databaseInfo)}
 
@@ -135,10 +144,10 @@ ${makePromptDbInfo(databaseInfo)}
     response: {
       schema: DatabaseCodeSchema,
       name: "generate_db_code",
-      description: "A MongoDB Shell (mongosh) query for the database use case",
+      description: "An aggregation pipeline for the database use case",
     },
   }),
   {
-    name: "generateMongoshCode",
+    name: "generateAtlasSearchCode",
   }
 );

@@ -196,7 +196,6 @@ async function generateMongoshDataset({
       );
       return dbCodeNodes;
     });
-
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
       .withConcurrency(

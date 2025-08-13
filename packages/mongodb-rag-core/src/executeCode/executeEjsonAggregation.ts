@@ -14,12 +14,15 @@ export function makeExecuteEjsonAggregationQuery({
   return async ({ query, databaseName, collectionName }) => {
     let executionTimeMs: number | null = null;
     try {
-      assert(Array.isArray(query), "query must be an array");
+      assert(typeof query === "string", "query must be a string");
       assert(collectionName, "collectionName is required");
 
       const startTime = Date.now();
       const db = mongoClient.db(databaseName);
-      const documentQuery = BSON.EJSON.deserialize(query);
+
+      const documentQuery = JSON.parse(query).map((q: any) =>
+        BSON.EJSON.deserialize(q)
+      );
       const result = await db
         .collection(collectionName)
         .aggregate(documentQuery)

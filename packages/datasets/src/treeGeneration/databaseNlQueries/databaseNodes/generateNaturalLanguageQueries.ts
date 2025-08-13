@@ -371,6 +371,34 @@ export const generateNaturalLanguageQueries = wrapTraced(
   }
 );
 
+export const generateNaturalLanguageAtlasSearchQueries = wrapTraced(
+  makeGenerateChildrenWithOpenAi<UseCaseNode, DatabaseNlQueryNode>({
+    openAiClient: makeOpenAiClient(),
+    makePromptMessages: async (
+      {
+        data: useCase,
+        parent: {
+          data: user,
+          parent: { data: databaseInfo },
+        },
+      },
+      numChildren
+    ) => {
+      return makeGenerateNaturalLanguageQueryPrompt({
+        numChildren,
+        useCase,
+        user,
+        databaseInfo,
+        queryType: "atlas_search",
+      });
+    },
+    response: nlQueryResponseSchema,
+  }),
+  {
+    name: "generateNaturalLanguageAtlasSearchQueries",
+  }
+);
+
 function getSystemMessage(
   queryType: Required<MakeGenerateNaturalLanguageQueryPromptParams>["queryType"],
   numChildren: number

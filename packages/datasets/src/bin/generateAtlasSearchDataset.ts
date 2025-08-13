@@ -1,3 +1,497 @@
-// TODO: add!!
-// model on generateMongoshDatasets.ts
-// at the end of pipeline, do prompt rewriting step similar to rewriteNlToMongoshDatasetQueries.ts
+import "dotenv/config";
+import { MongoClient } from "mongodb-rag-core/mongodb";
+import {
+  makeExecuteEjsonAggregationQuery,
+  isReasonableResult,
+  LlmOptions,
+} from "mongodb-rag-core/executeCode";
+import * as fs from "fs";
+import * as path from "path";
+import PromisePool from "@supercharge/promise-pool";
+import { makeOpenAiClient } from "../openAi";
+import { assertEnvVars } from "mongodb-rag-core";
+import { DATABASE_NL_QUERIES } from "../EnvVars";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
+import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
+import { generateAtlasSearchCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAtlasSearchCode";
+import { generateNaturalLanguageAtlasSearchQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
+import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
+import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
+import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
+import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import { makeRewriteAtlasSearchQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteAtlasSearchNlQuery";
+import { makeOpenAiProvider } from "../openAi";
+import { BraintrustMiddleware, initLogger } from "mongodb-rag-core/braintrust";
+import { models } from "mongodb-rag-core/models";
+import { wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+
+const DEFAULT_CONCURRENCY = 10;
+
+/**
+  Magic number to specify the max results array size to evaluate.
+ */
+const MAX_RESULT_ARRAY_SIZE = 20;
+
+type LlmGenerationConfig = {
+  database: {
+    llmConfig: LlmOptions;
+  };
+  users: {
+    llmConfig: LlmOptions;
+    numGenerations: number;
+    concurrency: number;
+  };
+  useCases: {
+    llmConfig: LlmOptions;
+    numGenerations: number;
+    concurrency: number;
+  };
+  nlQueries: {
+    llmConfig: LlmOptions;
+    numGenerations: number;
+    concurrency: number;
+  };
+  dbQueries: {
+    llmConfig: LlmOptions;
+    numGenerations: number;
+    concurrency: number;
+  };
+  dbExecutions: {
+    concurrency: number;
+  };
+  rewrite: {
+    modelDeployment: (typeof models)[number]["deployment"];
+    concurrency: number;
+  };
+};
+
+interface GenerateAtlasSearchDatasetParams {
+  persistence: {
+    mongoClient: MongoClient;
+    databaseName: string;
+    collectionName: string;
+  };
+  dataset: {
+    databaseName: string;
+    collectionName: string;
+    numSamplesPerCollection: number;
+    latestDate: Date;
+    mongoClient: MongoClient;
+    searchIndexes: {
+      [collectionName: string]: string[];
+    };
+  };
+  llmConfigs: LlmGenerationConfig;
+  datasetUuid: string;
+  writeToFile: {
+    dataOutDir: string;
+  };
+  maxResultsArraySize?: number;
+}
+
+async function generateAtlasSearchDataset({
+  persistence,
+  dataset,
+  llmConfigs,
+  datasetUuid,
+  writeToFile,
+  maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
+}: GenerateAtlasSearchDatasetParams) {
+  console.log(
+    `Generating Atlas Search dataset for database ${dataset.databaseName}`
+  );
+  const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
+  if (!fs.existsSync(datasetOutDir)) {
+    fs.mkdirSync(datasetOutDir, { recursive: true });
+    console.log(`Created directory: ${datasetOutDir}`);
+  }
+  const referenceAnswersOutputPath = path.resolve(
+    datasetOutDir,
+    `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`
+  );
+  // Write out each DB's dataset to a separate file
+  const textToAtlasSearchOutputPath = path.resolve(
+    datasetOutDir,
+    `text_to_atlas_search.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
+  );
+
+  const rewrittenTextToAtlasSearchOutputPath = path.resolve(
+    datasetOutDir,
+    `text_to_atlas_search.dataset_${datasetUuid}.${dataset.databaseName}.rewritten.jsonl`
+  );
+
+  const executeAtlasSearchQuery = makeExecuteEjsonAggregationQuery({
+    mongoClient: dataset.mongoClient,
+  });
+
+  console.log(
+    `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
+  );
+
+  const nodeStore = makeMongoDbNodeStore(persistence);
+
+  console.log(`Generating database info for database ${dataset.databaseName}`);
+
+  const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
+    mongoDb: dataset,
+    llmOptions: llmConfigs.database.llmConfig,
+    latestDate: dataset.latestDate,
+    openAiClient: makeOpenAiClient(),
+  });
+  console.log(
+    "databaseInfoNode::",
+    databaseInfoNode.data.collections[0].searchIndexes
+  );
+
+  await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
+
+  // Generate database users
+  console.log("Generating database users...");
+  const userNodes = await generateDatabaseUsers(
+    databaseInfoNode,
+    llmConfigs.users.llmConfig,
+    llmConfigs.users.numGenerations
+  );
+  await nodeStore.storeNodes({ nodes: userNodes });
+
+  console.log(`Generated ${userNodes.length} database users`);
+
+  // Generate use cases for each user
+  console.log("Generating use cases for each user...");
+  const { results: useCaseNodesByUser } = await PromisePool.for(userNodes)
+    .withConcurrency(llmConfigs.useCases.concurrency ?? 5)
+    .process(async (userNode) => {
+      const useCases = await generateDatabaseUseCases(
+        userNode,
+        llmConfigs.useCases.llmConfig,
+        llmConfigs.useCases.numGenerations
+      );
+      await nodeStore.storeNodes({ nodes: useCases });
+      console.log(
+        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
+      );
+      return useCases;
+    });
+
+  const useCaseNodes = useCaseNodesByUser.flat();
+  console.log(`Created ${useCaseNodes.length} use cases.`);
+
+  console.log(
+    "Generating natural language queries for each use case (Atlas Search specific)..."
+  );
+
+  // Process use cases in parallel with limited concurrency - using Atlas Search specific generation
+  const { results: nlQueryNodesByUseCase } = await PromisePool.withConcurrency(
+    llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY
+  )
+    .for(useCaseNodes)
+    .handleError((err) => {
+      console.error(err);
+    })
+    .process(async (useCaseNode) => {
+      const nlQueries = await generateNaturalLanguageAtlasSearchQueries(
+        useCaseNode,
+        llmConfigs.nlQueries.llmConfig,
+        llmConfigs.nlQueries.numGenerations
+      );
+      await nodeStore.storeNodes({
+        nodes: nlQueries,
+      });
+      console.log(
+        `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`
+      );
+
+      return nlQueries;
+    });
+  const nlQueryNodes = nlQueryNodesByUseCase.flat();
+
+  // Generate Atlas Search aggregation pipelines for the NL queries
+  console.log(
+    "Generating Atlas Search aggregation pipelines for the NL queries..."
+  );
+  const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(nlQueryNodes)
+    .withConcurrency(llmConfigs.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
+    .process(async (nlQueryNode) => {
+      const dbCodeNodes = await generateAtlasSearchCode(
+        nlQueryNode,
+        llmConfigs.dbQueries.llmConfig,
+        llmConfigs.dbQueries.numGenerations
+      );
+      await nodeStore.storeNodes({ nodes: dbCodeNodes });
+
+      console.log(
+        `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`
+      );
+      return dbCodeNodes;
+    });
+
+  // Store initial dataset entries (before rewriting)
+  const initialDatasetEntries: any[] = [];
+
+  for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
+    const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
+      .withConcurrency(
+        llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY
+      )
+      .process(async (dbCodeNode) => {
+        console.log(`and NL query: ${dbCodeNode.parent?.data.query}`);
+        console.log(
+          `Generating Atlas Search DB execution for ${dbCodeNode.data.code}`
+        );
+        const dbExecution = await generateDatabaseExecutionResult({
+          database: {
+            name: dataset.databaseName,
+            uri: "n/a",
+          },
+          generatedQuery: dbCodeNode,
+          executor: async (params) =>
+            executeAtlasSearchQuery({
+              ...params,
+              collectionName: dataset.collectionName,
+            }),
+        });
+
+        if (
+          Array.isArray(dbExecution.data.result) &&
+          dbExecution.data.result?.length > maxResultsArraySize
+        ) {
+          throw new Error("Result array is too large to process.");
+        }
+        if (dbExecution.data.error) {
+          console.error(
+            `Error generating Atlas Search DB execution: ${dbExecution.data.error.message}`
+          );
+        }
+
+        console.log(
+          `Generated Atlas Search DB execution: ${dbExecution.data.result
+            ?.toString()
+            .slice(0, 20)} ...`
+        );
+        const { success, reason } = isReasonableResult(dbExecution.data.result);
+        if (!success) {
+          throw new Error("Result is not reasonable. Reason: " + reason);
+        }
+        return dbExecution;
+      });
+    console.log(`Generated ${dbExecutions.length} Atlas Search DB executions.`);
+
+    try {
+      // Find the most frequent and performant database execution result
+      const { fastestMostFrequentIndex } =
+        findMostFrequentAndPerformantDatabaseExecutionResult(
+          dbExecutions.map((node) => node.data)
+        );
+      if (
+        fastestMostFrequentIndex !== null &&
+        dbExecutions[fastestMostFrequentIndex].data.result !== null
+      ) {
+        const dbResult = dbExecutions[fastestMostFrequentIndex].data.result;
+        if (
+          (Array.isArray(dbResult) && dbResult.length > 0) ||
+          !Array.isArray(dbResult)
+        ) {
+          dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer = true;
+        }
+      }
+
+      await nodeStore.storeNodes({ nodes: dbExecutions });
+      console.log(`Writing initial data out to ${textToAtlasSearchOutputPath}`);
+      for (const dbExecution of dbExecutions) {
+        const textToAtlasSearchDatasetEntry =
+          generateDatabaseNlQueryDatasetEntry(dbExecution);
+
+        // Store for rewriting step
+        initialDatasetEntries.push(textToAtlasSearchDatasetEntry);
+
+        fs.appendFileSync(
+          textToAtlasSearchOutputPath,
+          JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
+        );
+        if (dbExecution.data.isReferenceAnswer) {
+          fs.appendFileSync(
+            referenceAnswersOutputPath,
+            JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
+          );
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    console.log(
+      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToAtlasSearchOutputPath}`
+    );
+  }
+
+  // Rewriting step - similar to rewriteNlToMongoshDatasetQueries.ts
+  console.log("Starting Atlas Search natural language query rewriting step...");
+  const rewriteModel = wrapLanguageModel({
+    model: makeOpenAiProvider()(llmConfigs.rewrite.modelDeployment),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  });
+
+  const rewriteAtlasSearchQueryPrompt =
+    makeRewriteAtlasSearchQueryPrompt(rewriteModel);
+
+  console.log(
+    `Processing ${initialDatasetEntries.length} entries for rewriting`
+  );
+  const { results: rewriteResults } = await PromisePool.for(
+    initialDatasetEntries
+  )
+    .withConcurrency(llmConfigs.rewrite.concurrency)
+    .handleError((error) => {
+      console.error("Rewriting error:", error);
+    })
+    .process(async (entry, index) => {
+      console.log(`Rewriting entry ${index + 1}/${initialDatasetEntries.length}.
+Entry NL query: ${entry.input.nlQuery}`);
+      const result = await rewriteAtlasSearchQueryPrompt(entry);
+      return result;
+    });
+
+  console.log(
+    `Writing rewritten data out to ${rewrittenTextToAtlasSearchOutputPath}`
+  );
+  for (const result of rewriteResults) {
+    if (result) {
+      fs.appendFileSync(
+        rewrittenTextToAtlasSearchOutputPath,
+        JSON.stringify(result.datasetEntry) + "\n"
+      );
+      if (
+        result.datasetEntry.expected?.result &&
+        Array.isArray(result.datasetEntry.expected.result) &&
+        result.datasetEntry.expected.result.length > 0
+      ) {
+        fs.appendFileSync(
+          referenceAnswersOutputPath,
+          JSON.stringify(result.datasetEntry) + "\n"
+        );
+      }
+    }
+  }
+
+  console.log(
+    `Successfully completed Atlas Search dataset generation with ${rewriteResults.length} rewritten entries`
+  );
+}
+
+async function main() {
+  initLogger();
+  // Set up
+  const { MONGODB_TEXT_TO_CODE_CONNECTION_URI } = assertEnvVars({
+    ...DATABASE_NL_QUERIES,
+  });
+  const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
+
+  const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
+
+  // Validate that dataOutDir exists. Create if it doesn't
+  if (!fs.existsSync(dataOutDir)) {
+    fs.mkdirSync(dataOutDir, { recursive: true });
+    console.log(`Created directory: ${dataOutDir}`);
+  }
+
+  const defaultLlmConfig: LlmOptions = {
+    model: "gpt-4.1",
+    temperature: 1,
+    seed: 42,
+  };
+
+  // One point to control generations at each level.
+  // Useful for debugging.
+  const config = {
+    database: {
+      llmConfig: {
+        ...defaultLlmConfig,
+        model: "gpt-4.1",
+        temperature: 0,
+      },
+    },
+    users: { numGenerations: 2, llmConfig: defaultLlmConfig, concurrency: 8 },
+    useCases: {
+      numGenerations: 1,
+      llmConfig: defaultLlmConfig,
+      concurrency: 10,
+    },
+    nlQueries: {
+      numGenerations: 2,
+      llmConfig: defaultLlmConfig,
+      concurrency: 10,
+    },
+    dbQueries: {
+      numGenerations: 8,
+      llmConfig: defaultLlmConfig,
+      concurrency: 10,
+    },
+    dbExecutions: {
+      concurrency: 20,
+    },
+    rewrite: {
+      modelDeployment: defaultLlmConfig.model as any,
+      concurrency: 15,
+    },
+  } as const satisfies LlmGenerationConfig;
+
+  // Load Atlas Search index definition
+  const atlasSearchIndexDefinitionPath = path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "mongodb_datasets",
+    "atlas_search_dataset_index.jsonc"
+  );
+  const atlasSearchIndexDefinition = fs.readFileSync(
+    atlasSearchIndexDefinitionPath,
+    "utf8"
+  );
+  console.log(
+    "Atlas Search Index Definition loaded:",
+    atlasSearchIndexDefinition.slice(0, 50),
+    "..."
+  );
+  const collectionName = "articles";
+
+  const atlasSearchDatabase: GenerateAtlasSearchDatasetParams["dataset"] = {
+    databaseName: "wikipedia_dataset",
+    collectionName,
+    numSamplesPerCollection: 2,
+    latestDate: new Date("2025-01-01"),
+    mongoClient,
+    searchIndexes: {
+      [collectionName]: [atlasSearchIndexDefinition],
+    },
+  };
+
+  // Run it
+  try {
+    const now = Date.now();
+    await mongoClient.connect();
+
+    // Note: Atlas Search requires a specific collection name
+    // You'll need to specify which collection has the Atlas Search index
+
+    await generateAtlasSearchDataset({
+      persistence: {
+        mongoClient,
+        databaseName: "atlas_search_datasets",
+        collectionName: "atlas_search_datasets",
+      },
+      dataset: atlasSearchDatabase,
+      llmConfigs: config,
+      datasetUuid: `atlas_search_${defaultLlmConfig.model}_temp_${
+        defaultLlmConfig.temperature
+      }_${now.toString()}`,
+      writeToFile: {
+        dataOutDir,
+      },
+    });
+  } finally {
+    await mongoClient.close();
+  }
+}
+
+main();

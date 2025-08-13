@@ -1,7 +1,7 @@
 import { Document } from "mongodb";
 
 export interface ExecuteMongoDbQueryParams {
-  query: string | Document[];
+  query: string;
   databaseName: string;
   /**
     Required for some executors, but not others.

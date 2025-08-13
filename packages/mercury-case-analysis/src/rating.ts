@@ -108,8 +108,10 @@ export type GenerateRating = (args: {
  */
 export function makeGenerateRating({
   model,
+  styleGuide,
 }: {
   model: LanguageModel;
+  styleGuide?: string;
 }): GenerateRating {
   return async ({ prompt, response }): Promise<PromptResponseRating> => {
     const result = await generateObject({
@@ -126,6 +128,17 @@ export function makeGenerateRating({
             indent: 4,
           }
         )}
+
+        ${
+          styleGuide
+            ? stripIndent`
+                Here is a style guide for the prompt/response pair:
+                <StyleGuide>
+                ${styleGuide}
+                </StyleGuide>
+              `
+            : ""
+        }
 
         Now evaluate this prompt/expected response pair:
 

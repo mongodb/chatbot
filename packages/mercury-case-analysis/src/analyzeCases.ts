@@ -9,6 +9,7 @@ export type MakeAnalyzeCaseParams = {
   embeddingModels: EmbeddingModel<string>[];
   generatorModel: LanguageModel;
   judgementModel: LanguageModel;
+  ratingStyleGuide?: string;
 };
 
 export type CaseAnalysis = {
@@ -24,7 +25,10 @@ export type AnalyzeCase = (args: {
 export type CaseAnalysisInput = Parameters<AnalyzeCase>[0];
 
 export function makeAnalyzeCase(args: MakeAnalyzeCaseParams): AnalyzeCase {
-  const generateRating = makeGenerateRating({ model: args.judgementModel });
+  const generateRating = makeGenerateRating({
+    model: args.judgementModel,
+    styleGuide: args.ratingStyleGuide,
+  });
   const generateText = makeSimpleTextGenerator({ model: args.generatorModel });
   const embedders = makeEmbedders(args.embeddingModels);
 

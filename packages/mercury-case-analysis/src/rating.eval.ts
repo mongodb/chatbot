@@ -1,7 +1,6 @@
 import "dotenv/config";
-import { Eval, BraintrustMiddleware } from "braintrust";
+import { Eval, BraintrustMiddleware, EvalCase } from "braintrust";
 import { Scorer } from "autoevals";
-import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeGenerateRating, PromptResponseRating } from "./rating";
 import { getEnv } from "mongodb-rag-core";
@@ -10,14 +9,14 @@ const { BRAINTRUST_API_KEY, BRAINTRUST_PROXY_ENDPOINT } = getEnv({
   required: ["BRAINTRUST_API_KEY", "BRAINTRUST_PROXY_ENDPOINT"],
 });
 
-interface GenerateRatingEvalCase {
-  input: {
+type GenerateRatingEvalCase = EvalCase<
+  {
     prompt: string;
     response: string;
-  };
-  expected: PromptResponseRating;
-  tags?: MongoDbTag[];
-}
+  },
+  PromptResponseRating,
+  undefined
+>;
 
 const evalCases: GenerateRatingEvalCase[] = [
   {
@@ -173,9 +172,9 @@ const generateRating = makeGenerateRating({
   model,
 });
 
-Eval("generate-prompt-response-rating", {
+Eval("mercury-rating", {
   data: evalCases,
-  experimentName: "response",
+  experimentName: `rating-${model.modelId}`,
   metadata: {
     description:
       "Evaluates the quality of LLM as judge in rating prompt & expected response pairs.",

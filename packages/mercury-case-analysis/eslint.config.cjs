@@ -5,7 +5,7 @@ const typescriptPlugin = require("@typescript-eslint/eslint-plugin");
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
   {
-    ignores: ["build/", "node_modules/", "**/*.eval.ts"],
+    ignores: ["build/", "node_modules/"],
   },
   {
     files: ["src/**/*.ts"],

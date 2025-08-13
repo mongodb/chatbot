@@ -1,37 +1,85 @@
 import { strict as assert } from "assert";
 import { normalizedSquareMagnitudeDifference } from "./squareMagnitude";
 import { calculateEmbeddings } from "./calculateEmbeddings";
-import { SimpleTextGenerator } from "./SimpleTextGenerator";
+import { SimpleTextGenerator } from "./generateText";
 import { Embedder } from "mongodb-rag-core";
-import {
-  PromptAndEmbeddings,
-  Relevance,
-  RelevanceMetrics,
-  ScoredPromptAndEmbeddings,
-} from "./Case";
-import { cosineSimilarity } from "mongodb-rag-core/aiSdk";
+import { cosineSimilarity, EmbeddingModel } from "mongodb-rag-core/aiSdk";
+import { makeShortName } from "./utils";
+import { stripIndent } from "common-tags";
+import { z } from "zod";
+
+/**
+  Answer relevance: given prompt and expected answer pair, generate N possible
+  prompts that would elicit that answer, then compare their embeddings with the
+  embedding of the original prompt.
+ */
+export const relevanceMetricsSchema = z.object({
+  norm_sq_mag_diff: z.number().describe(
+    stripIndent`
+      Normalized square magnitude difference. Lower = closer = better. This gives
+      an idea of how close the vectors are to each other in their N-dimensional
+      space, but doesn't seem to work as well as cos_similarity.
+    `
+  ),
+  cos_similarity: z
+    .number()
+    .min(-1)
+    .describe(
+      `Cosine similarity: are vectors pointing the same way? Range [-1, 1].`
+    ),
+});
+export type RelevanceMetrics = z.infer<typeof relevanceMetricsSchema>;
+
+export const embeddingsSchema = z.record(
+  z.string().describe("embedding model name"),
+  z.number().array().describe("embedding vector")
+);
+
+export type Embeddings = z.infer<typeof embeddingsSchema>;
+
+export const promptAndEmbeddingsSchema = z.object({
+  prompt: z.string(),
+  embeddings: embeddingsSchema,
+});
+
+export type PromptAndEmbeddings = z.infer<typeof promptAndEmbeddingsSchema>;
+
+export const scoredPromptAndEmbeddingsSchema = promptAndEmbeddingsSchema.and(
+  z.object({
+    relevance:
+      // embedding model name -> score
+      z.record(z.string(), relevanceMetricsSchema),
+  })
+);
+
+export type ScoredPromptAndEmbeddings = z.infer<
+  typeof scoredPromptAndEmbeddingsSchema
+>;
 
 /**
   Given the expected answer, generate a number of possible prompts that could
   elicit that expected answer.
  */
-export const generatePromptsFromExpectedAnswer = async ({
-  expectedResponse,
+async function generatePromptsFromExpectedAnswer({
+  response,
   embedders,
-  generate,
+  generateText,
   howMany,
 }: {
-  expectedResponse: string;
+  response: string;
   embedders: Embedder[];
-  generate: SimpleTextGenerator;
+  generateText: SimpleTextGenerator;
   howMany: number;
-}): Promise<PromptAndEmbeddings[]> => {
-  const variants = await generate({
-    prompt: `Given the following "expected answer", formulate a question that is likely to elicit the expected answer.
-Don't necessarily use proper grammar or punctuation; write like a user of a chatbot, search engine, or LLM would.
-Just return the generated question.
+}): Promise<PromptAndEmbeddings[]> {
+  const variants = await generateText({
+    prompt: stripIndent`
+      Given the following "expected answer", formulate a question that is likely to elicit the expected answer.
+      Don't necessarily use proper grammar or punctuation; write like a user of a chatbot, search engine, or LLM would.
+      Just return the generated question.
 
-Expected answer:\n\n${expectedResponse}`,
+      Expected answer:
+      ${response}
+    `.trim(),
     n: howMany,
     temperature: 0.5,
   });
@@ -44,9 +92,9 @@ Expected answer:\n\n${expectedResponse}`,
       };
     })
   );
-};
+}
 
-export const scoreVariants = ({
+const scorePromptVariants = ({
   original,
   variants,
 }: {
@@ -87,30 +135,36 @@ export const scoreVariants = ({
   );
 };
 
+export const relevanceSchema = z.object({
+  prompt_embeddings: embeddingsSchema,
+  generated_prompts: scoredPromptAndEmbeddingsSchema.array(),
+  scores: relevanceMetricsSchema,
+});
+
+export type Relevance = z.infer<typeof relevanceSchema>;
+
 export const assessRelevance = async ({
   prompt,
   embedders,
-  expectedResponse,
-  generate,
+  response,
+  generateText,
 }: {
   prompt: string;
-  expectedResponse: string;
+  response: string;
   embedders: Embedder[];
-  generate: SimpleTextGenerator;
+  generateText: SimpleTextGenerator;
 }): Promise<Relevance> => {
   const shortName = makeShortName(prompt);
-  console.log(`Calculating embeddings for '${shortName}'...`);
 
   const promptEmbeddings = await calculateEmbeddings({
     text: prompt,
     embedders,
   });
 
-  console.log(`Generating variants for '${shortName}'...`);
   const variants = await generatePromptsFromExpectedAnswer({
     embedders,
-    expectedResponse,
-    generate,
+    response,
+    generateText,
     howMany: 3,
   });
 
@@ -119,18 +173,11 @@ export const assessRelevance = async ({
     throw new Error(`Unexpectedly without variants for ${shortName}!`);
   }
 
-  const scoredVariants = scoreVariants({
+  const scoredVariants = scorePromptVariants({
     original: { prompt, embeddings: promptEmbeddings },
     variants,
   });
   assert(variantCount === Object.values(scoredVariants).length);
-
-  console.log(
-    `- Expected: "${expectedResponse}"
-- Original: "${prompt}"
-- Generated variants:
-${scoredVariants.map(({ prompt }) => `  - "${prompt}"`).join("\n")}`
-  );
 
   const summedMetrics = scoredVariants.reduce(
     (outer, { relevance }): RelevanceMetrics => {
@@ -146,32 +193,38 @@ ${scoredVariants.map(({ prompt }) => `  - "${prompt}"`).join("\n")}`
         { cos_similarity: 0, norm_sq_mag_diff: 0 }
       );
 
-      // Accumulate averages across models
+      // Accumulate average scores across models
       return {
         cos_similarity:
-          outer.cos_similarity + crossModel.cos_similarity / modelCount,
+          (outer.cos_similarity + crossModel.cos_similarity) / modelCount,
         norm_sq_mag_diff:
-          outer.norm_sq_mag_diff + crossModel.norm_sq_mag_diff / modelCount,
+          (outer.norm_sq_mag_diff + crossModel.norm_sq_mag_diff) / modelCount,
       };
     },
     { cos_similarity: 0, norm_sq_mag_diff: 0 }
   );
-  const averages: RelevanceMetrics = {
+  const scores: RelevanceMetrics = {
     cos_similarity: summedMetrics.cos_similarity / variantCount,
     norm_sq_mag_diff: summedMetrics.norm_sq_mag_diff / variantCount,
   };
 
-  console.log(`Average score: ${JSON.stringify(averages)}`);
   return {
     prompt_embeddings: promptEmbeddings,
     generated_prompts: scoredVariants,
-    averages,
+    scores,
   };
 };
 
-export const makeShortName = (prompt: string, ellipsizeAtLength = 64) => {
-  assert(ellipsizeAtLength > 0);
-  return prompt.length > ellipsizeAtLength
-    ? prompt.slice(0, ellipsizeAtLength - 3) + "..."
-    : prompt;
-};
+export function makeEmbedders(
+  embeddingModels: EmbeddingModel<string>[]
+): Embedder[] {
+  return embeddingModels.map((e) => {
+    return {
+      modelName: e.modelId,
+      embed: async ({ text }) => {
+        const { embeddings } = await e.doEmbed({ values: [text] });
+        return { embedding: embeddings[0] };
+      },
+    } satisfies Embedder;
+  });
+}

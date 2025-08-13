@@ -48,6 +48,7 @@
     "@stdlib/random-sample": "^0.2.1",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
+    "mercury-case-analysis": "*",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "chatbot-server-mongodb-public": "*",

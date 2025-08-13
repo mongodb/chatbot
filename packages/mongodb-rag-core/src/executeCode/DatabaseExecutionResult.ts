@@ -3,6 +3,10 @@ import { Document } from "mongodb";
 export interface ExecuteMongoDbQueryParams {
   query: string | Document[];
   databaseName: string;
+  /**
+    Required for some executors, but not others.
+   */
+  collectionName?: string;
 }
 
 export type ExecuteMongoDbQuery = (

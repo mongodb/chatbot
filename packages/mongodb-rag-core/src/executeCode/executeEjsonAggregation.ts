@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient, BSON } from "mongodb";
 import { ExecuteMongoDbQuery } from "./DatabaseExecutionResult";
 import { strict as assert } from "assert";
 /**
@@ -11,13 +11,19 @@ export function makeExecuteEjsonAggregationQuery({
 }: {
   mongoClient: MongoClient;
 }): ExecuteMongoDbQuery {
-  return async ({ query, databaseName }) => {
+  return async ({ query, databaseName, collectionName }) => {
     let executionTimeMs: number | null = null;
     try {
       assert(Array.isArray(query), "query must be an array");
+      assert(collectionName, "collectionName is required");
+
       const startTime = Date.now();
       const db = mongoClient.db(databaseName);
-      const result = await db.aggregate(query).toArray();
+      const documentQuery = BSON.EJSON.deserialize(query);
+      const result = await db
+        .collection(collectionName)
+        .aggregate(documentQuery)
+        .toArray();
       const endTime = Date.now();
       executionTimeMs = endTime - startTime;
 

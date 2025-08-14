@@ -38,7 +38,7 @@ The Responses API includes the following features:
 
 ## API Specification
 
-For a complete reference on the MongoDB Responses API, refer to the [OpenAPI specification](./openapi#tag/Responses).
+For a complete reference on the MongoDB Responses API, refer to the [OpenAPI specification](/openapi/#tag/Responses).
 ## Call the Responses API
 
 As the MongoDB Knowledge Service Responses API uses the same interface as the OpenAI responses API, all clients that support the official OpenAI Responses API should also work for this API.
@@ -269,7 +269,7 @@ const tools =  [{
   parameters: {
     type: "object",
     properties: {
-      mongosh_query: { type: "string" },
+      mongosh_query: { type: "string" },ta
     },
     required: ["query"],
   },
@@ -494,8 +494,8 @@ const stream = await openai.responses.create({
 
 You can collect user feedback in the form of message ratings and comments on all generations from the Responses API. The Knowledge Service has separate endpoints for rating and commenting messages:
 
-- [`rateMessage` endpoint](./openapi#tag/Conversations/operation/rateMessage)
-- [`commentMessage` endpoint](/openapi#tag/Conversations/operation/commentMessage)
+- [`rateMessage` endpoint](/openapi/#tag/Conversations/operation/rateMessage)
+- [`commentMessage` endpoint](/openapi/#tag/Conversations/operation/commentMessage)
 
 Usage example:
 

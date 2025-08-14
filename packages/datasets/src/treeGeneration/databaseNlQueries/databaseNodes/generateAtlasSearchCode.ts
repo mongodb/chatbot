@@ -29,6 +29,7 @@ Format the aggregation pipeline as an array of aggregation pipeline stages to in
 <formatting-requirements>
 1. Always include the "index" name in the query.
 2. The query results MUST include the \`_id\` field for each document returned. This is incredibly important.
+3. Project out the \`text\` field as it is very large and not needed for the query ($project: { text: 0  ...other fields here }).
 </formatting-requirements>
 
 For example, the output should look like:
@@ -37,7 +38,7 @@ For example, the output should look like:
   { $search: { index: "<index name here>", /* search stage here */ } },
   { /* other stages here */ }
   // Note again that the _id field MUST be included in the projection stage.
-  { $project: { _id: 1, ...other fields here } }
+  { $project: { _id: 1, text: 0, ...other fields here } }
 ]
 \`\`\`
 

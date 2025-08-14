@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import {
   makeExecuteEjsonAggregationQuery,
   isReasonableResult,
@@ -17,10 +17,12 @@ import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/datab
 import { generateAtlasSearchCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAtlasSearchCode";
 import { generateNaturalLanguageAtlasSearchQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
 import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
-import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
-import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
-import { makeRewriteAtlasSearchQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteAtlasSearchNlQuery";
+import {
+  DatabaseNlQueryDatasetEntry,
+  generateDatabaseNlQueryDatasetEntryAtlasSearch,
+} from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import { makeRewriteNlQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteNlQuery";
 import { makeOpenAiProvider } from "../openAi";
 import { BraintrustMiddleware, initLogger } from "mongodb-rag-core/braintrust";
 import { models } from "mongodb-rag-core/models";
@@ -110,11 +112,6 @@ async function generateAtlasSearchDataset({
     datasetOutDir,
     `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`
   );
-  // Write out each DB's dataset to a separate file
-  const textToAtlasSearchOutputPath = path.resolve(
-    datasetOutDir,
-    `text_to_atlas_search.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
-  );
 
   const rewrittenTextToAtlasSearchOutputPath = path.resolve(
     datasetOutDir,
@@ -129,7 +126,7 @@ async function generateAtlasSearchDataset({
     `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
   );
 
-  const nodeStore = makeMongoDbNodeStore(persistence);
+  // const nodeStore = makeMongoDbNodeStore(persistence);
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
 
@@ -139,12 +136,8 @@ async function generateAtlasSearchDataset({
     latestDate: dataset.latestDate,
     openAiClient: makeOpenAiClient(),
   });
-  console.log(
-    "databaseInfoNode::",
-    databaseInfoNode.data.collections[0].searchIndexes
-  );
 
-  await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
+  // await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
 
   // Generate database users
   console.log("Generating database users...");
@@ -153,7 +146,7 @@ async function generateAtlasSearchDataset({
     llmConfigs.users.llmConfig,
     llmConfigs.users.numGenerations
   );
-  await nodeStore.storeNodes({ nodes: userNodes });
+  // await nodeStore.storeNodes({ nodes: userNodes });
 
   console.log(`Generated ${userNodes.length} database users`);
 
@@ -167,7 +160,7 @@ async function generateAtlasSearchDataset({
         llmConfigs.useCases.llmConfig,
         llmConfigs.useCases.numGenerations
       );
-      await nodeStore.storeNodes({ nodes: useCases });
+      // await nodeStore.storeNodes({ nodes: useCases });
       console.log(
         `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
       );
@@ -195,9 +188,9 @@ async function generateAtlasSearchDataset({
         llmConfigs.nlQueries.llmConfig,
         llmConfigs.nlQueries.numGenerations
       );
-      await nodeStore.storeNodes({
-        nodes: nlQueries,
-      });
+      // await nodeStore.storeNodes({
+      //   nodes: nlQueries,
+      // });
       console.log(
         `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`
       );
@@ -218,7 +211,7 @@ async function generateAtlasSearchDataset({
         llmConfigs.dbQueries.llmConfig,
         llmConfigs.dbQueries.numGenerations
       );
-      await nodeStore.storeNodes({ nodes: dbCodeNodes });
+      // await nodeStore.storeNodes({ nodes: dbCodeNodes });
 
       console.log(
         `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`
@@ -227,7 +220,7 @@ async function generateAtlasSearchDataset({
     });
 
   // Store initial dataset entries (before rewriting)
-  const initialDatasetEntries: any[] = [];
+  const datasetEntries: DatabaseNlQueryDatasetEntry[] = [];
 
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
@@ -254,9 +247,11 @@ async function generateAtlasSearchDataset({
 
         if (
           Array.isArray(dbExecution.data.result) &&
-          dbExecution.data.result?.length > maxResultsArraySize
+          dbExecution.data.result.length > maxResultsArraySize
         ) {
-          throw new Error("Result array is too large to process.");
+          throw new Error(
+            `Result array is too large to process. Result array length: ${dbExecution.data.result.length}, maxResultsArraySize: ${maxResultsArraySize}`
+          );
         }
         if (dbExecution.data.error) {
           console.error(
@@ -296,19 +291,14 @@ async function generateAtlasSearchDataset({
         }
       }
 
-      await nodeStore.storeNodes({ nodes: dbExecutions });
-      console.log(`Writing initial data out to ${textToAtlasSearchOutputPath}`);
+      // await nodeStore.storeNodes({ nodes: dbExecutions });
       for (const dbExecution of dbExecutions) {
         const textToAtlasSearchDatasetEntry =
-          generateDatabaseNlQueryDatasetEntry(dbExecution);
+          generateDatabaseNlQueryDatasetEntryAtlasSearch(dbExecution);
 
         // Store for rewriting step
-        initialDatasetEntries.push(textToAtlasSearchDatasetEntry);
+        datasetEntries.push(textToAtlasSearchDatasetEntry);
 
-        fs.appendFileSync(
-          textToAtlasSearchOutputPath,
-          JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
-        );
         if (dbExecution.data.isReferenceAnswer) {
           fs.appendFileSync(
             referenceAnswersOutputPath,
@@ -319,39 +309,50 @@ async function generateAtlasSearchDataset({
     } catch (error) {
       console.error(error);
     }
-
-    console.log(
-      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToAtlasSearchOutputPath}`
-    );
   }
+
+  // TODO: Note also that the _id is a string, so our matcher should be able to match an ObjectId against equivalent strings.
 
   // Rewriting step - similar to rewriteNlToMongoshDatasetQueries.ts
   console.log("Starting Atlas Search natural language query rewriting step...");
   const rewriteModel = wrapLanguageModel({
-    model: makeOpenAiProvider()(llmConfigs.rewrite.modelDeployment),
+    model: makeOpenAiProvider().chat(llmConfigs.rewrite.modelDeployment),
     middleware: [BraintrustMiddleware({ debug: true })],
   });
 
-  const rewriteAtlasSearchQueryPrompt =
-    makeRewriteAtlasSearchQueryPrompt(rewriteModel);
+  const rewriteAtlasSearchQueryPrompt = makeRewriteNlQueryPrompt(rewriteModel);
 
-  console.log(
-    `Processing ${initialDatasetEntries.length} entries for rewriting`
-  );
-  const { results: rewriteResults } = await PromisePool.for(
-    initialDatasetEntries
-  )
+  console.log(`Processing ${datasetEntries.length} entries for rewriting`);
+  const { results: rewriteResults } = await PromisePool.for(datasetEntries)
     .withConcurrency(llmConfigs.rewrite.concurrency)
     .handleError((error) => {
       console.error("Rewriting error:", error);
     })
     .process(async (entry, index) => {
-      console.log(`Rewriting entry ${index + 1}/${initialDatasetEntries.length}.
-Entry NL query: ${entry.input.nlQuery}`);
-      const result = await rewriteAtlasSearchQueryPrompt(entry);
+      console.log(
+        `Rewriting entry ${index + 1}/${datasetEntries.length}.
+Entry NL query: ${entry.nlQuery}`
+      );
+      const result = await rewriteAtlasSearchQueryPrompt({
+        input: {
+          databaseName: entry.databaseName,
+          nlQuery: entry.nlQuery,
+        },
+        expected: {
+          dbQuery: entry.dbQuery,
+          executionTimeMs: entry.executionTimeMs,
+          result: entry.result,
+        },
+        tags: null,
+        metadata: {
+          language: entry.language,
+          complexity: entry.complexity,
+        },
+      });
       return result;
     });
 
+  // TODO: understand this...
   console.log(
     `Writing rewritten data out to ${rewrittenTextToAtlasSearchOutputPath}`
   );
@@ -396,8 +397,8 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    model: "gpt-4.1",
-    temperature: 1,
+    model: "gpt-4.1", // TODO: wasn't working with 4.1 for generate users..come back to this
+    temperature: 0.9,
     seed: 42,
   };
 
@@ -407,18 +408,17 @@ async function main() {
     database: {
       llmConfig: {
         ...defaultLlmConfig,
-        model: "gpt-4.1",
         temperature: 0,
       },
     },
-    users: { numGenerations: 2, llmConfig: defaultLlmConfig, concurrency: 8 },
+    users: { numGenerations: 20, llmConfig: defaultLlmConfig, concurrency: 8 },
     useCases: {
-      numGenerations: 1,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: 10,
     },
     nlQueries: {
-      numGenerations: 2,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: 10,
     },
@@ -431,7 +431,7 @@ async function main() {
       concurrency: 20,
     },
     rewrite: {
-      modelDeployment: defaultLlmConfig.model as any,
+      modelDeployment: "gpt-4.1" as any,
       concurrency: 15,
     },
   } as const satisfies LlmGenerationConfig;

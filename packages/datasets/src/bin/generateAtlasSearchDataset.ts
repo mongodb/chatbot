@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   makeExecuteEjsonAggregationQuery,
   isReasonableResult,
@@ -111,11 +111,6 @@ async function generateAtlasSearchDataset({
   const referenceAnswersOutputPath = path.resolve(
     datasetOutDir,
     `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`
-  );
-
-  const rewrittenTextToAtlasSearchOutputPath = path.resolve(
-    datasetOutDir,
-    `text_to_atlas_search.dataset_${datasetUuid}.${dataset.databaseName}.rewritten.jsonl`
   );
 
   const executeAtlasSearchQuery = makeExecuteEjsonAggregationQuery({
@@ -313,70 +308,23 @@ async function generateAtlasSearchDataset({
 
   // TODO: Note also that the _id is a string, so our matcher should be able to match an ObjectId against equivalent strings.
 
-  // Rewriting step - similar to rewriteNlToMongoshDatasetQueries.ts
-  console.log("Starting Atlas Search natural language query rewriting step...");
-  const rewriteModel = wrapLanguageModel({
-    model: makeOpenAiProvider().chat(llmConfigs.rewrite.modelDeployment),
-    middleware: [BraintrustMiddleware({ debug: true })],
-  });
-
-  const rewriteAtlasSearchQueryPrompt = makeRewriteNlQueryPrompt(rewriteModel);
-
-  console.log(`Processing ${datasetEntries.length} entries for rewriting`);
-  const { results: rewriteResults } = await PromisePool.for(datasetEntries)
-    .withConcurrency(llmConfigs.rewrite.concurrency)
-    .handleError((error) => {
-      console.error("Rewriting error:", error);
-    })
-    .process(async (entry, index) => {
-      console.log(
-        `Rewriting entry ${index + 1}/${datasetEntries.length}.
-Entry NL query: ${entry.nlQuery}`
-      );
-      const result = await rewriteAtlasSearchQueryPrompt({
-        input: {
-          databaseName: entry.databaseName,
-          nlQuery: entry.nlQuery,
-        },
-        expected: {
-          dbQuery: entry.dbQuery,
-          executionTimeMs: entry.executionTimeMs,
-          result: entry.result,
-        },
-        tags: null,
-        metadata: {
-          language: entry.language,
-          complexity: entry.complexity,
-        },
-      });
-      return result;
-    });
-
-  // TODO: understand this...
-  console.log(
-    `Writing rewritten data out to ${rewrittenTextToAtlasSearchOutputPath}`
-  );
-  for (const result of rewriteResults) {
+  for (const result of datasetEntries) {
     if (result) {
-      fs.appendFileSync(
-        rewrittenTextToAtlasSearchOutputPath,
-        JSON.stringify(result.datasetEntry) + "\n"
-      );
       if (
-        result.datasetEntry.expected?.result &&
-        Array.isArray(result.datasetEntry.expected.result) &&
-        result.datasetEntry.expected.result.length > 0
+        result.result &&
+        Array.isArray(result.result) &&
+        result.result.length > 0
       ) {
         fs.appendFileSync(
           referenceAnswersOutputPath,
-          JSON.stringify(result.datasetEntry) + "\n"
+          JSON.stringify(result) + "\n"
         );
       }
     }
   }
 
   console.log(
-    `Successfully completed Atlas Search dataset generation with ${rewriteResults.length} rewritten entries`
+    `Successfully completed Atlas Search dataset generation with ${referenceAnswersOutputPath.length} rewritten entries`
   );
 }
 
@@ -397,7 +345,7 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    model: "gpt-4.1", // TODO: wasn't working with 4.1 for generate users..come back to this
+    model: "claude-sonnet-4-20250514", // TODO: wasn't working with 4.1 for generate users..come back to this
     temperature: 0.9,
     seed: 42,
   };
@@ -424,7 +372,7 @@ async function main() {
     },
     dbQueries: {
       numGenerations: 8,
-      llmConfig: defaultLlmConfig,
+      llmConfig: { ...defaultLlmConfig, model: "gpt-4.1" },
       concurrency: 10,
     },
     dbExecutions: {

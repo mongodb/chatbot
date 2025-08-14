@@ -53,11 +53,7 @@
     "chatbot-server-mongodb-public": "*",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
-<<<<<<< HEAD
     "mercury-case-analysis": "*",
-=======
-    "benchmarks": "*",
->>>>>>> 2abfd48b ((EAI-1119) profound answers script (#805))
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "yaml": "^2.3.4",

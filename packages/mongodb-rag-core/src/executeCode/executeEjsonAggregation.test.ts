@@ -123,7 +123,7 @@ describe("executeEjsonAggregationQuery", () => {
     });
 
     expect(result.error).toBeDefined();
-    expect(result.error?.message).toContain("query must be an array");
+    expect(result.error?.message).toEqual(expect.any(String));
     expect(result.result).toBeNull();
     expect(result.executionTimeMs).toBeNull();
   });

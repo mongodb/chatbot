@@ -143,18 +143,31 @@ export const relevanceSchema = z.object({
 
 export type Relevance = z.infer<typeof relevanceSchema>;
 
+function makeEmbedders(embeddingModels: EmbeddingModel<string>[]): Embedder[] {
+  return embeddingModels.map((e) => {
+    return {
+      modelName: e.modelId,
+      embed: async ({ text }) => {
+        const { embeddings } = await e.doEmbed({ values: [text] });
+        return { embedding: embeddings[0] };
+      },
+    } satisfies Embedder;
+  });
+}
+
 export const assessRelevance = async ({
   prompt,
-  embedders,
+  embeddingModels,
   response,
   generateText,
 }: {
   prompt: string;
   response: string;
-  embedders: Embedder[];
+  embeddingModels: EmbeddingModel<string>[];
   generateText: SimpleTextGenerator;
 }): Promise<Relevance> => {
   const shortName = makeShortName(prompt);
+  const embedders = makeEmbedders(embeddingModels);
 
   const promptEmbeddings = await calculateEmbeddings({
     text: prompt,
@@ -213,17 +226,3 @@ export const assessRelevance = async ({
     scores,
   };
 };
-
-export function makeEmbedders(
-  embeddingModels: EmbeddingModel<string>[]
-): Embedder[] {
-  return embeddingModels.map((e) => {
-    return {
-      modelName: e.modelId,
-      embed: async ({ text }) => {
-        const { embeddings } = await e.doEmbed({ values: [text] });
-        return { embedding: embeddings[0] };
-      },
-    } satisfies Embedder;
-  });
-}

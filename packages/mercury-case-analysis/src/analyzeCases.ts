@@ -1,6 +1,6 @@
 import { makeSimpleTextGenerator } from "./generateText";
 import { makeGenerateRating, PromptResponseRating } from "./rating";
-import { assessRelevance, makeEmbedders, Relevance } from "./relevance";
+import { assessRelevance, Relevance } from "./relevance";
 import { EmbeddingModel, LanguageModel } from "mongodb-rag-core/aiSdk";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeShortName } from "./utils";
@@ -24,13 +24,17 @@ export type AnalyzeCase = (args: {
 
 export type CaseAnalysisInput = Parameters<AnalyzeCase>[0];
 
-export function makeAnalyzeCase(args: MakeAnalyzeCaseParams): AnalyzeCase {
+export function makeAnalyzeCase({
+  judgementModel,
+  ratingStyleGuide,
+  generatorModel,
+  embeddingModels,
+}: MakeAnalyzeCaseParams): AnalyzeCase {
   const generateRating = makeGenerateRating({
-    model: args.judgementModel,
-    styleGuide: args.ratingStyleGuide,
+    model: judgementModel,
+    styleGuide: ratingStyleGuide,
   });
-  const generateText = makeSimpleTextGenerator({ model: args.generatorModel });
-  const embedders = makeEmbedders(args.embeddingModels);
+  const generateText = makeSimpleTextGenerator({ model: generatorModel });
 
   return async ({ prompt, response }) => {
     console.log(`Analyzing case: '${makeShortName(prompt)}'...`);
@@ -39,7 +43,7 @@ export function makeAnalyzeCase(args: MakeAnalyzeCaseParams): AnalyzeCase {
         prompt,
         response,
         generateText,
-        embedders,
+        embeddingModels,
       }),
       generateRating({
         prompt,

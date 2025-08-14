@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { assessRelevance, makeEmbedders } from "./relevance";
+import { assessRelevance } from "./relevance";
 import { TextGenerator } from "./generateText";
 import { MockEmbeddingModelV2 } from "mongodb-rag-core/aiSdk";
 
@@ -53,7 +53,7 @@ export function makeGeneratorReturning(
 }
 
 describe("assessRelevance", () => {
-  const singleEmbedder = makeEmbedders([makeMockEmbeddingModel()]);
+  const singleEmbeddingModel = [makeMockEmbeddingModel()];
 
   it("yields perfect similarity when generated prompts equal the original", async () => {
     const prompt = "When to use $pull and $push mongodb";
@@ -62,7 +62,7 @@ describe("assessRelevance", () => {
     const result = await assessRelevance({
       prompt,
       response: "irrelevant for deterministic generator",
-      embedders: singleEmbedder,
+      embeddingModels: singleEmbeddingModel,
       generateText,
     });
 
@@ -82,7 +82,7 @@ describe("assessRelevance", () => {
     const result = await assessRelevance({
       prompt,
       response: "irrelevant for deterministic generator",
-      embedders: singleEmbedder,
+      embeddingModels: singleEmbeddingModel,
       generateText,
     });
 
@@ -97,15 +97,15 @@ describe("assessRelevance", () => {
     const prompt = "When to use $pull and $push mongodb";
     const generateText = makeGeneratorReturning([prompt]);
 
-    const twoEmbedders = makeEmbedders([
+    const twoEmbeddingModels = [
       makeMockEmbeddingModel("embedder-a"),
       makeMockEmbeddingModel("embedder-b"),
-    ]);
+    ];
 
     const result = await assessRelevance({
       prompt,
       response: "irrelevant for deterministic generator",
-      embedders: twoEmbedders,
+      embeddingModels: twoEmbeddingModels,
       generateText,
     });
 

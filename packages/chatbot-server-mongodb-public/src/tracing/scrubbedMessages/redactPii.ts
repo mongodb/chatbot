@@ -13,6 +13,15 @@ export type Pii =
 
 const nameMatcher = new AhoCorasick(wellKnownNames);
 
+function isWordChar(char: string): boolean {
+  if (!char || char.length === 0) return false;
+  const code = char.charCodeAt(0);
+  const isDigit = code >= 48 && code <= 57; // 0-9
+  const isUpper = code >= 65 && code <= 90; // A-Z
+  const isLower = code >= 97 && code <= 122; // a-z
+  return isDigit || isUpper || isLower || char === "_";
+}
+
 // These regex are taken from the deprecated [redact-pii](https://www.npmjs.com/package/redact-pii) package
 const aptRegex =
   /(apt|bldg|dept|fl|hngr|lot|pier|rm|ste|slip|trlr|unit|#)\.? *[a-z0-9-]+\b/gi;
@@ -74,15 +83,38 @@ function redactNames(text: string): string {
     const keywords = match[1];
     if (keywords && keywords.length > 0) {
       for (const keyword of keywords) {
-        // Create a regex to find the name with word boundaries
-        const nameRegex = new RegExp(`\\b${keyword}\\b`, "gi");
-        let nameMatch;
-        while ((nameMatch = nameRegex.exec(result)) !== null) {
-          nameMatches.push({
-            position: nameMatch.index,
-            length: nameMatch[0].length,
-            original: nameMatch[0],
-          });
+        // Guard against pathological inputs
+        if (
+          typeof keyword !== "string" ||
+          keyword.length === 0 ||
+          keyword.length > 100
+        ) {
+          continue;
+        }
+        const lowerKeyword = keyword.toLowerCase();
+        // Iterate over the text and find all occurrences of the keyword
+        let searchFromIndex = 0;
+        let continueSearching = true;
+        while (continueSearching) {
+          const foundAt = lowerText.indexOf(lowerKeyword, searchFromIndex);
+          if (foundAt !== -1) {
+            const start = foundAt;
+            const end = foundAt + lowerKeyword.length;
+            const prevChar = start > 0 ? lowerText[start - 1] : "";
+            const nextChar = end < lowerText.length ? lowerText[end] : "";
+            const prevIsWord = isWordChar(prevChar);
+            const nextIsWord = isWordChar(nextChar);
+            if (!prevIsWord && !nextIsWord) {
+              nameMatches.push({
+                position: start,
+                length: lowerKeyword.length,
+                original: result.substring(start, end),
+              });
+            }
+            searchFromIndex = end;
+          } else {
+            continueSearching = false;
+          }
         }
       }
     }

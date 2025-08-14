@@ -5,10 +5,12 @@ import { stripIndent } from "common-tags";
 import YAML from "yaml";
 
 const ratingSchema = z
-  .number()
+  .int()
   .min(1)
   .max(5)
-  .describe("A score from 1 (poor) to 5 (excellent).");
+  .describe(
+    "A Likert scale rating from 1 (Strongly Disagree) to 5 (Strongly Agree)."
+  );
 
 const makeRationaleSchema = (name: string) =>
   z
@@ -21,58 +23,48 @@ const makeRationaleSchema = (name: string) =>
 export const promptResponseRatingSchema = z.object({
   answer_fit: z
     .object({
-      score: ratingSchema,
       rationale: makeRationaleSchema("answer fit"),
+      score: ratingSchema,
     })
     .describe(
       stripIndent`
-        How well the expected answer actually matches the prompt.
-        A high score indicates that the answer is directly relevant to the prompt and provides a clear and concise response.
-        A low score indicates that the answer is not directly relevant to the prompt or contains extraneous information.
+        The expected answer is directly relevant to the prompt and provides a clear and concise response without extraneous information.
       `
     ),
   answer_reasonableness: z
     .object({
-      score: ratingSchema,
       rationale: makeRationaleSchema("answer reasonableness"),
+      score: ratingSchema,
     })
     .describe(
       stripIndent`
-        How reasonable it would be to expect an LLM to produce the given response from the given prompt.
-        A high score indicates that the answer is reasonable and likely to be produced by an LLM.
-        A low score indicates that the answer is not reasonable and likely to be produced by an LLM.
+        One could reasonably expect an LLM to produce the given response from the given prompt.
       `
     ),
   business_impact: z
     .object({
-      score: ratingSchema,
       rationale: makeRationaleSchema("business impact"),
+      score: ratingSchema,
     })
     .describe(
       stripIndent`
-        The business impact/relevance of the question and answer.
-        High impact questions are likely to generate new revenue or prevent customer churn.
-        Examples of high impact topics: market positioning, technical support, product roadmap, etc.
-        Low impact questions are likely to be easily answered by a simple search and/or have little impact on the business.
-        Examples of low impact prompts: When was MongoDB founded?, What is the latest version of MongoDB?, etc.
+        The prompt and response could have significant business impact (e.g. generate new revenue or prevent customer churn) if asked by a user.
       `
     ),
   prompt_clarity: z
     .object({
-      score: ratingSchema,
       rationale: makeRationaleSchema("prompt clarity"),
+      score: ratingSchema,
     })
     .describe(
       stripIndent`
-        How well-formulated and clear the prompt is.
-        A high score indicates that the prompt is clear and focused on a specific topic.
-        A low score indicates that the prompt is unclear or too broad.
+        The prompt is well-formulated, clear, and focused on a specific topic.
       `
     ),
   prompt_knowledge_assumption: z
     .object({
-      score: ratingSchema,
       rationale: makeRationaleSchema("prompt knowledge assumption"),
+      score: ratingSchema,
     })
     .describe(
       stripIndent`
@@ -87,7 +79,7 @@ export const promptResponseRatingSchema = z.object({
     .describe(
       stripIndent`
         A terse and direct suggestion for how to improve the prompt and/or expected response.
-        Only include this if ANY of the above scores <= 2.
+        Only include this if ANY of the above scores <= 3.
       `
     ),
 });
@@ -115,42 +107,57 @@ export function makeGenerateRating({
 }): GenerateRating {
   return async ({ prompt, response }): Promise<PromptResponseRating> => {
     const result = await generateObject({
-      prompt: stripIndent`
-        Your task is to evaluate the quality of a technical chatbot prompt/response turn.
-        You will be given a user prompt and an expected answer for the prompt.
-        You will evaluate the quality of the prompt/response pair across multiple dimensions.
-        For each dimension, you will assign a score from 1 (poor) to 5 (excellent) as well as a rationale for your score.
+      prompt: [
+        {
+          role: "system",
+          content: stripIndent`
+            Your task is to evaluate the quality of a technical chatbot prompt/response turn.
+            You will be given a user prompt and an expected answer for the prompt.
+            You will evaluate the quality of the prompt/response pair across multiple dimensions.
+            For each dimension, you will evaluate the prompt/response pair and assign a Likert score from the following options:
 
-        Here are the dimensions you will evaluate:
-        ${YAML.stringify(
-          extractZodSchemaDescriptions(promptResponseRatingSchema),
-          {
-            indent: 4,
-          }
-        )}
+            - 1 (Strongly Disagree)
+            - 2 (Disagree)
+            - 3 (Neutral)
+            - 4 (Agree)
+            - 5 (Strongly Agree)
 
-        ${
-          styleGuide
-            ? stripIndent`
-                Here is a style guide for the prompt/response pair:
-                <StyleGuide>
-                ${styleGuide}
-                </StyleGuide>
-              `
-            : ""
-        }
+            Think through the rationale for each score first. Then based on the rationale, assign the score.
 
-        Now evaluate this prompt/expected response pair:
+            Here are the dimensions you will evaluate:
+            ${YAML.stringify(
+              extractZodSchemaDescriptions(promptResponseRatingSchema),
+              {
+                indent: 4,
+              }
+            )}
 
-        <Prompt>
-        ${prompt}
-        </Prompt>
+            ${
+              styleGuide
+                ? stripIndent`
+                    Additional guidance for the prompt/response pair:
 
-        <ExpectedResponse>
-        ${response}
-        </ExpectedResponse>
-      `.trim(),
-      temperature: 0.1,
+                    ${styleGuide}
+                  `
+                : ""
+            }
+          `.trim(),
+        },
+        // TODO - support few-shot examples
+        {
+          role: "user",
+          content: stripIndent`
+            <Prompt>
+            ${prompt}
+            </Prompt>
+
+            <ExpectedResponse>
+            ${response}
+            </ExpectedResponse>
+          `,
+        },
+      ],
+      temperature: 0,
       model,
       schema: promptResponseRatingSchema,
       schemaName,

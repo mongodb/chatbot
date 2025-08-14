@@ -14,6 +14,7 @@ export type SuggestRewriteParams = {
   prompt: string;
   response: string;
   guidance: string;
+  styleGuide?: string;
 };
 
 export const suggestRewrite = async ({
@@ -21,6 +22,7 @@ export const suggestRewrite = async ({
   prompt,
   response,
   guidance,
+  styleGuide,
 }: SuggestRewriteParams): Promise<Rewrite> => {
   if (guidance.length === 0) {
     throw new Error("You must provide guidance to get a suggested rewrite.");
@@ -30,33 +32,55 @@ export const suggestRewrite = async ({
     schema: rewriteSchema,
     schemaName: "Rewrite",
     schemaDescription: "A rewrite of the prompt and/or the expected response.",
-    prompt: stripIndent`
-      You are an expert editor who suggests rewrites.
-      You will be given the following:
-      - A "prompt" that represents a user's input to a technical assistant/chatbot
-      - An "expected response" to the user prompt that ideally represents the ground truth that the assistant/chatbot should produce
-      - A brief "guidance" from an expert reviewer that suggests modifications to either/both the prompt or the expected response
+    prompt: [
+      {
+        role: "system",
+        content: stripIndent`
+          You are an expert editor who suggests rewrites.
+          You will be given the following:
+          - A "prompt" that represents a user's input to a technical assistant/chatbot
+          - An "expected response" to the user prompt that ideally represents the ground truth that the assistant/chatbot should produce
+          - A brief "guidance" from an expert reviewer that suggests modifications to either/both the prompt or the expected response
 
-      Your job is to suggest a rewrite based on the guidance. Additionally, you may suggest minor changes to use proper grammar, capitalization, and punctuation.
-      If you do not have a suggested rewrite for a field then leave the field undefined in your response.
+          Your job is to suggest a rewrite based on the guidance. Additionally, you may suggest minor changes to use proper grammar, capitalization, and punctuation.
+          If you do not have a suggested rewrite for a field then leave the field undefined in your response.
 
-      You may perform one of the following actions:
-      - Rewrite the prompt and leave the expected response unchanged (e.g. \`{ "prompt": "<REWRITTEN PROMPT>" }\`)
-      - Rewrite the expected response and leave the prompt unchanged (e.g. \`{ "response": "<REWRITTEN RESPONSE>" }\`)
-      - Rewrite both the prompt and the expected response (e.g. \`{ "prompt": "<REWRITTEN PROMPT>", "response": "<REWRITTEN RESPONSE>" }\`)
+          You may perform one of the following actions:
+          - Rewrite the prompt and leave the expected response unchanged (e.g. \`{ "prompt": "<REWRITTEN PROMPT>" }\`)
+          - Rewrite the expected response and leave the prompt unchanged (e.g. \`{ "response": "<REWRITTEN RESPONSE>" }\`)
+          - Rewrite both the prompt and the expected response (e.g. \`{ "prompt": "<REWRITTEN PROMPT>", "response": "<REWRITTEN RESPONSE>" }\`)
 
-      <Prompt>
-      ${prompt}
-      </Prompt>
+            ${
+              styleGuide
+                ? stripIndent`
+                    Follow this additional style guidance:
 
-      <ExpectedResponse>
-      ${response}
-      </ExpectedResponse>
+                    <StyleGuide>
+                    ${styleGuide}
+                    </StyleGuide>
+                  `
+                : ""
+            }
+          `.trim(),
+      },
+      // TODO - support few-shot examples
+      {
+        role: "user",
+        content: stripIndent`
+          <Prompt>
+          ${prompt}
+          </Prompt>
 
-      <Guidance>
-      ${guidance}
-      </Guidance>
-    `,
+          <ExpectedResponse>
+          ${response}
+          </ExpectedResponse>
+
+          <Guidance>
+          ${guidance}
+          </Guidance>
+        `,
+      },
+    ],
   });
   if (rewrite.prompt === undefined && rewrite.response === undefined) {
     throw new Error("Failed to generate a rewrite.");

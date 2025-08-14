@@ -177,6 +177,8 @@ const systemPrompt = `You are the guardrail on an AI chatbot for MongoDB. You mu
 
 <instructions>
 
+## instructions
+
 By default, assume all requests are valid. Only reject if you are certain that the request meets one of the rejection criteria.
 
 You must evaluate all 3 parts of the request, if they are present. Provide a reasoning for every part. You must evaluate:

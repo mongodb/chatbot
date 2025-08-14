@@ -14,7 +14,7 @@ import { makeOpenAiClient } from "../../../openAi";
 
 const abstractOutputExample: DatabaseCode = {
   queryPlan: "<query plan here>",
-  code: "<aggregation pipeline code here>",
+  code: "<EJSON-formatted aggregation pipeline code here>",
   language: "json",
 };
 
@@ -29,16 +29,17 @@ Format the aggregation pipeline as an array of aggregation pipeline stages to in
 <formatting-requirements>
 1. Always include the "index" name in the query.
 2. The query results MUST include the \`_id\` field for each document returned. This is incredibly important.
-3. Project out the \`text\` field as it is very large and not needed for the query ($project: { text: 0  ...other fields here }).
+3. Project out the \`text\` field as it is very large and not needed for the query ({"$project": { "text": 0  /* ...other fields here */ }}).
+4. You MUST NOT include any comments in the output code. It MUST be valid EJSON that can be interpreted by JSON operators like \`JSON.parse()\`.
 </formatting-requirements>
 
 For example, the output should look like:
-\`\`\`
+\`\`\`json
 [
-  { $search: { index: "<index name here>", /* search stage here */ } },
-  { /* other stages here */ }
+  { "$search": { "index": "<index name here>", /* search stage here */ } },
+  { /* other stages here */ },
   // Note again that the _id field MUST be included in the projection stage.
-  { $project: { _id: 1, text: 0, ...other fields here } }
+  { "$project": { "_id": 1, "text": 0, ...other fields here } }
 ]
 \`\`\`
 
@@ -74,9 +75,9 @@ Some general query-authoring tips:
 ${markdownList([
   'Always include the "index" name in the query',
   "Always use the $search stage as the first stage in the aggregation pipeline, followed by other stages as needed",
-  "Use the compound operator to combine multiple search conditions with must, should, and filter clauses appropriately",
-  "Place non-scoring operators (equals, range, exists) in filter clause to optimize performance and avoid unnecessary scoring",
-  "Use must clause for required conditions that should affect scoring, should clause for preferred conditions, and filter for required conditions that shouldn't affect scoring",
+  "Use the `compound` operator to combine multiple search conditions with `must`, `should`, and `filter` clauses appropriately",
+  "Place non-scoring operators (`equals`, `range`, `exists`) in `filter` clause to optimize performance and avoid unnecessary scoring",
+  "Use `must` clause for required conditions that should affect scoring, should clause for preferred conditions, and `filter` for required conditions that shouldn't affect scoring",
   "Leverage text search with appropriate analyzers - use text operator for full-text search, phrase for exact matches, autocomplete for type-ahead",
   "Apply scoring and boosting strategically - use boost option to increase importance of certain fields or conditions",
   "Include proper field specifications in your operators - specify which indexed fields to search against",
@@ -104,6 +105,7 @@ ${markdownList([
   "Whether stored source fields are available and should be used to optimize subsequent pipeline stages",
   "Any specific search features needed like fuzzy matching, synonyms, or proximity searches",
   "How to structure the query for optimal search index utilization and minimal blocking operations",
+  "In the query plan you can include comments to help you think through the query, but you MUST NOT include any comments in the output 'code' field. (Again, the output code MUST be valid EJSON that can be interpreted by JSON operators like `JSON.parse()`.)",
 ])}</query-plan>
 
 <language>

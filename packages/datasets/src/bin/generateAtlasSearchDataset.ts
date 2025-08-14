@@ -22,11 +22,7 @@ import {
   DatabaseNlQueryDatasetEntry,
   generateDatabaseNlQueryDatasetEntryAtlasSearch,
 } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
-import { makeRewriteNlQueryPrompt } from "../treeGeneration/databaseNlQueries/rewriteNlQuery/rewriteNlQuery";
-import { makeOpenAiProvider } from "../openAi";
-import { BraintrustMiddleware, initLogger } from "mongodb-rag-core/braintrust";
-import { models } from "mongodb-rag-core/models";
-import { wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { initLogger } from "mongodb-rag-core/braintrust";
 
 const DEFAULT_CONCURRENCY = 10;
 
@@ -60,10 +56,6 @@ type LlmGenerationConfig = {
     concurrency: number;
   };
   dbExecutions: {
-    concurrency: number;
-  };
-  rewrite: {
-    modelDeployment: (typeof models)[number]["deployment"];
     concurrency: number;
   };
 };
@@ -121,8 +113,6 @@ async function generateAtlasSearchDataset({
     `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
   );
 
-  // const nodeStore = makeMongoDbNodeStore(persistence);
-
   console.log(`Generating database info for database ${dataset.databaseName}`);
 
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
@@ -132,8 +122,6 @@ async function generateAtlasSearchDataset({
     openAiClient: makeOpenAiClient(),
   });
 
-  // await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
-
   // Generate database users
   console.log("Generating database users...");
   const userNodes = await generateDatabaseUsers(
@@ -141,7 +129,6 @@ async function generateAtlasSearchDataset({
     llmConfigs.users.llmConfig,
     llmConfigs.users.numGenerations
   );
-  // await nodeStore.storeNodes({ nodes: userNodes });
 
   console.log(`Generated ${userNodes.length} database users`);
 
@@ -155,7 +142,6 @@ async function generateAtlasSearchDataset({
         llmConfigs.useCases.llmConfig,
         llmConfigs.useCases.numGenerations
       );
-      // await nodeStore.storeNodes({ nodes: useCases });
       console.log(
         `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
       );
@@ -183,9 +169,7 @@ async function generateAtlasSearchDataset({
         llmConfigs.nlQueries.llmConfig,
         llmConfigs.nlQueries.numGenerations
       );
-      // await nodeStore.storeNodes({
-      //   nodes: nlQueries,
-      // });
+
       console.log(
         `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`
       );
@@ -206,7 +190,6 @@ async function generateAtlasSearchDataset({
         llmConfigs.dbQueries.llmConfig,
         llmConfigs.dbQueries.numGenerations
       );
-      // await nodeStore.storeNodes({ nodes: dbCodeNodes });
 
       console.log(
         `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`
@@ -214,7 +197,6 @@ async function generateAtlasSearchDataset({
       return dbCodeNodes;
     });
 
-  // Store initial dataset entries (before rewriting)
   const datasetEntries: DatabaseNlQueryDatasetEntry[] = [];
 
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
@@ -286,7 +268,6 @@ async function generateAtlasSearchDataset({
         }
       }
 
-      // await nodeStore.storeNodes({ nodes: dbExecutions });
       for (const dbExecution of dbExecutions) {
         const textToAtlasSearchDatasetEntry =
           generateDatabaseNlQueryDatasetEntryAtlasSearch(dbExecution);
@@ -306,30 +287,45 @@ async function generateAtlasSearchDataset({
     }
   }
 
-  // TODO: Note also that the _id is a string, so our matcher should be able to match an ObjectId against equivalent strings.
+  const referenceAnswers = datasetEntries.filter(
+    (entry) => entry.isReferenceAnswer
+  );
 
-  for (const result of datasetEntries) {
+  console.log(
+    `Found ${referenceAnswers.length} reference answers out of ${datasetEntries.length} entries.`
+  );
+
+  for (const result of referenceAnswers) {
     if (result) {
       if (
         result.result &&
         Array.isArray(result.result) &&
         result.result.length > 0
       ) {
+        console.log(`Writing entry for NL query: ${result.nlQuery}`);
         fs.appendFileSync(
           referenceAnswersOutputPath,
           JSON.stringify(result) + "\n"
         );
+      } else {
+        console.error(`Result is empty for entry: ${JSON.stringify(result)}`);
       }
     }
   }
 
+  console.log("\n--------------------------------\n");
   console.log(
-    `Successfully completed Atlas Search dataset generation with ${referenceAnswersOutputPath.length} rewritten entries`
+    `Successfully completed Atlas Search dataset generation with ${referenceAnswers.length} entries!`
   );
+  console.log("Output file:");
+  console.log(referenceAnswersOutputPath);
+  console.log("\n--------------------------------\n");
 }
 
 async function main() {
-  initLogger();
+  initLogger({
+    projectName: "natural-language-to-atlas-search",
+  });
   // Set up
   const { MONGODB_TEXT_TO_CODE_CONNECTION_URI } = assertEnvVars({
     ...DATABASE_NL_QUERIES,
@@ -345,7 +341,7 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    model: "claude-sonnet-4-20250514", // TODO: wasn't working with 4.1 for generate users..come back to this
+    model: "claude-opus-4-20250514", // TODO: wasn't working with 4.1 for generate users..come back to this
     temperature: 0.9,
     seed: 42,
   };
@@ -366,21 +362,17 @@ async function main() {
       concurrency: 10,
     },
     nlQueries: {
-      numGenerations: 4,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
       concurrency: 10,
     },
     dbQueries: {
       numGenerations: 8,
-      llmConfig: { ...defaultLlmConfig, model: "gpt-4.1" },
+      llmConfig: defaultLlmConfig,
       concurrency: 10,
     },
     dbExecutions: {
       concurrency: 20,
-    },
-    rewrite: {
-      modelDeployment: "gpt-4.1" as any,
-      concurrency: 15,
     },
   } as const satisfies LlmGenerationConfig;
 

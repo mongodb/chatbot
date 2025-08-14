@@ -195,22 +195,82 @@ const makeAtlasSearchSystemMessage = (
 Regarding the specificity of the natural language queries for Atlas Search:
 - Focus on text search capabilities and full-text search scenarios that Atlas Search excels at
 - Include queries that would benefit from search relevance scoring and ranking
-- Create queries that leverage specific Atlas Search features like autocomplete, phrase matching, and fuzzy search
+- Create queries that leverage specific Atlas Search features like autocomplete, phrase matching, fuzzy search, and compound operations
 - Specify search terms that would work well with text analyzers (stemming, synonyms, etc.)
+- Consider Atlas Search index structure and which fields are available for search operations
+- Include queries that demonstrate proper compound query structuring with must, should, and filter clauses
 
 To create more specific Atlas Search queries:
-- Use specific search terms and phrases for full-text search
+- Use specific search terms and phrases for full-text search with field targeting
   - For example, "Find the top 5 articles containing both 'MongoDB' and 'performance' in the title or content"
-- Include autocomplete/type-ahead scenarios with partial terms
-  - For example, "Show suggestions for articles starting with 'databas'"
-- Specify phrase searches for exact matches
-  - For example, "Find documents containing the exact phrase 'MongoDB Atlas'"
-- Use fuzzy matching scenarios with approximate terms
-  - For example, "Search for articles about 'databse' (misspelled database)"
-- Include queries that would benefit from text analysis features like stemming
+- Include autocomplete/type-ahead scenarios with partial terms and appropriate limits
+  - For example, "Show 10 autocomplete suggestions for articles starting with 'databas'"
+- Specify phrase searches for exact matches with proper field constraints
+  - For example, "Find documents containing the exact phrase 'MongoDB Atlas' in title or content"
+- Use fuzzy matching scenarios with approximate terms and edit distance considerations
+  - For example, "Search for articles about 'databse' (misspelled database) with fuzzy matching"
+- Include queries that benefit from text analysis features like stemming and synonym expansion
   - For example, "Find articles about 'running' that should also match 'run', 'runs', 'ran'"
+- Demonstrate compound query logic with boolean operations
+  - For example, "Find articles that MUST contain 'database' in title AND SHOULD contain 'optimization' in content, but must NOT contain 'deprecated'"
+- Include scoring and boosting scenarios for relevance tuning
+  - For example, "Search for 'machine learning' articles, boosting results where the author is in preferred categories"
+- Use range queries for dates, numbers, or other indexed numeric fields when available
+  - For example, "Find articles about 'AI' published in the last 6 months, ranked by relevance"
+- Include wildcard and regex patterns (but note performance considerations)
+  - For example, "Find articles with titles matching pattern 'data*' or content matching regex for technical terms"
+- Leverage moreLikeThis functionality for similarity searches
+  - For example, "Find articles similar to the content of a specific document about microservices"
 
 </query_specificity_guidelines>
+
+<atlas_search_capabilities>
+When creating natural language queries for Atlas Search, consider these Atlas Search capabilities and best practices:
+
+<search_operators_reference>
+Atlas Search provides these key operators that should influence natural language query design:
+- text: Full-text search with stemming and analysis - use for general text searches
+- phrase: Exact phrase matching - use when exact word sequences matter
+- autocomplete: Type-ahead functionality - use for search suggestions and prefix matching
+- wildcard: Pattern matching - use sparingly for performance, good for pattern-based searches
+- regex: Regular expression matching - use carefully due to performance impact
+- compound: Boolean logic combination - use for complex multi-condition searches
+- exists: Field presence checking - use when field existence matters
+- range: Numeric/date ranges - use for filtering by numeric or temporal constraints
+- moreLikeThis: Similarity searches - use for finding related documents
+</search_operators_reference>
+
+<compound_query_design>
+Effective compound query structure for natural language design:
+- must: Required conditions that affect relevance scoring - use for essential search criteria
+- should: Optional conditions that boost relevance - use for preferred but not required criteria  
+- filter: Required conditions that don't affect scoring - use for efficient filtering
+- mustNot: Exclusion conditions - use for removing unwanted results
+- These can be nested and combined for sophisticated search logic
+</compound_query_design>
+
+<performance_and_scoring_considerations>
+Natural language queries should consider these Atlas Search performance and scoring factors:
+- Place non-scoring filters in 'filter' clauses for better performance
+- Use field-specific search when possible rather than searching all fields
+- Consider boosting strategies: field-level boosts, recency boosts, popularity boosts
+- Leverage stored source fields when available to optimize pipeline performance
+- Design queries that naturally limit result sets through specificity and constraints
+- Consider text analyzer implications: stemming, synonyms, language-specific analysis
+</performance_and_scoring_considerations>
+
+<search_context_scenarios>
+Create natural language queries that fit these common Atlas Search scenarios:
+- Full-text content search with relevance ranking
+- Autocomplete and search suggestions for user interfaces
+- Faceted search with multiple filter dimensions
+- Similarity search for content recommendation
+- Hybrid search combining text relevance with other factors (date, popularity, etc.)
+- Multi-field search with different field importance weights
+- Fuzzy matching for handling user input errors and variations
+- Proximity searches where term relationships matter
+</search_context_scenarios>
+</atlas_search_capabilities>
 
 <query_complexity_guidelines>
 Be sure to include varying levels of complexity among the Atlas Search queries. The complexity levels are:
@@ -283,9 +343,10 @@ Guidelines:
 - Cross-field analysis and scoring
 
 Examples:
-- "Find articles similar to a given document that contain 'machine learning' in title, were published in last 6 months, and have high engagement, excluding articles tagged 'deprecated'"
-- "Search for documents where 'MongoDB' and 'Atlas' appear within 5 words of each other in content, boost results with 'tutorial' in title, and facet by publication date and author"
-- "Find articles with autocomplete suggestions for 'data' in title, fuzzy match 'analitycs' (misspelled) in content, near geolocation of San Francisco, and sort by combined relevance and recency score"
+- "Find articles similar to a given document about machine learning that MUST contain 'neural networks' or 'deep learning' in the title, SHOULD contain 'TensorFlow' or 'PyTorch' in content with different boost values, were published in the last 6 months, have high engagement metrics, and exclude articles tagged 'deprecated' or 'outdated'"
+- "Search for documents where 'MongoDB' and 'Atlas' appear within 5 words of each other in content, boost results containing 'tutorial' or 'guide' in title with field-specific weights, filter by publication date range, and include faceting by author and category with custom scoring based on view count"
+- "Find articles with compound logic: autocomplete suggestions for 'data' in title, fuzzy match for 'analytics' (misspelled as 'analitycs') in content with edit distance of 2, proximity search for 'visualization' and 'charts' within 10 words, exclude beta content, boost results from verified authors, and apply hybrid scoring combining text relevance with social engagement metrics"
+- "Search for technical documentation that MUST contain exact phrase 'API authentication' in title, SHOULD have any of ['OAuth', 'JWT', 'tokens'] in content with increasing boost values, include fuzzy matching for common misspellings, filter by recent updates within 1 year, and use moreLikeThis to find related security documentation"
 
 </complex_queries>
 

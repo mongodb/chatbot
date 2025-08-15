@@ -52,6 +52,10 @@ const assessRelevanceMain = async () => {
     ],
   });
 
+  const model = createOpenAI({
+    apiKey: BRAINTRUST_API_KEY,
+    baseURL: BRAINTRUST_PROXY_ENDPOINT,
+  }).textEmbeddingModel(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
   const analyzeCases = makeAnalyzeCases({
     embeddingModels: [
       createOpenAI({

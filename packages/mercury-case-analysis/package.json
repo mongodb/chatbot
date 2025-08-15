@@ -1,6 +1,6 @@
 {
   "name": "mercury-case-analysis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "./build/cjs/index.cjs",
   "module": "./build/esm/index.js",

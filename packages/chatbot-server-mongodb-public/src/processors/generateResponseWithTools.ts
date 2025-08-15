@@ -755,29 +755,29 @@ function makeAssitantMessage(
     ];
   }
   const result: AssistantMessage[] = [];
-  m.content.forEach((thisContent) => {
-    if (thisContent.type === "text") {
+  m.content.forEach((c) => {
+    if (c.type === "text") {
       result.push({
         ...baseMessage,
-        content: thisContent.text,
+        content: c.text,
       } satisfies AssistantMessage);
-    } else if (thisContent.type === "tool-call") {
+    } else if (c.type === "tool-call") {
       result.push({
         ...baseMessage,
         content: "",
         toolCall: {
           type: "function",
-          id: thisContent.toolCallId,
+          id: c.toolCallId,
           function: {
-            name: thisContent.toolName,
-            arguments: JSON.stringify(thisContent.input),
+            name: c.toolName,
+            arguments: JSON.stringify(c.input),
           },
         },
       } satisfies AssistantMessage);
     } else {
       logRequest({
         reqId,
-        message: `Unknown content type in assistant message: ${thisContent.type}`,
+        message: `Unknown content type in assistant message: ${c.type}`,
         type: "error",
       });
     }

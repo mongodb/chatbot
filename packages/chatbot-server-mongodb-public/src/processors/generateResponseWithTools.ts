@@ -47,6 +47,7 @@ import {
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
+import { logRequest } from "../utils";
 
 /**
   Hidden tools are internal to the MongoDB Responses API.
@@ -637,6 +638,7 @@ export function makeGenerateResponseWithTools({
               content: llmRefusalMessage,
             },
           ],
+          reqId,
           userMessageCustomData,
         });
       }
@@ -659,6 +661,7 @@ export function makeGenerateResponseWithTools({
           guardrailResult,
           messages,
           references,
+          reqId,
           userMessageCustomData,
         });
       } else {
@@ -672,6 +675,7 @@ export function makeGenerateResponseWithTools({
               content: llmNotWorkingMessage,
             },
           ],
+          reqId,
           references,
           userMessageCustomData,
         });
@@ -707,12 +711,14 @@ function handleReturnGeneration({
   guardrailResult,
   messages,
   references,
+  reqId,
   userMessageCustomData,
 }: {
   userMessage: UserMessage;
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
+  reqId: string;
   userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
@@ -724,6 +730,7 @@ function handleReturnGeneration({
 
   const formattedMessages = formatMessageForReturnGeneration(
     messages,
+    reqId,
     references ?? []
   );
 
@@ -732,83 +739,92 @@ function handleReturnGeneration({
   } satisfies GenerateResponseReturnValue;
 }
 
-function makeAssitantMessage(m: ResponseMessage): AssistantMessage {
+function makeAssitantMessage(
+  reqId: string,
+  m: AssistantModelMessage
+): AssistantMessage[] {
   const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
     role: "assistant",
   };
   if (typeof m.content === "string") {
-    baseMessage.content = m.content;
-  } else {
-    m.content.forEach((c) => {
-      if (c.type === "text") {
-        baseMessage.content = c.text;
-      }
-      if (c.type === "tool-call") {
-        baseMessage.toolCall = {
-          id: c.toolCallId,
-          function: {
-            name: c.toolName,
-            arguments: JSON.stringify(c.input),
-          },
+    return [
+      {
+        ...baseMessage,
+        content: m.content ?? "",
+      },
+    ];
+  }
+  const result: AssistantMessage[] = [];
+  m.content.forEach((thisContent) => {
+    if (thisContent.type === "text") {
+      result.push({
+        ...baseMessage,
+        content: thisContent.text,
+      } satisfies AssistantMessage);
+    } else if (thisContent.type === "tool-call") {
+      result.push({
+        ...baseMessage,
+        content: "",
+        toolCall: {
           type: "function",
-        };
-      }
-    });
-  }
-
-  return {
-    ...baseMessage,
-    content: baseMessage.content ?? "",
-  } satisfies AssistantMessage;
+          id: thisContent.toolCallId,
+          function: {
+            name: thisContent.toolName,
+            arguments: JSON.stringify(thisContent.input),
+          },
+        },
+      } satisfies AssistantMessage);
+    } else {
+      logRequest({
+        reqId,
+        message: `Unknown content type in assistant message: ${thisContent.type}`,
+        type: "error",
+      });
+    }
+  });
+  return result;
 }
-function makeToolMessage(m: ResponseMessage): ToolMessage {
-  const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
-    role: "tool",
-  };
-  if (typeof m.content === "string") {
-    baseMessage.content = m.content;
-  } else {
-    m.content.forEach((c) => {
-      if (c.type === "tool-result") {
-        baseMessage.name = c.toolName;
-        if (c.output.type === "content" && c.output.value[0].type === "text") {
-          baseMessage.content = c.output.value[0].text;
-        } else if (
-          c.output &&
-          typeof c.output === "object" &&
-          "value" in c.output
-        ) {
-          baseMessage.content =
-            typeof c.output.value === "string"
-              ? c.output.value
-              : JSON.stringify(c.output.value);
-        } else {
-          baseMessage.content =
-            typeof c.output === "string" ? c.output : JSON.stringify(c.output);
-        }
-      }
-    });
-  }
-  return {
-    ...baseMessage,
-    name: baseMessage.name ?? "",
-    content: baseMessage.content ?? "",
-  } satisfies ToolMessage;
+
+function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
+  return m.content.map((c) => {
+    const newToolMessage: ToolMessage = {
+      role: "tool",
+      content: "", 
+      name: c.toolName
+    }
+    if (c.output.type === "content" && c.output.value[0].type === "text") {
+      // This is one of our tools (fetch_page or search), with result content.
+      newToolMessage.content = c.output.value[0].text;
+    } else if (
+      c.output &&
+      typeof c.output === "object" &&
+      "value" in c.output
+    ) {
+      newToolMessage.content =
+        typeof c.output.value === "string"
+          ? c.output.value
+          : JSON.stringify(c.output.value);
+    } else {
+      newToolMessage.content =
+        typeof c.output === "string" ? c.output : JSON.stringify(c.output);
+    }
+    return newToolMessage;
+  });
 }
 
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
+  reqId: string,
   references: References
 ): [...SomeMessage[], AssistantMessage] {
-  const messagesOut = messages
-    .map((m) => {
-      if (m.role === "assistant") {
-        return makeAssitantMessage(m);
-      } else if (m.role === "tool") {
-        return makeToolMessage(m);
-      }
-    })
-    .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
+  const messagesOut: Array<SomeMessage | AssistantMessage> = [];
+  messages.forEach((m) => {
+    if (m.role === "assistant") {
+      messagesOut.push(...makeAssitantMessage(reqId, m));
+    } else if (m.role === "tool") {
+      messagesOut.push(...makeToolMessage(m));
+    }
+  });
 
   // Make sure we have at least one assistant message
   if (messagesOut.length === 0 || messagesOut.at(-1)?.role !== "assistant") {

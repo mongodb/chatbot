@@ -27,6 +27,8 @@ import {
   stepCountIs,
   jsonSchema,
   JSONSchema7,
+  StaticToolCall,
+  StaticToolResult,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
 
@@ -460,22 +462,28 @@ export function makeGenerateResponseWithTools({
 
             // Appends references when a reference-returning tool is called
             onStepFinish: async ({ toolResults, toolCalls }) => {
-              toolCalls?.forEach((toolCall) => {
+              for (const toolCall of toolCalls) {
+                if (toolCall.dynamic) {
+                  continue;
+                }
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
                   userMessageCustomData = {
                     ...userMessageCustomData,
                     ...toolCall.input,
                   };
                 }
-              });
-              toolResults?.forEach((toolResult) => {
+              }
+              for (const toolResult of toolResults) {
+                if (toolResult.dynamic) {
+                  continue;
+                }
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.output?.references
+                  toolResult.output.references
                 ) {
                   references.push(...toolResult.output.references);
                 }
-              });
+              }
             },
           });
 

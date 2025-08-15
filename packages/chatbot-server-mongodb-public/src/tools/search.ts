@@ -5,7 +5,7 @@ import {
   Reference,
   logger,
 } from "mongodb-rag-core";
-import { Tool, tool, ToolResultUnion } from "mongodb-rag-core/aiSdk";
+import { Tool, tool, TypedToolResult } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   mongoDbProducts,
@@ -47,7 +47,7 @@ export type SearchToolReturnValue = {
 
 export type SearchTool = Tool<MongoDbSearchToolArgs, SearchToolReturnValue>;
 
-export type SearchToolResult = ToolResultUnion<{
+export type SearchToolResult = TypedToolResult<{
   [SEARCH_TOOL_NAME]: SearchTool;
 }>;
 

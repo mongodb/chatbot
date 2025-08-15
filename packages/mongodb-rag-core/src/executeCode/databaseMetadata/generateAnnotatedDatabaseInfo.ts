@@ -17,6 +17,13 @@ export const DatabaseInfoSchema = z.object({
       description: z.string(),
       schema: z.any(),
       examples: z.array(z.any()),
+      // Note: Since LLMs are generally quite bad at generating search indexes,
+      // you should include annotations on the indexes passed to the pipeline.
+      // If you don't provide the annotations, expect bad results.
+      searchIndexes: z
+        .array(z.any())
+        .optional()
+        .describe("Indexes that are used for Atlas Search"),
       indexes: z
         .array(
           z.object({
@@ -29,6 +36,7 @@ export const DatabaseInfoSchema = z.object({
             "2dsphereIndexVersion": z.number().optional(),
           })
         )
+        .optional()
         .describe("Indexes on the collection."),
     })
   ),
@@ -41,6 +49,9 @@ export interface GenerateAnnotatedDatabaseInfoParams {
     mongoClient: MongoClient;
     databaseName: string;
     numSamplesPerCollection?: number;
+    searchIndexes?: {
+      [collectionName: string]: string[];
+    };
   };
   latestDate?: Date;
   llmOptions: LlmOptions;
@@ -51,7 +62,12 @@ export interface GenerateAnnotatedDatabaseInfoParams {
   Generated LLM-annotated information about a MongoDB database.
  */
 export async function generateAnnotatedDatabaseInfo({
-  mongoDb: { mongoClient, databaseName, numSamplesPerCollection = 2 },
+  mongoDb: {
+    mongoClient,
+    databaseName,
+    numSamplesPerCollection = 2,
+    searchIndexes,
+  },
   latestDate = new Date(),
   llmOptions,
   openAiClient,
@@ -87,6 +103,7 @@ export async function generateAnnotatedDatabaseInfo({
           schema: collection.schema,
           examples: collection.exampleDocuments,
           indexes: collection.indexes,
+          searchIndexes: searchIndexes?.[collection.collectionName],
         })),
       };
 
@@ -111,10 +128,13 @@ export async function generateAnnotatedDatabaseInfo({
         annotatedCollection.schema = typeScriptSchema;
 
         // Update the collection's indexes with the annotated version
-        for (let j = 0; j < indexDescriptions.length; j++) {
-          const indexDescription = indexDescriptions[j];
+        for (let j = 0; j < (indexDescriptions?.length ?? 0); j++) {
+          const indexDescription = indexDescriptions?.[j];
+          if (!indexDescription) {
+            continue;
+          }
 
-          const collectionIndexDescription = annotatedCollection.indexes.find(
+          const collectionIndexDescription = annotatedCollection.indexes?.find(
             (index) => index.name === indexDescription.name
           );
 

@@ -27,7 +27,7 @@ async function makeCollectionPrompt(
               c.examples
             );
             // Remove descriptions
-            const simplifiedIndexes = c.indexes.map(
+            const simplifiedIndexes = c.indexes?.map(
               ({ description, ...index }) => index
             );
 
@@ -63,7 +63,7 @@ ${c.examples.map((d) => prettyStringify(truncateDbOperationOutputForLlm(d)))}
 
 Indexes:
 \`\`\`
-${c.indexes.map((i) => `${prettyStringify(i)}`)}`
+${c.indexes?.map((i) => `${prettyStringify(i)}`) ?? "No indexes"}`
   )
   .join("\n\n")}
 \`\`\``;

@@ -1,7 +1,7 @@
 import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   DatabaseInfo,
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   extractCodeFromMarkdown,
   LlmOptions,
 } from "mongodb-rag-core/executeCode";
@@ -81,6 +81,12 @@ export function makeGenerateMongoshCodePromptCompletionTask({
       : systemPromptStrategy === "lazy"
       ? nlQuerySystemPromptLazy
       : nlQuerySystemPrompt;
+
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri,
+    execOptions: {},
+  });
+
   const generateMongoshCodePromptCompletion: TextToDriverEvalTask =
     async function generateMongoshCodePromptCompletion({
       databaseName,
@@ -114,7 +120,6 @@ Natural language query: ${nlQuery}`,
       const execution = await executeMongoshQuery({
         databaseName,
         query: codeBlock,
-        uri,
       });
       return {
         execution,

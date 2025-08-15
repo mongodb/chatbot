@@ -9,6 +9,9 @@ export interface GenerateAnnotatedDatabaseInfoParams {
     mongoClient: MongoClient;
     databaseName: string;
     numSamplesPerCollection?: number;
+    searchIndexes?: {
+      [collectionName: string]: string[];
+    };
   };
   latestDate?: Date;
   llmOptions: LlmOptions;
@@ -16,13 +19,23 @@ export interface GenerateAnnotatedDatabaseInfoParams {
 }
 
 export async function generateAnnotatedDatabaseInfoNode({
-  mongoDb: { mongoClient, databaseName, numSamplesPerCollection = 2 },
+  mongoDb: {
+    mongoClient,
+    databaseName,
+    numSamplesPerCollection = 2,
+    searchIndexes,
+  },
   latestDate = new Date(),
   llmOptions,
   openAiClient,
 }: GenerateAnnotatedDatabaseInfoParams): Promise<DatabaseInfoNode> {
   const annotatedDatabaseInfo = await generateAnnotatedDatabaseInfo({
-    mongoDb: { mongoClient, databaseName, numSamplesPerCollection },
+    mongoDb: {
+      mongoClient,
+      databaseName,
+      numSamplesPerCollection,
+      searchIndexes,
+    },
     latestDate,
     llmOptions,
     openAiClient,

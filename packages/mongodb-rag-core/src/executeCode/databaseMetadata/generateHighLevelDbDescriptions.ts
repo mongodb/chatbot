@@ -14,6 +14,7 @@ Database Metadata:
   - Schema information
   - Truncated sample documents
   - Index definitions
+  - Atlas Search indexes for full-text and/or vector search (optional)
 
 Instructions:
 1. Analyze the schema, sample documents, and indexes for each collection

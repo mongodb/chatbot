@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeMongoshQuery } from "./executeMongoshQuery";
+import { makeExecuteMongoshQuery } from "./executeMongoshQuery";
 
 /**
   Zod schema for MongoDB explain output
@@ -85,10 +85,13 @@ export async function getMongoshCollectionDocumentCount(
   collectionName: string,
   databaseName: string
 ): Promise<number> {
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: connectionUri,
+    execOptions: {},
+  });
   const result = await executeMongoshQuery({
     query: `db.${collectionName}.countDocuments()`,
     databaseName,
-    uri: connectionUri,
   });
 
   // Handle different possible return formats
@@ -178,6 +181,10 @@ export async function profileMongoshQuery(
   databaseName: string,
   connectionUri: string
 ): Promise<ProfileMongoshQueryReturnValue> {
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: connectionUri,
+    execOptions: {},
+  });
   try {
     // Step 1: Add explain to the query
     const explainQuery = addExplainToQuery(dbQuery);
@@ -186,7 +193,6 @@ export async function profileMongoshQuery(
     const executionResult = await executeMongoshQuery({
       query: explainQuery,
       databaseName,
-      uri: connectionUri,
     });
     if (!executionResult.result) {
       // If the query failed (e.g., invalid syntax), return null

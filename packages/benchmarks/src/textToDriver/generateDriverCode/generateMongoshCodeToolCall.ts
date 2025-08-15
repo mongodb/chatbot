@@ -7,7 +7,7 @@ import {
 import { z } from "zod";
 import {
   DatabaseInfo,
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   LlmOptions,
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
@@ -167,6 +167,12 @@ function makeDbCodeTool({
   let toolSchema;
   const modelId = (model as Extract<LanguageModel, { modelId: string }>)
     .modelId;
+
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri,
+    execOptions: {},
+  });
+
   // Gemini 2.5 models aren't compatible with our zod schema
   // This defines the schema more directly instead of relying on the ai sdk
   if (modelId.startsWith("publishers/google/models/gemini")) {
@@ -203,7 +209,6 @@ function makeDbCodeTool({
       const execution = await executeMongoshQuery({
         databaseName: databaseName,
         query: args[CODE_FIELD],
-        uri,
       });
       output.execution = execution;
       output.generatedCode = args[CODE_FIELD];

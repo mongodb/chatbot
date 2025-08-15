@@ -26,7 +26,13 @@ ${c.schema}
 Sample documents:
 ${JSON.stringify(truncateDbOperationOutputForLlm(c.examples))}
 Indexes:
-${c.indexes.map((i) => `${JSON.stringify(i)}`)}`
+${c.indexes?.map((i) => `${JSON.stringify(i)}`) ?? "No indexes"}
+
+Atlas Search Indexes:
+${
+  c.searchIndexes?.map((i) => `${JSON.stringify(i)}`) ??
+  "No Atlas Search indexes"
+}`
   )
   .join("\n")}`;
 }

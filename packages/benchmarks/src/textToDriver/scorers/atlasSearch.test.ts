@@ -67,6 +67,15 @@ describe("atlasSearch scorers", () => {
       expect(score).toEqual({ name: "SearchOperatorUsed", score: 1 });
     });
 
+    test("returns 1 when $vectorSearch is used", () => {
+      const score = SearchOperatorUsed({
+        output: makeOutput({
+          generatedCode: "db.c.aggregate([{ $vectorSearch: {} }])",
+        }),
+      } as any);
+      expect(score).toEqual({ name: "SearchOperatorUsed", score: 1 });
+    });
+
     test("returns 0.5 when only $knnBeta is used", () => {
       const score = SearchOperatorUsed({
         output: makeOutput({

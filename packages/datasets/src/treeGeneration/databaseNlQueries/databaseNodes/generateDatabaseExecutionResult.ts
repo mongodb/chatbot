@@ -26,11 +26,10 @@ export const generateDatabaseExecutionResult = wrapTraced(
     executor,
   }: ExecuteGeneratedQueryParams): Promise<DatabaseExecutionResultNode> {
     const query = generatedQuery.data.code;
-    const { uri, name: databaseName } = database;
+    const { name: databaseName } = database;
 
     const executionResult = await executor({
       query,
-      uri,
       databaseName,
     });
 

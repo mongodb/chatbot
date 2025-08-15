@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  makeExecuteMongoshQuery,
+  makeExecuteEjsonAggregationQuery,
   isReasonableResult,
   LlmOptions,
 } from "mongodb-rag-core/executeCode";
@@ -14,13 +14,15 @@ import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
-import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
-import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
+import { generateAtlasSearchCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAtlasSearchCode";
+import { generateNaturalLanguageAtlasSearchQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
 import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
-import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
-import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
-import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import {
+  DatabaseNlQueryDatasetEntry,
+  generateDatabaseNlQueryDatasetEntryAtlasSearch,
+} from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import { initLogger } from "mongodb-rag-core/braintrust";
 
 const DEFAULT_CONCURRENCY = 10;
 
@@ -57,7 +59,8 @@ type LlmGenerationConfig = {
     concurrency: number;
   };
 };
-interface GenerateMongoshDatasetParams {
+
+interface GenerateAtlasSearchDatasetParams {
   persistence: {
     mongoClient: MongoClient;
     databaseName: string;
@@ -65,10 +68,13 @@ interface GenerateMongoshDatasetParams {
   };
   dataset: {
     databaseName: string;
+    collectionName: string;
     numSamplesPerCollection: number;
-    connectionUri: string;
     latestDate: Date;
     mongoClient: MongoClient;
+    searchIndexes: {
+      [collectionName: string]: string[];
+    };
   };
   llmConfigs: LlmGenerationConfig;
   datasetUuid: string;
@@ -78,15 +84,17 @@ interface GenerateMongoshDatasetParams {
   maxResultsArraySize?: number;
 }
 
-async function generateMongoshDataset({
+async function generateAtlasSearchDataset({
   persistence,
   dataset,
   llmConfigs,
   datasetUuid,
   writeToFile,
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
-}: GenerateMongoshDatasetParams) {
-  console.log(`Generating dataset for database ${dataset.databaseName}`);
+}: GenerateAtlasSearchDatasetParams) {
+  console.log(
+    `Generating Atlas Search dataset for database ${dataset.databaseName}`
+  );
   const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
   if (!fs.existsSync(datasetOutDir)) {
     fs.mkdirSync(datasetOutDir, { recursive: true });
@@ -94,32 +102,25 @@ async function generateMongoshDataset({
   }
   const referenceAnswersOutputPath = path.resolve(
     datasetOutDir,
-    `referenceAnswers.dataset_${datasetUuid}.jsonl`
+    `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`
   );
-  // Write out each DB's dataset to a separate file
-  const textToMqlOutputPath = path.resolve(
-    datasetOutDir,
-    `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
-  );
-  const executeMongoshQuery = makeExecuteMongoshQuery({
-    uri: dataset.connectionUri,
-    execOptions: {},
+
+  const executeAtlasSearchQuery = makeExecuteEjsonAggregationQuery({
+    mongoClient: dataset.mongoClient,
   });
 
   console.log(
     `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
   );
 
-  const nodeStore = makeMongoDbNodeStore(persistence);
-
   console.log(`Generating database info for database ${dataset.databaseName}`);
+
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
     llmOptions: llmConfigs.database.llmConfig,
     latestDate: dataset.latestDate,
     openAiClient: makeOpenAiClient(),
   });
-  await nodeStore.storeNodes({ nodes: [databaseInfoNode] });
 
   // Generate database users
   console.log("Generating database users...");
@@ -128,7 +129,6 @@ async function generateMongoshDataset({
     llmConfigs.users.llmConfig,
     llmConfigs.users.numGenerations
   );
-  await nodeStore.storeNodes({ nodes: userNodes });
 
   console.log(`Generated ${userNodes.length} database users`);
 
@@ -142,7 +142,6 @@ async function generateMongoshDataset({
         llmConfigs.useCases.llmConfig,
         llmConfigs.useCases.numGenerations
       );
-      await nodeStore.storeNodes({ nodes: useCases });
       console.log(
         `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
       );
@@ -152,9 +151,11 @@ async function generateMongoshDataset({
   const useCaseNodes = useCaseNodesByUser.flat();
   console.log(`Created ${useCaseNodes.length} use cases.`);
 
-  console.log("Generating natural language queries for each use case...");
+  console.log(
+    "Generating natural language queries for each use case (Atlas Search specific)..."
+  );
 
-  // Process use cases in parallel with limited concurrency
+  // Process use cases in parallel with limited concurrency - using Atlas Search specific generation
   const { results: nlQueryNodesByUseCase } = await PromisePool.withConcurrency(
     llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY
   )
@@ -163,61 +164,80 @@ async function generateMongoshDataset({
       console.error(err);
     })
     .process(async (useCaseNode) => {
-      const nlQueries = await generateNaturalLanguageQueries(
+      const nlQueries = await generateNaturalLanguageAtlasSearchQueries(
         useCaseNode,
         llmConfigs.nlQueries.llmConfig,
         llmConfigs.nlQueries.numGenerations
       );
-      await nodeStore.storeNodes({
-        nodes: nlQueries,
-      });
+
       console.log(
-        `Generated ${nlQueries.length} NL queries for use case: ${useCaseNode.data.title}`
+        `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`
       );
 
       return nlQueries;
     });
   const nlQueryNodes = nlQueryNodesByUseCase.flat();
 
-  // Generate triplets for the NL queries
-  console.log("Generating query nodes for the NL queries...");
+  // Generate Atlas Search aggregation pipelines for the NL queries
+  console.log(
+    "Generating Atlas Search aggregation pipelines for the NL queries..."
+  );
   const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(nlQueryNodes)
     .withConcurrency(llmConfigs.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
     .process(async (nlQueryNode) => {
-      const dbCodeNodes = await generateMongoshCode(
+      const dbCodeNodes = await generateAtlasSearchCode(
         nlQueryNode,
         llmConfigs.dbQueries.llmConfig,
         llmConfigs.dbQueries.numGenerations
       );
-      await nodeStore.storeNodes({ nodes: dbCodeNodes });
 
       console.log(
-        `Generated ${dbCodeNodes.length} DB queries for NL query: ${nlQueryNode.data.query}`
+        `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`
       );
       return dbCodeNodes;
     });
+
+  const datasetEntries: DatabaseNlQueryDatasetEntry[] = [];
+
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
       .withConcurrency(
         llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY
       )
       .process(async (dbCodeNode) => {
+        console.log(`and NL query: ${dbCodeNode.parent?.data.query}`);
+        console.log(
+          `Generating Atlas Search DB execution for ${dbCodeNode.data.code}`
+        );
         const dbExecution = await generateDatabaseExecutionResult({
           database: {
             name: dataset.databaseName,
-            uri: dataset.connectionUri,
+            uri: "n/a",
           },
           generatedQuery: dbCodeNode,
-          executor: executeMongoshQuery,
+          executor: async (params) =>
+            executeAtlasSearchQuery({
+              ...params,
+              collectionName: dataset.collectionName,
+            }),
         });
+
         if (
           Array.isArray(dbExecution.data.result) &&
-          dbExecution.data.result?.length > maxResultsArraySize
+          dbExecution.data.result.length > maxResultsArraySize
         ) {
-          throw new Error("Result array is too large to process.");
+          throw new Error(
+            `Result array is too large to process. Result array length: ${dbExecution.data.result.length}, maxResultsArraySize: ${maxResultsArraySize}`
+          );
         }
+        if (dbExecution.data.error) {
+          console.error(
+            `Error generating Atlas Search DB execution: ${dbExecution.data.error.message}`
+          );
+        }
+
         console.log(
-          `Generated DB execution: ${dbExecution.data.result
+          `Generated Atlas Search DB execution: ${dbExecution.data.result
             ?.toString()
             .slice(0, 20)} ...`
         );
@@ -227,7 +247,7 @@ async function generateMongoshDataset({
         }
         return dbExecution;
       });
-    console.log(`Generated ${dbExecutions.length} DB executions.`);
+    console.log(`Generated ${dbExecutions.length} Atlas Search DB executions.`);
 
     try {
       // Find the most frequent and performant database execution result
@@ -248,33 +268,64 @@ async function generateMongoshDataset({
         }
       }
 
-      await nodeStore.storeNodes({ nodes: dbExecutions });
-      console.log(`Writing data out to ${textToMqlOutputPath}`);
       for (const dbExecution of dbExecutions) {
-        const textToMqlDatasetEntry =
-          generateDatabaseNlQueryDatasetEntry(dbExecution);
-        fs.appendFileSync(
-          textToMqlOutputPath,
-          JSON.stringify(textToMqlDatasetEntry) + "\n"
-        );
+        const textToAtlasSearchDatasetEntry =
+          generateDatabaseNlQueryDatasetEntryAtlasSearch(dbExecution);
+
+        // Store for rewriting step
+        datasetEntries.push(textToAtlasSearchDatasetEntry);
+
         if (dbExecution.data.isReferenceAnswer) {
           fs.appendFileSync(
             referenceAnswersOutputPath,
-            JSON.stringify(textToMqlDatasetEntry) + "\n"
+            JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
           );
         }
       }
     } catch (error) {
       console.error(error);
     }
-
-    console.log(
-      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
-    );
   }
+
+  const referenceAnswers = datasetEntries.filter(
+    (entry) => entry.isReferenceAnswer
+  );
+
+  console.log(
+    `Found ${referenceAnswers.length} reference answers out of ${datasetEntries.length} entries.`
+  );
+
+  for (const result of referenceAnswers) {
+    if (result) {
+      if (
+        result.result &&
+        Array.isArray(result.result) &&
+        result.result.length > 0
+      ) {
+        console.log(`Writing entry for NL query: ${result.nlQuery}`);
+        fs.appendFileSync(
+          referenceAnswersOutputPath,
+          JSON.stringify(result) + "\n"
+        );
+      } else {
+        console.error(`Result is empty for entry: ${JSON.stringify(result)}`);
+      }
+    }
+  }
+
+  console.log("\n--------------------------------\n");
+  console.log(
+    `Successfully completed Atlas Search dataset generation with ${referenceAnswers.length} entries!`
+  );
+  console.log("Output file:");
+  console.log(referenceAnswersOutputPath);
+  console.log("\n--------------------------------\n");
 }
 
 async function main() {
+  initLogger({
+    projectName: "natural-language-to-atlas-search",
+  });
   // Set up
   const { MONGODB_TEXT_TO_CODE_CONNECTION_URI } = assertEnvVars({
     ...DATABASE_NL_QUERIES,
@@ -290,8 +341,8 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    model: "gpt-4o",
-    temperature: 0.7,
+    model: "claude-opus-4-20250514", // TODO: wasn't working with 4.1 for generate users..come back to this
+    temperature: 0.9,
     seed: 42,
   };
 
@@ -302,12 +353,11 @@ async function main() {
       llmConfig: {
         ...defaultLlmConfig,
         temperature: 0,
-        model: "gpt-4o",
       },
     },
-    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 8 },
+    users: { numGenerations: 20, llmConfig: defaultLlmConfig, concurrency: 8 },
     useCases: {
-      numGenerations: 8,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: 10,
     },
@@ -326,35 +376,62 @@ async function main() {
     },
   } as const satisfies LlmGenerationConfig;
 
-  // Runnit
+  // Load Atlas Search index definition
+  const atlasSearchIndexDefinitionPath = path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "mongodb_datasets",
+    "atlas_search_dataset_index.jsonc"
+  );
+  const atlasSearchIndexDefinition = fs.readFileSync(
+    atlasSearchIndexDefinitionPath,
+    "utf8"
+  );
+  console.log(
+    "Atlas Search Index Definition loaded:",
+    atlasSearchIndexDefinition.slice(0, 50),
+    "..."
+  );
+  const collectionName = "articles";
+
+  const atlasSearchDatabase: GenerateAtlasSearchDatasetParams["dataset"] = {
+    databaseName: "wikipedia_dataset",
+    collectionName,
+    numSamplesPerCollection: 2,
+    latestDate: new Date("2025-01-01"),
+    mongoClient,
+    searchIndexes: {
+      [collectionName]: [atlasSearchIndexDefinition],
+    },
+  };
+
+  // Run it
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases.reverse()) {
-      await generateMongoshDataset({
-        persistence: {
-          mongoClient,
-          databaseName: "mongosh_datasets",
-          collectionName: db.name,
-        },
-        dataset: {
-          databaseName: db.name,
-          numSamplesPerCollection: 2,
-          mongoClient,
-          latestDate: db.latestDate,
-          connectionUri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
-        },
-        llmConfigs: config,
-        datasetUuid: `${defaultLlmConfig.model}_temp_${
-          defaultLlmConfig.temperature
-        }_${now.toString()}`,
-        writeToFile: {
-          dataOutDir,
-        },
-      });
-    }
+
+    // Note: Atlas Search requires a specific collection name
+    // You'll need to specify which collection has the Atlas Search index
+
+    await generateAtlasSearchDataset({
+      persistence: {
+        mongoClient,
+        databaseName: "atlas_search_datasets",
+        collectionName: "atlas_search_datasets",
+      },
+      dataset: atlasSearchDatabase,
+      llmConfigs: config,
+      datasetUuid: `atlas_search_${defaultLlmConfig.model}_temp_${
+        defaultLlmConfig.temperature
+      }_${now.toString()}`,
+      writeToFile: {
+        dataOutDir,
+      },
+    });
   } finally {
     await mongoClient.close();
   }
 }
+
 main();

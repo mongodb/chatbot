@@ -28,6 +28,7 @@
     "materializeScrubbedMessagesStats:all": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --all",
     "materializeScrubbedMessagesStats:latest": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js",
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
+    "mercuryRewritesQA": "npm run build && node ./build/mercuryRewritesQA.js",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",

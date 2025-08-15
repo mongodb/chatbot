@@ -79,7 +79,7 @@
     - fetch_page
 
 - name: fetch_page_given_multiple_URLs_multiple_toolcalls
-  expectation: Calls fetch_page for each provided URL (x3)
+  expectation: Calls fetch_page in parallel for each provided URL (x3)
   messages: 
     - role: user
       content: Summarize across these URLs about preventing slow searches https://www.mongodb.com/docs/atlas/atlas-vector-search/improve-accuracy/, https://www.mongodb.com/docs/atlas/atlas-vector-search/benchmark/, https://www.mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/
@@ -89,19 +89,19 @@
     - role: user
     - role: assistant-tool
       toolCallName: fetch_page
-    - role: tool
+    - role: assistant-tool
+      toolCallName: fetch_page
     - role: assistant-tool
       toolCallName: fetch_page
     - role: tool
-    - role: assistant-tool
-      toolCallName: fetch_page
+    - role: tool
     - role: tool
     - role: assistant
   tags:
     - fetch_page
 
 - name: fetch_page_given_multiple_URLs_multiple_toolcalls_includes_external
-  expectation: Calls fetch_page for each provided URL (x2), including for external URL
+  expectation: Calls fetch_page in parallel for each provided URL (x2), w/ search fallback for for external URL
   messages:
     - role: user
       content: Use these as documentation https://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
@@ -111,9 +111,12 @@
     - role: user
     - role: assistant-tool
       toolCallName: fetch_page
-    - role: tool
     - role: assistant-tool
       toolCallName: fetch_page
+    - role: tool
+    - role: tool
+    - role: assistant-tool
+      toolCallName: search_content
     - role: tool
     - role: assistant
   tags:

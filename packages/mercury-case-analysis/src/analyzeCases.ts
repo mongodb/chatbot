@@ -1,12 +1,12 @@
 import { makeSimpleTextGenerator } from "./generateText";
 import { makeGenerateRating, PromptResponseRating } from "./rating";
-import { assessRelevance, Relevance } from "./relevance";
-import { EmbeddingModel, LanguageModel } from "mongodb-rag-core/aiSdk";
+import { assessRelevance, EmbeddingModelV2, Relevance } from "./relevance";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeShortName } from "./utils";
 
 export type MakeAnalyzeCaseParams = {
-  embeddingModels: EmbeddingModel<string>[];
+  embeddingModels: EmbeddingModelV2[];
   generatorModel: LanguageModel;
   judgementModel: LanguageModel;
   ratingStyleGuide?: string;

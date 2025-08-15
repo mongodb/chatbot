@@ -3,7 +3,7 @@ import { normalizedSquareMagnitudeDifference } from "./squareMagnitude";
 import { calculateEmbeddings } from "./calculateEmbeddings";
 import { SimpleTextGenerator } from "./generateText";
 import { Embedder } from "mongodb-rag-core";
-import { cosineSimilarity, EmbeddingModel } from "mongodb-rag-core/aiSdk";
+import { cosineSimilarity, createOpenAI, embed } from "mongodb-rag-core/aiSdk";
 import { makeShortName } from "./utils";
 import { stripIndent } from "common-tags";
 import { z } from "zod";
@@ -143,13 +143,23 @@ export const relevanceSchema = z.object({
 
 export type Relevance = z.infer<typeof relevanceSchema>;
 
-function makeEmbedders(embeddingModels: EmbeddingModel<string>[]): Embedder[] {
+// Have to create this type because the EmbeddingModel exported
+// from the AI SDK doesn't contain the modelId property
+// (unclear why, seems like a bug)
+export type EmbeddingModelV2 = ReturnType<
+  ReturnType<typeof createOpenAI>["textEmbeddingModel"]
+>;
+
+function makeEmbedders(embeddingModels: EmbeddingModelV2[]): Embedder[] {
   return embeddingModels.map((e) => {
     return {
       modelName: e.modelId,
       embed: async ({ text }) => {
-        const { embeddings } = await e.doEmbed({ values: [text] });
-        return { embedding: embeddings[0] };
+        const { embedding } = await embed({
+          value: text,
+          model: e,
+        });
+        return { embedding };
       },
     } satisfies Embedder;
   });
@@ -163,7 +173,7 @@ export const assessRelevance = async ({
 }: {
   prompt: string;
   response: string;
-  embeddingModels: EmbeddingModel<string>[];
+  embeddingModels: EmbeddingModelV2[];
   generateText: SimpleTextGenerator;
 }): Promise<Relevance> => {
   const shortName = makeShortName(prompt);

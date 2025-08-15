@@ -5,7 +5,7 @@ import {
   Reference,
   logger,
 } from "mongodb-rag-core";
-import { Tool, tool, ToolResultUnion } from "mongodb-rag-core/aiSdk";
+import { Tool, tool, TypedToolResult } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   mongoDbProducts,
@@ -47,7 +47,7 @@ export type SearchToolReturnValue = {
 
 export type SearchTool = Tool<MongoDbSearchToolArgs, SearchToolReturnValue>;
 
-export type SearchToolResult = ToolResultUnion<{
+export type SearchToolResult = TypedToolResult<{
   [SEARCH_TOOL_NAME]: SearchTool;
 }>;
 
@@ -64,8 +64,6 @@ export function makeSearchTool({
     inputSchema: MongoDbSearchToolArgsSchema,
     description: "Search MongoDB content",
 
-    // TODO: I get type errors when I try to implement this..Unclear why
-    // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
     toModelOutput(result) {
       return {
         type: "content",

@@ -3,27 +3,28 @@ import {
   LanguageModel,
   ModelMessage,
   stepCountIs,
+  hasToolCall,
   experimental_createMCPClient,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { z } from "zod";
-// Note odd import path here, but it's the only way to get class
-// ...too much vibe coding on the Anthropic team me thinks.
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   getAtlasSearchIndexesToolName,
   makeGetAtlasSearchIndexesTool,
 } from "./tools/getAtlasSearchIndexes";
+import {
+  submitFinalSolutionTool,
+  submitFinalSolutionToolName,
+} from "./tools/submitFinalSolution";
 
 export interface MakeMongoDbMcpAgentParams {
   model: LanguageModel;
   systemPrompt: string;
   mongoClient: MongoClient;
-  httpMcpServerConnectionUrl: URL;
   availableMongoDbMcpTools?: MongoDbMcpToolName[];
   maxSteps?: number;
+  mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
 }
 
 const availableToolNames = [
@@ -77,17 +78,10 @@ export async function makeMongoDbMcpAgent({
   model,
   systemPrompt,
   mongoClient,
-  httpMcpServerConnectionUrl,
   availableMongoDbMcpTools = readOnlyToolNames,
   maxSteps = 10,
+  mongoDbMcpClient,
 }: MakeMongoDbMcpAgentParams) {
-  const httpTransport = new StreamableHTTPClientTransport(
-    httpMcpServerConnectionUrl
-  );
-  const mongoDbMcpClient = await experimental_createMCPClient({
-    transport: httpTransport,
-    name: mongoDbMcpServerName,
-  });
   // Load full tool set from MCP server
   const fullMcpToolSet = await mongoDbMcpClient.tools();
 
@@ -102,6 +96,7 @@ export async function makeMongoDbMcpAgent({
       makeGetAtlasSearchIndexesTool(mongoClient);
     mcpToolSet[getAtlasSearchIndexesToolName] = getAtlasSearchIndexesTool;
   }
+  mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
 
   return wrapTraced(async function mongoDbMcpAgent({
     messages,
@@ -110,7 +105,10 @@ export async function makeMongoDbMcpAgent({
       model,
       system: systemPrompt,
       messages,
-      stopWhen: [stepCountIs(maxSteps)],
+      stopWhen: [
+        stepCountIs(maxSteps),
+        hasToolCall(submitFinalSolutionToolName),
+      ],
       tools: mcpToolSet,
     });
 

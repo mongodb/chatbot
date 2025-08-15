@@ -4,7 +4,9 @@ import {
   NonEmptyArrayOutput,
   SearchOperatorUsed,
   makeNdcgAtK,
+  ndcgMatchFunc,
 } from "./atlasSearch";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 describe("atlasSearch scorers", () => {
   function makeOutput(
@@ -93,11 +95,92 @@ describe("atlasSearch scorers", () => {
     });
   });
 
+  describe("ndcgMatchFunc", () => {
+    test("returns true when _id is the same string", () => {
+      const a = { _id: "1" };
+      const b = { _id: "1" };
+      expect(ndcgMatchFunc(a, b)).toBe(true);
+      expect(ndcgMatchFunc(b, a)).toBe(true);
+    });
+
+    test("returns true when _id is the same number", () => {
+      const a = { _id: 1 };
+      const b = { _id: 1 };
+      expect(ndcgMatchFunc(a, b)).toBe(true);
+      expect(ndcgMatchFunc(b, a)).toBe(true);
+    });
+
+    test("returns true when _id is the same ObjectId", () => {
+      const oidString = "507f1f77bcf86cd799439011";
+      const a = { _id: new ObjectId(oidString) };
+      const b = { _id: new ObjectId(oidString) };
+      expect(ndcgMatchFunc(a, b)).toBe(true);
+      expect(ndcgMatchFunc(b, a)).toBe(true);
+    });
+    test("returns true when _id ObjectId matches same string", () => {
+      const oidString = "507f1f77bcf86cd799439011";
+      const a = { _id: new ObjectId(oidString) };
+      const b = { _id: oidString };
+      expect(ndcgMatchFunc(a, b)).toBe(true);
+      expect(ndcgMatchFunc(b, a)).toBe(true);
+    });
+    test("returns false when _id is different", () => {
+      const aStr = { _id: "1" };
+      const bStr = { _id: "2" };
+      expect(ndcgMatchFunc(aStr, bStr)).toBe(false);
+      expect(ndcgMatchFunc(bStr, aStr)).toBe(false);
+
+      const aNumber = { _id: 1 };
+      const bNumber = { _id: 2 };
+      expect(ndcgMatchFunc(aNumber, bNumber)).toBe(false);
+      expect(ndcgMatchFunc(bNumber, aNumber)).toBe(false);
+
+      const aOid = { _id: new ObjectId("507f1f77bcf86cd799439011") };
+      const bOid = { _id: new ObjectId() };
+      expect(ndcgMatchFunc(aOid, bOid)).toBe(false);
+      expect(ndcgMatchFunc(bOid, aOid)).toBe(false);
+
+      const bOidLikeString = { _id: "507f1f77bcf86cd799439012" };
+      expect(ndcgMatchFunc(aOid, bOidLikeString)).toBe(false);
+      expect(ndcgMatchFunc(bOidLikeString, aOid)).toBe(false);
+    });
+
+    test("returns true when id is the same", () => {
+      const aStr = { id: "1" };
+      const bStr = { id: "1" };
+      expect(ndcgMatchFunc(aStr, bStr)).toBe(true);
+      expect(ndcgMatchFunc(bStr, aStr)).toBe(true);
+
+      const aNumber = { id: 1 };
+      const bNumber = { id: 1 };
+      expect(ndcgMatchFunc(aNumber, bNumber)).toBe(true);
+      expect(ndcgMatchFunc(bNumber, aNumber)).toBe(true);
+    });
+
+    test("returns false when id is different", () => {
+      const aStr = { id: "1" };
+      const bStr = { id: "2" };
+      expect(ndcgMatchFunc(aStr, bStr)).toBe(false);
+      expect(ndcgMatchFunc(bStr, aStr)).toBe(false);
+
+      const aNumber = { id: 1 };
+      const bNumber = { id: 2 };
+      expect(ndcgMatchFunc(aNumber, bNumber)).toBe(false);
+      expect(ndcgMatchFunc(bNumber, aNumber)).toBe(false);
+    });
+
+    test("returns false when neither _id nor id is present", () => {
+      const a = { other: "a" };
+      const b = { other: "a" };
+      expect(ndcgMatchFunc(a, b)).toBe(false);
+      expect(ndcgMatchFunc(b, a)).toBe(false);
+    });
+  });
+
   describe("NdcgAtK", () => {
     test("returns 0 with error metadata when result or expected are not arrays", () => {
       const k = 5;
-      const match = (a: unknown, b: unknown) => a === b;
-      const scorer = makeNdcgAtK({ k, matchFunc: match });
+      const scorer = makeNdcgAtK({ k });
 
       const out1 = scorer({
         output: makeOutput({ result: 1 as any }),
@@ -122,11 +205,10 @@ describe("atlasSearch scorers", () => {
 
     test("calls binaryNdcgAtK with correct args and returns its score", () => {
       const k = 3;
-      const match = jest.fn((a: string, b: string) => a === b);
-      const scorer = makeNdcgAtK({ k, matchFunc: match as any });
+      const scorer = makeNdcgAtK({ k });
 
-      const result = ["a", "b", "c"];
-      const expected = ["a", "x", "y"];
+      const result = [{ _id: "a" }, { _id: "b" }, { _id: "c" }];
+      const expected = [{ _id: "a" }, { _id: "x" }, { _id: "y" }];
       const out = scorer({
         output: makeOutput({ result }),
         expected,

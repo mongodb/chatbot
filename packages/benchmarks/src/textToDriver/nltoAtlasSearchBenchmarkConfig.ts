@@ -8,12 +8,16 @@ import {
 } from "./TextToDriverEval";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import {
+  createAzure,
   createOpenAI,
   experimental_createMCPClient,
   wrapLanguageModel,
 } from "mongodb-rag-core/aiSdk";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
-import { atlasSearchPrompt } from "./generateDriverCode/languagePrompts/atlasSearch";
+import {
+  ATLAS_SEARCH_AGENT_MAX_STEPS,
+  atlasSearchAgentPrompt,
+} from "./generateDriverCode/languagePrompts/atlasSearch";
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";
 import {
@@ -34,24 +38,6 @@ const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-claude-sonnet-4";
 
 let mongoClient: MongoClient;
 let mcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
-
-interface MatchableDocument {
-  _id: string | ObjectId | number;
-}
-const ndcgMatchFunc: MatchFunc<MatchableDocument> = (
-  a: MatchableDocument,
-  b: MatchableDocument
-) => {
-  // Can't just use === for ObjectId because it's a class
-  if (ObjectId.isValid(a._id) && ObjectId.isValid(b._id)) {
-    return a._id.toString() === b._id.toString();
-  }
-  // Otherwise, it's a number or string, and we can use ===
-  if (a._id === b._id) {
-    return true;
-  }
-  return false;
-};
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -114,12 +100,17 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
         return makeGenerateAtlasSearchCodeAgenticTask({
           model: wrapLanguageModel({
             model: createOpenAI({
-              apiKey: provider.apiKey,
-              baseURL: provider.baseUrl,
+              apiKey: process.env.OPENAI_OPENAI_API_KEY,
             }).chat(modelConfig.deployment),
+            // createOpenAI({
+            //   apiKey: provider.apiKey,
+            //   baseURL: provider.baseUrl,
+            // }).chat(modelConfig.deployment),
+
             middleware: [BraintrustMiddleware({ debug: true })],
           }),
-          systemPrompt: atlasSearchPrompt,
+          systemPrompt: atlasSearchAgentPrompt,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
           mongoDbMcpClient: mcpClient,
         });
@@ -142,7 +133,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
     },
     ndcg_at_10: {
       description: "NDCG@10 score",
-      scorerFunc: makeNdcgAtK({ k: 10, matchFunc: ndcgMatchFunc }),
+      scorerFunc: makeNdcgAtK({ k: 10 }),
     },
   },
   description: "Natural language to Atlas Search code generation",

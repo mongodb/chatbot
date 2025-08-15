@@ -17,6 +17,7 @@ import {
   submitFinalSolutionTool,
   submitFinalSolutionToolName,
 } from "./tools/submitFinalSolution";
+import { thinkTool, thinkToolName } from "./tools/think";
 
 export interface MakeMongoDbMcpAgentParams {
   model: LanguageModel;
@@ -79,7 +80,7 @@ export async function makeMongoDbMcpAgent({
   systemPrompt,
   mongoClient,
   availableMongoDbMcpTools = readOnlyToolNames,
-  maxSteps = 10,
+  maxSteps = 15,
   mongoDbMcpClient,
 }: MakeMongoDbMcpAgentParams) {
   // Load full tool set from MCP server
@@ -96,6 +97,9 @@ export async function makeMongoDbMcpAgent({
       makeGetAtlasSearchIndexesTool(mongoClient);
     mcpToolSet[getAtlasSearchIndexesToolName] = getAtlasSearchIndexesTool;
   }
+  // Add think tool for Claude to reflect.
+  mcpToolSet[thinkToolName] = thinkTool;
+  // Add submit-final-solution tool for Claude to submit answer and stop generating.
   mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
 
   return wrapTraced(async function mongoDbMcpAgent({
@@ -109,8 +113,15 @@ export async function makeMongoDbMcpAgent({
         stepCountIs(maxSteps),
         hasToolCall(submitFinalSolutionToolName),
       ],
+      toolChoice: "required",
       tools: mcpToolSet,
     });
+    console.log(
+      "tool calls::",
+      response.toolCalls?.map((toolCall) => toolCall.toolName)
+    );
+    console.log("step count::", response.steps?.length);
+    console.log("finishReason::", response.finishReason);
 
     return response;
   });

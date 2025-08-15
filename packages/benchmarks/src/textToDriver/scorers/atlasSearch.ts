@@ -5,6 +5,7 @@ import {
 } from "../TextToDriverEval";
 import { SuccessfulExecution } from "./evaluationMetrics";
 import { binaryNdcgAtK, MatchFunc } from "mongodb-rag-core/eval";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export const NonEmptyArrayOutput = ({
   output,
@@ -42,12 +43,39 @@ export const SearchOperatorUsed = ({
   };
 };
 
+interface MatchableDocument {
+  _id?: string | ObjectId | number;
+  id?: string | number;
+  [key: string]: unknown;
+}
+export const ndcgMatchFunc: MatchFunc<MatchableDocument> = (
+  a: MatchableDocument,
+  b: MatchableDocument
+) => {
+  if (a._id && b._id) {
+    // Can't just use === for ObjectId because it's a class.
+    // Must convert to string.
+    if (ObjectId.isValid(a._id) || ObjectId.isValid(b._id)) {
+      return a._id.toString() === b._id.toString();
+    }
+    // Otherwise, it's a number or string, and we can use ===
+    if (a._id === b._id) {
+      return true;
+    }
+  }
+  // If the id field is present, use it to match.
+  if (a.id && b.id) {
+    if (a.id === b.id) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export const makeNdcgAtK = <T>({
   k,
-  matchFunc,
 }: {
   k: number;
-  matchFunc: MatchFunc<T>;
 }): TextToDriverEvalScorer => {
   const metricName = `NDCG@${k}`;
   return ({ output, expected }): Score => {
@@ -59,7 +87,7 @@ export const makeNdcgAtK = <T>({
         metadata: { error: "Expected result and expected result to be arrays" },
       };
     }
-    const ndcg = binaryNdcgAtK(result, expected, matchFunc, k);
+    const ndcg = binaryNdcgAtK(result, expected.result, ndcgMatchFunc, k);
     return { name: metricName, score: ndcg };
   };
 };

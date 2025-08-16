@@ -1,13 +1,15 @@
 import { Message } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { extractSampleMessages } from "./extractSampleMessages";
+import {
+  generateObject,
+  LanguageModel,
+  ModelMessage,
+} from "mongodb-rag-core/aiSdk";
 
 export interface CommentSentimentParams {
-  judgeLlm: string;
   messages: Message[];
   messageWithCommentId: ObjectId;
 }
@@ -21,28 +23,22 @@ const Sentiment = z.object({
 
 export type Sentiment = z.infer<typeof Sentiment>;
 
-const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
-  type: "function",
-  function: {
-    name: "comment_sentiment",
-    description: "Calculate the sentiment of a comment in a conversation",
-    parameters: zodToJsonSchema(Sentiment, {
-      $refStrategy: "none",
-    }),
-  },
-};
+const schemaName = "comment_sentiment";
+const schemaDescription =
+  "Calculate the sentiment of a comment in a conversation";
 
 const systemMessage = {
   role: "system",
   content: `You are a quality assurance analyst. Your job is to calculate the sentiment of a comment in a conversation with a chatbot.
 The chatbot you are analyzing answers questions about MongoDB's products and services.
 You are given a snippet of a conversation between a user and the chatbot with some metadata about the conversation, including user ratings on messages and the relevant message with comment.`,
-} satisfies OpenAI.Chat.Completions.ChatCompletionSystemMessageParam;
+} satisfies ModelMessage;
 
-export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
+export const makeJudgeMongoDbChatbotCommentSentiment = (
+  languageModel: LanguageModel
+) =>
   wrapTraced(
     async function ({
-      judgeLlm,
       messages,
       messageWithCommentId,
     }: CommentSentimentParams) {
@@ -51,8 +47,7 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
       const messagesForLlm = [systemMessage, userMessage];
 
       const { sentiment, reasoning } = await getSentiment(
-        openAiClient,
-        judgeLlm,
+        languageModel,
         messagesForLlm
       );
 
@@ -79,31 +74,23 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
   );
 
 async function getSentiment(
-  openAiClient: OpenAI,
-  judgeLlm: string,
-  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+  languageModel: LanguageModel,
+  messages: ModelMessage[]
 ) {
-  const modelRes = await openAiClient.chat.completions.create({
-    messages: messages,
-    model: judgeLlm,
-    tools: [commentSentimentToolDefinition],
-    stream: false,
-    tool_choice: {
-      function: { name: commentSentimentToolDefinition.function.name },
-      type: "function",
-    },
+  const { object: sentiment } = await generateObject({
+    model: languageModel,
+    schema: Sentiment,
+    messages,
+    schemaName,
+    schemaDescription,
   });
-  return Sentiment.parse(
-    JSON.parse(
-      modelRes.choices?.[0].message.tool_calls?.[0].function.arguments ?? "{}"
-    )
-  );
+  return sentiment;
 }
 
 function makeUserMessage(
   messages: Message[],
   messageWithCommentId: ObjectId
-): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
+): ModelMessage {
   const { sampleMessages, targetMessageIndex } = extractSampleMessages({
     messages,
     targetMessageId: messageWithCommentId,

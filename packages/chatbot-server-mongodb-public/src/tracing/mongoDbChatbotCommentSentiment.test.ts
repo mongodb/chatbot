@@ -1,39 +1,13 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { OpenAI } from "mongodb-rag-core/openai";
+
 import {
   makeJudgeMongoDbChatbotCommentSentiment,
   Sentiment,
 } from "./mongoDbChatbotCommentSentiment";
 import { Message } from "mongodb-rag-core";
+import { MockLanguageModelV2 } from "mongodb-rag-core/aiSdk";
 
 const reasoning = "foobar";
-function makeMockOpenAi(sentiment: Sentiment["sentiment"]) {
-  const mockOpenAiClient = {
-    chat: {
-      completions: {
-        create: jest.fn().mockResolvedValue({
-          choices: [
-            {
-              message: {
-                tool_calls: [
-                  {
-                    function: {
-                      arguments: JSON.stringify({
-                        sentiment,
-                        reasoning,
-                      }),
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-        }),
-      },
-    },
-  } as unknown as OpenAI;
-  return mockOpenAiClient;
-}
 
 const userMessage = {
   id: new ObjectId(),
@@ -53,12 +27,33 @@ const assistantMessage = {
 
 const messages = [userMessage, assistantMessage];
 
+const makeMockLanguageModel = (sentiment: Sentiment["sentiment"]) =>
+  new MockLanguageModelV2({
+    doGenerate: async () => {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              sentiment,
+              reasoning,
+            } satisfies Sentiment),
+          },
+        ],
+        finishReason: "stop",
+        usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+        warnings: [],
+      };
+    },
+  });
+
 describe("mongoDbChatbotCommentSentiment", () => {
   it("should return positive sentiment score", async () => {
     const judgeMongoDbChatbotCommentSentiment =
-      makeJudgeMongoDbChatbotCommentSentiment(makeMockOpenAi("positive"));
+      makeJudgeMongoDbChatbotCommentSentiment(
+        makeMockLanguageModel("positive")
+      );
     const result = await judgeMongoDbChatbotCommentSentiment({
-      judgeLlm: "gpt-4",
       messages,
       messageWithCommentId: messages[1].id,
     });
@@ -72,9 +67,10 @@ describe("mongoDbChatbotCommentSentiment", () => {
 
   it("should return negative sentiment score", async () => {
     const judgeMongoDbChatbotCommentSentiment =
-      makeJudgeMongoDbChatbotCommentSentiment(makeMockOpenAi("negative"));
+      makeJudgeMongoDbChatbotCommentSentiment(
+        makeMockLanguageModel("negative")
+      );
     const result = await judgeMongoDbChatbotCommentSentiment({
-      judgeLlm: "gpt-4",
       messages,
       messageWithCommentId: messages[1].id,
     });
@@ -88,9 +84,8 @@ describe("mongoDbChatbotCommentSentiment", () => {
 
   it("should return neutral sentiment score", async () => {
     const judgeMongoDbChatbotCommentSentiment =
-      makeJudgeMongoDbChatbotCommentSentiment(makeMockOpenAi("neutral"));
+      makeJudgeMongoDbChatbotCommentSentiment(makeMockLanguageModel("neutral"));
     const result = await judgeMongoDbChatbotCommentSentiment({
-      judgeLlm: "gpt-4",
       messages,
       messageWithCommentId: messages[1].id,
     });
@@ -103,12 +98,16 @@ describe("mongoDbChatbotCommentSentiment", () => {
   });
 
   it("should throw error if no commented message for given ID", async () => {
+    const neutralMockLanguageModel = new MockLanguageModelV2({
+      doGenerate: jest.fn().mockResolvedValue({
+        object: { sentiment: "neutral", reasoning },
+      }),
+    });
     const judgeMongoDbChatbotCommentSentiment =
-      makeJudgeMongoDbChatbotCommentSentiment(makeMockOpenAi("neutral"));
+      makeJudgeMongoDbChatbotCommentSentiment(neutralMockLanguageModel);
     expect(
       async () =>
         await judgeMongoDbChatbotCommentSentiment({
-          judgeLlm: "gpt-4",
           messages,
           messageWithCommentId: new ObjectId(),
         })

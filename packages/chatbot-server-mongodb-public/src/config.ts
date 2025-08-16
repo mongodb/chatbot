@@ -121,12 +121,34 @@ export const openAiClient = wrapOpenAI(
   })
 );
 
-// For parts of the application that use the Vercel AI SDK
-export const azure = createAzure({
+export const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   resourceName: OPENAI_RESOURCE_NAME,
-  apiVersion: OPENAI_API_VERSION,
 });
+
+export const llmConfig = {
+  generateResponseLanguageModel: wrapLanguageModel({
+    model: azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
+  guardrailLanguageModel: wrapLanguageModel({
+    model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
+  analyzerLanguageModel: wrapLanguageModel({
+    model: azureOpenAi(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
+  classifierLanguageModel: wrapLanguageModel({
+    model: azureOpenAi(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
+  commentSentimentLanguageModel: wrapLanguageModel({
+    model: azureOpenAi(JUDGE_LLM),
+    middleware: [BraintrustMiddleware({ debug: true })],
+  }),
+  judgeModel: JUDGE_LLM,
+} as const;
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -220,34 +242,15 @@ export const loadPage = wrapTraced(pageStore.loadPage, {
   name: "loadPageFromStore",
 });
 
-export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  })
-);
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
 );
-const azureOpenAi = createAzure({
-  apiKey: OPENAI_API_KEY,
-  resourceName: process.env.OPENAI_RESOURCE_NAME,
-});
-const languageModel = wrapLanguageModel({
-  model: azureOpenAi(OPENAI_CHAT_COMPLETION_DEPLOYMENT),
-  middleware: [BraintrustMiddleware({ debug: true })],
-});
 
-const guardrailLanguageModel = wrapLanguageModel({
-  model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),
-  middleware: [BraintrustMiddleware({ debug: true })],
-});
 const inputGuardrail = wrapTraced(
   makeMongoDbInputGuardrail({
-    model: guardrailLanguageModel,
+    model: llmConfig.guardrailLanguageModel,
   }),
   {
     name: "inputGuardrail",
@@ -288,7 +291,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
       stream: args?.verifiedAnswerStream,
       onNoVerifiedAnswerFound: wrapTraced(
         makeGenerateResponseWithTools({
-          languageModel,
+          languageModel: llmConfig.generateResponseLanguageModel,
           makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
           inputGuardrail,
           llmRefusalMessage:
@@ -335,7 +338,7 @@ const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({
 });
 
 const llmAsAJudgeConfig = {
-  judgeModel: JUDGE_LLM,
+  judgeModel: llmConfig.judgeModel,
   judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
   openAiConfig: {
     azureOpenAi: {
@@ -372,17 +375,14 @@ const addMessageToConversationUpdateTrace =
     braintrustLogger,
     embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     scrubbedMessageStore,
-    analyzerModel: wrapLanguageModel({
-      model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
-      middleware: [BraintrustMiddleware({ debug: true })],
-    }),
+    analyzerModel: llmConfig.analyzerLanguageModel,
   });
 
 export const config: AppConfig = {
   contentRouterConfig: {
     findContent: makeFindContentWithMongoDbMetadata({
       findContent,
-      classifierModel: languageModel,
+      classifierModel: llmConfig.classifierLanguageModel,
     }),
     searchResultsStore,
     embeddedContentStore,
@@ -425,7 +425,7 @@ export const config: AppConfig = {
       braintrustLogger,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
-      openAiClient,
+      commentSentimentLanguageModel: llmConfig.commentSentimentLanguageModel,
       judgeLlm: JUDGE_LLM,
       slack:
         SLACK_BOT_TOKEN !== undefined &&

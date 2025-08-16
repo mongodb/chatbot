@@ -17,16 +17,17 @@ import {
   getSegmentIds,
 } from "../segment";
 import { strict as assert } from "assert";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export function makeCommentMessageUpdateTrace({
-  openAiClient,
+  commentSentimentLanguageModel,
   judgeLlm,
   slack,
   segment,
   braintrustLogger,
   scrubbedMessageStore,
 }: {
-  openAiClient: OpenAI;
+  commentSentimentLanguageModel: LanguageModel;
   judgeLlm: string;
   slack?: {
     token: string;
@@ -42,7 +43,7 @@ export function makeCommentMessageUpdateTrace({
   scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
-    makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
+    makeJudgeMongoDbChatbotCommentSentiment(commentSentimentLanguageModel);
 
   const segmentTrackUserCommentedMessage = segment
     ? makeTrackUserCommentedMessage({
@@ -147,7 +148,6 @@ export function makeCommentMessageUpdateTrace({
           HasComment: 1,
           CommentSentiment: (
             await judgeMongoDbChatbotCommentSentiment({
-              judgeLlm,
               messages: conversation.messages,
               messageWithCommentId: ObjectId.createFromHexString(traceId),
             })

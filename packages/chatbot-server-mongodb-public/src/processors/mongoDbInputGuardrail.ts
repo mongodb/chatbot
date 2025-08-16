@@ -332,6 +332,11 @@ export const makeMongoDbInputGuardrail = ({
       schemaName: inputGuardrailMetadata.name,
       messages: [{ role: "system", content: systemPrompt }, userMessage],
       mode: "json",
+      providerOptions: {
+        openai: {
+          reasoningEffort: "low",
+        },
+      },
     });
     const rejected = type === "irrelevant" || type === "inappropriate";
     return {

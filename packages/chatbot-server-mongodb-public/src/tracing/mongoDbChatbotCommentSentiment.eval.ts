@@ -4,7 +4,6 @@ import {
   makeJudgeMongoDbChatbotCommentSentiment,
   Sentiment,
 } from "./mongoDbChatbotCommentSentiment";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
   AssistantMessage,
   DbMessage,
@@ -12,15 +11,7 @@ import {
   UserMessage,
 } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { assertEnvVars } from "mongodb-rag-core";
-import { TRACING_ENV_VARS } from "../EnvVars";
-import { CORE_OPENAI_ENV_VARS } from "mongodb-rag-core";
-
-const { JUDGE_LLM, OPENAI_API_KEY, OPENAI_API_VERSION, OPENAI_ENDPOINT } =
-  assertEnvVars({
-    ...TRACING_ENV_VARS,
-    ...CORE_OPENAI_ENV_VARS,
-  });
+import { llmConfig } from "../config";
 
 interface Input {
   messages: Message[];
@@ -121,20 +112,16 @@ const CorrectSentiment: EvalScorer<Input, Output, Expected> = ({
   };
 };
 
-const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  apiVersion: OPENAI_API_VERSION,
-  endpoint: OPENAI_ENDPOINT,
-});
 const judgeMongodbChatbotCommentSentiment =
-  makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
+  makeJudgeMongoDbChatbotCommentSentiment(
+    llmConfig.commentSentimentLanguageModel
+  );
 
 Eval("mongodb-chatbot-comment-sentiment", {
   data: evalCases,
   maxConcurrency: 10,
   async task(input) {
     const result = await judgeMongodbChatbotCommentSentiment({
-      judgeLlm: JUDGE_LLM,
       messages: input.messages,
       messageWithCommentId: input.targetMessageId,
     });

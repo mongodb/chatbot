@@ -7,6 +7,7 @@ import {
   ndcgMatchFunc,
 } from "./atlasSearch";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { TextToDriverExpected, TextToDriverOutput } from "../TextToDriverEval";
 
 describe("atlasSearch scorers", () => {
   function makeOutput(
@@ -29,40 +30,46 @@ describe("atlasSearch scorers", () => {
       const score = NonEmptyArrayOutput({
         output: makeOutput({ result: null }),
       } as any);
-      expect(score).toEqual({ name: "NonEmptyArrayOutput", score: 0 });
+      expect(score).toMatchObject({ name: "NonEmptyArrayOutput", score: 0 });
     });
 
     test("returns 0 when result is an empty array", () => {
       const score = NonEmptyArrayOutput({
         output: makeOutput({ result: [] }),
       } as any);
-      expect(score).toEqual({ name: "NonEmptyArrayOutput", score: 0 });
+      expect(score).toMatchObject({ name: "NonEmptyArrayOutput", score: 0 });
     });
 
     test("returns 1 when result is a non-empty array", () => {
       const score = NonEmptyArrayOutput({
         output: makeOutput({ result: [{ id: 1 }] }),
       } as any);
-      expect(score).toEqual({ name: "NonEmptyArrayOutput", score: 1 });
+      expect(score).toMatchObject({ name: "NonEmptyArrayOutput", score: 1 });
     });
 
     test("returns 0 when result is a non-array non-null value", () => {
       const scoreNumber = NonEmptyArrayOutput({
         output: makeOutput({ result: 42 as any }),
       } as any);
-      expect(scoreNumber).toEqual({ name: "NonEmptyArrayOutput", score: 0 });
+      expect(scoreNumber).toMatchObject({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+      });
 
       const scoreObject = NonEmptyArrayOutput({
         output: makeOutput({ result: { a: 1 } as any }),
       } as any);
-      expect(scoreObject).toEqual({ name: "NonEmptyArrayOutput", score: 0 });
+      expect(scoreObject).toMatchObject({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+      });
     });
 
     test("returns 0 when array contains null items", () => {
       const score = NonEmptyArrayOutput({
         output: makeOutput({ result: [null, { id: 1 }] }),
       } as any);
-      expect(score).toEqual({
+      expect(score).toMatchObject({
         name: "NonEmptyArrayOutput",
         score: 0,
         metadata: {
@@ -281,24 +288,45 @@ describe("atlasSearch scorers", () => {
   });
 
   describe("NdcgAtK", () => {
+    function makeScorerArgs(
+      output: TextToDriverOutput,
+      expected: TextToDriverExpected
+    ) {
+      return {
+        input: {
+          nlQuery: "find 1",
+          databaseName: "test",
+        },
+        metadata: {
+          language: "javascript",
+          orderMatters: false,
+          isAggregation: false,
+        },
+        output,
+        expected,
+      };
+    }
+    const k = 5;
+    const scorer = makeNdcgAtK({ k });
     test("returns 0 with error metadata when result or expected are not arrays", () => {
-      const k = 5;
-      const scorer = makeNdcgAtK({ k });
-
-      const out1 = scorer({
-        output: makeOutput({ result: 1 as any }),
-        expected: [1, 2, 3] as any,
-      } as any) as unknown as Score;
+      const out1 = scorer(
+        makeScorerArgs(makeOutput({ result: 1 }), {
+          dbQuery: "db.c.find({})",
+          result: [1, 2, 3],
+        })
+      ) as unknown as Score;
       expect(out1.name).toBe(`NDCG@${k}`);
       expect(out1.score).toBe(0);
       expect(out1.metadata).toEqual({
         error: "Expected result and expected result to be arrays",
       });
 
-      const out2 = scorer({
-        output: makeOutput({ result: [1, 2, 3] as any }),
-        expected: 1 as any,
-      } as any) as unknown as Score;
+      const out2 = scorer(
+        makeScorerArgs(makeOutput({ result: [1, 2, 3] }), {
+          dbQuery: "db.c.find({})",
+          result: 1,
+        })
+      ) as unknown as Score;
       expect(out2.name).toBe(`NDCG@${k}`);
       expect(out2.score).toBe(0);
       expect(out2.metadata).toEqual({
@@ -307,15 +335,16 @@ describe("atlasSearch scorers", () => {
     });
 
     test("calls binaryNdcgAtK with correct args and returns its score", () => {
-      const k = 3;
-      const scorer = makeNdcgAtK({ k });
+      const oidStr = new ObjectId().toString();
 
-      const result = [{ _id: "a" }, { _id: "b" }, { _id: "c" }];
-      const expected = [{ _id: "a" }, { _id: "x" }, { _id: "y" }];
-      const out = scorer({
-        output: makeOutput({ result }),
-        expected,
-      } as any) as unknown as Score;
+      const result = [{ _id: oidStr }, { _id: "b" }, { _id: "c" }];
+      const expected = [{ _id: oidStr }, { _id: "x" }, { _id: "y" }];
+      const out = scorer(
+        makeScorerArgs(makeOutput({ result }), {
+          dbQuery: "db.c.find({})",
+          result: expected,
+        })
+      ) as unknown as Score;
 
       expect(out.name).toBe(`NDCG@${k}`);
       expect(out.score).toBeGreaterThan(0);

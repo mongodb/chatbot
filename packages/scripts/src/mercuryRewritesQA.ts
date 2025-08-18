@@ -374,18 +374,47 @@ async function main() {
         continue;
       }
 
+      // Use suggestedPromptChange as starting point if it exists, otherwise use original
+      const startingPrompt =
+        csvRow.suggestedPromptChange &&
+        csvRow.suggestedPromptChange.trim() !== ""
+          ? csvRow.suggestedPromptChange
+          : promptText;
+
+      // Use suggestedResponseChange as starting point if it exists, otherwise use original
+      const startingResponse =
+        csvRow.suggestedResponseChange &&
+        csvRow.suggestedResponseChange.trim() !== ""
+          ? csvRow.suggestedResponseChange
+          : caseDoc.expected || "";
+
       const analysisRow: AnalysisRow = {
         promptId: csvRow.promptId || caseDoc._id.toString(),
         originalPrompt: promptText,
         originalResponse: caseDoc.expected || "",
-        currentPrompt: promptText,
-        currentResponse: caseDoc.expected || "",
-        suggestedPromptChange: csvRow.suggestedPromptChange || undefined,
-        suggestedResponseChange: csvRow.suggestedResponseChange || undefined,
+        currentPrompt: startingPrompt,
+        currentResponse: startingResponse,
+        // Clear suggested changes if we've already applied them as starting points
+        suggestedPromptChange:
+          startingPrompt === promptText
+            ? csvRow.suggestedPromptChange || undefined
+            : undefined,
+        suggestedResponseChange:
+          startingResponse === (caseDoc.expected || "")
+            ? csvRow.suggestedResponseChange || undefined
+            : undefined,
         iterations: 0,
         lowScoreFlag: false,
         completed: false,
       };
+
+      // Log what we're starting with
+      if (startingPrompt !== promptText) {
+        console.log("Starting with rewritten prompt from CSV");
+      }
+      if (startingResponse !== (caseDoc.expected || "")) {
+        console.log("Starting with rewritten response from CSV");
+      }
 
       analysisRows.push(analysisRow);
     }

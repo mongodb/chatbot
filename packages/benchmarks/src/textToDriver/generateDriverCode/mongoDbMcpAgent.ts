@@ -110,9 +110,9 @@ export async function makeMongoDbMcpAgent({
       makeGetAtlasSearchIndexesTool(mongoClient);
     mcpToolSet[getAtlasSearchIndexesToolName] = getAtlasSearchIndexesTool;
   }
-  // Add think tool for Claude to reflect.
+  // Add think tool for model to reflect.
   mcpToolSet[thinkToolName] = thinkTool;
-  // Add submit-final-solution tool for Claude to submit answer and stop generating.
+  // Add submit-final-solution tool for model to submit answer and stop generating.
   mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
 
   return wrapTraced(async function mongoDbMcpAgent({

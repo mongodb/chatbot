@@ -739,7 +739,7 @@ function handleReturnGeneration({
   } satisfies GenerateResponseReturnValue;
 }
 
-export function makeAssitantMessage(
+function makeAssitantMessage(
   reqId: string,
   m: AssistantModelMessage
 ): AssistantMessage[] {
@@ -785,13 +785,13 @@ export function makeAssitantMessage(
   return result;
 }
 
-export function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
+function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
   return m.content.map((c) => {
     const newToolMessage: ToolMessage = {
       role: "tool",
       content: "",
       name: c.toolName,
-    }
+    };
     if (c.output.type === "content" && c.output.value[0].type === "text") {
       // This is one of our tools (fetch_page or search), with result content.
       newToolMessage.content = c.output.value[0].text;

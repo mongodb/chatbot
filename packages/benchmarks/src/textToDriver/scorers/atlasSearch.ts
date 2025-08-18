@@ -20,9 +20,25 @@ export const NonEmptyArrayOutput = ({
       score: 0,
     };
   }
+  const isArray = Array.isArray(result);
+  const hasItems = isArray && result.length > 0;
+  const nonEmptyItems =
+    hasItems &&
+    result.every(
+      (item) =>
+        item !== null &&
+        item !== undefined &&
+        item !== "" &&
+        (typeof item === "object" ? Object.keys(item).length > 0 : true)
+    );
   return {
     name: metricName,
-    score: Array.isArray(result) && result.length > 0 ? 1 : 0,
+    score: isArray && hasItems && nonEmptyItems ? 1 : 0,
+    metadata: {
+      isArray,
+      hasItems,
+      nonEmptyItems,
+    },
   };
 };
 
@@ -78,16 +94,17 @@ export const makeNdcgAtK = <T>({
   k: number;
 }): TextToDriverEvalScorer => {
   const metricName = `NDCG@${k}`;
-  return ({ output, expected }): Score => {
-    const result = output.execution.result;
-    if (!Array.isArray(result) || !Array.isArray(expected)) {
+  return function NdcgAtK({ output, expected }): Score {
+    const actualResult = output.execution.result;
+    const expectedResult = expected.result;
+    if (!Array.isArray(actualResult) || !Array.isArray(expectedResult)) {
       return {
         name: metricName,
         score: 0,
         metadata: { error: "Expected result and expected result to be arrays" },
       };
     }
-    const ndcg = binaryNdcgAtK(result, expected.result, ndcgMatchFunc, k);
+    const ndcg = binaryNdcgAtK(actualResult, expectedResult, ndcgMatchFunc, k);
     return { name: metricName, score: ndcg };
   };
 };

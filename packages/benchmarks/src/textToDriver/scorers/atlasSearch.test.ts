@@ -57,6 +57,109 @@ describe("atlasSearch scorers", () => {
       } as any);
       expect(scoreObject).toEqual({ name: "NonEmptyArrayOutput", score: 0 });
     });
+
+    test("returns 0 when array contains null items", () => {
+      const score = NonEmptyArrayOutput({
+        output: makeOutput({ result: [null, { id: 1 }] }),
+      } as any);
+      expect(score).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: false,
+        },
+      });
+    });
+
+    test("returns 0 when array contains undefined items", () => {
+      const score = NonEmptyArrayOutput({
+        output: makeOutput({ result: [undefined, { id: 1 }] }),
+      });
+      expect(score).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: false,
+        },
+      });
+    });
+
+    test("returns 0 when array contains empty strings", () => {
+      const score = NonEmptyArrayOutput({
+        output: makeOutput({ result: ["", { id: 1 }] }),
+      });
+      expect(score).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: false,
+        },
+      });
+    });
+
+    test("returns 1 when array contains valid non-object items", () => {
+      const scoreWithString = NonEmptyArrayOutput({
+        output: makeOutput({ result: ["string", { id: 1 }] }),
+      });
+      expect(scoreWithString).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 1,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: true,
+        },
+      });
+
+      const scoreWithNumber = NonEmptyArrayOutput({
+        output: makeOutput({ result: [42, { id: 1 }] }),
+      });
+      expect(scoreWithNumber).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 1,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: true,
+        },
+      });
+    });
+
+    test("returns 0 when array contains empty objects", () => {
+      const score = NonEmptyArrayOutput({
+        output: makeOutput({ result: [{}, { id: 1 }] }),
+      });
+      expect(score).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 0,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: false,
+        },
+      });
+    });
+
+    test("returns 1 when array contains only valid non-empty objects", () => {
+      const score = NonEmptyArrayOutput({
+        output: makeOutput({ result: [{ id: 1 }, { name: "test" }] }),
+      });
+      expect(score).toEqual({
+        name: "NonEmptyArrayOutput",
+        score: 1,
+        metadata: {
+          isArray: true,
+          hasItems: true,
+          nonEmptyItems: true,
+        },
+      });
+    });
   });
 
   describe("SearchOperatorUsed", () => {

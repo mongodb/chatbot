@@ -142,6 +142,21 @@ describe("makeBenchmarkCli", () => {
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
+    it("should validate unknown model", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--model",
+        "unknown-model",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it("should validate taskConcurrency range", async () => {
       const cli = makeBenchmarkCli(mockConfig);
 

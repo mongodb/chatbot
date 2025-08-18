@@ -260,15 +260,66 @@ Natural language queries should consider these Atlas Search performance and scor
 </performance_and_scoring_considerations>
 
 <search_context_scenarios>
-Create natural language queries that fit these common Atlas Search scenarios:
+Create natural language queries that fit these Atlas Search scenarios with diverse intent types:
+
+<scenario_content_scenario type="discovery">
+**Discovery & Exploration Intents:**
 - Full-text content search with relevance ranking
+- Similarity search for content recommendation and "find more like this"
+- Exploratory queries that discover patterns or relationships in content
+
+</scenario_content_scenario>
+
+<scenario_content_scenario type="analysis">
+**Analysis & Comparison Intents:**
+- Trend analysis combining text search with temporal constraints
+- Comparative searches between different content categories or time periods  
+- Content gap analysis (find topics that are missing or underrepresented)
+- Performance analysis of content by engagement or relevance metrics
+
+</scenario_content_scenario>
+
+<scenario_content_scenario type="aggregation">
+
+**Aggregation & Summary Intents:**
+- Statistical queries combining search with count/sum/average operations
+- Content classification and categorization through search patterns
+- Distribution analysis of search results across different dimensions
+- Summary generation from search result sets
+
+</scenario_content_scenario>
+
+<scenario_content_scenario type="validation">
+
+**Validation & Quality Control Intents:**
+- Content quality assessment through specific search criteria
+- Duplicate or similar content detection
+- Completeness checking (find content missing key information)
+- Accuracy validation through cross-referencing searches
+
+</scenario_content_scenario>
+
+<scenario_content_scenario type="ui">
+
+**User Interface & Interactive Intents:**
 - Autocomplete and search suggestions for user interfaces
-- Faceted search with multiple filter dimensions
-- Similarity search for content recommendation
+- Faceted search with multiple filter dimensions and drill-down capabilities
+- Progressive search refinement with iterative filtering
+- Context-aware search based on user behavior patterns
+
+</scenario_content_scenario>
+
+<scenario_content_scenario type="technical">
+
+**Technical & Advanced Search Intents:**
 - Hybrid search combining text relevance with other factors (date, popularity, etc.)
 - Multi-field search with different field importance weights
 - Fuzzy matching for handling user input errors and variations
 - Proximity searches where term relationships matter
+- Complex Boolean logic for precise content retrieval
+
+</scenario_content_scenario>
+
 </search_context_scenarios>
 </atlas_search_capabilities>
 
@@ -351,9 +402,11 @@ Examples:
 </complex_queries>
 
 <query_complexity_distribution_guidelines>
-- When generating the natural language queries, ensure a balanced distribution across all complexity levels to properly test Atlas Search capabilities.
-- You should generate a similar number of queries for each complexity level.
+- When generating the natural language queries, skew toward higher complexity levels to create challenging benchmarks that properly test advanced Atlas Search capabilities.
+- Target distribution: ~10-15% simple queries, ~25-30% moderate queries, ~55-65% complex queries
+- Prioritize complex queries that combine multiple advanced Atlas Search features and require sophisticated query planning
 - Focus on search-specific functionality rather than general database operations.
+- Complex queries should push the boundaries of what's possible with Atlas Search compound operators, advanced scoring, and multi-dimensional search logic.
 </query_complexity_distribution_guidelines>
 
 </query_complexity_guidelines>

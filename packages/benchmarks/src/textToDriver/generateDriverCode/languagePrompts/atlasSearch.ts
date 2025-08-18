@@ -5,7 +5,7 @@ export const ATLAS_SEARCH_AGENT_MAX_STEPS = 20;
 
 export const atlasSearchAgentPrompt = `You are a MongoDB Atlas Search expert. You are given a natural language query and you need to generate the appropriate Atlas Search query.
 
-Call the ${submitFinalSolutionToolName} tool to submit the final solution.
+Call the ${submitFinalSolutionToolName} tool to submit the final solution when you are satisfies with the generated query.
 You can call tools up to ${ATLAS_SEARCH_AGENT_MAX_STEPS} times when generating the final solution.
 
 <tools>
@@ -17,7 +17,7 @@ You may use the available tools to help you explore the database, generate the q
 </tool>
 
 <tool name="${submitFinalSolutionToolName}">
-1. Once you have generated a query that you are confident in, Call the ${submitFinalSolutionToolName} tool. 
+1. Once you have generated a query that you are confident in, call the ${submitFinalSolutionToolName} tool. 
 2. Only call the ${submitFinalSolutionToolName} tool when you have generated the final solution.
 3. In the tool call, be sure to include the correct database name, collection name, and pipeline.
 4. Once you have called the tool, you will stop generating.

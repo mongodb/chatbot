@@ -7,6 +7,7 @@ import {
   withCurrent,
 } from "braintrust";
 import { z } from "zod";
+import { LanguageModelMiddleware } from "./aiSdk";
 
 export * from "braintrust";
 
@@ -68,4 +69,50 @@ export function wrapNoTrace<T extends (...args: any[]) => any>(
       return fn(...args);
     });
   };
+}
+
+/**
+  Remove the $schema key from all nested objects in the input schema of the tools.
+  This is a workaround to support Gemini through the Braintrust proxy.
+  Gemini does not support the $schema key in the input schema of the tools.
+ */
+export const SupportGeminiThroughBraintrustProxy: LanguageModelMiddleware = {
+  async transformParams(options) {
+    if (options.model.modelId.includes("gemini")) {
+      options.params.tools = options.params.tools?.map((tool) => {
+        if (tool.type === "function") {
+          return {
+            ...tool,
+            inputSchema: remove$schema(tool.inputSchema),
+          };
+        }
+        return tool;
+      });
+    }
+    return options.params;
+  },
+};
+
+/** Recursively removes the $schema key from all nested objects */
+function remove$schema(obj: any): any {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => remove$schema(item));
+  }
+
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip the $schema key
+    if (key === "$schema") {
+      continue;
+    }
+
+    // Recursively process nested objects and arrays
+    result[key] = remove$schema(value);
+  }
+
+  return result;
 }

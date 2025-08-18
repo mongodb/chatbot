@@ -6,11 +6,16 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
+import {
+  BraintrustMiddleware,
+  SupportGeminiThroughBraintrustProxy,
+} from "mongodb-rag-core/braintrust";
 import {
   createAzure,
   createOpenAI,
   experimental_createMCPClient,
+  jsonSchema,
+  LanguageModelMiddleware,
   wrapLanguageModel,
 } from "mongodb-rag-core/aiSdk";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
@@ -18,14 +23,13 @@ import {
   ATLAS_SEARCH_AGENT_MAX_STEPS,
   atlasSearchAgentPrompt,
 } from "./generateDriverCode/languagePrompts/atlasSearch";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";
 import {
   makeNdcgAtK,
   NonEmptyArrayOutput,
   SearchOperatorUsed,
 } from "./scorers/atlasSearch";
-import { MatchFunc } from "mongodb-rag-core/eval";
 import { BRAINTRUST_ENV_VARS } from "./TextToDriverEnvVars";
 import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -61,7 +65,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
             })
           )
             // small set for testing...
-            .slice(0, 10)
+            .slice(0, 50)
         );
       },
     },
@@ -100,14 +104,14 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
         return makeGenerateAtlasSearchCodeAgenticTask({
           model: wrapLanguageModel({
             model: createOpenAI({
-              apiKey: process.env.OPENAI_OPENAI_API_KEY,
+              apiKey: provider.apiKey,
+              baseURL: provider.baseUrl,
             }).chat(modelConfig.deployment),
-            // createOpenAI({
-            //   apiKey: provider.apiKey,
-            //   baseURL: provider.baseUrl,
-            // }).chat(modelConfig.deployment),
 
-            middleware: [BraintrustMiddleware({ debug: true })],
+            middleware: [
+              BraintrustMiddleware({ debug: true }),
+              SupportGeminiThroughBraintrustProxy,
+            ],
           }),
           systemPrompt: atlasSearchAgentPrompt,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,

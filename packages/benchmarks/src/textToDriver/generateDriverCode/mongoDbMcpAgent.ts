@@ -6,6 +6,8 @@ import {
   hasToolCall,
   experimental_createMCPClient,
   ToolSet,
+  jsonSchema,
+  JSONSchema7,
 } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MongoClient } from "mongodb-rag-core/mongodb";
@@ -84,7 +86,9 @@ export async function makeMongoDbMcpAgent({
   mongoDbMcpClient,
 }: MakeMongoDbMcpAgentParams) {
   // Load full tool set from MCP server
-  const fullMcpToolSet = await mongoDbMcpClient.tools();
+  const fullMcpToolSet = await mongoDbMcpClient.tools({
+    schemas: "automatic",
+  });
 
   // Filter tool set to only include available tools
   const mcpToolSet: ToolSet = Object.fromEntries(
@@ -92,6 +96,15 @@ export async function makeMongoDbMcpAgent({
       availableMongoDbMcpTools.includes(toolName as MongoDbMcpToolName)
     )
   );
+  for (const toolName in mcpToolSet) {
+    const execute = mcpToolSet[toolName].execute;
+    if (execute) {
+      mcpToolSet[toolName].execute = wrapTraced(execute, {
+        name: toolName,
+      });
+    }
+  }
+
   if (availableMongoDbMcpTools.includes(getAtlasSearchIndexesToolName)) {
     const getAtlasSearchIndexesTool =
       makeGetAtlasSearchIndexesTool(mongoClient);
@@ -116,12 +129,6 @@ export async function makeMongoDbMcpAgent({
       toolChoice: "required",
       tools: mcpToolSet,
     });
-    console.log(
-      "tool calls::",
-      response.toolCalls?.map((toolCall) => toolCall.toolName)
-    );
-    console.log("step count::", response.steps?.length);
-    console.log("finishReason::", response.finishReason);
 
     return response;
   });

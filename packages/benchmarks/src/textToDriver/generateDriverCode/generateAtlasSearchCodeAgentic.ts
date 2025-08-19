@@ -4,6 +4,11 @@ import {
   makeMongoDbMcpAgent,
   MakeMongoDbMcpAgentParams,
 } from "./mongoDbMcpAgent";
+import {
+  MongoDbAggregateOperation,
+  submitFinalSolutionToolName,
+} from "./tools/submitFinalSolution";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 export async function makeGenerateAtlasSearchCodeAgenticTask(
   constructorArgs: MakeMongoDbMcpAgentParams
@@ -17,7 +22,7 @@ export async function makeGenerateAtlasSearchCodeAgenticTask(
       messages: [makeAtlasSearchUserMessage(databaseName, nlQuery)],
     });
 
-    return extractOutputFromMessages(response);
+    return extractOutputFromMessages(response, constructorArgs.mongoClient);
   };
 }
 
@@ -29,43 +34,38 @@ Natural language query: ${nlQuery}`,
   };
 }
 
-function extractOutputFromMessages(
-  agentResponse: GenerateTextResult<ToolSet, unknown>
-): TextToDriverOutput {
-  // Find the last call to the `aggregate` tool
-  const toolCalls =
-    agentResponse.steps?.flatMap((step) => step.toolCalls || []) || [];
-  const lastAggregateCall = toolCalls.findLast(
-    (call) => call.toolName === "aggregate"
-  );
+async function extractOutputFromMessages(
+  agentResponse: GenerateTextResult<ToolSet, unknown>,
+  mongoClient: MongoClient
+): Promise<TextToDriverOutput> {
+  // Get the result from the tool results in the steps
+  const toolResults =
+    agentResponse.steps?.flatMap((step) => step.toolCalls ?? []) ?? [];
 
-  if (!lastAggregateCall) {
+  const finalSolution = toolResults.findLast(
+    (result) => result.toolName === submitFinalSolutionToolName
+  )?.input as MongoDbAggregateOperation | undefined;
+
+  if (!finalSolution) {
     return {
       execution: {
         executionTimeMs: null,
         result: null,
-        error: { message: "No tool calls found" },
+        error: { message: "No final solution found" },
       },
       generatedCode: "",
     } satisfies TextToDriverOutput;
   }
 
-  // Extract the tool call argument and stringify it for generatedCode
-  const generatedCode = JSON.stringify(lastAggregateCall.input, null, 2);
-
-  // Get the result from the tool results in the steps
-  const toolResults =
-    agentResponse.steps?.flatMap((step) => step.toolResults || []) || [];
-  const correspondingResult = toolResults.find(
-    (result) => result.toolCallId === lastAggregateCall.toolCallId
-  );
-  const toolResult = correspondingResult?.output || null;
-
+  const collection = mongoClient
+    .db(finalSolution.databaseName)
+    .collection(finalSolution.collectionName);
+  const result = await collection.aggregate(finalSolution.pipeline).toArray();
   return {
     execution: {
       executionTimeMs: null,
-      result: toolResult,
+      result,
     },
-    generatedCode,
+    generatedCode: JSON.stringify(finalSolution.pipeline, null, 2),
   } satisfies TextToDriverOutput;
 }

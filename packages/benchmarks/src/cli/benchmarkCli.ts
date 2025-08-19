@@ -68,6 +68,21 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               }
             }
 
+            // Validate models exist
+            const attemptedModels = argv.model ?? [];
+            // Resolve models
+            const modelsToRun = config.models.filter((m) =>
+              attemptedModels.includes(m.label)
+            );
+
+            if (modelsToRun.length === 0) {
+              throw new Error(
+                `Unknown model(s). Model(s) provided: ${attemptedModels.join(
+                  ", "
+                )}. Use 'benchmark models list' to see available models.`
+              );
+            }
+
             // Validate taskConcurrency
             if (
               argv.taskConcurrency !== undefined &&

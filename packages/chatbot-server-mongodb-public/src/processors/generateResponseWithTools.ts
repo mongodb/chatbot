@@ -27,6 +27,8 @@ import {
   stepCountIs,
   jsonSchema,
   JSONSchema7,
+  StaticToolCall,
+  StaticToolResult,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
 
@@ -478,7 +480,7 @@ export function makeGenerateResponseWithTools({
                 }
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.output?.references
+                  toolResult.output.references
                 ) {
                   references.push(...toolResult.output.references);
                 }

@@ -1,11 +1,12 @@
-import { ExecOptions } from "child_process";
 import { Document } from "mongodb";
 
 export interface ExecuteMongoDbQueryParams {
   query: string;
-  uri: string;
   databaseName: string;
-  execOptions?: ExecOptions;
+  /**
+    Required for some executors, but not others.
+   */
+  collectionName?: string;
 }
 
 export type ExecuteMongoDbQuery = (

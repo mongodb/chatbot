@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   isReasonableResult,
   LlmOptions,
 } from "mongodb-rag-core/executeCode";
@@ -11,7 +11,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClient } from "../openAi";
 import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfoNode";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
 import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
@@ -101,6 +101,10 @@ async function generateMongoshDataset({
     datasetOutDir,
     `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
   );
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: dataset.connectionUri,
+    execOptions: {},
+  });
 
   console.log(
     `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`

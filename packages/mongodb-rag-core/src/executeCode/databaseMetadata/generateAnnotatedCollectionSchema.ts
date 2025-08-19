@@ -30,12 +30,14 @@ function makeDetailedCollectionDescriptionSchema(
     .filter((name) => name !== "undefined");
 
   // Create a record schema where each key must be one of the collection names
-  const indexDescriptionSchema = z.array(
-    z.object({
-      name: z.enum(indexNames as [string, ...string[]]),
-      description: z.string(),
-    })
-  );
+  const indexDescriptionSchema = z
+    .array(
+      z.object({
+        name: z.enum(indexNames as [string, ...string[]]),
+        description: z.string(),
+      })
+    )
+    .optional();
 
   const DetailedCollectionDescriptionsSchema = z.object({
     typeScriptSchema: z
@@ -44,6 +46,7 @@ function makeDetailedCollectionDescriptionSchema(
         "Annotated TypeScript schema for the collection. Annotate with TypeDoc comments."
       ),
     indexDescriptions: indexDescriptionSchema,
+    searchIndexes: z.array(z.string()).optional(),
   });
   return DetailedCollectionDescriptionsSchema;
 }
@@ -56,6 +59,7 @@ interface GenerateAnnotatedCollectionSchemaParams {
   collectionMetadata: CollectionInfo;
   databaseMetadata: DatabaseMetadata;
   llm: LlmOptions;
+  searchIndexes?: string[];
 }
 
 export const makeGenerateAnnotatedCollectionSchema = (openAiClient: OpenAI) =>
@@ -63,6 +67,7 @@ export const makeGenerateAnnotatedCollectionSchema = (openAiClient: OpenAI) =>
     async function generateAnnotatedCollectionSchema({
       collectionMetadata,
       databaseMetadata,
+      searchIndexes,
       llm: llmOptions,
     }: GenerateAnnotatedCollectionSchemaParams): Promise<DetailedCollectionDescriptions> {
       const messages = [
@@ -91,6 +96,7 @@ Again, analyze the collection named '${collectionMetadata.collectionName}'.`,
         functionDescription,
         openAiClient,
       });
+      result.searchIndexes = searchIndexes;
 
       return result;
     },

@@ -35,6 +35,9 @@ interface AnalysisRow {
   iterations: number;
   lowScoreFlag: boolean;
   completed: boolean;
+  // Track if user has already provided rewrites - these should be preserved
+  userRewrittenPrompt: boolean;
+  userRewrittenResponse: boolean;
 }
 
 // Parse CSV file using the csv package
@@ -59,31 +62,46 @@ function parseCsv(filePath: string): CsvRow[] {
     from_line: 3, // Skip header (line 1) and placeholder (line 2)
   }) as CsvRow[];
 
-  const filteredRows: CsvRow[] = [];
-
-  for (const row of records) {
-    // Skip rows that already have an action assigned
-    if (row.action && row.action.trim() !== "") {
-      console.log(`Skipping row with existing action: ${row.action}`);
-      continue;
-    }
-
-    // We'll handle rows with or without promptId in the main processing loop
-    filteredRows.push(row);
-  }
-
-  return filteredRows;
+  return records;
 }
 
 // Process a single analysis row through all iterations immutably
 async function processAnalysisRow(
   initialRow: AnalysisRow,
   analyzeCases: ReturnType<typeof makeAnalyzeCases>,
-  generatorModel: any
+  generatorModel: ReturnType<ReturnType<typeof createOpenAI>["chat"]>
 ): Promise<AnalysisRow> {
   console.log(`\n--- Processing ${initialRow.promptId} ---`);
 
   let currentRow = { ...initialRow };
+
+  // First, check the initial score before starting iterations
+  console.log("Checking initial score...");
+  const initialAnalysis = await analyzeCases({
+    cases: [
+      {
+        prompt: currentRow.currentPrompt,
+        response: currentRow.currentResponse,
+      },
+    ],
+  });
+
+  const initialScore =
+    initialAnalysis[0]?.relevance?.scores?.cos_similarity || 0;
+  console.log(`Initial cosine similarity: ${initialScore.toFixed(4)}`);
+
+  // If initial score is already good, don't iterate
+  if (initialScore >= 0.7) {
+    console.log(
+      "✓ Initial score meets threshold (>= 0.7), no iterations needed"
+    );
+    return {
+      ...currentRow,
+      cosineScore: initialScore,
+      iterations: 0,
+      completed: true,
+    };
+  }
 
   // Try up to 3 iterations
   for (let iteration = 1; iteration <= 3; iteration++) {
@@ -159,17 +177,29 @@ async function processAnalysisRow(
         prompt: currentRow.currentPrompt,
         response: currentRow.currentResponse,
         guidance: guidance.trim(),
+        styleGuide:
+          "The response should provide detailed and informative text content, not URL links. Do not include URLs in the response. Never replace a detailed response with just a URL. If the original response contains useful information, preserve and enhance it rather than replacing it with a link. Always maintain or improve the informational content of the response.",
       });
 
-      // Create new row with rewrites applied
-      const newPrompt = rewrite.prompt || currentRow.currentPrompt;
-      const newResponse = rewrite.response || currentRow.currentResponse;
+      // Respect user-provided rewrites - don't override them with AI suggestions
+      const newPrompt = currentRow.userRewrittenPrompt
+        ? currentRow.currentPrompt
+        : rewrite.prompt || currentRow.currentPrompt;
 
-      if (rewrite.prompt) {
-        console.log("Applying prompt rewrite");
+      const newResponse = currentRow.userRewrittenResponse
+        ? currentRow.currentResponse
+        : rewrite.response || currentRow.currentResponse;
+
+      if (rewrite.prompt && !currentRow.userRewrittenPrompt) {
+        console.log("Applying AI-generated prompt rewrite");
+      } else if (currentRow.userRewrittenPrompt) {
+        console.log("Preserving user-provided prompt rewrite");
       }
-      if (rewrite.response) {
-        console.log("Applying response rewrite");
+
+      if (rewrite.response && !currentRow.userRewrittenResponse) {
+        console.log("Applying AI-generated response rewrite");
+      } else if (currentRow.userRewrittenResponse) {
+        console.log("Preserving user-provided response rewrite");
       }
 
       // Create updated row with new prompts/responses and cleared human guidance
@@ -195,7 +225,7 @@ async function processAnalysisRow(
 async function processAnalysisRows(
   analysisRows: AnalysisRow[],
   analyzeCases: ReturnType<typeof makeAnalyzeCases>,
-  generatorModel: any
+  generatorModel: ReturnType<ReturnType<typeof createOpenAI>["chat"]>
 ): Promise<AnalysisRow[]> {
   // Process all rows in parallel
   return Promise.all(
@@ -388,6 +418,11 @@ async function main() {
           ? csvRow.suggestedResponseChange
           : caseDoc.expected || "";
 
+      // Determine if user has provided rewrites
+      const userRewrittenPrompt = startingPrompt !== promptText;
+      const userRewrittenResponse =
+        startingResponse !== (caseDoc.expected || "");
+
       const analysisRow: AnalysisRow = {
         promptId: csvRow.promptId || caseDoc._id.toString(),
         originalPrompt: promptText,
@@ -406,6 +441,8 @@ async function main() {
         iterations: 0,
         lowScoreFlag: false,
         completed: false,
+        userRewrittenPrompt,
+        userRewrittenResponse,
       };
 
       // Log what we're starting with

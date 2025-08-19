@@ -428,13 +428,14 @@ export function makeGenerateResponseWithTools({
       let guardrailRejected = false;
 
       // Start guardrail check immediately and monitor it
-      const guardrailMonitor = inputGuardrailPromise?.then((result) => {
-        if (result?.rejected) {
-          guardrailRejected = true;
-          generationController.abort();
-        }
-        return result;
-      });
+      const guardrailMonitor =
+        inputGuardrailPromise?.then((result) => {
+          if (result?.rejected) {
+            guardrailRejected = true;
+            generationController.abort();
+          }
+          return result;
+        }) ?? Promise.resolve(undefined);
 
       // Start generation immediately (in parallel with guardrail)
       const generationPromise = (async () => {
@@ -487,6 +488,12 @@ export function makeGenerateResponseWithTools({
               }
             },
           });
+
+          // Wait for guardrail so we don't get streaming overlap (addresses race condition)
+          const guardrailResult = await guardrailMonitor;
+          if (guardrailResult?.rejected) {
+            throw new Error("Guardrail rejected (just exit this block)");
+          }
 
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end

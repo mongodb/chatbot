@@ -11,7 +11,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClient } from "../openAi";
 import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfoNode";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
 import { generateAtlasSearchCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAtlasSearchCode";
@@ -260,10 +260,7 @@ async function generateAtlasSearchDataset({
         dbExecutions[fastestMostFrequentIndex].data.result !== null
       ) {
         const dbResult = dbExecutions[fastestMostFrequentIndex].data.result;
-        if (
-          (Array.isArray(dbResult) && dbResult.length > 0) ||
-          !Array.isArray(dbResult)
-        ) {
+        if (dbResult && Array.isArray(dbResult) && dbResult.length > 0) {
           dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer = true;
         }
       }
@@ -276,6 +273,9 @@ async function generateAtlasSearchDataset({
         datasetEntries.push(textToAtlasSearchDatasetEntry);
 
         if (dbExecution.data.isReferenceAnswer) {
+          console.log(
+            `Writing entry for NL query: ${textToAtlasSearchDatasetEntry.nlQuery}`
+          );
           fs.appendFileSync(
             referenceAnswersOutputPath,
             JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
@@ -292,26 +292,8 @@ async function generateAtlasSearchDataset({
   );
 
   console.log(
-    `Found ${referenceAnswers.length} reference answers out of ${datasetEntries.length} entries.`
+    `Found ${referenceAnswers} reference answers out of ${datasetEntries.length} entries.`
   );
-
-  for (const result of referenceAnswers) {
-    if (result) {
-      if (
-        result.result &&
-        Array.isArray(result.result) &&
-        result.result.length > 0
-      ) {
-        console.log(`Writing entry for NL query: ${result.nlQuery}`);
-        fs.appendFileSync(
-          referenceAnswersOutputPath,
-          JSON.stringify(result) + "\n"
-        );
-      } else {
-        console.error(`Result is empty for entry: ${JSON.stringify(result)}`);
-      }
-    }
-  }
 
   console.log("\n--------------------------------\n");
   console.log(

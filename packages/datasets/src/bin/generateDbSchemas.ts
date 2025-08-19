@@ -5,7 +5,7 @@ import fs from "fs";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfoNode";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { prettyPrintMongoDbDocument } from "mongodb-rag-core/executeCode";
 import { makeOpenAiClient } from "../openAi";

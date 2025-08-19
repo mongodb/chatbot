@@ -64,8 +64,6 @@ export function makeSearchTool({
     inputSchema: MongoDbSearchToolArgsSchema,
     description: "Search MongoDB content",
 
-    // TODO: I get type errors when I try to implement this..Unclear why
-    // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
     toModelOutput(result) {
       return {
         type: "content",

@@ -12,6 +12,7 @@ import {
   type ResponseStreamCompleted,
   type ResponseStreamError,
   makeDataStreamer,
+  Message,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId, makeTraceConversation } from "../../utils";
@@ -350,6 +351,31 @@ export function makeCreateResponseRoute({
         alwaysAllowedMetadataKeys,
       });
 
+      // When input is a list length>1, we need to temporarily add the
+      // input messages to the conversation, since they're not stored yet.
+      if (typeof input !== "string" && input?.length > 1) {
+        const tempMessages = convertInputToDBMessages(
+          input,
+          store,
+          alwaysAllowedMetadataKeys,
+          metadata
+        ).map(
+          (msg) =>
+            ({
+              ...msg,
+              id: new ObjectId(),
+              createdAt: new Date(),
+            } satisfies Message)
+        );
+        // Exclude the last user message. It'll be used later as latestMessageText.
+        const lastUserMessageIndex: number =
+          tempMessages.findLastIndex(isUserMessage);
+        const conversationMessages: Message[] = tempMessages.filter(
+          (_, index) => index !== lastUserMessageIndex
+        );
+        conversation.messages.push(...conversationMessages);
+      }
+
       // --- CONVERSATION USER ID CHECK ---
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
@@ -432,7 +458,7 @@ export function makeCreateResponseRoute({
         reqId,
       });
 
-      // --- STORE MESSAGES IN CONVERSATION ---
+      // --- STORE NEW MESSAGES IN CONVERSATION ---
       await saveMessagesToConversation({
         conversations,
         conversation,
@@ -524,9 +550,9 @@ const loadConversationByMessageId = async ({
 
     return await conversations.create({
       userId,
-      storeMessageContent,
       customData: { metadata: formattedMetadata },
       creationInterface,
+      storeMessageContent,
     });
   }
 

@@ -1,22 +1,27 @@
 import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 
-export const makeSimpleTextGenerator = ({
-  model,
-  systemPrompt,
-}: {
+export type TextGenerator<TextOutput = string> = (args: {
+  prompt: string;
+  temperature?: number;
+  n?: number;
+}) => Promise<TextOutput[]>;
+
+export type SimpleTextGenerator = TextGenerator<string>;
+
+export type MakeTextGeneratorParams = {
   model: LanguageModel;
   systemPrompt?: string;
-}) => {
-  return async ({
+};
+
+export function makeSimpleTextGenerator({
+  model,
+  systemPrompt,
+}: MakeTextGeneratorParams): SimpleTextGenerator {
+  return async function simpleTextGenerator({
     prompt,
     temperature = 0,
     n = 1,
-  }: {
-    prompt: string;
-    temperature?: number;
-
-    n?: number;
-  }): Promise<string[]> => {
+  }): Promise<string[]> {
     const result = await Promise.all(
       Array(n)
         .fill(0)
@@ -31,6 +36,4 @@ export const makeSimpleTextGenerator = ({
     );
     return result.map(({ text }) => text);
   };
-};
-
-export type SimpleTextGenerator = ReturnType<typeof makeSimpleTextGenerator>;
+}

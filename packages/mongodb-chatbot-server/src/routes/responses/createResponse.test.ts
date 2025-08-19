@@ -589,6 +589,90 @@ describe("POST /responses", () => {
       await expectValidResponses({ requestBody: {}, stream });
       expect(mockUpdateTrace).toHaveBeenCalled();
     });
+
+    it("should pass input messages to generateResponse when input is array length > 1", async () => {
+      const mockGenerateResponse = jest
+        .fn()
+        .mockImplementation(async ({ dataStreamer }) => {
+          dataStreamer?.streamResponses({
+            type: "response.output_text.delta",
+            delta: "Test message!",
+          } as any);
+          dataStreamer?.streamResponses({
+            type: "response.output_text.annotation.added",
+            annotation: {
+              type: "url_citation",
+              url: "https://mongodb.com",
+            },
+          } as any);
+          dataStreamer?.streamResponses({
+            type: "response.output_text.done",
+            text: "Test message!",
+          } as any);
+
+          return {
+            messages: [
+              {
+                role: "user" as const,
+                content: "Second question",
+              },
+              { role: "assistant" as const, content: "some content" },
+            ],
+          };
+        });
+
+      const customConfig = await makeDefaultConfig();
+      customConfig.responsesRouterConfig.createResponse.generateResponse =
+        mockGenerateResponse;
+
+      const testPort = 5202; // Use a different port
+      const {
+        server: customServer,
+        ipAddress: customIpAddress,
+        origin: customOrigin,
+      } = await makeTestLocalServer(customConfig, testPort);
+
+      const requestBody: RequestBody = {
+        input: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: "First question" },
+          { role: "assistant", content: "First response" },
+          { role: "user", content: "Second question" },
+        ],
+      };
+
+      const stream = await makeClientAndRequest(
+        requestBody,
+        customOrigin,
+        customIpAddress
+      );
+
+      await expectValidResponses({ requestBody, stream });
+
+      expect(mockGenerateResponse).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversation: expect.objectContaining({
+            messages: expect.arrayContaining([
+              expect.objectContaining({
+                role: "system",
+                content: "You are a helpful assistant.",
+              }),
+              expect.objectContaining({
+                role: "user", 
+                content: "First question",
+              }),
+              expect.objectContaining({
+                role: "assistant",
+                content: "First response",
+              }),
+            ]),
+          }),
+          latestMessageText: "Second question",
+        })
+      );
+
+      customServer.close();
+    });
   });
 
   describe("Invalid requests", () => {

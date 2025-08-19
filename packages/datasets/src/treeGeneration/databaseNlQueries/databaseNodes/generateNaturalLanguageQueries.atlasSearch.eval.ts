@@ -2,18 +2,13 @@ import {
   makeGenerateNaturalLanguageQueryPrompt,
   nlQueryResponseSchema,
 } from "./generateNaturalLanguageQueries";
-import { Eval, wrapOpenAI, EvalScorer } from "mongodb-rag-core/braintrust";
+import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
 import { getOpenAiFunctionResponse } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { useCaseNodes } from "./sampleData";
 import { z } from "zod";
-import {
-  DatabaseInfo,
-  DatabaseUser,
-  DatabaseUseCase,
-  NaturalLanguageQuery,
-} from "./nodeTypes";
+import { NaturalLanguageQuery } from "./nodeTypes";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
@@ -25,15 +20,9 @@ const openAiClient = wrapOpenAI(
   })
 );
 
-// Properly typed evaluation input/output
-type EvalInput = {
-  databaseInfo: DatabaseInfo;
-  useCase: DatabaseUseCase;
-  user: DatabaseUser;
-  numChildren: number;
-};
-
-type EvalOutput = NaturalLanguageQuery[];
+interface Output {
+  results: NaturalLanguageQuery[];
+}
 
 const evalData = useCaseNodes.map((useCase) => {
   const databaseInfo = useCase.parent.parent.data;
@@ -57,12 +46,8 @@ const llmOptions = {
 };
 
 // Scoring functions to evaluate query quality
-const intentDiversityScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
-  output,
-}) => {
-  if (!Array.isArray(output)) {
-    return { name: "intent_diversity", score: 0 };
-  }
+const intentDiversityScore = (output: Output) => {
+  if (!Array.isArray(output)) return 0;
 
   const intentPatterns = {
     analysis: /analyze|compare|distribution|pattern|trend|frequency/i,
@@ -100,16 +85,11 @@ const intentDiversityScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
 
   const diversityBonus = Math.min(uniqueIntents / 5, 1); // Max bonus at 5 different intents
 
-  const score = Math.min(diversityRatio * 0.7 + diversityBonus * 0.3, 1);
-  return { name: "intent_diversity", score };
+  return Math.min(diversityRatio * 0.7 + diversityBonus * 0.3, 1);
 };
 
-const complexityDistributionScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
-  output,
-}) => {
-  if (!Array.isArray(output)) {
-    return { name: "complexity_distribution", score: 0 };
-  }
+const complexityDistributionScore = (output: NaturalLanguageQuery) => {
+  if (!Array.isArray(output)) return 0;
 
   const complexityCounts = {
     simple: 0,
@@ -119,7 +99,7 @@ const complexityDistributionScorer: EvalScorer<EvalInput, EvalOutput, undefined>
 
   output.forEach((query) => {
     if (query.complexity) {
-      complexityCounts[query.complexity]++;
+      complexityCounts[query.complexity as keyof typeof complexityCounts]++;
     }
   });
 
@@ -142,16 +122,11 @@ const complexityDistributionScorer: EvalScorer<EvalInput, EvalOutput, undefined>
       ? 1
       : Math.max(0, 1 - Math.abs(complexRatio - 0.6) * 5);
 
-  const score = (simpleScore + moderateScore + complexScore) / 3;
-  return { name: "complexity_distribution", score };
+  return (simpleScore + moderateScore + complexScore) / 3;
 };
 
-const atlasSearchSpecificityScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
-  output,
-}) => {
-  if (!Array.isArray(output)) {
-    return { name: "atlas_search_specificity", score: 0 };
-  }
+const atlasSearchSpecificityScore = (output: Output) => {
+  if (!Array.isArray(output)) return 0;
 
   // Atlas Search-specific features and operators
   const atlasFeatures = [
@@ -189,19 +164,14 @@ const atlasSearchSpecificityScorer: EvalScorer<EvalInput, EvalOutput, undefined>
   const featureUtilizationRate = queriesWithFeatures / output.length;
   const avgFeaturesPerQuery = totalFeatureUse / output.length;
 
-  const score = Math.min(
+  return Math.min(
     featureUtilizationRate * 0.6 + (avgFeaturesPerQuery / 3) * 0.4,
     1
   );
-  return { name: "atlas_search_specificity", score };
 };
 
-const queryLimitingScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
-  output,
-}) => {
-  if (!Array.isArray(output)) {
-    return { name: "query_limiting", score: 0 };
-  }
+const queryLimitingScore = (output: Output) => {
+  if (!Array.isArray(output)) return 0;
 
   const limitingPatterns = [
     /top\s+\d+/i,
@@ -223,55 +193,62 @@ const queryLimitingScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
     }
   });
 
-  const score = queriesWithLimits / output.length;
-  return { name: "query_limiting", score };
-};
-
-const overallQualityScorer: EvalScorer<EvalInput, EvalOutput, undefined> = ({
-  output,
-}) => {
-  const intentScore = intentDiversityScorer({ output }).score;
-  const complexityScore = complexityDistributionScorer({ output }).score;
-  const specificityScore = atlasSearchSpecificityScorer({ output }).score;
-  const limitingScore = queryLimitingScorer({ output }).score;
-
-  const scores = [intentScore, complexityScore, specificityScore, limitingScore];
-  const score = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-  
-  return { name: "overall_quality", score };
+  return queriesWithLimits / output.length;
 };
 
 async function main() {
   console.log("evalData", evalData.length);
-  await Eval("generate-atlas-search-natural-language", {
-    experimentName: "atlas-search-enhanced-prompt-evaluation",
-    data: evalData,
-    maxConcurrency: 5,
-    async task(input) {
-      const promptMessages = makeGenerateNaturalLanguageQueryPrompt({
-        ...input,
-        queryType: "atlas_search", // Ensure we use Atlas Search prompts
-      });
-      const { results } = await getOpenAiFunctionResponse({
-        messages: promptMessages,
-        llmOptions,
-        schema: z.object({
-          results: nlQueryResponseSchema.schema.array(),
-        }),
-        functionName: nlQueryResponseSchema.name,
-        functionDescription: nlQueryResponseSchema.description,
-        openAiClient,
-      });
-      return results;
-    },
-    scores: [
-      intentDiversityScorer,
-      complexityDistributionScorer,
-      atlasSearchSpecificityScorer,
-      queryLimitingScorer,
-      overallQualityScorer,
-    ],
-  });
+  await Eval<(typeof evalData)[number], Output>(
+    "generate-atlas-search-natural-language",
+    {
+      experimentName: "atlas-search-enhanced-prompt-evaluation",
+      data: evalData,
+      maxConcurrency: 5,
+      async task({ input }) {
+        const promptMessages = makeGenerateNaturalLanguageQueryPrompt({
+          ...input,
+          queryType: "atlas_search", // Ensure we use Atlas Search prompts
+        });
+        const { results } = await getOpenAiFunctionResponse({
+          messages: promptMessages,
+          llmOptions,
+          schema: z.object({
+            results: nlQueryResponseSchema.schema.array(),
+          }),
+          functionName: nlQueryResponseSchema.name,
+          functionDescription: nlQueryResponseSchema.description,
+          openAiClient,
+        });
+        return { results };
+      },
+      scores: [
+        ({ output }) => {
+          return {
+            name: "intent_diversity",
+            score: intentDiversityScore(output),
+          };
+        },
+        ({ output }) => {
+          return {
+            name: "complexity_distribution",
+            score: complexityDistributionScore(output),
+          };
+        },
+        ({ output }) => {
+          return {
+            name: "atlas_search_specificity",
+            score: atlasSearchSpecificityScore(output),
+          };
+        },
+        ({ output }) => {
+          return {
+            name: "query_limiting",
+            score: queryLimitingScore(output),
+          };
+        },
+      ],
+    }
+  );
 }
 
 main();

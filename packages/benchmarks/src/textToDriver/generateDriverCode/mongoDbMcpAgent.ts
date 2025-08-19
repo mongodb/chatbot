@@ -6,8 +6,6 @@ import {
   hasToolCall,
   experimental_createMCPClient,
   ToolSet,
-  jsonSchema,
-  JSONSchema7,
 } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MongoClient } from "mongodb-rag-core/mongodb";
@@ -26,7 +24,7 @@ export interface MakeMongoDbMcpAgentParams {
   systemPrompt: string;
   mongoClient: MongoClient;
   availableMongoDbMcpTools?: MongoDbMcpToolName[];
-  maxSteps?: number;
+  maxSteps: number;
   mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
 }
 
@@ -82,7 +80,7 @@ export async function makeMongoDbMcpAgent({
   systemPrompt,
   mongoClient,
   availableMongoDbMcpTools = readOnlyToolNames,
-  maxSteps = 15,
+  maxSteps,
   mongoDbMcpClient,
 }: MakeMongoDbMcpAgentParams) {
   // Load full tool set from MCP server
@@ -110,9 +108,9 @@ export async function makeMongoDbMcpAgent({
       makeGetAtlasSearchIndexesTool(mongoClient);
     mcpToolSet[getAtlasSearchIndexesToolName] = getAtlasSearchIndexesTool;
   }
-  // Add think tool for Claude to reflect.
+  // Add think tool for model to reflect.
   mcpToolSet[thinkToolName] = thinkTool;
-  // Add submit-final-solution tool for Claude to submit answer and stop generating.
+  // Add submit-final-solution tool for model to submit answer and stop generating.
   mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
 
   return wrapTraced(async function mongoDbMcpAgent({

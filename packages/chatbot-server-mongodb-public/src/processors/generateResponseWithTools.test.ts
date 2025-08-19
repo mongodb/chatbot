@@ -39,7 +39,6 @@ import {
 } from "../tools/fetchPage";
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
-import { systemPrompt } from "../systemPrompt";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 const latestMessageText = "Hello";
@@ -690,6 +689,51 @@ describe("generateResponseWithTools", () => {
       });
     });
   });
+
+  describe("parallel tool calls", () => {
+    // Two fetch page toolcalls to different URLs.
+    const mockFetchPageToolCallsStream = simulateReadableStream({
+      chunks: [
+        {
+          type: "tool-call" as const,
+          toolCallId: "fetch001",
+          toolName: FETCH_PAGE_TOOL_NAME,
+          input: JSON.stringify(fetchPageToolMockArgs),
+        },
+        {
+          type: "tool-call" as const,
+          toolCallId: "fetch002",
+          toolName: FETCH_PAGE_TOOL_NAME,
+          input: JSON.stringify({
+            ...fetchPageToolMockArgs,
+            pageUrl: "https://example2.com/",
+          }),
+        },
+        mockFinishChunk,
+      ] satisfies LanguageModelV2StreamPart[],
+      chunkDelayInMs: 100,
+      initialDelayInMs: 100,
+    });
+
+    const mockLanguageModel = makeMockLanguageModel([
+      () => mockFetchPageToolCallsStream,
+      () => makeFinalAnswerStream(),
+    ]);
+
+    const generateResponseParallelToolCalls = makeGenerateResponseWithTools({
+      ...makeGenerateResponseWithToolsArgs(),
+      languageModel: mockLanguageModel,
+      inputGuardrail: makeMockGuardrail(true),
+    });
+
+    test("should handle parallel tool call successful generation", async () => {
+      const result = await generateResponseParallelToolCalls(
+        generateResponseBaseArgs
+      );
+
+      expectSuccessfulParallelToolCallResult(result);
+    });
+  });
 });
 
 function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
@@ -804,4 +848,95 @@ function expectSuccessfulResultCustomTool(
       function: functionMessage,
     },
   });
+}
+
+function expectSuccessfulParallelToolCallResult(
+  result: GenerateResponseReturnValue
+) {
+  expect(result).toHaveProperty("messages");
+  // User -> Assistant (fetch_page tool call) -> Assistant (fetch_page tool call) ->
+  // fetch_page tool result -> fetch_page tool result -> Assistant msg (final answer)
+  expect(result.messages).toHaveLength(6);
+
+  expect(result.messages[0]).toMatchObject({
+    role: "user",
+    content: latestMessageText,
+  });
+
+  expect(result.messages[1]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "fetch001",
+      function: {
+        name: FETCH_PAGE_TOOL_NAME,
+      },
+      type: "function",
+    },
+    content: "",
+  });
+  expect(
+    JSON.parse(
+      (result.messages[1] as AssistantMessage)?.toolCall?.function
+        .arguments as string
+    )
+  ).toMatchObject(fetchPageToolMockArgs);
+
+  expect(result.messages[2]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "fetch002",
+      function: {
+        name: FETCH_PAGE_TOOL_NAME,
+      },
+      type: "function",
+    },
+    content: "",
+  });
+  expect(
+    JSON.parse(
+      (result.messages[2] as AssistantMessage)?.toolCall?.function
+        .arguments as string
+    )
+  ).toMatchObject({
+    ...fetchPageToolMockArgs,
+    pageUrl: "https://example2.com/",
+  });
+
+  assert(result.messages[3]);
+  expect(result.messages[3]).toMatchObject({
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: "Example page body",
+  });
+
+  assert(result.messages[4]);
+  expect(result.messages[4]).toMatchObject({
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: "Example page body",
+  });
+
+  expect(result.messages[5]).toMatchObject({
+    role: "assistant",
+    content: finalAnswer,
+  });
+  // Verify references are 2 fetchPage mock references
+  expect((result.messages[5] as AssistantMessage).references).toEqual([
+    {
+      url: `https://${mockPageContent.url}/`,
+      title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
+      metadata: {
+        tags: [],
+        sourceName: mockPageContent.sourceName,
+      },
+    },
+    {
+      url: `https://${mockPageContent.url}/`,
+      title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
+      metadata: {
+        tags: [],
+        sourceName: mockPageContent.sourceName,
+      },
+    },
+  ]);
 }

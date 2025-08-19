@@ -267,7 +267,6 @@ const makeMockGuardrail =
   (pass: boolean): InputGuardrail =>
   async () =>
     pass ? mockGuardrailPassResult : mockGuardrailRejectResult;
-
 const mockThrowingLanguageModel: LanguageModel = {
   doGenerate: async () => {
     throw new Error("LLM error: should always fail");
@@ -495,8 +494,8 @@ describe("generateResponseWithTools", () => {
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: async () => {
-            // sleep for 2 seconds
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockGuardrailPassResult;
           },
         });
@@ -526,8 +525,8 @@ describe("generateResponseWithTools", () => {
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           inputGuardrail: async () => {
-            // sleep for 2 seconds
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockGuardrailRejectResult;
           },
         });

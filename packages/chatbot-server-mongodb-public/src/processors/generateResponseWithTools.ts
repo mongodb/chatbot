@@ -432,7 +432,7 @@ export function makeGenerateResponseWithTools({
           generationController.abort();
         }
         return result;
-      });
+      }) ?? Promise.resolve(undefined);
 
       // Start generation immediately (in parallel with guardrail)
       const generationPromise = (async () => {
@@ -485,6 +485,12 @@ export function makeGenerateResponseWithTools({
               }
             },
           });
+
+          // Wait for guardrail so we don't get streaming overlap 
+          const guardrailResult = await guardrailMonitor
+          if (guardrailResult?.rejected) {
+            throw new Error("Guardrail rejected (just exit this block)");
+          }
 
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end

@@ -20,6 +20,20 @@ type FormatUserMessageForGenerationParams = {
   customData: ConversationCustomData;
 };
 
+interface OriginCodeLabels {
+  /** Code to label mapping. */
+  [code: string]: string;
+}
+
+// Some origin codes have a label to add to the front matter
+const originCodeLabels: OriginCodeLabels = {};
+ORIGIN_RULES.reduce((acc, rule) => {
+  if (rule.label !== undefined) {
+    acc[rule.code] = rule.label;
+  }
+  return acc;
+}, originCodeLabels);
+
 export function formatUserMessageForGeneration({
   userMessageText,
   reqId,
@@ -64,15 +78,10 @@ export function formatUserMessageForGeneration({
     }
   }
 
-  // Some origin codes have a label to add to the front matter
-  const originToLabelRules = ORIGIN_RULES.filter(
-    (rule) => rule.label !== undefined
-  );
-  originToLabelRules.forEach((rule) => {
-    if (parsedCustomData.originCode === rule.code) {
-      frontMatter.client = rule.label as string;
-    }
-  });
+  const originLabel = originCodeLabels[parsedCustomData.originCode ?? ""];
+  if (originLabel) {
+    frontMatter.client = originLabel;
+  }
 
   if (Object.keys(frontMatter).length === 0) {
     return userMessageText;

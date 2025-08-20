@@ -1,5 +1,6 @@
 import { formatUserMessageForGeneration } from "./formatUserMessageForGeneration";
 import { ConversationCustomData, logger } from "mongodb-rag-core";
+import { ORIGIN_RULES } from "mongodb-chatbot-server";
 
 beforeAll(() => {
   logger.error = jest.fn();
@@ -103,7 +104,7 @@ ${userMessageText}`);
       } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-client: MongoDB VS Code plugin
+client: MongoDB VS Code extension
 ---
 
 ${userMessageText}`);
@@ -126,6 +127,25 @@ client: ${expectedClientLabel}
 ---
 
 ${userMessageText}`);
+  });
+
+  it("does not add client front matter for unlabelled mongodb originCodes", () => {
+    const unlabelledOriginCodes: string[] = [];
+    ORIGIN_RULES.reduce((acc, rule) => {
+      if (!rule.label) unlabelledOriginCodes.push(rule.code);
+      return acc;
+    }, unlabelledOriginCodes);
+
+    unlabelledOriginCodes.forEach((originCode) => {
+      const result = formatUserMessageForGeneration({
+        userMessageText,
+        reqId,
+        customData: {
+          originCode,
+        } satisfies ConversationCustomData,
+      });
+      expect(result).toEqual(userMessageText);
+    });
   });
 
   it("logs a warning and does not add pageUrl if origin is malformed", () => {
@@ -156,7 +176,7 @@ ${userMessageText}`);
 
   it("adds both pageUrl and client front matter if both are present", () => {
     const originCode = "VSCODE";
-    const expectedClientLabel = "MongoDB VS Code plugin";
+    const expectedClientLabel = "MongoDB VS Code extension";
     const result = formatUserMessageForGeneration({
       userMessageText,
       reqId,

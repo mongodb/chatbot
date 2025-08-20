@@ -5,8 +5,7 @@ import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { parse } from "csv/sync";
-import { stringify } from "csv/sync";
+import { parse, stringify } from "csv/sync";
 import { makeAnalyzeCases } from "mercury-case-analysis";
 import { PromisePool } from "@supercharge/promise-pool";
 
@@ -22,6 +21,7 @@ interface CsvRow {
   suggestedPromptChange: string;
   suggestedResponseChange: string;
   currentExpectedResponse: string;
+  tags: string;
 }
 
 // Analysis result structure
@@ -34,6 +34,7 @@ interface AnalysisResult {
   qualityGuidance: string;
   source: "csv" | "database";
   action?: string;
+  tags?: string;
 }
 
 // Database case structure
@@ -41,6 +42,7 @@ interface DatabaseCase {
   _id: ObjectId;
   name?: string;
   expected?: string;
+  tags?: string;
 }
 
 // Combined row structure for processing
@@ -50,6 +52,7 @@ interface ProcessingRow {
   expectedResponse: string;
   source: "csv" | "database";
   action?: string;
+  tags?: string;
 }
 
 // Parse CSV file using the csv package
@@ -69,6 +72,7 @@ function parseCsv(filePath: string): CsvRow[] {
       "suggestedPromptChange",
       "suggestedResponseChange",
       "comments",
+      "tags",
     ],
     skip_empty_lines: true,
     trim: true,
@@ -95,6 +99,7 @@ async function fetchAllDatabaseCases(
         promptText,
         expectedResponse,
         source: "database",
+        tags: caseDoc.tags,
       } satisfies ProcessingRow;
     }
     return null;
@@ -143,6 +148,7 @@ function csvRowToProcessingRow(csvRow: CsvRow): ProcessingRow | null {
     expectedResponse,
     source: "csv",
     action: csvRow.action,
+    tags: csvRow.tags,
   };
 }
 
@@ -257,6 +263,7 @@ async function analyzeProcessingRow(
       qualityGuidance,
       source: row.source,
       action: row.source === "csv" ? row.action : undefined,
+      tags: row.tags,
     };
   } catch (error) {
     console.log(`${finalPromptId} | "${truncatedPrompt}..." | ERROR: ${error}`);
@@ -282,6 +289,7 @@ async function generateOutputCsv(results: AnalysisResult[]) {
     "Quality Guidance",
     "Source",
     "Action",
+    "Tags",
   ];
 
   const data = results.map((result) => [
@@ -293,6 +301,7 @@ async function generateOutputCsv(results: AnalysisResult[]) {
     result.qualityGuidance,
     result.source,
     result.action || "",
+    result.tags || "",
   ]);
 
   const csvContent = stringify([headers, ...data], {
@@ -396,7 +405,7 @@ async function main() {
 
     // Process each row with parallelization
 
-    const { results, errors } = await PromisePool.withConcurrency(10)
+    const { results, errors } = await PromisePool.withConcurrency(12)
       .for(processingRows)
       .process(async (row) => {
         return await analyzeProcessingRow(row, analyzeCases);

@@ -4,6 +4,8 @@ import { strict as assert } from "assert";
 // Defines what models will be run for each benchmark.
 export const MODELS = (
   [
+    "gpt-5",
+    "gpt-5-mini",
     "gpt-4o",
     "gpt-4o-mini",
     "claude-3-haiku",
@@ -11,6 +13,8 @@ export const MODELS = (
     "claude-35-sonnet",
     "claude-35-sonnet-v2",
     "claude-37-sonnet",
+    "anthropic/claude-sonnet-4",
+    "anthropic/claude-opus-4.1",
     "o3-mini",
     "o3",
     "o4-mini",

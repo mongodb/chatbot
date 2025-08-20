@@ -77,6 +77,10 @@ export interface ModelConfig {
 
   1. The hyperscalers are authorized (AWS, GCP, Azure)
   2. Assume all other model providers are unauthorized unless you explicitly know otherwise.
+
+  Available models can be found at https://www.braintrust.dev/docs/guides/proxy#list-of-supported-models-and-providers
+  Select Azure, Vertex, Amazon Bedrock, Anthropic. Choose Amazon Bedrock over Anthropic when possible.
+
  */
 const allModels = [
   {

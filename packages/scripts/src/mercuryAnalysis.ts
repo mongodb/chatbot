@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { getEnv } from "mongodb-rag-core";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, Collection, ObjectId } from "mongodb-rag-core/mongodb";
 import { createOpenAI } from "mongodb-rag-core/aiSdk";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
@@ -32,6 +32,24 @@ interface AnalysisResult {
   relevanceScore: number;
   qualityAnalysis: string;
   qualityGuidance: string;
+  source: "csv" | "database";
+  action?: string;
+}
+
+// Database case structure
+interface DatabaseCase {
+  _id: ObjectId;
+  name?: string;
+  expected?: string;
+}
+
+// Combined row structure for processing
+interface ProcessingRow {
+  promptId: string;
+  promptText: string;
+  expectedResponse: string;
+  source: "csv" | "database";
+  action?: string;
 }
 
 // Parse CSV file using the csv package
@@ -60,87 +78,148 @@ function parseCsv(filePath: string): CsvRow[] {
   return records;
 }
 
-// Analyze a single prompt-response pair
-async function analyzeRow(
-  csvRow: CsvRow,
-  analyzeCases: ReturnType<typeof makeAnalyzeCases>,
-  casesCollection: import("mongodb").Collection
-): Promise<AnalysisResult | null> {
-  console.log(
-    `\nAnalyzing row: ${
-      csvRow.promptId || csvRow.promptText.substring(0, 50)
-    }...`
-  );
+// Fetch all cases from the database
+async function fetchAllDatabaseCases(
+  casesCollection: Collection
+): Promise<ProcessingRow[]> {
+  console.log(`Fetching all cases from the database`);
+  const cursor = casesCollection.find<DatabaseCase>({});
+  const dbCases = await cursor.toArray();
+  const rows = dbCases.map((caseDoc: DatabaseCase) => {
+    const promptText = caseDoc.name || "";
+    const expectedResponse = caseDoc.expected || "";
 
-  // Determine the prompt to analyze
-  let promptToAnalyze = csvRow.promptText;
-  let responseToAnalyze = csvRow.currentExpectedResponse;
+    if (promptText && expectedResponse) {
+      return {
+        promptId: caseDoc._id.toHexString(),
+        promptText,
+        expectedResponse,
+        source: "database",
+      } satisfies ProcessingRow;
+    }
+    return null;
+  });
 
-  // Override with suggested changes if provided
+  console.log(`Found ${rows.length} cases in the database`);
+  const nonNullCases = rows.filter((row) => row !== null) as ProcessingRow[];
+  console.log(`Found ${nonNullCases.length} non-null cases in the database`);
+  return nonNullCases;
+}
+
+// Convert CSV row to ProcessingRow
+function csvRowToProcessingRow(csvRow: CsvRow): ProcessingRow | null {
+  // Determine the prompt and response to use
+  let promptText = csvRow.promptText || "";
+  let expectedResponse = csvRow.currentExpectedResponse || "";
+
+  // Use suggested changes if provided
   if (
     csvRow.suggestedPromptChange &&
     csvRow.suggestedPromptChange.trim() !== ""
   ) {
-    promptToAnalyze = csvRow.suggestedPromptChange;
-    console.log("Using suggested prompt change");
+    promptText = csvRow.suggestedPromptChange;
   }
 
   if (
     csvRow.suggestedResponseChange &&
     csvRow.suggestedResponseChange.trim() !== ""
   ) {
-    responseToAnalyze = csvRow.suggestedResponseChange;
-    console.log("Using suggested response change");
+    expectedResponse = csvRow.suggestedResponseChange;
   }
 
-  // If we have a promptId, we can get additional data from MongoDB
-  let finalPromptId = csvRow.promptId;
-
-  if (csvRow.promptId && csvRow.promptId.trim() !== "") {
-    try {
-      const caseId = ObjectId.createFromHexString(csvRow.promptId);
-      const caseDoc = await casesCollection.findOne({ _id: caseId });
-
-      if (caseDoc) {
-        // If prompt text is not overridden and we have case data, use the case prompt
-        if (csvRow.suggestedPromptChange.trim() === "" && !csvRow.promptText) {
-          const casePromptText =
-            caseDoc.prompt
-              ?.filter((p: { role: string }) => p.role === "user")
-              ?.map((p: { content: string }) => p.content)
-              ?.join("\n") || "";
-
-          if (casePromptText) {
-            promptToAnalyze = casePromptText;
-          }
-        }
-
-        // If no current expected response and we have case data, use case expected
-        if (!responseToAnalyze && caseDoc.expected) {
-          responseToAnalyze = caseDoc.expected;
-        }
-      }
-    } catch (error) {
-      console.error(`Invalid ObjectId or database error: ${csvRow.promptId}`);
-      // Continue with CSV data
-    }
-  } else {
-    // Generate a simple ID for cases without promptId
-    finalPromptId = csvRow.promptText
-      .substring(0, 20)
-      .replace(/[^a-zA-Z0-9]/g, "_");
+  // Generate a promptId if not provided
+  let promptId = csvRow.promptId;
+  if (!promptId || promptId.trim() === "") {
+    promptId = csvRow.promptText.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_");
   }
 
-  // Validate we have both prompt and response
-  if (!promptToAnalyze || !responseToAnalyze) {
-    console.error(`Missing prompt or response for row: ${finalPromptId}`);
+  if (!promptText || !expectedResponse) {
     return null;
   }
 
-  console.log(`Analyzing prompt: "${promptToAnalyze.substring(0, 100)}..."`);
-  console.log(
-    `Analyzing response: "${responseToAnalyze.substring(0, 100)}..."`
-  );
+  return {
+    promptId,
+    promptText,
+    expectedResponse,
+    source: "csv",
+    action: csvRow.action,
+  };
+}
+
+// Merge CSV rows with database cases based on action precedence
+function mergeRowsWithPrecedence(
+  csvRows: CsvRow[],
+  databaseCases: ProcessingRow[]
+): ProcessingRow[] {
+  const result: ProcessingRow[] = [];
+  const processedPromptIds = new Set<string>();
+
+  // Convert CSV rows to ProcessingRows
+  const csvProcessingRows = csvRows
+    .map(csvRowToProcessingRow)
+    .filter((row): row is ProcessingRow => row !== null);
+
+  // First, add all CSV rows
+  for (const csvRow of csvProcessingRows) {
+    if (csvRow.action === "Update" || csvRow.action === "Review") {
+      // Update/Review actions: these will override any database case with same promptId
+      processedPromptIds.add(csvRow.promptId);
+    }
+    // Note: Create actions preserve their original promptId and are always added
+
+    result.push(csvRow);
+    if (csvRow.action === "Update" || csvRow.action === "Review") {
+      processedPromptIds.add(csvRow.promptId);
+    }
+  }
+
+  // Then, add database cases that weren't overridden
+  for (const dbCase of databaseCases) {
+    if (!processedPromptIds.has(dbCase.promptId)) {
+      result.push(dbCase);
+    }
+  }
+
+  return result;
+}
+
+// Parse command line arguments
+function parseArguments(): { csvFilePath: string | null; includeAll: boolean } {
+  const args = process.argv.slice(2);
+  let csvFilePath: string | null = null;
+  let includeAll = false;
+
+  console.log(`args: ${args.join(" : ")}`);
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--all") {
+      includeAll = true;
+    } else if (!csvFilePath && !arg.startsWith("--")) {
+      csvFilePath = arg;
+    }
+  }
+
+  return { csvFilePath, includeAll };
+}
+
+// Analyze a single processing row
+async function analyzeProcessingRow(
+  row: ProcessingRow,
+  analyzeCases: ReturnType<typeof makeAnalyzeCases>
+): Promise<AnalysisResult | null> {
+  const promptToAnalyze = row.promptText;
+  const responseToAnalyze = row.expectedResponse;
+  const finalPromptId = row.promptId;
+  const truncatedPrompt = promptToAnalyze.substring(0, 50).replace(/\s+/g, " ");
+
+  // Validate we have both prompt and response
+  if (!promptToAnalyze || !responseToAnalyze) {
+    console.log(
+      `${finalPromptId} | "${truncatedPrompt}..." | ERROR: Missing data`
+    );
+    return null;
+  }
 
   try {
     // Run the analysis
@@ -164,7 +243,9 @@ async function analyzeRow(
     const qualityGuidance = result.quality?.guidance || "";
 
     console.log(
-      `✓ Analysis complete. Relevance score: ${relevanceScore.toFixed(4)}`
+      `${finalPromptId} | "${truncatedPrompt}..." | Score: ${relevanceScore.toFixed(
+        4
+      )}`
     );
 
     return {
@@ -174,9 +255,11 @@ async function analyzeRow(
       relevanceScore,
       qualityAnalysis,
       qualityGuidance,
+      source: row.source,
+      action: row.source === "csv" ? row.action : undefined,
     };
   } catch (error) {
-    console.error(`Error analyzing row ${finalPromptId}: ${error}`);
+    console.log(`${finalPromptId} | "${truncatedPrompt}..." | ERROR: ${error}`);
     return null;
   }
 }
@@ -197,6 +280,8 @@ async function generateOutputCsv(results: AnalysisResult[]) {
     "Relevance Score",
     "Quality Analysis",
     "Quality Guidance",
+    "Source",
+    "Action",
   ];
 
   const data = results.map((result) => [
@@ -206,6 +291,8 @@ async function generateOutputCsv(results: AnalysisResult[]) {
     result.relevanceScore.toFixed(4),
     result.qualityAnalysis,
     result.qualityGuidance,
+    result.source,
+    result.action || "",
   ]);
 
   const csvContent = stringify([headers, ...data], {
@@ -215,21 +302,22 @@ async function generateOutputCsv(results: AnalysisResult[]) {
 
   writeFileSync(outputPath, csvContent, "utf-8");
 
-  console.log(`\n✓ Results written to: ${outputPath}`);
-  console.log(`Analyzed ${results.length} rows successfully`);
+  console.log(`Results written to: ${outputPath}`);
 }
 
 async function main() {
-  // Get command line argument for CSV file path
-  const csvFilePath = process.argv[2];
-  if (!csvFilePath) {
-    console.error("Usage: npm run mercury-analysis <path-to-csv-file>");
+  // Parse command line arguments
+  const { csvFilePath, includeAll } = parseArguments();
+
+  if (!csvFilePath && !includeAll) {
+    console.error("Usage: npm run mercury-analysis <path-to-csv-file> [--all]");
     process.exit(1);
   }
 
-  console.log(`Reading CSV file: ${csvFilePath}`);
-  const csvRows = parseCsv(csvFilePath);
-  console.log(`Found ${csvRows.length} rows to process`);
+  let csvRows: CsvRow[] = [];
+  if (csvFilePath) {
+    csvRows = parseCsv(csvFilePath);
+  }
 
   // Setup environment variables and models
   const {
@@ -272,6 +360,7 @@ async function main() {
     embeddingModels,
     generatorModel,
     judgementModel,
+    shouldLog: false,
   });
 
   // Connect to MongoDB
@@ -280,19 +369,37 @@ async function main() {
   const casesCollection = db.collection(MERCURY_CASES_COLLECTION_NAME);
 
   try {
+    // Prepare rows for processing
+    let processingRows: ProcessingRow[];
+
+    console.log(`includeAll: ${includeAll}`);
+
+    if (includeAll) {
+      // Fetch all database cases and merge with CSV
+      const databaseCases = await fetchAllDatabaseCases(casesCollection);
+      processingRows = mergeRowsWithPrecedence(csvRows, databaseCases);
+    } else {
+      // Process only CSV rows
+      processingRows = csvRows
+        .map(csvRowToProcessingRow)
+        .filter((row): row is ProcessingRow => row !== null);
+    }
+
+    // Show summary statistics
+    const csvCount = processingRows.filter((r) => r.source === "csv").length;
+    const dbCount = processingRows.filter(
+      (r) => r.source === "database"
+    ).length;
     console.log(
-      `Connected to ${MERCURY_DATABASE_NAME}.${MERCURY_CASES_COLLECTION_NAME}`
+      `\nAnalyzing ${processingRows.length} cases (${csvCount} CSV + ${dbCount} DB)\n`
     );
 
-    // Process each CSV row with parallelization
-    console.log(
-      `\nProcessing ${csvRows.length} rows with concurrency of 10...`
-    );
+    // Process each row with parallelization
 
     const { results, errors } = await PromisePool.withConcurrency(10)
-      .for(csvRows)
-      .process(async (csvRow) => {
-        return await analyzeRow(csvRow, analyzeCases, casesCollection);
+      .for(processingRows)
+      .process(async (row) => {
+        return await analyzeProcessingRow(row, analyzeCases);
       });
 
     // Filter out null results and log any errors
@@ -300,15 +407,8 @@ async function main() {
       (result) => result !== null
     ) as AnalysisResult[];
 
-    if (errors.length > 0) {
-      console.error(`\n⚠ ${errors.length} errors occurred during processing:`);
-      errors.forEach((error, index) => {
-        console.error(`Error ${index + 1}:`, error);
-      });
-    }
-
     console.log(
-      `\n✓ Successfully processed ${validResults.length} out of ${csvRows.length} rows`
+      `\nCompleted: ${validResults.length} successful, ${errors.length} failed`
     );
 
     // Generate output CSV

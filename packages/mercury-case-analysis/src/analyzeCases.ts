@@ -10,6 +10,7 @@ export type MakeAnalyzeCaseParams = {
   generatorModel: LanguageModel;
   judgementModel: LanguageModel;
   ratingStyleGuide?: string;
+  shouldLog?: boolean;
 };
 
 export type CaseAnalysis = {
@@ -29,6 +30,7 @@ export function makeAnalyzeCase({
   ratingStyleGuide,
   generatorModel,
   embeddingModels,
+  shouldLog = true,
 }: MakeAnalyzeCaseParams): AnalyzeCase {
   const generateRating = makeGenerateRating({
     model: judgementModel,
@@ -37,7 +39,9 @@ export function makeAnalyzeCase({
   const generateText = makeSimpleTextGenerator({ model: generatorModel });
 
   return async ({ prompt, response }) => {
-    console.log(`Analyzing case: '${makeShortName(prompt)}'...`);
+    if (shouldLog) {
+      console.log(`Analyzing case: '${makeShortName(prompt)}'...`);
+    }
     const [relevance, quality] = await Promise.all([
       assessRelevance({
         prompt,

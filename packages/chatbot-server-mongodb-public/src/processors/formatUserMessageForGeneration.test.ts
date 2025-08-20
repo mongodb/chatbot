@@ -8,16 +8,19 @@ beforeAll(() => {
 describe("formatUserMessageForGeneration", () => {
   const userMessageText = "Hello, world!";
   const reqId = "test-request-id";
+  const testMongoDbPageUrl = "https://mongodb.com";
+  const resultMongoDbPageUrl = "mongodb.com";
 
   it("formats front matter correctly for mongodb.com origin", () => {
-    const origin = "https://mongodb.com";
     const result = formatUserMessageForGeneration({
       userMessageText,
       reqId,
-      customData: { origin } satisfies ConversationCustomData,
+      customData: {
+        origin: testMongoDbPageUrl,
+      } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: ${resultMongoDbPageUrl}
 ---
 
 ${userMessageText}`);
@@ -31,7 +34,40 @@ ${userMessageText}`);
       customData: { origin } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: learn.mongodb.com
+---
+
+${userMessageText}`);
+  });
+
+  it("normalizes a URL with trailing backslash", () => {
+    const origin = testMongoDbPageUrl + "/docs/pageName/";
+    const result = formatUserMessageForGeneration({
+      userMessageText,
+      reqId,
+      customData: {
+        origin,
+      } satisfies ConversationCustomData,
+    });
+    expect(result).toEqual(`---
+pageUrl: ${resultMongoDbPageUrl + "/docs/pageName"}
+---
+
+${userMessageText}`);
+  });
+
+  it("normalizes a URL with query", () => {
+    const origin =
+      "https://learn.mongodb.com/courses/mongodb-for-sql-experts?param1=value1&param2=value2";
+    const result = formatUserMessageForGeneration({
+      userMessageText,
+      reqId,
+      customData: {
+        origin,
+      } satisfies ConversationCustomData,
+    });
+    expect(result).toEqual(`---
+pageUrl: learn.mongodb.com/courses/mongodb-for-sql-experts
 ---
 
 ${userMessageText}`);
@@ -119,19 +155,18 @@ ${userMessageText}`);
   });
 
   it("adds both pageUrl and client front matter if both are present", () => {
-    const origin = "https://mongodb.com";
     const originCode = "VSCODE";
     const expectedClientLabel = "MongoDB VS Code plugin";
     const result = formatUserMessageForGeneration({
       userMessageText,
       reqId,
       customData: {
-        origin,
+        origin: testMongoDbPageUrl,
         originCode,
       } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: ${resultMongoDbPageUrl}
 client: ${expectedClientLabel}
 ---
 

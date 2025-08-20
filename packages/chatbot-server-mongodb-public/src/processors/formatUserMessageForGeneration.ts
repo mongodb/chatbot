@@ -1,5 +1,6 @@
 import { updateFrontMatter, ConversationCustomData } from "mongodb-rag-core";
 import { originCodes, ORIGIN_RULES } from "mongodb-chatbot-server";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { z } from "zod";
 import { logRequest } from "../utils";
 
@@ -52,7 +53,7 @@ export function formatUserMessageForGeneration({
         url.hostname === "mongodb.com" ||
         url.hostname.endsWith(".mongodb.com")
       ) {
-        frontMatter.pageUrl = parsedCustomData.origin;
+        frontMatter.pageUrl = normalizeUrl({ url: parsedCustomData.origin });
       }
     } catch (e) {
       logRequest({

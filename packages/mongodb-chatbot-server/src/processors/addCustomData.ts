@@ -61,7 +61,7 @@ export const ORIGIN_RULES: OriginRule[] = [
   {
     regex: /vscode-mongodb-copilot/,
     code: "VSCODE",
-    label: "MongoDB VS Code plugin",
+    label: "MongoDB VS Code extension",
   },
 ];
 

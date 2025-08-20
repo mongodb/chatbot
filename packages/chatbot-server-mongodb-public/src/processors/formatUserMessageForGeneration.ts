@@ -1,5 +1,5 @@
 import { updateFrontMatter, ConversationCustomData } from "mongodb-rag-core";
-import { originCodes } from "mongodb-chatbot-server";
+import { originCodes, ORIGIN_RULES } from "mongodb-chatbot-server";
 import { z } from "zod";
 import { logRequest } from "../utils";
 
@@ -62,11 +62,16 @@ export function formatUserMessageForGeneration({
       });
     }
   }
-  if (parsedCustomData.originCode === "VSCODE") {
-    frontMatter.client = "MongoDB VS Code plugin";
-  } else if (parsedCustomData.originCode === "GEMINI_CODE_ASSIST") {
-    frontMatter.client = "Gemini Code Assist";
-  }
+
+  // Some origin codes have a label to add to the front matter
+  const originToLabelRules = ORIGIN_RULES.filter(
+    (rule) => rule.label !== undefined
+  );
+  originToLabelRules.forEach((rule) => {
+    if (parsedCustomData.originCode === rule.code) {
+      frontMatter.client = rule.label as string;
+    }
+  });
 
   if (Object.keys(frontMatter).length === 0) {
     return userMessageText;

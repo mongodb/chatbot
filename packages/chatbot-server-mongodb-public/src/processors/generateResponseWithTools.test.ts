@@ -396,34 +396,6 @@ describe("generateResponseWithTools", () => {
       ) as UserMessage;
       expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
-    it("should not generate until guardrail has resolved (reject)", async () => {
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        inputGuardrail: async () => {
-          // sleep for 2 seconds
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          return mockGuardrailRejectResult;
-        },
-      });
-
-      const result = await generateResponse(generateResponseBaseArgs);
-
-      expectGuardrailRejectResult(result);
-    });
-    it("should not generate until guardrail has resolved (pass)", async () => {
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        inputGuardrail: async () => {
-          // sleep for 2 seconds
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          return mockGuardrailPassResult;
-        },
-      });
-
-      const result = await generateResponse(generateResponseBaseArgs);
-
-      expectSuccessfulResult(result);
-    });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
         const generateResponse = makeGenerateResponseWithTools(
@@ -473,30 +445,26 @@ describe("generateResponseWithTools", () => {
     });
 
     describe("streaming mode", () => {
-      const makeMockDataStreamer = () => {
-        const mockConnect = jest.fn();
-        const mockDisconnect = jest.fn();
-        const mockStreamData = jest.fn();
-        const mockStreamResponses = jest.fn();
-        const mockStream = jest.fn().mockImplementation(async () => {
+      const mockDataStreamerConfig = {
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        streamData: jest.fn(),
+        streamResponses: jest.fn(),
+        stream: jest.fn().mockImplementation(async () => {
           // Process the stream and return a string result
           return "Hello";
-        });
-
-        const dataStreamer = {
-          connected: true,
-          connect: mockConnect,
-          disconnect: mockDisconnect,
-          streamData: mockStreamData,
-          streamResponses: mockStreamResponses,
-          stream: mockStream,
-        } as DataStreamer;
-
-        return dataStreamer;
+        }),
       };
+      const mockDataStreamer = {
+        connected: true,
+        ...mockDataStreamerConfig,
+      } as DataStreamer;
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
 
       test("should handle successful streaming", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools(
           makeGenerateResponseWithToolsArgs()
         );
@@ -523,10 +491,13 @@ describe("generateResponseWithTools", () => {
       });
 
       test("should handle successful generation with guardrail", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
-          inputGuardrail: makeMockGuardrail(true),
+          inputGuardrail: async () => {
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return mockGuardrailPassResult;
+          },
         });
 
         const result = await generateResponse({
@@ -551,10 +522,13 @@ describe("generateResponseWithTools", () => {
       });
 
       test("should handle streaming with guardrail rejection", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
-          inputGuardrail: makeMockGuardrail(false),
+          inputGuardrail: async () => {
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return mockGuardrailRejectResult;
+          },
         });
 
         const result = await generateResponse({
@@ -563,16 +537,25 @@ describe("generateResponseWithTools", () => {
           dataStreamer: mockDataStreamer,
         });
 
+        // Ensure the streamed data only contains the guardrail result
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledTimes(0);
+        expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledTimes(1);
         expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           refusalMessage: mockLlmRefusalMessage,
+        });
+        expect(mockDataStreamerConfig.streamData).toHaveBeenCalledTimes(1);
+        expect(
+          mockDataStreamerConfig.streamData.mock.calls[0][0]
+        ).toStrictEqual({
+          type: "delta",
+          data: mockLlmRefusalMessage,
         });
 
         expectGuardrailRejectResult(result);
       });
 
       test("should handle error in language model", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           languageModel: mockThrowingLanguageModel,

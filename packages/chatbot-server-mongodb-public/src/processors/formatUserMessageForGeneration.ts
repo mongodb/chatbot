@@ -1,5 +1,6 @@
 import { updateFrontMatter, ConversationCustomData } from "mongodb-rag-core";
-import { originCodes } from "mongodb-chatbot-server";
+import { originCodes, ORIGIN_RULES } from "mongodb-chatbot-server";
+import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { z } from "zod";
 import { logRequest } from "../utils";
 
@@ -18,6 +19,19 @@ type FormatUserMessageForGenerationParams = {
   reqId: string;
   customData: ConversationCustomData;
 };
+
+interface OriginCodeLabels {
+  /** Code to label mapping. */
+  [code: string]: string;
+}
+
+// Some origin codes have a label to add to the front matter
+const originCodeLabels = ORIGIN_RULES.reduce((acc, rule) => {
+  if (rule.label !== undefined) {
+    acc[rule.code] = rule.label;
+  }
+  return acc;
+}, {} as OriginCodeLabels);
 
 export function formatUserMessageForGeneration({
   userMessageText,
@@ -52,7 +66,7 @@ export function formatUserMessageForGeneration({
         url.hostname === "mongodb.com" ||
         url.hostname.endsWith(".mongodb.com")
       ) {
-        frontMatter.pageUrl = parsedCustomData.origin;
+        frontMatter.pageUrl = normalizeUrl({ url: parsedCustomData.origin });
       }
     } catch (e) {
       logRequest({
@@ -62,10 +76,10 @@ export function formatUserMessageForGeneration({
       });
     }
   }
-  if (parsedCustomData.originCode === "VSCODE") {
-    frontMatter.client = "MongoDB VS Code plugin";
-  } else if (parsedCustomData.originCode === "GEMINI_CODE_ASSIST") {
-    frontMatter.client = "Gemini Code Assist";
+
+  const originLabel = originCodeLabels[parsedCustomData.originCode ?? ""];
+  if (originLabel) {
+    frontMatter.client = originLabel;
   }
 
   if (Object.keys(frontMatter).length === 0) {

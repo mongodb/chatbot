@@ -1,5 +1,6 @@
 import { formatUserMessageForGeneration } from "./formatUserMessageForGeneration";
 import { ConversationCustomData, logger } from "mongodb-rag-core";
+import { ORIGIN_RULES } from "mongodb-chatbot-server";
 
 beforeAll(() => {
   logger.error = jest.fn();
@@ -8,16 +9,19 @@ beforeAll(() => {
 describe("formatUserMessageForGeneration", () => {
   const userMessageText = "Hello, world!";
   const reqId = "test-request-id";
+  const testMongoDbPageUrl = "https://mongodb.com";
+  const resultMongoDbPageUrl = "mongodb.com";
 
   it("formats front matter correctly for mongodb.com origin", () => {
-    const origin = "https://mongodb.com";
     const result = formatUserMessageForGeneration({
       userMessageText,
       reqId,
-      customData: { origin } satisfies ConversationCustomData,
+      customData: {
+        origin: testMongoDbPageUrl,
+      } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: ${resultMongoDbPageUrl}
 ---
 
 ${userMessageText}`);
@@ -31,7 +35,40 @@ ${userMessageText}`);
       customData: { origin } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: learn.mongodb.com
+---
+
+${userMessageText}`);
+  });
+
+  it("normalizes a URL with trailing backslash", () => {
+    const origin = testMongoDbPageUrl + "/docs/pageName/";
+    const result = formatUserMessageForGeneration({
+      userMessageText,
+      reqId,
+      customData: {
+        origin,
+      } satisfies ConversationCustomData,
+    });
+    expect(result).toEqual(`---
+pageUrl: ${resultMongoDbPageUrl + "/docs/pageName"}
+---
+
+${userMessageText}`);
+  });
+
+  it("normalizes a URL with query", () => {
+    const origin =
+      "https://learn.mongodb.com/courses/mongodb-for-sql-experts?param1=value1&param2=value2";
+    const result = formatUserMessageForGeneration({
+      userMessageText,
+      reqId,
+      customData: {
+        origin,
+      } satisfies ConversationCustomData,
+    });
+    expect(result).toEqual(`---
+pageUrl: learn.mongodb.com/courses/mongodb-for-sql-experts
 ---
 
 ${userMessageText}`);
@@ -67,7 +104,7 @@ ${userMessageText}`);
       } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-client: MongoDB VS Code plugin
+client: MongoDB VS Code extension
 ---
 
 ${userMessageText}`);
@@ -90,6 +127,25 @@ client: ${expectedClientLabel}
 ---
 
 ${userMessageText}`);
+  });
+
+  it("does not add client front matter for unlabelled mongodb originCodes", () => {
+    const unlabelledOriginCodes: string[] = [];
+    ORIGIN_RULES.reduce((acc, rule) => {
+      if (!rule.label) unlabelledOriginCodes.push(rule.code);
+      return acc;
+    }, unlabelledOriginCodes);
+
+    unlabelledOriginCodes.forEach((originCode) => {
+      const result = formatUserMessageForGeneration({
+        userMessageText,
+        reqId,
+        customData: {
+          originCode,
+        } satisfies ConversationCustomData,
+      });
+      expect(result).toEqual(userMessageText);
+    });
   });
 
   it("logs a warning and does not add pageUrl if origin is malformed", () => {
@@ -119,19 +175,18 @@ ${userMessageText}`);
   });
 
   it("adds both pageUrl and client front matter if both are present", () => {
-    const origin = "https://mongodb.com";
     const originCode = "VSCODE";
-    const expectedClientLabel = "MongoDB VS Code plugin";
+    const expectedClientLabel = "MongoDB VS Code extension";
     const result = formatUserMessageForGeneration({
       userMessageText,
       reqId,
       customData: {
-        origin,
+        origin: testMongoDbPageUrl,
         originCode,
       } satisfies ConversationCustomData,
     });
     expect(result).toEqual(`---
-pageUrl: ${origin}
+pageUrl: ${resultMongoDbPageUrl}
 client: ${expectedClientLabel}
 ---
 

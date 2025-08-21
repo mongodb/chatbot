@@ -4,9 +4,16 @@ import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
   CommentMessageRequest,
+  CommentMessageRequestV2,
   makeCommentMessageRoute,
+  makeCommentMessageRouteV2,
 } from "./commentMessage";
-import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
+import {
+  RateMessageRequest,
+  RateMessageV2Request,
+  makeRateMessageRoute,
+  makeRateMessageRouteV2,
+} from "./rateMessage";
 import {
   CreateConversationRequest,
   makeCreateConversationRoute,
@@ -294,6 +301,17 @@ export function makeConversationsRouter({
 
   // Rate a message.
   conversationsRouter.post(
+    "/messages/:messageId/rating",
+    validateRequestSchema(RateMessageV2Request),
+    makeRateMessageRouteV2({
+      conversations,
+      updateTrace: rateMessageUpdateTrace,
+      braintrustLogger,
+    })
+  );
+
+  // Rate a message. Old deprecated endpoint.
+  conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
     makeRateMessageRoute({
@@ -304,6 +322,18 @@ export function makeConversationsRouter({
   );
 
   // Comment on a message.
+  conversationsRouter.post(
+    "/messages/:messageId/comment",
+    validateRequestSchema(CommentMessageRequestV2),
+    makeCommentMessageRouteV2({
+      conversations,
+      maxCommentLength: maxUserCommentLength,
+      updateTrace: commentMessageUpdateTrace,
+      braintrustLogger,
+    })
+  );
+
+  // Comment on a message. Old deprecated endpoint.
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/comment",
     validateRequestSchema(CommentMessageRequest),

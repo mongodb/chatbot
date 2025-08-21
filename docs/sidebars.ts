@@ -20,6 +20,10 @@ const sidebars: SidebarsConfig = {
       href: "/server/openapi",
     },
     "server/responses-api",
+    "server/context-engineering",
+
+    "server/evaluation",
+
     "ui",
     "data-sources",
     "datasets",

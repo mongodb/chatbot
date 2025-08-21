@@ -26,13 +26,12 @@ interface OriginCodeLabels {
 }
 
 // Some origin codes have a label to add to the front matter
-const originCodeLabels: OriginCodeLabels = {};
-ORIGIN_RULES.reduce((acc, rule) => {
+const originCodeLabels = ORIGIN_RULES.reduce((acc, rule) => {
   if (rule.label !== undefined) {
     acc[rule.code] = rule.label;
   }
   return acc;
-}, originCodeLabels);
+}, {} as OriginCodeLabels);
 
 export function formatUserMessageForGeneration({
   userMessageText,

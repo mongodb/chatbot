@@ -2022,3 +2022,42 @@
       title: Fundamentals of Data Transformation
     - url: https://www.mongodb.com/docs/manual/aggregation/
       title: Aggregation Operations
+
+- author_email: caleb.thompson@mongodb.com
+  questions:
+    - Is Atlas Device Sync deprecated?
+  answer: |
+    Yes. As of September 2025, Atlas Device Sync is deprecated.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/app-services/deprecation/
+      title: Service Deprecations
+    - url: https://www.mongodb.com/docs/atlas/app-services/sync/
+      title: Atlas Device Sync [Deprecated]
+- author_email: caleb.thompson@mongodb.com
+  questions:
+    - Is Atlas App Services deprecated?
+  answer: |
+    Yes. As of September 2025, most Atlas App Services deprecated.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/app-services/deprecation/
+      title: Service Deprecations
+- author_email: caleb.thompson@mongodb.com
+  questions:
+    - Is the Data API deprecated?
+  answer: |
+    Yes. As of September 2025 the Data API is deprecated.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/app-services/deprecation/
+      title: Service Deprecations
+    - url: https://www.mongodb.com/docs/atlas/app-services/data-api/
+      title: Atlas Data API [Deprecated]
+- author_email: caleb.thompson@mongodb.com
+  questions:
+    - Are the HTTP Endpoints deprecated?
+  answer: |
+    Yes. As of September 2025 the HTTPS Endpoints are deprecated.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/app-services/deprecation/
+      title: Service Deprecations
+    - url: https://www.mongodb.com/docs/atlas/app-services/data-api/custom-endpoints/
+      title: Custom HTTPS Endpoints [Deprecated]

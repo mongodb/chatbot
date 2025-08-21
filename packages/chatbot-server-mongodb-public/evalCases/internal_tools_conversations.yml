@@ -1,3 +1,8 @@
+# Quick note about toolCallArgs.pageUrl - if the user provides a URL, then we should expect 
+# the exact (un-normalized) URL to be used as pageUrl.
+# HOWEVER, for "implied" on-page uses, the URL is taken from the front matter, 
+# which is already normalized.
+# (This is not ideal for writing eval cases, consider fixes in future)
 - name: fetch_page_given_URL
   expectation: should call fetch_page tool for a user-provided URL
   messages:
@@ -104,7 +109,7 @@
   expectation: Calls fetch_page in parallel for each provided URL (x2), w/ search fallback for for external URL
   messages:
     - role: user
-      content: Use these as documentation https://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
+      content: Use these as documentation ttps://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
   customData:
     origin: https://www.mongodb.com/docs/manual/core/schema-validation/
   expectedMessageDetail: 
@@ -136,7 +141,7 @@
     - role: assistant-tool
       toolCallName: fetch_page
       toolCallArgs:
-        pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+        pageUrl: mongodb.com/docs/atlas/data-federation/overview
     - role: tool
     - role: assistant
   tags:
@@ -157,7 +162,7 @@
     - role: assistant-tool
       toolCallName: fetch_page
       toolCallArgs:
-        pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+        pageUrl: mongodb.com/docs/atlas/data-federation/overview
     - role: tool
     - role: assistant
   tags:
@@ -178,7 +183,7 @@
     - role: assistant-tool
       toolCallName: fetch_page
       toolCallArgs:
-        pageUrl: https://www.mongodb.com/docs/atlas/data-federation/overview/
+        pageUrl: mongodb.com/docs/atlas/data-federation/overview
     - role: tool
     - role: assistant
   tags:
@@ -263,7 +268,7 @@
     - role: assistant-tool
       toolCallName: fetch_page
       toolCallArgs:
-        pageUrl: https://www.mongodb.com/docs/drivers/java/sync/current/get-started/
+        pageUrl: mongodb.com/docs/drivers/java/sync/current/get-started
     - role: tool
     - role: assistant-tool
       toolCallName: search_content 
@@ -376,8 +381,8 @@
   tags:
     - fetch_page
     - fallback_to_search
-- name: use_secret_and_custom_tools
-  expectation: should use secret tool 'search_content' then follow up with the custom tool
+- name: use_internal_and_custom_tools
+  expectation: should use internal tool 'search_content' then follow up with the custom tool
   messages:
     - role: user
       content: How do I insert a document into a MongoDB collection using Typescript?

@@ -41,15 +41,28 @@ export type OriginCode = (typeof originCodes)[number];
 interface OriginRule {
   regex: RegExp;
   code: OriginCode;
+  /**
+    Name used to label the origin when formatting the user message front matter. 
+    Leave empty if no label should be used.
+    */
+  label?: string;
 }
 
-const ORIGIN_RULES: OriginRule[] = [
+export const ORIGIN_RULES: OriginRule[] = [
   { regex: /learn\.mongodb\.com/, code: "LEARN" },
   { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
   { regex: /mongodb\.com\/docs/, code: "DOCS" },
   { regex: /mongodb\.com\//, code: "DOTCOM" },
-  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
-  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
+  {
+    regex: /google-gemini-code-assist/,
+    code: "GEMINI_CODE_ASSIST",
+    label: "Gemini Code Assist",
+  },
+  {
+    regex: /vscode-mongodb-copilot/,
+    code: "VSCODE",
+    label: "MongoDB VS Code extension",
+  },
 ];
 
 function getOriginCode(origin: string): OriginCode {

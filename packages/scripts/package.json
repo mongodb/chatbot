@@ -29,6 +29,7 @@
     "materializeScrubbedMessagesStats:all": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --all",
     "materializeScrubbedMessagesStats:latest": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js",
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
+    "mercury:evaluateLlms": "npm run build && node ./build/mercury/evaluateLlms.js",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",
@@ -75,6 +76,6 @@
     "prettier": "^2",
     "release-it": "^16",
     "ts-jest": "^29.1.0",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }

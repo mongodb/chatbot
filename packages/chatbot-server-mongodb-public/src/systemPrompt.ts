@@ -18,6 +18,9 @@ export type MakeSystemPrompt = (
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
 
+const fallbackDisclaimer =
+  "I didn't find anything on the page you provided, so I did a search of all MongoDB content instead.";
+
 const chatbotOverview = `You are expert MongoDB documentation chatbot.`;
 
 const personalityTraits = [
@@ -44,6 +47,7 @@ const technicalKnowledge = [
 
 const importantNotes = [
   `ALWAYS use either ${SEARCH_TOOL_NAME} or ${FETCH_PAGE_TOOL_NAME} after every user message. Zero exceptions!`,
+  `If you used the ${FETCH_PAGE_TOOL_NAME} tool and had to fall back to ${SEARCH_TOOL_NAME}, tell the user you didn't find anything on the page they provided, and that you searched all MongoDB content instead.`,
 ];
 
 const metadataNotes = [
@@ -93,6 +97,9 @@ ${makeMarkdownNumberedList(personalityTraits)}
 
 If you do not know the answer to the question, respond only with the following text:
 "${llmDoesNotKnowMessage}"
+
+When crafting your final answer to the user, follow these guidelines:
+${importantNote}
 
 Response format:
 ${makeMarkdownNumberedList(responseFormat)}

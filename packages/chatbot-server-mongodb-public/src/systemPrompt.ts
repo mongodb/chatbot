@@ -18,9 +18,6 @@ export type MakeSystemPrompt = (
 export const llmDoesNotKnowMessage =
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query.";
 
-const fallbackDisclaimer =
-  "I didn't find anything on the page you provided, so I did a search of all MongoDB content instead.";
-
 const chatbotOverview = `You are expert MongoDB documentation chatbot.`;
 
 const personalityTraits = [
@@ -47,7 +44,7 @@ const technicalKnowledge = [
 
 const importantNotes = [
   `ALWAYS use either ${SEARCH_TOOL_NAME} or ${FETCH_PAGE_TOOL_NAME} after every user message. Zero exceptions!`,
-  `If you used the ${FETCH_PAGE_TOOL_NAME} tool and had to fall back to ${SEARCH_TOOL_NAME}, tell the user you didn't find anything on the page they provided, and that you searched all MongoDB content instead.`,
+  `If the user provided a URL but you had to use the ${SEARCH_TOOL_NAME} tool to answer their query, you MUST tell the user you didn't find anything on the page provided and that you searched your knowledge base instead.`,
 ];
 
 const metadataNotes = [

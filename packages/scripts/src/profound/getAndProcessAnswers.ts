@@ -9,13 +9,24 @@ import {
   getOpenAiEndpointAndApiKey,
 } from "mongodb-rag-core/models";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { assertEnvVars } from "mongodb-rag-core";
+import { getEnv } from "mongodb-rag-core";
 import { Collection, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { PromisePool } from "@supercharge/promise-pool";
 
-const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } = assertEnvVars({
-  MONGODB_CONNECTION_URI: "",
-  MONGODB_DATABASE_NAME: "",
+const {
+  MERCURY_CONNECTION_URI,
+  MERCURY_DATABASE_NAME,
+  MERCURY_ANSWERS_COLLECTION,
+  MERCURY_PROMPTS_COLLECTION,
+  MERCURY_REPORTS_COLLECTION,
+} = getEnv({
+  required: [
+    "MERCURY_CONNECTION_URI",
+    "MERCURY_DATABASE_NAME",
+    "MERCURY_ANSWERS_COLLECTION",
+    "MERCURY_PROMPTS_COLLECTION",
+    "MERCURY_REPORTS_COLLECTION",
+  ],
 });
 
 const profoundAPI = new ProfoundApi();
@@ -33,6 +44,7 @@ export async function getAnswers({
   caseContent,
   platform,
 }: GetAnswersArgs): Promise<ProfoundAnswer[]> {
+  console.log("Getting answers from Profound API");
   const filters: ProfoundAnswerRequestBody["filters"] = [];
   if (caseContent) {
     filters.push({
@@ -76,6 +88,7 @@ const casesByPromptId = async (
   collection: Collection
 ): Promise<CaseByProfoundPromptId> => {
   const documents = await collection.find().toArray();
+  console.log("Found cases", documents.length);
   return documents.reduce((map, doc) => {
     map[doc.profoundPromptId] = {
       expected: doc.expected,
@@ -88,10 +101,20 @@ const casesByPromptId = async (
 };
 
 const platformsByName = async (): Promise<Record<string, string>> => {
-  const platforms = await profoundAPI.getModels();
-  return Object.fromEntries(
-    platforms.map((record) => [record.name, record.id])
-  );
+  // const platforms = await profoundAPI.getModels();
+  // return Object.fromEntries(
+  //   platforms.map((record) => [record.name, record.id])
+  // );
+  return {
+    "Google AI Mode": "eea7fa6a-481d-4d95-86a7-d084718a7865",
+    "Google AI Overviews": "dab8d6de-e787-46dd-9e40-9ac0a40c801a",
+    "Meta AI": "6563cc8d-4955-4bba-9c6a-980028915f99",
+    "Google Gemini": "ab90373a-d015-4feb-a7ee-fd9536a0ec53",
+    Perplexity: "6c262973-268e-4611-8969-06c0520139c0",
+    Grok: "cefa8cfd-bb28-4d47-9261-a4f0e9c1e75c",
+    ChatGPT: "8e582977-dcf2-428f-9a1c-085c578ceeb8",
+    "Microsoft Copilot": "94dcfb7c-4f9c-4f9c-9e55-c170c23d5d8a",
+  };
 };
 
 interface DatasetByTag {
@@ -137,6 +160,10 @@ const model: ModelConfig = {
 
 export const main = async (startDateArg?: string, endDateArg?: string) => {
   // START setup
+  console.log("Starting setup", {
+    startDateArg,
+    endDateArg,
+  });
 
   // validate date format in args
   if (startDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(startDateArg)) {
@@ -167,17 +194,28 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
         day: "2-digit",
       }).format(today);
 
-  const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
-  const db = client.db(MONGODB_DATABASE_NAME);
-  const answersCollection = db.collection("llm_answers");
-  const casesCollection = db.collection("llm_cases");
-  const reportsCollection = db.collection("llm_reports");
+  console.log("start and end dates", { start, end });
+
+  console.log("Connecting to MongoDB", {
+    MERCURY_DATABASE_NAME,
+    MERCURY_ANSWERS_COLLECTION,
+    MERCURY_PROMPTS_COLLECTION,
+    MERCURY_REPORTS_COLLECTION,
+  });
+  const client = await MongoClient.connect(MERCURY_CONNECTION_URI);
+  const db = client.db(MERCURY_DATABASE_NAME);
+  const answersCollection = db.collection(MERCURY_ANSWERS_COLLECTION);
+  const casesCollection = db.collection(MERCURY_PROMPTS_COLLECTION);
+  const reportsCollection = db.collection(MERCURY_REPORTS_COLLECTION);
   // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
   const casesByPromptMap = await casesByPromptId(casesCollection);
+  console.log(`Found ${Object.keys(casesByPromptMap).length} cases`);
   // create a hashmap of all platforms, where the key is the platform name and the value is the platform id
   const platformsByNameMap = await platformsByName();
+  console.log(`Found ${Object.keys(platformsByNameMap).length} platforms`);
   // create a hashmap of all dataset tags, where the key is the tag and the value is the dataset name and slug
   const datasetsByTagMap = await datasetsByTag(reportsCollection);
+  console.log(`Found ${Object.keys(datasetsByTagMap).length} datasets`);
   // END set up
 
   const answers = await getAnswers({

@@ -54,7 +54,9 @@ export interface MercuryDatabase {
   resultsCollection: Collection<MercuryResult>;
 }
 
-export function makeMercuryDatabase(params: MakeMercuryDatabaseParams): MercuryDatabase {
+export function makeMercuryDatabase(
+  params: MakeMercuryDatabaseParams
+): MercuryDatabase {
   const client = new MongoClient(params.connectionUri);
 
   return {

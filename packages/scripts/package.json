@@ -30,6 +30,7 @@
     "materializeScrubbedMessagesStats:latest": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js",
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
     "mercury:evaluateLlms": "npm run build && node ./build/mercury/evaluateLlms.js",
+    "mercury:getLLMAnswers": "npm run getLLMAnswers",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",

@@ -35,6 +35,7 @@ export type MercuryResult = {
       score: number;
       label?: string;
       rationale?: string;
+      judgementModel?: string;
     }
   >;
 };

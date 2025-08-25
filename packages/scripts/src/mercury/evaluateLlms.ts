@@ -226,6 +226,7 @@ async function main(args: { outputDir: string }) {
                   rationale:
                     (score.metadata?.rationale as string | undefined) ??
                     undefined,
+                  judgementModel: judgementModelConfig.label,
                 },
               },
             };

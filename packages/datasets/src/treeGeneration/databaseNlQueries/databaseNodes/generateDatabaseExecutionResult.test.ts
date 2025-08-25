@@ -12,7 +12,7 @@ import {
   sampleDatabaseUsers,
   sampleUseCases,
   sampleNlQueries,
-} from "./sampleData";
+} from "./sampleData/mql";
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 
 jest.setTimeout(1000 * 60);

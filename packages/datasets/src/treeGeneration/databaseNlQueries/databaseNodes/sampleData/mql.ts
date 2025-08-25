@@ -5,7 +5,7 @@ import {
   DatabaseUser,
   DatabaseUserNode,
   NaturalLanguageQuery,
-} from "./nodeTypes";
+} from "../nodeTypes";
 import { DatabaseInfo, LlmOptions } from "mongodb-rag-core/executeCode";
 
 export const makeSampleLlmOptions = () => {

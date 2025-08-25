@@ -3,10 +3,13 @@ import {
   nlQueryResponseSchema,
 } from "./generateNaturalLanguageQueries";
 import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
-import { getOpenAiFunctionResponse } from "mongodb-rag-core/executeCode";
+import {
+  getOpenAiFunctionResponse,
+  LlmOptions,
+} from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { useCaseNodes } from "./sampleData/mql";
+import { useCaseNodes } from "./sampleData/atlasSearch";
 import { z } from "zod";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
@@ -29,25 +32,34 @@ const evalData = useCaseNodes.map((useCase) => {
       user,
       numChildren: 8,
     },
-    tags: [databaseInfo.name, user.name, useCase.data.title],
+    metadata: {
+      databaseName: databaseInfo.name,
+      user: user.name,
+      useCase: useCase.data.title,
+    },
+    tags: ["atlas_search"],
   };
 });
 
-const llmOptions = {
-  openAiClient,
-  model: "gpt-4o",
+const llmOptions: LlmOptions = {
+  model: "gpt-5",
   temperature: 0.4,
   seed: 42,
+  reasoning_effort: "medium",
 };
 
 async function main() {
   console.log("evalData", evalData.length);
-  await Eval("generate-natural-language-to-mongodb", {
-    experimentName: "generate-natural-language-queries",
+  await Eval("generate-atlas-search-natural-language", {
+    experimentName: `atlas-search-enhanced-prompt-evaluation-${llmOptions.model}`,
     data: evalData,
     maxConcurrency: 5,
+    scores: [],
     async task(input) {
-      const promptMessages = makeGenerateNaturalLanguageQueryPrompt(input);
+      const promptMessages = makeGenerateNaturalLanguageQueryPrompt({
+        ...input,
+        queryType: "atlas_search", // Ensure we use Atlas Search prompts
+      });
       const { results } = await getOpenAiFunctionResponse({
         messages: promptMessages,
         llmOptions,
@@ -58,9 +70,8 @@ async function main() {
         functionDescription: nlQueryResponseSchema.description,
         openAiClient,
       });
-      return results;
+      return { results };
     },
-    scores: [],
   });
 }
 

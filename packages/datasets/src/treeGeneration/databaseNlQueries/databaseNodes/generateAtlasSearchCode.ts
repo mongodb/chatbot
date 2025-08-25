@@ -86,7 +86,20 @@ ${markdownList([
   "Utilize stored source fields when you need specific fields in subsequent pipeline stages to avoid full document lookup",
   "When using autocomplete, configure appropriate minGrams and maxGrams values (typically maxGrams of 10 for English)",
   "Consider using $searchMeta for metadata queries (counts, facets) when you don't need the actual documents",
-])}</query-authoring-tips>
+])}
+</query-authoring-tips>
+
+<query-anti-patterns>
+
+Some Atlas Search query anti-patterns to avoid:
+
+${markdownList([
+  "Avoid using the $search aggregation stage followed by $sort, $group, $count, $match stages. Instead, prefer to use the $search native features such $search.sort (instead of $sort), $search.facet (instead of $group), $search.count (instead of $count), $search.compound.filter (instead of $match).",
+  "Avoid using $search.regex operator. It can be very inefficient. Instead, prefer using wildcard, autocomplete, and custom analyzers when possible.",
+  'Avoid using MongoDB range queries for pagination. Instead use the $search.searchBefore and $search.searchAfter operators with the searchSequenceToken provided by $meta. E.g. { paginationToken : { $meta : "searchSequenceToken" } }',
+])}
+
+</query-anti-patterns>
 
 <query-plan>
 Before writing the aggregation pipeline, think step-by-step about what the query should do in the "queryPlan" field. In your thoughts consider:

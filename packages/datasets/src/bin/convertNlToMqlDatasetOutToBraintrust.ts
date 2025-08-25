@@ -1,15 +1,3 @@
-/**
-  create a CLI that converts a JSONL file ofDatabaseNlQueryDatasetEntry to a JSON file of 
-  DatabaseNlQueryDatasetEntryBraintrust
-
-  Args:
-    - inputPath: path to the input JSONL file. Required.
-    - outputDir: path to the output JSON file. Optional. If not provided, will write to the same directory as the input file.
-
-  when complete, print the number of entries in the output file. also log the output path.
-
-  use yargs to orchestrate the CLI.
- */
 import {
   DatabaseNlQueryDatasetEntry,
   DatabaseNlQueryDatasetEntryBraintrust,

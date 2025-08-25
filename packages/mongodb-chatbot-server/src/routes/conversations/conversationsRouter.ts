@@ -4,13 +4,13 @@ import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
   CommentMessageRequest,
-  CommentMessageRequestV2,
+  CommentStandaloneMessageRequest,
   makeCommentMessageRoute,
   makeCommentMessageRouteV2,
 } from "./commentMessage";
 import {
   RateMessageRequest,
-  RateMessageV2Request,
+  RateStandaloneMessageRequest,
   makeRateMessageRoute,
   makeRateMessageRouteV2,
 } from "./rateMessage";
@@ -302,7 +302,7 @@ export function makeConversationsRouter({
   // Rate a message.
   conversationsRouter.post(
     "/messages/:messageId/rating",
-    validateRequestSchema(RateMessageV2Request),
+    validateRequestSchema(RateStandaloneMessageRequest),
     makeRateMessageRouteV2({
       conversations,
       updateTrace: rateMessageUpdateTrace,
@@ -324,7 +324,7 @@ export function makeConversationsRouter({
   // Comment on a message.
   conversationsRouter.post(
     "/messages/:messageId/comment",
-    validateRequestSchema(CommentMessageRequestV2),
+    validateRequestSchema(CommentStandaloneMessageRequest),
     makeCommentMessageRouteV2({
       conversations,
       maxCommentLength: maxUserCommentLength,

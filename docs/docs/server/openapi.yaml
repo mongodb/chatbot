@@ -254,7 +254,7 @@ paths:
       description: |
         Rate a message.
 
-        This endpoint is deprecated. Use the [rateMessageV2](#operation/rateMessageV2) endpoint instead.
+        This endpoint is deprecated. Use the [rateStandaloneMessage](#operation/rateStandaloneMessage) endpoint instead.
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"
@@ -274,10 +274,10 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   /conversations/messages/{messageId}/rating:
     post:
-      operationId: rateMessageV2
+      operationId: rateStandaloneMessage
       tags:
         - Conversations
-      summary: Rate message v2
+      summary: Rate message
       parameters:
         - $ref: "#/components/parameters/messageId"
       requestBody:
@@ -325,10 +325,10 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   /conversations/messages/{messageId}/comment:
     post:
-      operationId: commentMessageV2
+      operationId: commentStandaloneMessage
       tags:
         - Conversations
-      summary: Add comment to assistant message V2
+      summary: Add comment to assistant message
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
 

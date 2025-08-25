@@ -14,9 +14,11 @@ import {
 } from "../../processors/UpdateTraceFunc";
 import { Logger } from "mongodb-rag-core/braintrust";
 
-export type RateMessageV2Request = z.infer<typeof RateMessageV2Request>;
+export type RateStandaloneMessageRequest = z.infer<
+  typeof RateStandaloneMessageRequest
+>;
 
-export const RateMessageV2Request = SomeExpressRequest.merge(
+export const RateStandaloneMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
@@ -138,12 +140,12 @@ export function makeRateMessageRouteV2({
 }
 
 /**
-  @deprecated Use RateMessageV2Request instead.
+  @deprecated Use RateStandaloneMessageRequest instead.
  */
 export type RateMessageRequest = z.infer<typeof RateMessageRequest>;
 
 /**
-  @deprecated Use RateMessageV2Request instead.
+  @deprecated Use RateStandaloneMessageRequest instead.
  */
 export const RateMessageRequest = SomeExpressRequest.merge(
   z.object({

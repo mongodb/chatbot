@@ -494,8 +494,8 @@ const stream = await openai.responses.create({
 
 You can collect user feedback in the form of message ratings and comments on all generations from the Responses API. The Knowledge Service has separate endpoints for rating and commenting messages:
 
-- [`rateMessageV2` endpoint](/server/openapi/#tag/Conversations/operation/rateMessageV2)
-- [`commentMessageV2` endpoint](/server/openapi/#tag/Conversations/operation/commentMessageV2)
+- [`rateStandaloneMessage` endpoint](/server/openapi/#tag/Conversations/operation/rateStandaloneMessage)
+- [`commentStandaloneMessage` endpoint](/server/openapi/#tag/Conversations/operation/commentStandaloneMessage)
 
 Usage example:
 

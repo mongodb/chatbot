@@ -14,9 +14,11 @@ import {
   updateTraceIfExists,
 } from "../../processors/UpdateTraceFunc";
 
-export type CommentMessageRequestV2 = z.infer<typeof CommentMessageRequestV2>;
+export type CommentStandaloneMessageRequest = z.infer<
+  typeof CommentStandaloneMessageRequest
+>;
 
-export const CommentMessageRequestV2 = SomeExpressRequest.merge(
+export const CommentStandaloneMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
@@ -174,12 +176,12 @@ export function makeCommentMessageRouteV2({
 }
 
 /**
-  @deprecated Use CommentMessageRequestV2 instead.
+  @deprecated Use CommentStandaloneMessageRequest instead.
  */
 export type CommentMessageRequest = z.infer<typeof CommentMessageRequest>;
 
 /**
-  @deprecated Use CommentMessageRequestV2 instead.
+  @deprecated Use CommentStandaloneMessageRequest instead.
  */
 export const CommentMessageRequest = SomeExpressRequest.merge(
   z.object({

@@ -33,7 +33,7 @@ export interface AppConfig {
     Configuration for the content router.
    */
   contentRouterConfig?: MakeContentRouterParams;
-  
+
   /**
     Configuration for the responses router.
    */

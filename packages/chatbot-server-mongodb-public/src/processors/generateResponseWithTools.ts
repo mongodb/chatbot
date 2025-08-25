@@ -452,6 +452,11 @@ export function makeGenerateResponseWithTools({
             tools: allTools,
             toolChoice: formatToolChoiceForAiSdk(toolChoice, allTools),
             abortSignal: generationController.signal,
+            providerOptions: {
+              openai: {
+                reasoningEffort: "low",
+              },
+            },
             // Stops generation when one of the criteria is met:
             // - max steps are reached
             // - custom tool defintion is called

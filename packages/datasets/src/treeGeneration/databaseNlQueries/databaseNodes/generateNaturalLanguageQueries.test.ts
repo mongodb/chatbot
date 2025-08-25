@@ -1,5 +1,5 @@
 import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries";
-import { makeSampleLlmOptions, useCaseNodes, userNode } from "./sampleData";
+import { makeSampleLlmOptions, useCaseNodes, userNode } from "./sampleData/mql";
 import PromisePool from "@supercharge/promise-pool";
 
 // Skipping LLM call tests

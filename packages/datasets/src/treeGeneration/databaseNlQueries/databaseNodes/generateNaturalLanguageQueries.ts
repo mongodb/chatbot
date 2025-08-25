@@ -34,7 +34,6 @@ For each natural language query:
 - Make sure the query aligns with the user's intent and information needs described in the use case
 - Consider the complexity level of the use case when crafting the query
 - Include specific entities relevant to the database domain (movie titles, actor names, etc.) where appropriate
-- Provide variations that express the same information need in different ways
 - Ensure the query would retrieve the information needed to satisfy the use case
 - The query should sound conversational, as if the user were asking them to an AI chatbot.
 - For most users, avoid using technical database terminology (e.g., "documents", "collections") - use domain-specific terms instead
@@ -425,7 +424,23 @@ ${temporalGuidelines}
 
 ${indexGuidelines}
 
-${resultsSchemaGuidelines}
+<results_schema_guidelines>
+For the output \`resultsSchema\`, include the actual type definition.
+
+Rules:
+1. In the type definition, ALWAYS include the \`_id\`  and \`id\` fields.
+2. NEVER include the \`text\` field.
+3. The natural language query should correspond to returning a list of articles (max 15 articles).
+4. The natural language query MUST NOT correspond to an aggregation query that would materialize a single value, like a count or average.
+
+for instance given the query "find me articles about the history of the internet", the output should be:
+\`\`\`typescript
+/**
+ * Articles about the history of the internet
+ */
+type QueryResults = {_id: ObjectId, id: string, title: string }[];
+\`\`\`
+</results_schema_guidelines>
 
 ${outputGuidelines(numChildren)}`;
 

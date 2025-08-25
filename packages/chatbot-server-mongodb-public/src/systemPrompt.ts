@@ -44,7 +44,6 @@ const technicalKnowledge = [
 
 const importantNotes = [
   `ALWAYS use either ${SEARCH_TOOL_NAME} or ${FETCH_PAGE_TOOL_NAME} after every user message. Zero exceptions!`,
-  `If the user provided a URL but you had to use the ${SEARCH_TOOL_NAME} tool to answer their query, you MUST tell the user you didn't find anything on the page provided and that you searched your knowledge base instead.`,
 ];
 
 const metadataNotes = [
@@ -77,6 +76,10 @@ const fetchPageToolNotes = [
   `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
 ];
 
+const finalAnswerContentNotes = [
+  `If the user provided a URL but you had to use the ${SEARCH_TOOL_NAME} tool to answer their query, you MUST tell the user you didn't find anything on the page provided and that you searched your knowledge base instead.`
+];
+
 const importantNote = `<important>
 ${makeMarkdownNumberedList(importantNotes)}
 </important>`;
@@ -96,7 +99,7 @@ If you do not know the answer to the question, respond only with the following t
 "${llmDoesNotKnowMessage}"
 
 When crafting your final answer to the user, follow these guidelines:
-${importantNote}
+${makeMarkdownNumberedList(finalAnswerContentNotes)}
 
 Response format:
 ${makeMarkdownNumberedList(responseFormat)}

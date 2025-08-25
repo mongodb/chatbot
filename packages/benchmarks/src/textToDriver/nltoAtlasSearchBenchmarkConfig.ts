@@ -11,11 +11,8 @@ import {
   SupportGeminiThroughBraintrustProxy,
 } from "mongodb-rag-core/braintrust";
 import {
-  createAzure,
   createOpenAI,
   experimental_createMCPClient,
-  jsonSchema,
-  LanguageModelMiddleware,
   wrapLanguageModel,
 } from "mongodb-rag-core/aiSdk";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
@@ -37,8 +34,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
   "natural-language-to-atlas-search";
 
-// TODO: will update this later once we have final dataset
-const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-claude-sonnet-4";
+const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-gpt-5";
 
 let mongoClient: MongoClient;
 let mcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;

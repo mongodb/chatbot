@@ -1,6 +1,6 @@
 import PromisePool from "@supercharge/promise-pool";
 import { Eval } from "mongodb-rag-core/braintrust";
-import { runBenchmark, RunBenchmarkArgs } from "./runBenchmark";
+import { runBenchmark, RunBenchmarkArgs, getSample } from "./runBenchmark";
 import { BenchmarkCliConfig } from "./BenchmarkConfig";
 import { makeExperimentName } from "../makeExperimentName";
 import { ModelConfig } from "mongodb-rag-core/models";
@@ -215,6 +215,61 @@ describe("runBenchmark", () => {
       };
 
       await runBenchmark(mockConfig, multiDatasetArgs);
+    });
+
+    it("should sample sampleSize correctly with firstN", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, 3, "firstN");
+      expect(result).toEqual([1, 2, 3]);
+      expect(result.length).toBe(3);
+    });
+
+    it("should sample sampleType=undefined correctly (defaults to firstN)", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, 3, undefined);
+      expect(result).toEqual([1, 2, 3]);
+      expect(result.length).toBe(3);
+    });
+
+    it("should sample sampleType=firstN correctly", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, 2, "firstN");
+      expect(result).toEqual([1, 2]);
+      expect(result.length).toBe(2);
+    });
+
+    it("should sample sampleType=random correctly", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, 3, "random");
+
+      expect(result.length).toBe(3);
+      expect(result.every((item) => dataset.includes(item))).toBe(true);
+    });
+
+    it("should return full dataset when no sampleSize provided", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, undefined, undefined);
+      expect(result).toEqual(dataset);
+    });
+
+    it("should return full dataset when sampleSize is 0 (falsy behavior)", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      const result = getSample(dataset, 0, "firstN");
+      expect(result).toEqual(dataset);
+    });
+
+    it("should throw error when sampleSize is negative", () => {
+      const dataset = [1, 2, 3, 4, 5];
+      expect(() => getSample(dataset, -1, "firstN")).toThrow(
+        "sampleSize is required"
+      );
+    });
+
+    it("should throw error when sampleSize exceeds dataset length", () => {
+      const dataset = [1, 2, 3];
+      expect(() => getSample(dataset, 5, "firstN")).toThrow(
+        "sampleSize must be less than or equal to the length of the dataset"
+      );
     });
   });
 

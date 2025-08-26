@@ -28,7 +28,7 @@ To run evaluations against the MongoDB Responses API, use the following base end
 https://chat-server.docs.staging.corp.mongodb.com/api/v1/
 ```
 
-This endpoint bypasses the Web Application Firewall (WAF) and CloudFront protections that we have on the standard staging API, `http://knowledge.staging.corp.mongodb.com/`,and the production API `http://knowledge.mongodb.com/`. Do not run evaluations against these APIs. You will get `4XX` errors from CloudFront!
+This endpoint bypasses the Web Application Firewall (WAF) and CloudFront protections that we have on the standard staging API, `http://knowledge.staging.corp.mongodb.com/`, and the production API `http://knowledge.mongodb.com/`. Do not run evaluations against these APIs. You will get `4XX` errors from CloudFront!
 
 To use the evaluation API, you must authenticate. Refer to the following section for authentication information.
 

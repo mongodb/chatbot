@@ -2130,12 +2130,12 @@
 
     You can use the Atlas UI, Atlas Administration API, Atlas CLI, mongosh, or a supported MongoDB driver to create your Atlas Vector Search index.
   references:
-    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/ 
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
       title: Atlas Vector Search Overview
-    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/ 
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/
       title: How to Index Fields for Vector Search
-    - url: https://www.mongodb.com/blog/post/dedicated-search-nodes-vector-search-now-in-general-availability 
-      title: Vector Search and Dedicated Search Nodes: Now in General Availability
+    - url: https://www.mongodb.com/blog/post/dedicated-search-nodes-vector-search-now-in-general-availability
+      title: "Vector Search and Dedicated Search Nodes: Now in General Availability"
 
 - author_email: jessica.roberts@mongodb.com
   questions:
@@ -2151,7 +2151,7 @@
   references:
     - url: https://www.mongodb.com/docs/atlas/atlas-search/
       title: Atlas Search Overview
-    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/ 
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
       title: Atlas Vector Search Overview
 
 - author_email: jessica.roberts@mongodb.com
@@ -2160,5 +2160,5 @@
   answer: |
     Yes, you can use MongoDB as a vector database through Atlas Vector Search. This feature allows you to perform vector searches on your data stored in MongoDB. Vector search enables querying based on semantic meaning rather than just keyword matches, which is particularly useful for AI-powered applications. With Atlas Vector Search, you can seamlessly index and search vector data alongside your operational data, supporting use cases like semantic search, hybrid search, and generative search. This integration allows you to leverage MongoDB's robust database capabilities while implementing advanced search functionalities.
   references:
-    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/ 
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
       title: Atlas Vector Search Overview

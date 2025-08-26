@@ -1,3 +1,13 @@
+- name: default_system_prompt_fetch_fallback
+  messages: 
+    - role: user
+      content: use this https://www.geeksforgeeks.org/mongodb/search-text-in-mongodb/ how do I do a vector search query
+  expectation: The response should adhere to the default system prompt (let the user know if the fallback search was used).
+  expectedPromptAdherence:
+    - The response provides a disclaimer that the provided URL did not contain relevant information and that the knowledge base was searched instead.
+  tags:
+    - fetch_page
+    - systemPromptAdherence
 - name: custom_personality_override
   messages:
     - role: user

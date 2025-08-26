@@ -1,20 +1,19 @@
 import path from "path";
-import fs from "fs";
 import os from "os";
 import { PromisePool } from "@supercharge/promise-pool";
 import { getEnv } from "mongodb-rag-core";
-import {
-  type ModelMessage,
-  createOpenAI,
-  generateText,
-} from "mongodb-rag-core/aiSdk";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { createOpenAI, generateText } from "mongodb-rag-core/aiSdk";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { type PromptResponseRating } from "mercury-case-analysis";
 import { makeReferenceAlignment } from "benchmarks";
 import { GenerationFailedError, ScoringFailedError } from "./errors";
 import { getModel, getModels, getModelDeployment } from "./models";
-import { diffLists, truncateString } from "./utils";
+import {
+  createOutputs,
+  diffLists,
+  mapReferenceAlignmentScoreToTag,
+  truncateString,
+} from "./utils";
 import {
   makeMercuryDatabase,
   MercuryDatabase,
@@ -30,8 +29,10 @@ const env = getEnv({
   ],
   optional: {
     MERCURY_DATABASE_NAME: "docs-chatbot-dev",
-    MERCURY_PROMPTS_COLLECTION: "llm_cases_new",
-    MERCURY_RESULTS_COLLECTION: "llm_results_new",
+    MERCURY_PROMPTS_COLLECTION: "llm_cases",
+    MERCURY_REPORTS_COLLECTION: "llm_reports",
+    MERCURY_RESULTS_COLLECTION: "llm_results",
+    MERCURY_ANSWERS_COLLECTION: "llm_answers",
     BATCH_SIZE: "50",
   },
 });
@@ -102,7 +103,9 @@ async function main(args: { outputDir: string }) {
     connectionUri: env.MERCURY_CONNECTION_URI,
     databaseName: env.MERCURY_DATABASE_NAME,
     promptsCollectionName: env.MERCURY_PROMPTS_COLLECTION,
+    reportsCollectionName: env.MERCURY_REPORTS_COLLECTION,
     resultsCollectionName: env.MERCURY_RESULTS_COLLECTION,
+    answersCollectionName: env.MERCURY_ANSWERS_COLLECTION,
   });
   try {
     await db.connect();
@@ -291,6 +294,7 @@ async function main(args: { outputDir: string }) {
       outputDir: args.outputDir,
       errors: allErrors,
       results: allResults,
+      skipped: [],
     });
     console.log("Errors written to", errorsFile);
     console.log("Results written to", resultsFile);
@@ -299,55 +303,9 @@ async function main(args: { outputDir: string }) {
   }
 }
 
-function createOutputs(args: {
-  outputDir: string;
-  errors: unknown[];
-  results: unknown[];
-}) {
-  const dir = path.join(args.outputDir, Date.now().toString());
-  fs.mkdirSync(dir, { recursive: true });
-  const errorsFile = path.join(dir, "errors.json");
-  fs.writeFileSync(errorsFile, JSON.stringify(args.errors, null, 2));
-  const resultsFile = path.join(dir, "results.json");
-  fs.writeFileSync(resultsFile, JSON.stringify(args.results, null, 2));
-  return {
-    errorsFile,
-    resultsFile,
-  };
-}
-
 main({
-  outputDir: path.join(os.homedir(), `/Desktop/mercury-results`),
+  outputDir: path.join(os.homedir(), `/Desktop/mercury-results/llms`),
 });
-
-export type ReferenceAlignmentTag =
-  | "Mismatch"
-  | "Subset"
-  | "Superset"
-  | "Match";
-
-export function mapReferenceAlignmentScoreToTag(
-  score: number | null
-): ReferenceAlignmentTag | null {
-  if (score === null) {
-    return null;
-  }
-  switch (score) {
-    case 0:
-      return "Mismatch";
-    case 0.4:
-    case 0.75:
-      return "Subset";
-    case 0.6:
-    case 0.8:
-    case 0.9:
-      return "Superset";
-    case 1:
-      return "Match";
-    default:
-      return null;
-  }
-}
 
 export async function getPromptModelPairs(args: {
   db: MercuryDatabase;

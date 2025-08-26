@@ -1,6 +1,20 @@
 import { PromptResponseRating } from "mercury-case-analysis";
 import { ModelMessage } from "mongodb-rag-core/aiSdk";
-import { Collection, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import {
+  MongoClient,
+  type Collection,
+  type ObjectId,
+  type Filter,
+} from "mongodb-rag-core/mongodb";
+
+export type MercuryReport = {
+  _id: ObjectId;
+  slug: string;
+  name: string;
+  description: string;
+  updatedAt: Date;
+  query: Filter<MercuryPrompt>;
+};
 
 export type MercuryPrompt = {
   _id: ObjectId;
@@ -11,6 +25,7 @@ export type MercuryPrompt = {
   expected: string;
   metadata: {
     category: string;
+    profoundPromptId: string;
     promptId?: string;
     reviewer?: string;
   };
@@ -40,11 +55,50 @@ export type MercuryResult = {
   >;
 };
 
+export type MercuryAnswer = {
+  _id: ObjectId;
+  profoundRunId: string;
+  caseId: ObjectId;
+  promptId: ObjectId; // same as caseId
+  category: string;
+  citations: {
+    url: string;
+    hostname: string;
+    path: string;
+  }[];
+  dataset: {
+    name: string;
+    slug: string;
+  };
+  createdAt: Date;
+  date: Date;
+  expectedResponse: string;
+  metrics: Record<
+    string,
+    {
+      score: number;
+      label?: string;
+      rationale?: string;
+      judgementModel?: string;
+    }
+  >;
+  platformId: string;
+  platformName: string;
+  profoundPromptId: string;
+  prompt: string;
+  region: string;
+  response: string;
+  tags: string[];
+  type: "answer-engine";
+};
+
 export interface MakeMercuryDatabaseParams {
   connectionUri: string;
   databaseName: string;
   promptsCollectionName: string;
   resultsCollectionName: string;
+  reportsCollectionName: string;
+  answersCollectionName: string;
 }
 
 export interface MercuryDatabase {
@@ -53,6 +107,8 @@ export interface MercuryDatabase {
   disconnect: () => Promise<void>;
   promptsCollection: Collection<MercuryPrompt>;
   resultsCollection: Collection<MercuryResult>;
+  reportsCollection: Collection<MercuryReport>;
+  answersCollection: Collection<MercuryAnswer>;
 }
 
 export function makeMercuryDatabase(
@@ -74,5 +130,11 @@ export function makeMercuryDatabase(
     resultsCollection: client
       .db(params.databaseName)
       .collection<MercuryResult>(params.resultsCollectionName),
+    reportsCollection: client
+      .db(params.databaseName)
+      .collection<MercuryReport>(params.reportsCollectionName),
+    answersCollection: client
+      .db(params.databaseName)
+      .collection<MercuryAnswer>(params.answersCollectionName),
   } satisfies MercuryDatabase;
 }

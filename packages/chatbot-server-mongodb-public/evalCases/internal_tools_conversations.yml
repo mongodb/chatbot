@@ -109,7 +109,7 @@
   expectation: Calls fetch_page in parallel for each provided URL (x2), w/ search fallback for for external URL
   messages:
     - role: user
-      content: Use these as documentation ttps://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
+      content: Use these as documentation https://www.mongodb.com/docs/manual/core/schema-validation/ https://www.datacamp.com/tutorial/mongodb-schema-validation How do I validate there are no extra fields that I haven't defined
   customData:
     origin: https://www.mongodb.com/docs/manual/core/schema-validation/
   expectedMessageDetail: 

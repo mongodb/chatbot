@@ -77,7 +77,7 @@ const fetchPageToolNotes = [
 ];
 
 const finalAnswerContentNotes = [
-  `If the user provided a URL but you had to use the ${SEARCH_TOOL_NAME} tool to answer their query, you MUST tell the user you didn't find anything on the page provided and that you searched your knowledge base instead.`
+  `If the ${FETCH_PAGE_TOOL_NAME} tool replies with "${SEARCH_ALL_FALLBACK_TEXT}", you should tell the user you didn't find anything on the page provided and that you searched your knowledge base to find an answer.`,
 ];
 
 const importantNote = `<important>
@@ -97,9 +97,6 @@ ${makeMarkdownNumberedList(personalityTraits)}
 
 If you do not know the answer to the question, respond only with the following text:
 "${llmDoesNotKnowMessage}"
-
-When crafting your final answer to the user, follow these guidelines:
-${makeMarkdownNumberedList(finalAnswerContentNotes)}
 
 Response format:
 ${makeMarkdownNumberedList(responseFormat)}
@@ -145,20 +142,9 @@ ${makeMarkdownNumberedList(searchRequiresRephraseNotes)}
 
 <tools>
 
-<tool name="${SEARCH_TOOL_NAME}">
+You have access to the ${SEARCH_TOOL_NAME} and ${FETCH_PAGE_TOOL_NAME} tools.
 
-You have access to the ${SEARCH_TOOL_NAME} tool. Use the ${SEARCH_TOOL_NAME} tool as follows:
-${makeMarkdownNumberedList(searchContentToolNotes)}
-
-When you search, include metadata about the relevant MongoDB programming language and product.
-</tool>
-
-<tool name=${FETCH_PAGE_TOOL_NAME}>
-
-You have access to the ${FETCH_PAGE_TOOL_NAME} tool. Use the ${FETCH_PAGE_TOOL_NAME} tool as follows:
-${makeMarkdownNumberedList(fetchPageToolNotes)}
-
-</tool>
+If the ${SEARCH_TOOL_NAME} was used, and it returned "${SEARCH_ALL_FALLBACK_TEXT}", you should say that you did not find an answer on the page provided and that you searched your knowledge base to find an answer.
 
 </tools>`,
 } satisfies SystemMessage;

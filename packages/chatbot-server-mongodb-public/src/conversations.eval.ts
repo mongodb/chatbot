@@ -64,13 +64,13 @@ async function conversationEval() {
     ...systemPromptCases,
     ...internalToolCases,
     ...customToolCases,
-  ];
+  ].filter((c) => c.tags?.includes("fetch_page") || c.tags?.includes("systemPromptAdherence"));
 
   try {
     // Run the conversation eval
     const evalResult = await makeConversationEval({
       projectName: CONVERSATION_EVAL_PROJECT_NAME,
-      experimentName: "mongodb-chatbot-latest",
+      experimentName: "mongodb-chatbot-feature-fetch-adherence",
       metadata: {
         description:
           "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",

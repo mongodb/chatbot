@@ -9,6 +9,7 @@ import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 import { normalizeUrl } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool } from "mongodb-rag-core/aiSdk";
+import { SEARCH_TOOL_NAME } from "./search";
 
 export const FETCH_PAGE_TOOL_NAME = "fetch_page";
 export const SEARCH_ALL_FALLBACK_TEXT = "{fallback_to_search}";
@@ -38,6 +39,20 @@ export interface MakeFetchPageToolParams {
   pageLengthCutoff?: number;
 }
 
+const fetchPageToolNotes = [
+  "Fetch the entire page content for a given URL.",
+  `Do not assume that the user wants to use the ${FETCH_PAGE_TOOL_NAME} based on the URL in the Front Matter. The ${FETCH_PAGE_TOOL_NAME} should ONLY be used if the user implies you should look on the page or if the user explicitly provides a URL in their question.`,
+  `If the user provides multiple URLs in their query, call the ${FETCH_PAGE_TOOL_NAME} once for each URL, and do not call the ${FETCH_PAGE_TOOL_NAME} for the URL in the Front Matter.`,
+  "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
+  "Do not include URLs in the search query.",
+  `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
+  `If the results from the ${FETCH_PAGE_TOOL_NAME} are not sufficient to answer the user's question, you may call the ${SEARCH_TOOL_NAME} tool to find an answer.`,
+];
+
+function makeMarkdownNumberedList(items: string[]) {
+  return items.map((item, i) => `${i + 1}. ${item}`).join("\n");
+}
+
 export function makeFetchPageTool({
   loadPage,
   findContent,
@@ -47,7 +62,9 @@ export function makeFetchPageTool({
 }: MakeFetchPageToolParams): FetchPageTool {
   return tool({
     inputSchema: MongoDbFetchPageToolArgsSchema,
-    description: "Fetch all content for a specific URL",
+    description: `Fetch all content for a specific URL. Use it as follows:
+
+${makeMarkdownNumberedList(fetchPageToolNotes)}`,
     toModelOutput(output) {
       return {
         type: "content",

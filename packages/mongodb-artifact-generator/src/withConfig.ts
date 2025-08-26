@@ -11,7 +11,8 @@ export const loadConfig = async ({
   config: configPathIn,
 }: LoadConfigArgs): Promise<Config> => {
   const path = Path.resolve(
-    configPathIn === undefined ? "build/standardConfig.js" : configPathIn
+    configPathIn ?? Path.join(__dirname, "../build/standardConfig.js")
+    // configPathIn ?? "build/standardConfig.js"
   );
 
   const maybePartialConfig = (await import(path)).default;

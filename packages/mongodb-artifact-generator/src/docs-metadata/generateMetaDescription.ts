@@ -47,7 +47,7 @@ const systemPrompt = stripIndents`
 export function makeGenerateMetaDescription({
   openAiClient,
 }: MakeGenerateMetaDescription) {
-  const fewShotExamplesDir = "./src/docs-metadata/examples";
+  const fewShotExamplesDir = path.join(__dirname, "examples");
   const fewShotExamples = readdirSync(fewShotExamplesDir)
     .filter((fileName) => path.extname(fileName) === ".json")
     .flatMap((fileName) => {

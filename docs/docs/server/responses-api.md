@@ -494,8 +494,8 @@ const stream = await openai.responses.create({
 
 You can collect user feedback in the form of message ratings and comments on all generations from the Responses API. The Knowledge Service has separate endpoints for rating and commenting messages:
 
-- [`rateMessage` endpoint](/server/openapi/#tag/Conversations/operation/rateMessage)
-- [`commentMessage` endpoint](/server/openapi/#tag/Conversations/operation/commentMessage)
+- [`rateStandaloneMessage` endpoint](/server/openapi/#tag/Conversations/operation/rateStandaloneMessage)
+- [`commentStandaloneMessage` endpoint](/server/openapi/#tag/Conversations/operation/commentStandaloneMessage)
 
 Usage example:
 
@@ -518,21 +518,19 @@ const stream = await openai.responses.create({
 });
 
 let messageId: string;
-let conversationId: string;
 
 for await (const event of stream) {
   switch(event.type) {
     case "response.completed":
       // Extract the message ID and conversation ID for rating/commenting
       messageId = event.response.id;
-      conversationId = event.response.metadata.conversation_id;
       break;
     // ...other event handling
   }
 }
 
 // Rate the message (thumbs up/down)
-const rateResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/${conversationId}/messages/${messageId}/rating`, {
+const rateResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/messages/${messageId}/rating`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -544,7 +542,7 @@ const rateResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/${con
 });
 
 // Add a comment to the message (requires the message to be rated first)
-const commentResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/${conversationId}/messages/${messageId}/comment`, {
+const commentResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/messages/${messageId}/comment`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

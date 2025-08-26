@@ -1,17 +1,13 @@
-import { assertEnvVars } from "mongodb-rag-core";
+import { getEnv } from "mongodb-rag-core";
 
-const { PROFOUND_API_URL, PROFOUND_API_KEY, PROFOUND_CATALOG_ID_EDU } =
-  assertEnvVars({
-    PROFOUND_API_URL: "",
-    PROFOUND_API_KEY: "",
-    PROFOUND_CATALOG_ID_EDU: "",
-  });
+const env = getEnv({
+  optional: {
+    PROFOUND_API_URL: "https://api.tryprofound.com/v1",
+  },
+});
 
 /**
  The request body for fetching answers from the Profound API.
- 
- Note: The `category_id` field is required by the Profound API, but is automatically
- injected by the ProfoundApi class and should NOT be set by callers.
  */
 export interface ProfoundAnswerRequestBody {
   start_date: string;
@@ -51,13 +47,10 @@ export interface ProfoundModel {
 }
 
 export class ProfoundApi {
-  private readonly baseUrl = PROFOUND_API_URL;
+  private readonly baseUrl = env.PROFOUND_API_URL;
   private readonly apiKey: string;
 
-  constructor({ apiKey = PROFOUND_API_KEY }: { apiKey?: string } = {}) {
-    if (!apiKey) {
-      throw new Error("Profound API key is missing.");
-    }
+  constructor({ apiKey }: { apiKey: string }) {
     this.apiKey = apiKey;
   }
 
@@ -132,12 +125,14 @@ export class ProfoundApi {
 
   async getAnswers({
     body,
+    categoryId,
   }: {
     body: ProfoundAnswerRequestBody;
+    categoryId: string;
   }): Promise<ProfoundAnswerResponse> {
     return this.paginatedRequest<ProfoundAnswerResponse>("/prompts/answers", {
       ...body,
-      category_id: PROFOUND_CATALOG_ID_EDU,
+      category_id: categoryId,
     });
   }
 

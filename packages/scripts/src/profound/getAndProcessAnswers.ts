@@ -1,3 +1,6 @@
+import path from "path";
+import fs from "fs";
+import os from "os";
 import {
   ProfoundAnswer,
   ProfoundAnswerRequestBody,
@@ -5,17 +8,36 @@ import {
 } from "./profoundAPI";
 import { makeReferenceAlignment } from "benchmarks";
 import { getModel } from "../mercury/models";
-import { mapReferenceAlignmentScoreToTag } from "../mercury/evaluateLlms";
+import {
+  createOutputs,
+  mapReferenceAlignmentScoreToTag,
+} from "../mercury/utils";
 // ModelConfig imported but not used after switching to getModel; removing to keep style consistent
 import { OpenAI } from "mongodb-rag-core/openai";
 import { getEnv } from "mongodb-rag-core";
-import { Collection, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { Query as MingoQuery } from "mingo";
 import { PromisePool } from "@supercharge/promise-pool";
+import {
+  makeMercuryDatabase,
+  MercuryAnswer,
+  MercuryPrompt,
+  MercuryReport,
+} from "../mercury/database";
+import { ObjectId } from "mongodb-rag-core/mongodb";
+import {
+  formatDate,
+  getTodayIsoDate,
+  getYesterdayIsoDate,
+  validateDatestring,
+} from "./utils";
+import { ScoringFailedError } from "../mercury/errors";
 
 const env = getEnv({
   required: [
+    // BrainTrust
     "BRAINTRUST_PROXY_ENDPOINT",
     "BRAINTRUST_API_KEY",
+    // Mercury
     "MERCURY_CONNECTION_URI",
     "MERCURY_DATABASE_NAME",
     "MERCURY_GENERATOR_MODEL_NAME",
@@ -24,13 +46,16 @@ const env = getEnv({
     "MERCURY_PROMPTS_COLLECTION",
     "MERCURY_ANSWERS_COLLECTION",
     "MERCURY_RESULTS_COLLECTION",
+    // Profound
+    "PROFOUND_API_KEY",
+    "PROFOUND_CATALOG_ID_EDU",
   ],
   optional: {
     BATCH_SIZE: "50",
   },
 });
 
-const profoundAPI = new ProfoundApi();
+const profoundAPI = new ProfoundApi({ apiKey: env.PROFOUND_API_KEY });
 
 // Helper function to split an array into batches
 function createBatches<T>(array: T[], batchSize: number): T[][] {
@@ -45,14 +70,14 @@ export interface GetAnswersArgs {
   startDate: string;
   endDate: string;
   caseContent?: string;
-  platform?: string;
+  platformId?: string;
 }
 
 export async function getAnswers({
   startDate,
   endDate,
   caseContent,
-  platform,
+  platformId,
 }: GetAnswersArgs): Promise<ProfoundAnswer[]> {
   const filters: ProfoundAnswerRequestBody["filters"] = [];
   if (caseContent) {
@@ -62,11 +87,11 @@ export async function getAnswers({
       value: caseContent,
     });
   }
-  if (platform) {
+  if (platformId) {
     filters.push({
       operator: "is",
       field: "model",
-      value: platform,
+      value: platformId,
     });
   }
   const body: ProfoundAnswerRequestBody = {
@@ -78,169 +103,102 @@ export async function getAnswers({
       run_id: true,
     },
   };
-  console.log("Getting answers from Profound API for these params:", { body });
-  const response = await profoundAPI.getAnswers({ body });
-  console.log(`Got ${response.data.length} answers from Profound API`);
+  const response = await profoundAPI.getAnswers({
+    body,
+    categoryId: env.PROFOUND_CATALOG_ID_EDU,
+  });
   return response.data;
 }
 
-interface CaseByProfoundPromptId {
-  [key: string]: {
-    expected: string;
-    tags: string[];
-    caseId: ObjectId;
-    metadata: {
-      category: string;
-    };
-  };
-}
-const casesByPromptId = async (
-  collection: Collection
-): Promise<CaseByProfoundPromptId> => {
-  const documents = await collection.find().toArray();
-  return documents.reduce((map, doc) => {
-    map[doc.profoundPromptId] = {
-      expected: doc.expected,
-      tags: doc.tags,
-      caseId: doc._id,
-      metadata: doc.metadata,
-    };
+function groupByProfoundPromptId(
+  prompts: MercuryPrompt[]
+): Record<string, MercuryPrompt> {
+  return prompts.reduce((map, prompt) => {
+    map[prompt.metadata.profoundPromptId] = prompt;
     return map;
-  }, {} as CaseByProfoundPromptId);
-};
+  }, {} as Record<string, MercuryPrompt>);
+}
 
-const platformsByName = async (): Promise<Record<string, string>> => {
+async function makeMapProfoundPlatformNameToId(): Promise<
+  (platformName: string) => string
+> {
   const platforms = await profoundAPI.getModels();
-  return Object.fromEntries(
+  const map = new Map<string, string>(
     platforms.map((record) => [record.name, record.id])
   );
-};
+  return (platformName) => map.get(platformName) ?? "Unknown";
+}
 
-interface DatasetByTag {
-  [key: string]: {
-    name: string;
-    slug: string;
+function makeMapAnswerToDataset(
+  reports: MercuryReport[],
+  prompts: MercuryPrompt[]
+): (answer: ProfoundAnswer) => { name: string; slug: string } {
+  const entries = reports.flatMap((report) => {
+    if (report.slug === "all") {
+      return [];
+    }
+    return new MingoQuery(report.query)
+      .find<MercuryPrompt>(prompts)
+      .all()
+      .map(
+        (prompt) =>
+          [
+            prompt.metadata.profoundPromptId,
+            { name: report.name, slug: report.slug },
+          ] satisfies [string, { name: string; slug: string }]
+      ) as unknown as [string, { name: string; slug: string }][];
+  });
+  const map = new Map(entries);
+  return (answer) => {
+    return (
+      map.get(answer.prompt_id) ?? {
+        name: "Unknown",
+        slug: "Unknown",
+      }
+    );
   };
 }
-const datasetsByTag = async (collection: Collection): Promise<DatasetByTag> => {
-  const documents = await collection.find().toArray();
-  return documents.reduce((map, doc) => {
-    map[doc.query.tags] = {
-      name: doc.name,
-      slug: doc.slug,
-    };
-    return map;
-  }, {} as DatasetByTag);
-};
-
-const getDataset = (
-  tags: string[],
-  datasetsByTagMap: DatasetByTag
-): { name: string; slug: string } | null => {
-  for (const tag of tags) {
-    if (datasetsByTagMap[tag]) {
-      return datasetsByTagMap[tag];
-    }
-  }
-  console.error("No matching dataset found for tags:", tags);
-  return null;
-};
 
 const judgementModelConfig = getModel("gpt-4.1");
 
 const BATCH_SIZE = parseInt(env.BATCH_SIZE);
-
-function formatDateInTimeZone(date: Date, timeZone: string) {
-  // Returns YYYY-MM-DD in the specified time zone
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .formatToParts(date)
-    .reduce<Record<string, string>>((acc, part) => {
-      if (part.type !== "literal") acc[part.type] = part.value;
-      return acc;
-    }, {});
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
-function enumerateDateStrings(
-  startYYYYMMDD: string,
-  endYYYYMMDDExclusive: string
-) {
-  // Generates all YYYY-MM-DD strings (America/New_York) from start (inclusive) to end (exclusive)
-  const results: string[] = [];
-  const tz = "America/New_York";
-  let cursor = new Date(`${startYYYYMMDD}T00:00:00Z`);
-  // Adjust cursor to NY midnight by reading back the formatted date each loop
-  while (true) {
-    const current = formatDateInTimeZone(cursor, tz);
-    results.push(current);
-    if (current === endYYYYMMDDExclusive) break; // safety; should not match normally
-    // advance by 1 day
-    cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000);
-    const next = formatDateInTimeZone(cursor, tz);
-    if (next === endYYYYMMDDExclusive) break;
-    if (results[results.length - 1] === next) continue; // handle DST shifts
-  }
-  // ensure we include at least the start day
-  return Array.from(new Set(results));
-}
 
 function makeDedupeKey(args: {
   day: string;
   prompt: string;
   platformId: string | undefined;
 }) {
-  return `${args.day}|${args.prompt}|${args.platformId ?? ""}`;
+  return JSON.stringify({
+    day: args.day,
+    platformId: args.platformId ?? "",
+    prompt: args.prompt,
+  });
 }
 
-export const main = async (startDateArg?: string, endDateArg?: string) => {
-  // START setup
+export const main = async (
+  args: { startDate?: string; endDate?: string; outputDir?: string } = {}
+) => {
+  const db = makeMercuryDatabase({
+    connectionUri: env.MERCURY_CONNECTION_URI,
+    databaseName: env.MERCURY_DATABASE_NAME,
+    promptsCollectionName: env.MERCURY_PROMPTS_COLLECTION,
+    resultsCollectionName: env.MERCURY_RESULTS_COLLECTION,
+    reportsCollectionName: env.MERCURY_REPORTS_COLLECTION,
+    answersCollectionName: env.MERCURY_ANSWERS_COLLECTION,
+  });
 
-  // validate date format in args
-  if (startDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(startDateArg)) {
-    throw new Error("Invalid start date format. Please use YYYY-MM-DD.");
-  }
-  if (endDateArg && !/^\d{4}-\d{2}-\d{2}$/.test(endDateArg)) {
-    throw new Error("Invalid end date format. Please use YYYY-MM-DD.");
-  }
   // Determine date range from command line arguments, or default to yesterday --> today
   // Note: The Profound API expects date inputs in EST, bc they execute prompts within a 24 hour EST window.
-  const today: Date = new Date();
-  const yesterday: Date = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const start: string = startDateArg
-    ? startDateArg
-    : new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/New_York",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(yesterday);
-  const end: string = endDateArg
-    ? endDateArg
-    : new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/New_York",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(today);
+  const start = validateDatestring(args.startDate ?? getYesterdayIsoDate());
+  const end = validateDatestring(args.endDate ?? getTodayIsoDate());
 
-  const client = await MongoClient.connect(env.MERCURY_CONNECTION_URI);
-  const db = client.db(env.MERCURY_DATABASE_NAME);
-  const answersCollection = db.collection(env.MERCURY_ANSWERS_COLLECTION);
-  const casesCollection = db.collection(env.MERCURY_PROMPTS_COLLECTION);
-  const reportsCollection = db.collection(env.MERCURY_REPORTS_COLLECTION);
-  // create a hashmap of all cases, where the key is the profound prompt id so that we can find the case that corresponds to the answer
-  const casesByPromptMap = await casesByPromptId(casesCollection);
-  // create a hashmap of all platforms, where the key is the platform name and the value is the platform id
-  const platformsByNameMap = await platformsByName();
-  // create a hashmap of all dataset tags, where the key is the tag and the value is the dataset name and slug
-  const datasetsByTagMap = await datasetsByTag(reportsCollection);
-  // END set up
+  const answersCollection = db.answersCollection;
+
+  const reports = await db.reportsCollection.find({}).toArray();
+  const prompts = await db.promptsCollection.find({}).toArray();
+  const profoundPromptIdToPromptMap = groupByProfoundPromptId(prompts);
+  const mapProfoundPlatformNameToId = await makeMapProfoundPlatformNameToId();
+  const mapAnswerToDataset = makeMapAnswerToDataset(reports, prompts);
 
   const answers = await getAnswers({
     startDate: start,
@@ -251,183 +209,111 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
   );
 
   // Precompute dedupe set from existing records: YYYY-MM-DD (NY) + prompt + platformId
-  const nyTz = "America/New_York";
-  const targetDays = new Set<string>(enumerateDateStrings(start, end));
   const promptsSet = new Set<string>(answers.map((a) => a.prompt));
-  const platformIdsSet = new Set<string>();
-  for (const a of answers) {
-    const pid = platformsByNameMap[a.model];
-    if (pid) platformIdsSet.add(pid);
-  }
-  let existingDocs: Array<{
-    date?: Date;
-    prompt?: string;
-    platformId?: string;
-    metrics?: { referenceAlignment?: { score?: number | null } };
-  }> = [];
+  const platformIdsSet = new Set<string>(
+    answers
+      .map((answer) => mapProfoundPlatformNameToId(answer.model))
+      .filter((pid) => typeof pid === "string")
+  );
   try {
-    existingDocs = await answersCollection
+    await db.connect();
+    const existingDocs = await db.answersCollection
       .find({
         platformId: { $in: Array.from(platformIdsSet) },
         prompt: { $in: Array.from(promptsSet) },
       })
-      .project({
-        date: 1,
-        prompt: 1,
-        platformId: 1,
-        "metrics.referenceAlignment.score": 1,
-      })
       .toArray();
-  } catch (err) {
-    console.warn(
-      "Warning: failed to prefetch existing answers for dedupe; proceeding without prefilter.",
-      err
+
+    console.log(
+      `Debug: Prefetched ${existingDocs.length} existing documents from database`
     );
-  }
 
-  console.log(
-    `Debug: Prefetched ${existingDocs.length} existing documents from database`
-  );
-
-  const scoredDedupeKeys = new Set<string>();
-  let scoredDocsCount = 0;
-  for (const doc of existingDocs) {
-    if (!doc.date || !doc.prompt || !doc.platformId) continue;
-    const scored = doc.metrics?.referenceAlignment?.score != null;
-    if (!scored) continue;
-    scoredDocsCount++;
-    const day = formatDateInTimeZone(new Date(doc.date), nyTz);
-    if (!targetDays.has(day)) continue;
-    scoredDedupeKeys.add(
-      makeDedupeKey({ day, prompt: doc.prompt, platformId: doc.platformId })
+    const alreadyScored = new Set<string>(
+      existingDocs.map((doc) =>
+        makeDedupeKey({
+          day: formatDate(new Date(doc.date)),
+          prompt: doc.prompt,
+          platformId: doc.platformId,
+        })
+      )
     );
-  }
 
-  console.log(
-    `Debug: Found ${scoredDocsCount} scored documents, ${scoredDedupeKeys.size} within target date range`
-  );
+    const answersToProcess = answers.filter((answer) => {
+      const dedupeKey = makeDedupeKey({
+        prompt: answer.prompt,
+        platformId: mapProfoundPlatformNameToId(answer.model),
+        day: formatDate(new Date(answer.created_at + "Z")), // TODO - Find out what timezone this is returned in because it's not UTC
+      });
+      return !alreadyScored.has(dedupeKey);
+    });
 
-  // Filter out answers that are already processed before batching
-  let topicsFilteredCount = 0;
-  const answersToProcess = answers.filter((answer) => {
-    // Skip answers that profound creates to evaluate Topics
-    const regex = /Evaluate the MongoDB - Docs \/ Education company MongoDB on/;
-    if (regex.test(answer.prompt)) {
-      topicsFilteredCount++;
-      return false;
+    console.log(
+      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nTo process: ${answersToProcess.length}`
+    );
+
+    if (answersToProcess.length === 0) {
+      console.log("No answers need processing. Exiting.");
+      return;
     }
 
-    // Check if already processed using dedupe logic
-    const platformId = platformsByNameMap[answer.model];
-    const dayKey = formatDateInTimeZone(
-      new Date(answer.created_at + "Z"),
-      nyTz
+    const scoreReferenceAlignment = makeReferenceAlignment(
+      new OpenAI({
+        baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+        apiKey: env.BRAINTRUST_API_KEY,
+      }),
+      {
+        model: judgementModelConfig.deployment,
+        temperature: 0,
+      },
+      judgementModelConfig.label
     );
-    const dedupeKey = makeDedupeKey({
-      day: dayKey,
-      prompt: answer.prompt,
-      platformId,
-    });
-    return !scoredDedupeKeys.has(dedupeKey);
-  });
 
-  console.log(
-    `Debug: Filtered out ${topicsFilteredCount} Topics evaluation prompts`
-  );
-
-  // Debug: show some sample dedupe keys we're looking for vs. what we found
-  if (answersToProcess.length > 0 && scoredDedupeKeys.size > 0) {
-    const sampleAnswer = answersToProcess[0];
-    const samplePlatformId = platformsByNameMap[sampleAnswer.model];
-    const sampleDayKey = formatDateInTimeZone(
-      new Date(sampleAnswer.created_at + "Z"),
-      nyTz
-    );
-    const sampleDedupeKey = makeDedupeKey({
-      day: sampleDayKey,
-      prompt: sampleAnswer.prompt,
-      platformId: samplePlatformId,
-    });
+    // Process answers in batches
+    const batches = createBatches(answersToProcess, BATCH_SIZE);
     console.log(
-      `Debug: Sample dedupe key from new answer: "${sampleDedupeKey}"`
-    );
-    console.log(
-      `Debug: First few existing dedupe keys: ${Array.from(scoredDedupeKeys)
-        .slice(0, 3)
-        .join(", ")}`
-    );
-  }
-
-  console.log(
-    `Found ${answersToProcess.length} answers to process out of ${
-      answers.length
-    } total answers (${
-      answers.length - answersToProcess.length
-    } already processed)`
-  );
-
-  if (answersToProcess.length === 0) {
-    console.log("No answers need processing. Exiting.");
-    await client.close();
-    return;
-  }
-
-  // get reference alignment scores for answers
-  const openAiClient = new OpenAI({
-    baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
-    apiKey: env.BRAINTRUST_API_KEY,
-  });
-  const referenceAlignmentFn = makeReferenceAlignment(
-    openAiClient,
-    {
-      model: judgementModelConfig.deployment,
-      temperature: 0,
-    },
-    judgementModelConfig.label
-  );
-
-  // Process answers in batches
-  const batches = createBatches(answersToProcess, BATCH_SIZE);
-  console.log(
-    `Processing ${answersToProcess.length} answers in ${batches.length} batches of size ${BATCH_SIZE}`
-  );
-
-  const allErrors: Error[] = [];
-  const allRecords: any[] = [];
-  const promptsWithNoAssociatedCase = new Set();
-
-  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-    const batch = batches[batchIndex];
-    console.log(
-      `\n--- Processing batch ${batchIndex + 1}/${batches.length} (${
-        batch.length
-      } answers) ---`
+      `Processing ${answersToProcess.length} answers in ${batches.length} batches of size ${BATCH_SIZE}`
     );
 
-    const batchErrors: Error[] = [];
-    const { results: batchResults } = await PromisePool.for(batch)
-      .withConcurrency(10)
-      .handleError((error) => {
-        batchErrors.push(error);
-      })
-      .process(async (currentAnswer) => {
-        // Find the corresponding llm_cases document (to get expected response & tags)
-        const currentPrompt = currentAnswer.prompt;
-        const currentPromptId = currentAnswer.prompt_id;
-        const currentCase = casesByPromptMap[currentPromptId];
-        if (!currentCase) {
-          promptsWithNoAssociatedCase.add(
-            `${currentPromptId} - ${currentPrompt}`
-          );
-        }
+    const allErrors: Error[] = [];
+    const allSkipped: string[] = [];
+    const allRecords: any[] = [];
+    const promptsWithNoAssociatedCase = new Set<string>();
 
-        // Get platformId for record creation
-        const platformId = platformsByNameMap[currentAnswer.model];
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      console.log(
+        `\n--- Processing batch ${batchIndex + 1}/${batches.length} (${
+          batch.length
+        } answers) ---`
+      );
 
-        // calculate reference alignment score
-        let referenceAlignment;
-        try {
-          referenceAlignment = (await referenceAlignmentFn({
+      const batchErrors: Error[] = [];
+      const batchSkipped: string[] = [];
+      const { results: batchResults } = await PromisePool.for(batch)
+        .withConcurrency(10)
+        .handleError((error) => {
+          batchErrors.push(error);
+        })
+        .process(async (currentAnswer) => {
+          const skipRegex =
+            /Evaluate the MongoDB - Docs \/ Education company MongoDB/;
+          if (skipRegex.test(currentAnswer.prompt)) {
+            batchSkipped.push(currentAnswer.prompt);
+            return null;
+          }
+          // Find the corresponding llm_cases document (to get expected response & tags)
+          const currentCase =
+            profoundPromptIdToPromptMap[currentAnswer.prompt_id];
+          if (!currentCase) {
+            promptsWithNoAssociatedCase.add(
+              `${currentAnswer.prompt_id} - ${currentAnswer.prompt}`
+            );
+            return null; // Skip processing this answer since we don't have the case data
+          }
+          const platformId = mapProfoundPlatformNameToId(currentAnswer.model);
+
+          // calculate reference alignment score
+          const scorerArgs = {
             input: {
               messages: [
                 {
@@ -445,138 +331,125 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
               links: [], // TODO: update with links from currentCase if defined
             },
             metadata: {},
-          })) as {
-            score: number | null;
-            name: string;
-            metadata: {
-              rationale: string;
-              choice: string;
-            };
           };
-        } catch (err) {
-          console.error("Error in referenceAlignmentFn:", {
-            prompt: currentAnswer.prompt,
-            profoundPromptId: currentAnswer.prompt_id,
-            profoundRunId: currentAnswer.run_id,
-            error: err,
-          });
-          referenceAlignment = {
-            score: null,
-            name: "ReferenceAlignment",
-            metadata: {
-              rationale: "Error during evaluation",
-              choice: "",
-            },
-          };
-        }
+          try {
+            const score = await scoreReferenceAlignment(scorerArgs);
+            const answer = {
+              _id: new ObjectId(),
+              createdAt: new Date(),
+              type: "answer-engine",
+              caseId: currentCase._id,
+              promptId: currentCase._id,
+              platformName: currentAnswer.model,
+              platformId,
+              date: new Date(currentAnswer.created_at),
+              prompt: currentAnswer.prompt,
+              region: currentAnswer.region,
+              response: currentAnswer.response,
+              metrics: {
+                referenceAlignment: {
+                  score: score.score ?? -1,
+                  label:
+                    mapReferenceAlignmentScoreToTag(score.score) ?? undefined,
+                  rationale:
+                    (score.metadata?.rationale as string | undefined) ??
+                    undefined,
+                  judgementModel: judgementModelConfig.label,
+                },
+              },
+              citations: Array.from(new Set(currentAnswer.citations)).map(
+                (citation) => {
+                  const url = new URL(citation);
+                  return {
+                    url: url.toString(),
+                    hostname: url.hostname,
+                    path: url.pathname,
+                  };
+                }
+              ),
+              tags: currentCase?.tags,
+              expectedResponse: currentCase?.expected,
+              profoundPromptId: currentAnswer.prompt_id,
+              profoundRunId: currentAnswer.run_id,
+              dataset: mapAnswerToDataset(currentAnswer),
+              category: currentCase.metadata.category,
+            } satisfies MercuryAnswer;
+            return answer;
+          } catch (error) {
+            console.error(error);
+            throw new ScoringFailedError({
+              prompt: currentCase,
+              model: currentAnswer.model,
+              scorer: scorerArgs,
+              error: error instanceof Error ? error : new Error(String(error)),
+            });
+          }
+        });
 
-        // create the llm_answers record
-        const answerEngineRecord = {
-          type: "answer-engine",
-          caseId: currentCase?.caseId ?? null,
-          platformName: currentAnswer.model,
-          platformId,
-          date: new Date(currentAnswer.created_at + "Z"),
-          prompt: currentAnswer.prompt,
-          region: currentAnswer.region,
-          response: currentAnswer.response,
-          metrics: {
-            referenceAlignment: {
-              score: referenceAlignment.score,
-              label:
-                mapReferenceAlignmentScoreToTag(referenceAlignment.score) ??
-                undefined,
-              rationale: referenceAlignment.metadata?.rationale,
-              judgementModel: judgementModelConfig.label,
-            },
-          },
-          citations: Array.from(new Set(currentAnswer.citations)).map(
-            (citation) => {
-              const url = new URL(citation);
-              return {
-                url: url.toString(),
-                hostname: url.hostname,
-                path: url.pathname,
-              };
-            }
-          ),
-          tags: currentCase?.tags,
-          expectedResponse: currentCase?.expected,
-          profoundPromptId: currentAnswer.prompt_id,
-          profoundRunId: currentAnswer.run_id,
-          dataset: currentCase
-            ? getDataset(currentCase.tags, datasetsByTagMap)
-            : null,
-          category: currentCase ? currentCase.metadata.category : null,
-        };
-        return answerEngineRecord;
-      });
-
-    // Upload batch results to MongoDB immediately
-    const validResults = batchResults.filter(
-      (record): record is NonNullable<typeof record> => record != null
-    );
-    if (validResults.length > 0) {
-      console.log(
-        `Saving ${validResults.length} processed results from batch ${
-          batchIndex + 1
-        } to MongoDB`
+      // Upload batch results to MongoDB immediately
+      const validResults = batchResults.filter(
+        (record): record is NonNullable<typeof record> => record !== null
       );
-      const bulkOps = validResults.map((record) => ({
-        updateOne: {
-          filter: { profoundRunId: record.profoundRunId },
-          update: {
-            $set: record,
-            $setOnInsert: { createdAt: new Date() },
-          },
-          upsert: true,
-        },
-      }));
-      try {
-        const result = await answersCollection.bulkWrite(bulkOps);
-        const inserted = result.upsertedCount || 0;
-        const updated = result.modifiedCount || 0;
-        const unchanged = validResults.length - inserted - updated;
+      if (validResults.length > 0) {
         console.log(
-          `Batch ${
+          `Saving ${validResults.length} processed results from batch ${
             batchIndex + 1
-          } save completed: ${inserted} inserted, ${updated} updated${
-            unchanged > 0 ? `, ${unchanged} unchanged` : ""
-          }`
+          } to MongoDB`
         );
-      } catch (err) {
-        console.error(`Batch ${batchIndex + 1} save failed:`, err);
+        try {
+          const result = await db.answersCollection.insertMany(validResults);
+          console.log(
+            `Batch ${batchIndex + 1} save completed: ${
+              result.insertedCount
+            } inserted`
+          );
+        } catch (err) {
+          console.error(`Batch ${batchIndex + 1} save failed:`, err);
+        }
       }
+
+      // Add to cumulative totals
+      allErrors.push(...batchErrors);
+      allSkipped.push(...batchSkipped);
+      allRecords.push(...validResults);
+
+      // Log batch completion
+      console.log(`Batch ${batchIndex + 1} completed:`);
+      console.log(`  - Successfully processed: ${validResults.length} answers`);
+      console.log(`  - Failed: ${batchErrors.length} answers`);
+      console.log(`  - Skipped: ${batch.length - validResults.length} answers`);
+      console.log(
+        `  - Cumulative total: ${allRecords.length} successful, ${allErrors.length} failed`
+      );
     }
 
-    // Add to cumulative totals
-    allErrors.push(...batchErrors);
-    allRecords.push(...validResults);
-
-    // Log batch completion
-    console.log(`Batch ${batchIndex + 1} completed:`);
-    console.log(`  - Successfully processed: ${validResults.length} answers`);
-    console.log(`  - Failed: ${batchErrors.length} answers`);
+    // Final summary
+    console.log(`\n=== Final Summary ===`);
+    console.log(`Successfully processed ${allRecords.length} answers`);
+    console.log(`Failed to process ${allErrors.length} answers`);
+    console.log(`Skipped ${allSkipped.length} answers`);
     console.log(
-      `  - Cumulative total: ${allRecords.length} successful, ${allErrors.length} failed`
+      `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
     );
-  }
 
-  // Final summary
-  console.log(`\n=== Final Summary ===`);
-  console.log(`Successfully processed ${allRecords.length} answers`);
-  console.log(`Failed to process ${allErrors.length} answers`);
-  console.log(
-    `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
-  );
-  promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
-    console.log(` - ${promptInfo}`);
-  });
+    if (allErrors.length > 0) {
+      console.error("Errors during processing:", allErrors.slice(0, 5)); // Show first 5 errors
+    }
 
-  if (allErrors.length > 0) {
-    console.error("Errors during processing:", allErrors.slice(0, 5)); // Show first 5 errors
+    if (args.outputDir) {
+      const { errorsFile, resultsFile, skippedFile } = createOutputs({
+        outputDir: args.outputDir,
+        errors: allErrors,
+        results: allRecords,
+        skipped: allSkipped,
+      });
+      console.log("Skipped written to", skippedFile);
+      console.log("Errors written to", errorsFile);
+      console.log("Results written to", resultsFile);
+    }
+  } finally {
+    await db.disconnect();
   }
-  await client.close();
 };
 
 // Usage documentation for CLI users
@@ -600,5 +473,8 @@ Examples:
   process.exit(0);
 }
 
-const [, , startDateArg, endDateArg] = process.argv;
-main(startDateArg, endDateArg);
+main({
+  startDate: process.argv[2],
+  endDate: process.argv[3],
+  outputDir: path.join(os.homedir(), `/Desktop/mercury-results/answers`),
+});

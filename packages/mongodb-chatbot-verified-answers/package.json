@@ -37,7 +37,7 @@
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it",
-    "upload": "node ./build/main.js"
+    "upload": "npm run build && node ./build/main.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

@@ -3,6 +3,10 @@ import {
   mongoDbProducts,
   mongoDbProgrammingLanguages,
 } from "mongodb-rag-core/mongoDbMetadata";
+import {
+  makeMarkdownUnorderedList,
+  makeMarkdownNumberedList,
+} from "mongodb-rag-core/dataSources";
 import { SEARCH_TOOL_NAME } from "./tools/search";
 import {
   FETCH_PAGE_TOOL_NAME,
@@ -60,24 +64,14 @@ const searchRequiresRephraseNotes = [
   "You should also transform the user query into a fully formed question, if relevant.",
 ];
 
-const searchContentToolNotes = [
-  "Search all of the available MongoDB reference documents for a given user input.",
-  "You must generate an appropriate search query for a given user input.",
-  "You are doing this for MongoDB, and all queries relate to MongoDB products.",
-  `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
-];
-
-const fetchPageToolNotes = [
-  "Fetch the entire page content for a given URL.",
-  `Do not assume that the user wants to use the ${FETCH_PAGE_TOOL_NAME} based on the URL in the Front Matter. The ${FETCH_PAGE_TOOL_NAME} should ONLY be used if the user implies you should look on the page or if the user explicitly provides a URL in their question.`,
-  `If the user provides URLs in their query, ONLY call the ${FETCH_PAGE_TOOL_NAME} for those URLs, and do NOT call the ${FETCH_PAGE_TOOL_NAME} for the URL in the Front Matter.`,
-  "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
-  "Do not include URLs in the search query.",
+const coordinateToolNotes = [
   `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
+  `If the results from the ${FETCH_PAGE_TOOL_NAME} are not sufficient to answer the user's question, you should call the ${SEARCH_TOOL_NAME} tool to find an answer.`,
 ];
 
-const finalAnswerContentNotes = [
-  `If the ${FETCH_PAGE_TOOL_NAME} tool replies with "${SEARCH_ALL_FALLBACK_TEXT}", you should tell the user you didn't find anything on the page provided and that you searched your knowledge base to find an answer.`,
+const toolUseDisclaimers = [
+  `If you used the ${FETCH_PAGE_TOOL_NAME} tool, and it returned ${SEARCH_ALL_FALLBACK_TEXT}, in your final answer you should say: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer."`,
+  `If the user provided a URL but you had to use ${SEARCH_TOOL_NAME} to find an answer, in your final answer you should say: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer.`,
 ];
 
 const importantNote = `<important>
@@ -142,16 +136,22 @@ ${makeMarkdownNumberedList(searchRequiresRephraseNotes)}
 
 <tools>
 
-You have access to the ${SEARCH_TOOL_NAME} and ${FETCH_PAGE_TOOL_NAME} tools.
+You have access to the search_content and fetch_page tools.
 
-If the ${SEARCH_TOOL_NAME} was used, and it returned "${SEARCH_ALL_FALLBACK_TEXT}", you should say that you did not find an answer on the page provided and that you searched your knowledge base to find an answer.
+<coordinate_tools>
+
+${makeMarkdownUnorderedList(coordinateToolNotes)}
+
+</coordinate_tools>
+
+<tool_disclaimers>
+
+${makeMarkdownUnorderedList(toolUseDisclaimers)}
+
+</tool_disclaimers>
 
 </tools>`,
 } satisfies SystemMessage;
-
-function makeMarkdownNumberedList(items: string[]) {
-  return items.map((item, i) => `${i + 1}. ${item}`).join("\n");
-}
 
 export const makeMongoDbAssistantSystemPrompt: MakeSystemPrompt = (
   customSystemPrompt,

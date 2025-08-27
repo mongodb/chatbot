@@ -11,6 +11,7 @@ import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "mongodb-rag-core/mongoDbMetadata";
+import { makeMarkdownNumberedList } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 
@@ -62,10 +63,6 @@ const searchContentToolNotes = [
   "You are doing this for MongoDB, and all queries relate to MongoDB products.",
   `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
 ];
-
-function makeMarkdownNumberedList(items: string[]) {
-  return items.map((item, i) => `${i + 1}. ${item}`).join("\n");
-}
 
 export function makeSearchTool({
   findContent,

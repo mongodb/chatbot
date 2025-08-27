@@ -138,11 +138,15 @@ You have access to the search_content and fetch_page tools.
 
 <coordinate_tools>
 
+Follow these guidelines when using the tools:
+
 ${makeMarkdownUnorderedList(coordinateToolNotes)}
 
 </coordinate_tools>
 
 <tool_disclaimers>
+
+When writing your final answer, provide any necessary disclaimers:
 
 ${makeMarkdownUnorderedList(toolUseDisclaimers)}
 

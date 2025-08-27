@@ -69,7 +69,7 @@ const coordinateToolNotes = [
 ];
 
 const toolUseDisclaimers = [
-  `If the ${FETCH_PAGE_TOOL_NAME} tool returns ${SEARCH_ALL_FALLBACK_TEXT}, you must tell the user in your final answer: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer."`,
+  `If you called the ${FETCH_PAGE_TOOL_NAME} tool and it returned the string "${SEARCH_ALL_FALLBACK_TEXT}", you must tell the user in your final answer: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer."`,
 ];
 
 const importantNote = `<important>

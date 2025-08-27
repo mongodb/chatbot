@@ -7,7 +7,12 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeReferenceAlignment } from "benchmarks";
 import { GenerationFailedError, ScoringFailedError } from "./errors";
-import { getModel, getModels, getModelDeployment } from "./models";
+import {
+  getModel,
+  getModels,
+  getModelDeployment,
+  mercuryModelConfigs,
+} from "./models";
 import {
   createOutputs,
   diffLists,
@@ -36,44 +41,6 @@ const env = getEnv({
     BATCH_SIZE: "50",
   },
 });
-
-export const testModelConfigs = getModels([
-  // OpenAI
-  "gpt-5",
-  "gpt-5-mini",
-  "gpt-5-nano",
-  "gpt-4o",
-  "gpt-4o-mini",
-  "o3",
-  "o3-mini",
-  "o4-mini",
-  "gpt-4.1",
-  "gpt-4.1-mini",
-  "gpt-4.1-nano",
-  // Anthropic
-  "claude-opus-4",
-  "claude-sonnet-4",
-  "claude-37-sonnet",
-  "claude-35-sonnet-v2",
-  "claude-35-sonnet",
-  "claude-35-haiku",
-  // Meta
-  "llama-3.1-70b",
-  "llama-3.2-90b",
-  "llama-3.3-70b",
-  // Google
-  "gemini-2.0-flash-lite-001",
-  "gemini-2-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-flash",
-  "gemini-2.5-pro",
-  // Amazon
-  "nova-micro-v1:0",
-  "nova-lite-v1:0",
-  "nova-pro-v1:0",
-  // Mistral
-  "mistral-large-2",
-]);
 
 const judgementModelConfig = getModel("gpt-4.1");
 
@@ -113,7 +80,7 @@ async function main(args: { outputDir: string }) {
     const prompts = await db.promptsCollection.find({}).toArray();
     // Determine which prompt-model pairs we want results for
     const promptModelPairsToTest = prompts.flatMap((prompt) => {
-      return testModelConfigs.map((model) => {
+      return mercuryModelConfigs.map((model) => {
         return {
           promptId: prompt._id,
           model: model.label,

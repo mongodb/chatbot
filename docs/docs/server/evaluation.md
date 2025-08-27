@@ -117,6 +117,6 @@ To see some example evaluations, refer to the evaluation suite that the Response
 When evaluating your AI application that uses the MongoDB Responses API,
 it can be useful to see what's happening inside the Responses API. 
 
-All calls to the staging Responses API are traced by default. Tracing is only disabled if you set the body param `store: true`. You should **never** set `store: true` in your evaluations.
+All calls to the staging Responses API are traced by default. Tracing is only disabled if you set the body param `store: false`. You should **never** set `store: false` in your evaluations.
 
 To access the staging API traces, go to the [chatbot-responses-staging Logs in Braintrust](https://www.braintrust.dev/app/mongodb-education-ai/p/chatbot-responses-staging/logs).

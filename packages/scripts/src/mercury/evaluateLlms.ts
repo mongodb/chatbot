@@ -2,29 +2,21 @@ import path from "path";
 import os from "os";
 import { PromisePool } from "@supercharge/promise-pool";
 import { getEnv } from "mongodb-rag-core";
-import { createOpenAI, generateText } from "mongodb-rag-core/aiSdk";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { OpenAI } from "mongodb-rag-core/openai";
-import { makeReferenceAlignment } from "benchmarks";
 import { GenerationFailedError, ScoringFailedError } from "./errors";
-import {
-  getModel,
-  getModels,
-  getModelDeployment,
-  mercuryModelConfigs,
-} from "./models";
-import {
-  createOutputs,
-  diffLists,
-  mapReferenceAlignmentScoreToTag,
-  truncateString,
-} from "./utils";
+import { getModel, mercuryModelConfigs } from "./models";
+import { createOutputs, diffLists, truncateString } from "./utils";
 import {
   makeMercuryDatabase,
   MercuryDatabase,
   MercuryResult,
 } from "./database";
 import { ModelConfig } from "mongodb-rag-core/models";
+import {
+  evaluatePromptModelPairs,
+  createEvaluationConfig,
+  EvaluationTask,
+} from "./evaluationCore";
 
 const env = getEnv({
   required: [
@@ -52,18 +44,6 @@ function createBatches<T>(array: T[], batchSize: number): T[][] {
   }
   return batches;
 }
-
-const scoreReferenceAlignment = makeReferenceAlignment(
-  new OpenAI({
-    baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
-    apiKey: env.BRAINTRUST_API_KEY,
-  }),
-  {
-    model: judgementModelConfig.deployment,
-    temperature: 0,
-  },
-  judgementModelConfig.label
-);
 
 async function main(args: { outputDir: string }) {
   const db = makeMercuryDatabase({
@@ -102,32 +82,44 @@ async function main(args: { outputDir: string }) {
       };
     });
     // Diff the two sets to get the prompt-model pairs that we need to test
-    const promptModelPairs = diffLists<
+    const promptModelPairsData = diffLists<
       { promptId: ObjectId; model: string; developer: string },
       { promptId: string; model: string; developer: string }
-    >(promptModelPairsToTest, existingPromptModelPairs).map(
+    >(promptModelPairsToTest, existingPromptModelPairs);
+
+    // Convert to evaluation tasks
+    const evaluationTasks: EvaluationTask[] = promptModelPairsData.map(
       ({ promptId, model, developer }) => {
         const prompt = prompts.find((p) => p._id.toString() === promptId);
         if (!prompt) {
           throw new Error(`Prompt ${promptId} not found`);
         }
+        const modelConfig = mercuryModelConfigs.find((m) => m.label === model);
+        if (!modelConfig) {
+          throw new Error(`Model config for ${model} not found`);
+        }
         return {
           prompt,
-          model,
-          developer,
-          deployment: getModelDeployment(model),
+          model: modelConfig,
         };
       }
     );
-    // Process prompt-model pairs in batches
+    // Create evaluation configuration
+    const evaluationConfig = createEvaluationConfig({
+      braintrustProxyEndpoint: env.BRAINTRUST_PROXY_ENDPOINT,
+      braintrustApiKey: env.BRAINTRUST_API_KEY,
+      judgmentModel: judgementModelConfig,
+    });
+
+    // Process evaluation tasks in batches
     const batchSize = parseInt(env.BATCH_SIZE);
-    const batches = createBatches(promptModelPairs, batchSize);
+    const batches = createBatches(evaluationTasks, batchSize);
 
     console.log(
-      `Processing ${promptModelPairs.length} prompt-model pairs in ${batches.length} batches of size ${batchSize}`
+      `Processing ${evaluationTasks.length} prompt-model pairs in ${batches.length} batches of size ${batchSize}`
     );
 
-    const allErrors: Error[] = [];
+    const allErrors: (GenerationFailedError | ScoringFailedError)[] = [];
     const allResults: MercuryResult[] = [];
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -138,77 +130,20 @@ async function main(args: { outputDir: string }) {
         } pairs) ---`
       );
 
-      const batchErrors: Error[] = [];
-      const { results: batchResults } = await PromisePool.for(batch)
-        .withConcurrency(10)
-        .handleError((error) => {
-          batchErrors.push(error);
-        })
-        .process(async ({ prompt, model, deployment, developer }) => {
-          const truncatedPrompt = truncateString(prompt.name, 40);
-          console.log(
-            `Processing: { "prompt": "${truncatedPrompt}", "model": "${model}", "deployment": "${deployment}" }`
-          );
-          let generatedResponse: Awaited<ReturnType<typeof generateText>>;
-          try {
-            generatedResponse = await generateText({
-              model: createOpenAI({
-                baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
-                apiKey: env.BRAINTRUST_API_KEY,
-              }).chat(deployment),
-              messages: prompt.prompt,
-            });
-          } catch (error) {
-            throw new GenerationFailedError({
-              prompt,
-              model,
-              error: error instanceof Error ? error : new Error(String(error)),
-            });
-          }
-
-          const scorerArgs = {
-            input: {
-              messages: prompt.prompt as [{ role: "user"; content: string }],
-            },
-            output: { response: generatedResponse.text },
-            expected: { reference: prompt.expected, links: [] },
-            metadata: {
-              model: model,
-              temperature: 0,
-            },
-          };
-          try {
-            const score = await scoreReferenceAlignment(scorerArgs);
-            const result: MercuryResult = {
-              _id: new ObjectId(),
-              promptId: prompt._id,
-              model,
-              developer,
-              provider: developer,
-              date: new Date(),
-              prompt: prompt.name,
-              response: generatedResponse.text,
-              metrics: {
-                referenceAlignment: {
-                  score: score.score ?? -1,
-                  label:
-                    mapReferenceAlignmentScoreToTag(score.score) ?? undefined,
-                  rationale:
-                    (score.metadata?.rationale as string | undefined) ??
-                    undefined,
-                  judgementModel: judgementModelConfig.label,
-                },
-              },
-            };
-            return result;
-          } catch (error) {
-            throw new ScoringFailedError({
-              prompt,
-              model,
-              scorer: scorerArgs,
-              error: error instanceof Error ? error : new Error(String(error)),
-            });
-          }
+      let completedInBatch = 0;
+      const { results: batchResults, errors: batchErrors } =
+        await evaluatePromptModelPairs(batch, evaluationConfig, {
+          concurrency: 10,
+          onProgress: (completed, total) => {
+            const task = batch[completedInBatch];
+            if (task) {
+              const truncatedPrompt = truncateString(task.prompt.name, 40);
+              console.log(
+                `Processing: { "prompt": "${truncatedPrompt}", "model": "${task.model.label}", "deployment": "${task.model.deployment}" }`
+              );
+              completedInBatch++;
+            }
+          },
         });
 
       // Upload batch results to MongoDB immediately
@@ -277,7 +212,7 @@ main({
 export async function getPromptModelPairs(args: {
   db: MercuryDatabase;
   modelConfigs: ModelConfig[];
-}) {
+}): Promise<EvaluationTask[]> {
   const { db, modelConfigs } = args;
   // Fetch all of the prompts that we want to test
   const prompts = await db.promptsCollection.find({}).limit(5).toArray();
@@ -305,21 +240,27 @@ export async function getPromptModelPairs(args: {
     };
   });
   // Diff the two sets to get the prompt-model pairs that we need to test
-  const promptModelPairs = diffLists<
+  const promptModelPairsData = diffLists<
     { promptId: ObjectId; model: string; developer: string },
     { promptId: string; model: string; developer: string }
-  >(promptModelPairsToTest, existingPromptModelPairs).map(
+  >(promptModelPairsToTest, existingPromptModelPairs);
+
+  // Convert to evaluation tasks
+  const evaluationTasks: EvaluationTask[] = promptModelPairsData.map(
     ({ promptId, model, developer }) => {
       const prompt = prompts.find((p) => p._id.toString() === promptId);
       if (!prompt) {
         throw new Error(`Prompt ${promptId} not found`);
       }
+      const modelConfig = modelConfigs.find((m) => m.label === model);
+      if (!modelConfig) {
+        throw new Error(`Model config for ${model} not found`);
+      }
       return {
         prompt,
-        model,
-        developer,
+        model: modelConfig,
       };
     }
   );
-  return promptModelPairs;
+  return evaluationTasks;
 }

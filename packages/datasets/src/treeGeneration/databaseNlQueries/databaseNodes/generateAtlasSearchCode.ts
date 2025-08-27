@@ -69,7 +69,7 @@ Examples:
 </mongodb-extended-json-format>
 </format>
 
-<<query-authoring-tips>
+<query-authoring-tips>
 Some general query-authoring tips:
 
 ${markdownList([

@@ -1,5 +1,5 @@
 import { assertEnvVars } from "mongodb-rag-core";
-import { BenchmarkConfig } from "../cli/BenchmarkConfig";
+import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
 import {
   TextToDriverExpected,
   TextToDriverInput,
@@ -30,6 +30,7 @@ import {
 import { BRAINTRUST_ENV_VARS } from "./TextToDriverEnvVars";
 import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ModelConfig } from "mongodb-rag-core/models";
 
 export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
   "natural-language-to-atlas-search";
@@ -92,18 +93,21 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       description: "Agentic workflow-based code generation",
       taskFunc: async (provider, modelConfig) => {
         return makeGenerateAtlasSearchCodeAgenticTask({
-          model: wrapLanguageModel({
-            model: createOpenAI({
-              apiKey: provider.apiKey,
-              baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment),
-
-            middleware: [
-              BraintrustMiddleware({ debug: true }),
-              SupportGeminiThroughBraintrustProxy,
-            ],
-          }),
+          model: makeLanguageModel(provider, modelConfig),
           systemPrompt: atlasSearchAgentPrompt,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
+          mongoClient,
+          mongoDbMcpClient: mcpClient,
+        });
+      },
+    },
+    agentic_prompt_recommendation: {
+      description:
+        "Agentic workflow-based code generation with a thorough prompt to improve the quality of the generated code",
+      taskFunc: async (provider, modelConfig) => {
+        return makeGenerateAtlasSearchCodeAgenticTask({
+          model: makeLanguageModel(provider, modelConfig),
+          systemPrompt: atlasSearchAgentPromptWithRecommendation,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
           mongoDbMcpClient: mcpClient,
@@ -132,3 +136,17 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   },
   description: "Natural language to Atlas Search code generation",
 };
+
+function makeLanguageModel(provider: ModelProvider, modelConfig: ModelConfig) {
+  return wrapLanguageModel({
+    model: createOpenAI({
+      apiKey: provider.apiKey,
+      baseURL: provider.baseUrl,
+    }).chat(modelConfig.deployment),
+
+    middleware: [
+      BraintrustMiddleware({ debug: true }),
+      SupportGeminiThroughBraintrustProxy,
+    ],
+  });
+}

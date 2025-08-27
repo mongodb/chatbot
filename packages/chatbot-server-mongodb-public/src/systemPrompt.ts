@@ -66,12 +66,10 @@ const searchRequiresRephraseNotes = [
 
 const coordinateToolNotes = [
   `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
-  `If the results from the ${FETCH_PAGE_TOOL_NAME} are not sufficient to answer the user's question, you should call the ${SEARCH_TOOL_NAME} tool to find an answer.`,
 ];
 
 const toolUseDisclaimers = [
-  `If you used the ${FETCH_PAGE_TOOL_NAME} tool, and it returned ${SEARCH_ALL_FALLBACK_TEXT}, in your final answer you should say: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer."`,
-  `If the user provided a URL but you had to use ${SEARCH_TOOL_NAME} to find an answer, in your final answer you should say: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer.`,
+  `If the ${FETCH_PAGE_TOOL_NAME} tool returns ${SEARCH_ALL_FALLBACK_TEXT}, you must tell the user in your final answer: "I couldn't use that page to answer your question, so I searched my knowledge base to find an answer."`,
 ];
 
 const importantNote = `<important>

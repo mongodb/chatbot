@@ -23,17 +23,17 @@
     - How do I get started with MongoDB Atlas?
   author_email: jessica.roberts@mongodb.com
   answer: |
-    To get started with MongoDB Atlas, the easiest way is through the Atlas UI. Here are the steps to get started:
+    The easiest way to get started with MongoDB Atlas is through the Atlas UI. Here are the steps:
 
-    - Register for Atlas: register for Atlas by visiting our [registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
-    - Choose your connection method: using a driver, developer tool, or programmatic connection method.
-    - Load sample data: using our sample data sets, data migration tools, or by generating mock/synthetic data.
+    - Register for Atlas by visiting our [registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
+    - Choose your connection method using a driver, developer tool, or programmatic connection method.
+    - Load sample data using our sample data sets, data migration tools, or by generating your own synthetic data.
 
-    Atlas also supports getting started via the Atlas CLI, Kubernetes Operator, or a preferred Infrastructure-as-Code (IaC) tool. Install the Atlas CLI using brew install mongodb-atlas and configure your database with atlas setup.
+    Atlas also supports getting started via the Atlas CLI, Kubernetes Operator, or a preferred Infrastructure-as-Code (IaC) tool. Install the Atlas CLI using `brew install mongodb-atlas` and configure your database with `atlas setup`.
 
-    If migrating from another database, Atlas provides migration resources to help streamline the process.
+    If migrating from another database, Atlas provides [migration resources](https://www.mongodb.com/docs/tools-and-connectors/?tck=mongodb_ai_chatbot) to help streamline the process.
 
-    For a fast hands-on experience, try this 5-minute interactive tutorial—no setup needed. It walks through inserting, querying, and deleting data using a browser-based IDE.
+    For a fast hands-on experience, try this [20-minute interactive tutorial](https://www.mongodb.com/docs/guides/?tck=mongodb_ai_chatbot) - no setup needed. It explains inserting, querying, and deleting data using a browser-based IDE.
 
     - [Step by Step Guide](https://www.mongodb.com/docs/guides/?tck=mongodb_ai_chatbot)
     - [Migrate or Import Data](https://www.mongodb.com/docs/atlas/import/?tck=mongodb_ai_chatbot)
@@ -1819,15 +1819,15 @@
   questions:
     - What’s the difference between MongoDB Atlas and Community Edition?
   answer: |
-    MongoDB Atlas is a fully managed, cloud-based database service provided by the creators of MongoDB. It simplifies deploying, managing, and scaling MongoDB databases in the cloud, offering features like automated backups, monitoring, security, and integrations with other cloud services.
+    MongoDB Atlas is a fully managed, cloud-based database and associated data services. This means infrastructure management, including provisioning compute, storage, and networking, is handled automatically, along with backups, patches, upgrades, scaling, and failover. These tasks are fully automated and handled without user intervention. 
 
-    MongoDB Community Edition, on the other hand, is a self-managed version of MongoDB. You are responsible for installing, configuring, maintaining, and scaling the database yourself, either on your local machine or on your own cloud infrastructure.
+    MongoDB Community Edition is the source-available, free-to-use version of MongoDB’s document database. You are responsible for installing, configuring, maintaining, and scaling the database, either on your local machine or on your own cloud infrastructure. MongoDB Community Edition is ideal for learning, experimenting, and building applications in a self-managed environment where you want full control over your deployment.
 
     Key differences:
 
-    - Atlas is managed by MongoDB and runs in the cloud, while Community Edition is self-managed and can run locally or in the cloud.
-    - Atlas provides built-in automation, security, and cloud integrations, whereas Community Edition requires you to handle these aspects manually.
-    - Atlas is ideal for most use cases that require cloud deployment and management, while Community Edition is often chosen for local development or when you want full control over your deployment.
+    * MongoDB Atlas is managed by MongoDB and runs in the cloud, while MongoDB Community Edition is self-managed and can run locally or in the cloud.  
+    * MongoDB Atlas automates infrastructure provisioning, backups, scaling, and maintenance, whereas Community Edition requires you to handle these capabilities on your own.  
+    * Atlas is ideal for most use cases that require cloud deployment and management, while Community Edition is often chosen for local development or when you want full control over your deployment. 
 
     Let me know if you want more details about either option!
   references:
@@ -1841,18 +1841,16 @@
   questions:
     - How do I deploy a free cluster on MongoDB Atlas?
   answer: |
-    You can create Free clusters through the Atlas CLI, Atlas User Interface, and Atlas Administration API.
+    You can create free clusters through the Atlas CLI, Atlas user interface, or the Atlas administration API. Step-by-step instructions for each option can be found in the [documentation](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/?tck=mongodb_ai_chatbot).
 
-    For detailed instructions, refer to the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/?tck=mongodb_ai_chatbot).
-
-    Most users like to start with the Atlas UI and follow these steps:
+    Most users like to start with the Atlas UI, and follow [these steps](https://www.mongodb.com/docs/guides/atlas/cluster/?tck=mongodb_ai_chatbot):
 
     1. Log in to your MongoDB Atlas account.
     2. Go to the Overview page for your project.
     3. Click the Create button to create a cluster.
     4. Select the M0 option.
-    5. Select your preferred Provider (AWS, GCP, or Azure)
-    6. Select your preferred Region (only regions that support M0 Free clusters will be shown)
+    5. Select your preferred provider (AWS, GCP, or Azure)
+    6. Select your preferred region (only regions that support M0 free clusters will be shown)
     7. Specify a name for your cluster
     8. Click Create to deploy the cluster.
 
@@ -1862,7 +1860,7 @@
     - Add your IP address to the IP access list to allow connections.
     - Click Finish and Close, then Go to Overview.
 
-    Atlas Free clusters provide a small-scale development environment to host your data and test proof of concepts. Free clusters never expire, and provide access to a subset of Atlas features and functionality. You can only deploy one free cluster per Atlas project.
+    Atlas Free clusters provide a small-scale development environment to host your data and test concepts. Free clusters never expire and provide access to a subset of Atlas features and functionality. You can only deploy one free cluster per Atlas project.
   references:
     - url: https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/
       title: Deploy a Free Cluster
@@ -1872,15 +1870,12 @@
   answer: |
     MongoDB Atlas offers different cluster types to support a range of use cases. Choosing the right MongoDB Atlas cluster tier for your application involves considering the application's workload, data size, and performance needs. Key considerations include:
 
-    - Free Tier (M0): Best for learning and exploring, with [limited resources](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/?tck=mongodb_ai_chatbot).
-    - Flex: Ideal for development and testing, offering the lowest cost option with certain [feature limitations](https://www.mongodb.com/docs/atlas/reference/flex-limitations/#std-label-atlas-flex-limitations?tck=mongodb_ai_chatbot).
-    - Dedicated (M10 & M20): Suitable for pre-production and small, non-critical workloads. These tiers utilize shared vCPUs and support replica set deployments offering fully featured access to Atlas.
-    - Dedicated (M30+): Recommended for performance-critical and high-traffic workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas with dedicated vCPUs.
+    * **Free Tier (M0):** Best for learning and exploring, with [limited resources](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/?tck=mongodb_ai_chatbot).  
+    * **Flex:** Ideal for development and testing, offering the lowest cost option with certain [feature limitations](https://www.mongodb.com/docs/atlas/reference/flex-limitations/#std-label-atlas-flex-limitations?tck=mongodb_ai_chatbot).  
+    * **Dedicated (M10 and M20):** Suitable for pre-production and small, non-critical workloads. These tiers use shared vCPUs and support replica set deployments offering fully featured access to Atlas.  
+    * **Dedicated (M30+):** Recommended for performance-critical and high-traffic production workloads, supporting both replica sets and sharded clusters with fully featured access to Atlas and dedicated vCPUs.
 
-    Clusters can always be scaled up from any tier as requirements expand. If unsure, MongoDB recommends starting with a lower tier and [monitoring performance](https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/?tck=mongodb_ai_chatbot) before adjusting. For all Dedicated tiers, use auto-scaling to adjust cluster tier and storage as workloads evolve.
-
-    [How to select your cluster tier](https://www.mongodb.com/docs/atlas/manage-clusters/?tck=mongodb_ai_chatbot#select-cluster-tier)
-    [Atlas cluster sizing and tier selection](https://www.mongodb.com/docs/atlas/sizing-tier-selection/?tck=mongodb_ai_chatbot)
+    Clusters can always be scaled up from any tier as requirements expand. If unsure, MongoDB recommends starting with a lower tier and [monitoring performance](https://www.mongodb.com/docs/atlas/architecture/current/monitoring-alerts/?tck=mongodb_ai_chatbot) before adjusting. For all dedicated tiers, use auto-scaling to adjust cluster tier and storage as workloads evolve.
   references:
     - url: https://www.mongodb.com/docs/atlas/manage-clusters/#select-cluster-tier
       title: Select Cluster Tier
@@ -1917,14 +1912,36 @@
 - author_email: jessica.roberts@mongodb.com
   questions:
     - How do I load data into MongoDB Atlas?
+    - How do I load sample data in Atlas?
   answer: |
-    There are several ways to load data into MongoDB Atlas, depending on your specific needs:
+    To load sample data into your MongoDB Atlas cluster, follow [these steps](https://www.mongodb.com/docs/guides/atlas/sample-data/):
 
-    - **Use a sample dataset:** Easily load sample data into a cluster via the Atlas UI to explore queries and features right away.
+    Using the Atlas UI:
 
-    - **Migrate existing data:** Use tools such as the MongoDB Relational Migrator, `mongoimport`, or custom scripts using MongoDB drivers to import data from other databases or local sources.
+    1. Log in to your Atlas account.  
+    2. Go to the Clusters page for your project.  
+    3. Locate the cluster where you want to load sample data.  
+    4. Click the Ellipses (...) button for your cluster.  
+    5. Click Load Sample Dataset.  
+    6. In the dialog, choose which datasets to load or select all available sample datasets.  
+    7. Confirm and wait for the data to load. (This usually takes a few minutes.)
 
-    - **Generate mock or synthetic data:** Perfect for testing or prototyping, Atlas supports generating realistic data sets.
+    Using the Atlas CLI:
+
+    Run the following command, replacing `<clusterName>` with your cluster's name:
+
+    ```
+    atlas clusters sampleData load <clusterName>
+    ```
+
+    You can monitor the status of the load job with:
+
+    ```
+    atlas clusters sampleData describe <id>
+    atlas clusters sampleData watch <id>
+    ```
+
+    **Note:** You must have Project Owner access to load sample data. Sample datasets include collections like movies, restaurants, weather, and more.
   references:
     - url: https://www.mongodb.com/docs/guides/atlas/sample-data/
       title: Load Sample Data Guide
@@ -2022,3 +2039,126 @@
       title: Fundamentals of Data Transformation
     - url: https://www.mongodb.com/docs/manual/aggregation/
       title: Aggregation Operations
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What is the difference between Community Edition and Enterprise Advanced?
+  answer: |
+    MongoDB Community Edition is the source-available, free-to-use version of MongoDB’s document database. MongoDB Community Edition provides the core functionality of the MongoDB document database and can be hosted locally or on self-managed infrastructure. It is ideal for learning, experimenting, and building applications without the need for advanced enterprise features or dedicated support.
+
+    MongoDB Enterprise Advanced includes all the features of the Community Edition plus additional capabilities. It offers a commercial license, advanced security features like Kerberos authentication, an in-memory storage engine, and auditing for self-managed deployments. Enterprise Advanced also provides operational and management tools, such as Ops Manager and Cloud Manager, and includes 24/7/365 technical support.
+
+    Community Edition is suitable for developers who want a free, self-managed database, Enterprise Advanced is ideal for production applications requiring advanced features, security, and support.
+  references:
+    - url: https://www.mongodb.com/products/self-managed/enterprise-advanced
+      title: MongoDB Enterprise Advanced
+    - url: https://www.mongodb.com/products/self-managed/community-edition
+      title: MongoDB Community Edition
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Is Community Edition free to use?
+    - Is MongoDB Community Edition free to use?
+  answer: |
+    Yes. MongoDB Community Edition is the source-available and free-to-use edition of MongoDB. It is available under a server side public license. This license allows you to use, modify, and distribute the source code but prohibits offering MongoDB as a commercial SaaS product.
+  references:
+    - url: https://www.mongodb.com/products/self-managed/community-edition
+      title: MongoDB Community Edition
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How does Atlas Stream Processing work?
+  answer: |
+    Atlas Stream Processing allows developers to connect to data sources like Apache Kafka, an Atlas database, or various other sources, continuously process that data using the familiar MongoDB aggregation language, and then send the results to another Atlas database, a Kafka topic, or various other sinks. This unifies the experience of working with data-in-motion and data-at-rest within a single platform.
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-stream-processing
+      title: Atlas Stream Processing
+    - url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/overview/
+      title: Atlas Stream Processing Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What can I build with Atlas Stream Processing?
+  answer: |
+    You can build a wide range of event-driven applications and real-time features. Common use cases include building real-time personalization, powering instantaneous alerting and monitoring, detecting anomalies for fraud or risk, IoT sensor management, bolstering ETL and ELT capabilities, and creating the data foundation for AI applications.
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-stream-processing
+      title: Atlas Stream Processing
+    - url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/overview/
+      title: Atlas Stream Processing Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Why use Atlas Stream Processing?
+  answer: |
+    The main benefits are cost, simplicity, and developer productivity. It offers a MongoDB-native way to work with streaming data, allowing developers to use the same flexible document model and familiar aggregation framework skills they already have. This eliminates the cost and complexity of learning and managing separate stream processing frameworks, allowing teams to build applications faster. In many cases, Atlas Stream Processing can help consolidate and simplify information architectures to reduce costs and speed time to insights.
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-stream-processing
+      title: Atlas Stream Processing
+    - url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/overview/
+      title: Atlas Stream Processing Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How is Atlas Stream Processing different from the MongoDB Connector for Kafka?
+  answer: |
+    While the MongoDB Connector for Kafka is great for moving data between MongoDB and Kafka, Atlas Stream Processing is a more cost-effective, powerful, native solution that also allows you to easily **transform** that data in transit. It provides advanced stream processing functionality like data transformation with time-based windowing and simple capabilities for handling errors and late-arriving data.
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-stream-processing
+      title: Atlas Stream Processing
+    - url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/overview/
+      title: Atlas Stream Processing Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Can I use Atlas Search and Atlas Vector Search locally?
+  answer: |
+    Yes, you can use Atlas Search locally by deploying a single-node replica set hosted on your local computer using the Atlas CLI. However, for Atlas Vector Search, you can also use local Atlas deployments created with the Atlas CLI. This allows you to test and run queries locally without needing a full Atlas cluster setup.
+  references:
+    - url: https://www.mongodb.com/company/blog/product-release-announcements/introducing-local-development-experience-atlas-search-vector-search-atlas-cli
+      title: Introducing a Local Experience for Atlas, Atlas Search, and Atlas Vector Search with the Atlas CLI
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - What is Atlas Vector Search?
+  answer: |
+    Atlas Vector Search allows you to query your data based on semantic meaning rather than just keyword matches, which helps you retrieve more relevant search results. It enables your AI-powered applications to support use cases such as semantic search, hybrid search, and generative search, including retrieval-augmented generation (RAG).
+
+    Unlike standalone vector databases, Atlas Vector Search is built into the core database, eliminating the need to synchronize data between operational and vector databases, reducing complexity, and preventing errors.
+
+    For independent scalability to mimic the capabilities of a vector database without requiring syncing between multiple data sources, Atlas offers search nodes for creating dedicated vector search and lexical search resources.
+
+    You can use the Atlas UI, Atlas Administration API, Atlas CLI, mongosh, or a supported MongoDB driver to create your Atlas Vector Search index.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: Atlas Vector Search Overview
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/
+      title: How to Index Fields for Vector Search
+    - url: https://www.mongodb.com/blog/post/dedicated-search-nodes-vector-search-now-in-general-availability
+      title: "Vector Search and Dedicated Search Nodes: Now in General Availability"
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How does Atlas Search differ from Atlas Vector Search?
+  answer: |
+    Atlas Search and Atlas Vector Search serve different purposes in MongoDB:
+
+    **Atlas Search**: This feature is designed for keyword-based searches. It allows you to perform full-text searches on your data, using the actual text and any defined synonym mappings. It's ideal for scenarios where you need to find documents containing specific words or phrases.
+
+    **Atlas Vector Search**: This feature focuses on semantic search, which means it searches through data based on the meaning captured in vectors. It is particularly useful for applications that require understanding the context or intent behind the data, such as recommendation systems or AI-driven applications. Vector search allows you to query data based on its semantic meaning rather than just keyword matches.
+
+    In summary, Atlas Search is best for traditional text-based searches, while Atlas Vector Search allows searching through data based on semantic meaning captured in vectors and is suited for more advanced, context-aware searches.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/atlas-search/
+      title: Atlas Search Overview
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: Atlas Vector Search Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Can I use MongoDB as a vector database?
+  answer: |
+    Yes, you can use MongoDB as a vector database through Atlas Vector Search. This feature allows you to perform vector searches on your data stored in MongoDB. Vector search enables querying based on semantic meaning rather than just keyword matches, which is particularly useful for AI-powered applications. With Atlas Vector Search, you can seamlessly index and search vector data alongside your operational data, supporting use cases like semantic search, hybrid search, and generative search. This integration allows you to leverage MongoDB's robust database capabilities while implementing advanced search functionalities.
+  references:
+    - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+      title: Atlas Vector Search Overview

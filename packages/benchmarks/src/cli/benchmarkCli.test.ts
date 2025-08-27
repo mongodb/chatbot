@@ -108,6 +108,8 @@ describe("makeBenchmarkCli", () => {
         "run",
         "--type",
         "unknown-benchmark",
+        "--model",
+        "test-model-1",
         "--dataset",
         "dataset1",
       ]);
@@ -121,6 +123,8 @@ describe("makeBenchmarkCli", () => {
         "run",
         "--type",
         "test-benchmark",
+        "--model",
+        "test-model-1",
         "--dataset",
         "dataset1",
         "--task",
@@ -136,6 +140,8 @@ describe("makeBenchmarkCli", () => {
         "run",
         "--type",
         "test-benchmark",
+        "--model",
+        "test-model-1",
         "--dataset",
         "unknown-dataset",
       ]);
@@ -164,6 +170,8 @@ describe("makeBenchmarkCli", () => {
         "run",
         "--type",
         "test-benchmark",
+        "--model",
+        "test-model-1",
         "--dataset",
         "dataset1",
         "--taskConcurrency",
@@ -177,6 +185,8 @@ describe("makeBenchmarkCli", () => {
         "run",
         "--type",
         "test-benchmark",
+        "--model",
+        "test-model-1",
         "--dataset",
         "dataset1",
         "--taskConcurrency",
@@ -209,6 +219,54 @@ describe("makeBenchmarkCli", () => {
         "dataset1",
         "--modelConcurrency",
         "6",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+    it("should validate sampleSize is a positive integer", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "--sampleSize",
+        "-1",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should validate sampleSize and no sampleType", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "dataset1",
+        "--sampleType",
+        "random",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should validate sampleSize and sampleType", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "dataset1",
+        "--sampleType",
+        "random",
+        "--sampleSize",
+        "10.5",
       ]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
@@ -279,6 +337,9 @@ describe("makeBenchmarkCli", () => {
         models: [mockConfig.models[0]], // Only test-model-1
         datasets: ["dataset1", "dataset2"],
         modelConcurrency: 1,
+        taskConcurrency: 3,
+        sampleType: undefined,
+        sampleSize: undefined,
       });
     });
 

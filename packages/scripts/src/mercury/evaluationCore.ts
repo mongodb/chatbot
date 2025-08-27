@@ -39,9 +39,9 @@ export interface EvaluationError {
 export type EvaluationOutcome = EvaluationResult | EvaluationError;
 
 /**
- * Core evaluation function that takes a single prompt-model pair and returns either
- * a successful result or an error. This is the pure business logic without any
- * database, batching, or I/O concerns.
+ Core evaluation function that takes a single prompt-model pair and returns either
+ a successful result or an error. This is the pure business logic without any
+ database, batching, or I/O concerns.
  */
 export async function evaluatePromptWithModel(
   task: EvaluationTask,
@@ -133,9 +133,9 @@ export async function evaluatePromptWithModel(
 }
 
 /**
- * Evaluates multiple prompt-model pairs. This function handles the parallel
- * execution and result aggregation, but doesn't handle batching, database
- * operations, or file I/O.
+ Evaluates multiple prompt-model pairs. This function handles the parallel
+ execution and result aggregation, but doesn't handle batching, database
+ operations, or file I/O.
  */
 export async function evaluatePromptModelPairs(
   tasks: EvaluationTask[],
@@ -182,7 +182,7 @@ export async function evaluatePromptModelPairs(
 }
 
 /**
- * Creates an evaluation configuration from environment-like settings
+ Creates an evaluation configuration from environment-like settings
  */
 export function createEvaluationConfig(settings: {
   braintrustProxyEndpoint: string;

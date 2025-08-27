@@ -66,3 +66,13 @@ export const mercuryModelConfigs = getModels([
   // Mistral
   "mistral-large-2",
 ]);
+
+export const mercuryStarredModelLabels = [
+  "gpt-5",
+  "claude-sonnet-4",
+  "llama-3.3-70b",
+  "gemini-2.5-pro",
+];
+export const mercuryStarredModelConfigs = mercuryModelConfigs.filter((m) =>
+  mercuryStarredModelLabels.includes(m.label)
+);

@@ -1,6 +1,6 @@
 /**
- * Integration tests for the evaluation core module.
- * These tests use real MongoDB connections but mock external APIs.
+ Integration tests for the evaluation core module.
+ These tests use real MongoDB connections but mock external APIs.
  */
 
 import { ObjectId } from "mongodb-rag-core/mongodb";

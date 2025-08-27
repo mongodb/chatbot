@@ -1,6 +1,6 @@
 /**
- * Example script demonstrating how to use the evaluation core module
- * for custom evaluation scenarios without database dependency
+ Example script demonstrating how to use the evaluation core module
+ for custom evaluation scenarios without database dependency
  */
 
 import { ObjectId } from "mongodb-rag-core/mongodb";

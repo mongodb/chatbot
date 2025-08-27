@@ -432,10 +432,6 @@ export const main = async (
       `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
     );
 
-    if (allErrors.length > 0) {
-      console.error("Errors during processing:", allErrors.slice(0, 5)); // Show first 5 errors
-    }
-
     if (args.outputDir) {
       const { errorsFile, resultsFile, skippedFile } = createOutputs({
         outputDir: args.outputDir,

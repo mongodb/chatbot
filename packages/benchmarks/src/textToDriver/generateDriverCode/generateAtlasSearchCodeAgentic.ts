@@ -60,12 +60,32 @@ async function extractOutputFromMessages(
   const collection = mongoClient
     .db(finalSolution.databaseName)
     .collection(finalSolution.collectionName);
-  const result = await collection.aggregate(finalSolution.pipeline).toArray();
-  return {
-    execution: {
-      executionTimeMs: null,
-      result,
-    },
-    generatedCode: JSON.stringify(finalSolution.pipeline, null, 2),
-  } satisfies TextToDriverOutput;
+  const generatedCode = JSON.stringify(finalSolution.pipeline, null, 2);
+  try {
+    const startTime = performance.now();
+    const result = await collection.aggregate(finalSolution.pipeline).toArray();
+    const endTime = performance.now();
+    const executionTimeMs = endTime - startTime;
+    return {
+      execution: {
+        executionTimeMs,
+        result,
+      },
+      generatedCode,
+    } satisfies TextToDriverOutput;
+  } catch (error) {
+    return {
+      execution: {
+        executionTimeMs: null,
+        result: null,
+        error: {
+          message:
+            error instanceof Error
+              ? error.message
+              : `Error executing the generated code: ${error}`,
+        },
+      },
+      generatedCode,
+    } satisfies TextToDriverOutput;
+  }
 }

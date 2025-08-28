@@ -23,6 +23,10 @@ import {
   generateDatabaseNlQueryDatasetEntryAtlasSearch,
 } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import { initLogger } from "mongodb-rag-core/braintrust";
+import {
+  DatabaseUseCase,
+  NaturalLanguageQuery,
+} from "../treeGeneration/databaseNlQueries/databaseNodes/nodeTypes";
 
 const DEFAULT_CONCURRENCY = 10;
 
@@ -121,6 +125,10 @@ async function generateAtlasSearchDataset({
     latestDate: dataset.latestDate,
     openAiClient: makeOpenAiClient(),
   });
+  fs.writeFileSync(
+    path.resolve(datasetOutDir, "databaseInfo.json"),
+    JSON.stringify(databaseInfoNode.data, null, 2)
+  );
 
   // Generate database users
   console.log("Generating database users...");
@@ -128,6 +136,14 @@ async function generateAtlasSearchDataset({
     databaseInfoNode,
     llmConfigs.users.llmConfig,
     llmConfigs.users.numGenerations
+  );
+  fs.writeFileSync(
+    path.resolve(datasetOutDir, "userNodes.json"),
+    JSON.stringify(
+      userNodes.map((node) => node.data),
+      null,
+      2
+    )
   );
 
   console.log(`Generated ${userNodes.length} database users`);
@@ -148,8 +164,19 @@ async function generateAtlasSearchDataset({
       return useCases;
     });
 
+  const sampleUseCases: Record<string, DatabaseUseCase[]> = {};
+  for (const userUseCaseNodes of useCaseNodesByUser) {
+    sampleUseCases[userUseCaseNodes[0].parent.data.name] = userUseCaseNodes.map(
+      (node) => node.data
+    );
+  }
   const useCaseNodes = useCaseNodesByUser.flat();
   console.log(`Created ${useCaseNodes.length} use cases.`);
+
+  fs.writeFileSync(
+    path.resolve(datasetOutDir, "useCaseNodes.json"),
+    JSON.stringify(sampleUseCases, null, 2)
+  );
 
   console.log(
     "Generating natural language queries for each use case (Atlas Search specific)..."
@@ -177,6 +204,26 @@ async function generateAtlasSearchDataset({
       return nlQueries;
     });
   const nlQueryNodes = nlQueryNodesByUseCase.flat();
+  const nlQueriesOut: Partial<
+    Record<string, Partial<Record<string, NaturalLanguageQuery[]>>>
+  > = {};
+  for (const nlQueryNode of nlQueryNodes) {
+    const useCaseTitle = nlQueryNode.parent.data.title;
+    const userTitle = nlQueryNode.parent.parent.data.name;
+
+    if (!nlQueriesOut[userTitle]) {
+      nlQueriesOut[userTitle] = {};
+    }
+    if (!nlQueriesOut[userTitle]![useCaseTitle]) {
+      nlQueriesOut[userTitle]![useCaseTitle] = [];
+    }
+    nlQueriesOut[userTitle]![useCaseTitle]!.push(nlQueryNode.data);
+  }
+
+  fs.writeFileSync(
+    path.resolve(datasetOutDir, "nlQueries.json"),
+    JSON.stringify(nlQueriesOut, null, 2)
+  );
 
   // Generate Atlas Search aggregation pipelines for the NL queries
   console.log(
@@ -255,13 +302,13 @@ async function generateAtlasSearchDataset({
         findMostFrequentAndPerformantDatabaseExecutionResult(
           dbExecutions.map((node) => node.data)
         );
-      if (
-        fastestMostFrequentIndex !== null &&
-        dbExecutions[fastestMostFrequentIndex].data.result !== null
-      ) {
-        const dbResult = dbExecutions[fastestMostFrequentIndex].data.result;
-        if (dbResult && Array.isArray(dbResult) && dbResult.length > 0) {
-          dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer = true;
+      if (fastestMostFrequentIndex !== null) {
+        const execution = dbExecutions[fastestMostFrequentIndex];
+        if (execution.data.result !== null) {
+          const dbResult = execution.data.result;
+          if (dbResult && Array.isArray(dbResult) && dbResult.length > 0) {
+            execution.data.isReferenceAnswer = true;
+          }
         }
       }
 
@@ -323,9 +370,10 @@ async function main() {
   }
 
   const defaultLlmConfig: LlmOptions = {
-    model: "claude-opus-4-20250514", // TODO: wasn't working with 4.1 for generate users..come back to this
-    temperature: 0.9,
+    model: "gpt-5",
+    temperature: 0.4,
     seed: 42,
+    reasoning_effort: "medium",
   };
 
   // One point to control generations at each level.
@@ -381,7 +429,8 @@ async function main() {
     databaseName: "wikipedia_dataset",
     collectionName,
     numSamplesPerCollection: 2,
-    latestDate: new Date("2025-01-01"),
+    // The dataset is from 2023
+    latestDate: new Date("2023-12-31"),
     mongoClient,
     searchIndexes: {
       [collectionName]: [atlasSearchIndexDefinition],

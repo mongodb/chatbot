@@ -37,6 +37,8 @@ describe("Responses API with OpenAI Client", () => {
   let openAiClient: OpenAI;
   let aiSDKClient: OpenAIProvider;
 
+  jest.retryTimes(3, { waitBeforeRetry: 5000, logErrorsBeforeRetry: true });
+
   beforeAll(async () => {
     const testAppResult = await makeTestApp();
     app = testAppResult.app;

@@ -65,8 +65,8 @@ describe("makeGenerateDriverCode", () => {
         },
       },
       sampleGenerationConfig: {
-        mongoClient,
         limit: 1,
+        mongoClient,
       },
     };
 

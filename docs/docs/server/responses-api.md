@@ -279,69 +279,6 @@ const stream = await openai.responses.create({
 });
 ```
 
-### Instructions for Custom Tools 
-
-You can prompt to give the model additional context about how to use custom tools.
-To do this, include the custom instructions in the tool's `description` field. This follows the [best practices of the OpenAI GPT-4.1 Prompting Guide for tool usage](https://cookbook.openai.com/examples/gpt4-1_prompting_guide#tool-calls:~:text=Developers%20should%20name%20tools%20clearly%20to%20indicate%20their%20purpose%20and%20add%20a%20clear%2C%20detailed%20description%20in%20the%20%22description%22%20field%20of%20the%20tool.).
-You can also add `instructions` to provide guidance on coordinating multiple tools.
-
-```ts
-import { OpenAI } from "openai";
-
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
-
-const toolName = 'mongosh-query';
-const toolDescription = `If you use the '${tools[0].name}' tool,
-always format the output as follows:
-db.<collection-name>.<operation>(...args)
-
-### Cursor-Returning Operations
-
-For cursor-returning operations like .find() and .aggregate(),
-postfix the query with the appropriate method
-to convert it to the data from the database,
-like .toArray() or .explain().
-Ex: db.<collection-name>.<find|aggregate>(...args).toArray()
-
-## Limiting Queries
-
-Unless explicitly told otherwise by the user, limit queries to at most 10 documents.
-Ex:
-- { $limit: 10} for .aggregate()
-- .limit(10) for .find()
-
-...more instructions...`
-
-const tools =  [{
-  type: "function",
-  name: toolName,
-  description: toolDescription,
-  parameters: {
-    type: "object",
-    properties: {
-      mongosh_query: { type: "string" },
-    },
-    required: ["query"],
-  },
-}];
-
-const stream = await openai.responses.create({
-  model: "mongodb-chat-latest",
-  stream: true,
-  input: [
-    {
-      role: "user",
-      content: "how to aggregate data in movies collection?",
-    },
-  ],
-  tools,
-  // Additional custom instructions guiding tool usage.
-  instructions: `If you're not sure about whether to call the ${toolName}, confirm with the user first.
-
-In your message to the user state the full MQL query that you were planning on executing.`
-});
-```
-
 
 ## Conversation Management
 

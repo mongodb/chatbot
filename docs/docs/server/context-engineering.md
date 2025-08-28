@@ -150,7 +150,13 @@ You can also add `instructions` to provide guidance on things like:
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const toolName = 'mongosh-query';
 const toolDescription = `If you use the '${tools[0].name}' tool,

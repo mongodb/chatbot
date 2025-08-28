@@ -1,3 +1,43 @@
+- name: default_system_prompt_fetch_fallback
+  messages: 
+    - role: user
+      content: use this https://www.geeksforgeeks.org/mongodb/search-text-in-mongodb/ how do I do a vector search query
+  expectation: The response should let the user know if the fallback search was used.
+  expectedPromptAdherence:
+    - The response provides a disclaimer that the provided URL did not contain relevant information and that the knowledge base was searched instead.
+  tags:
+    - fetch_page
+    - systemPromptAdherence
+- name: default_system_prompt_no_fetch_fallback
+  messages: 
+    - role: user
+      content: What is the Atlas Architecture Center?
+  expectation: The response should not say a search was performed.
+  expectedPromptAdherence:
+    - The response does not say that a search was performed or mention that they used a "knowledge base". It is OK if the response is "I don't know" or similar.
+  tags:
+    - fetch_page
+    - systemPromptAdherence
+- name: default_system_prompt_no_fetch_fallback_2
+  messages: 
+    - role: user
+      content: How does voyage3.5 compare to voyage-3?
+  expectation: The response should not say a search was performed.
+  expectedPromptAdherence:
+    - The response does not say that a search was performed or mention that they used a "knowledge base". It is OK if the response is "I don't know" or similar.
+  tags:
+    - fetch_page
+    - systemPromptAdherence
+- name: default_system_prompt_no_fetch_fallback_3
+  messages: 
+    - role: user
+      content: What are the core values of MongoDB?
+  expectation: The response should not say a search was performed.
+  expectedPromptAdherence:
+    - The response does not say that a search was performed or mention that they used a "knowledge base". It is OK if the response is "I don't know" or similar.
+  tags:
+    - fetch_page
+    - systemPromptAdherence
 - name: custom_personality_override
   messages:
     - role: user

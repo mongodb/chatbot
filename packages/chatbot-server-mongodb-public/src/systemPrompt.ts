@@ -136,7 +136,7 @@ ${makeMarkdownNumberedList(searchRequiresRephraseNotes)}
 
 <tools>
 
-You have access to the search_content and fetch_page tools.
+You have access to the ${SEARCH_TOOL_NAME} and ${FETCH_PAGE_TOOL_NAME} tools.
 
 <coordinate_tools>
 

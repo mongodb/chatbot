@@ -165,6 +165,8 @@ for await (const event of stream) {
 
 ## Set Custom Instructions
 
+With the OpenAI SDK:
+
 ```ts
 import { OpenAI } from "openai";
 
@@ -189,6 +191,34 @@ const response = await openai.responses.create({
   // Custom instructions
   instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
 });
+```
+
+With the AI SDK:
+
+```ts
+import { streamText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const model = createOpenAI({
+  baseURL: origin + API_PREFIX,
+  apiKey: TEST_OPENAI_API_KEY,
+}).responses("mongodb-chat-latest");
+
+const result = await streamText({
+  model,
+  prompt: "What is MongoDB?",
+  headers: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+  // system: "Don't use this!! Prefer providerOptions",
+  // Use the providerOptions!!
+  providerOptions: {
+    openai: {
+      instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
+    }
+  }
+}); 
 ```
 
 ## Use Custom Tools
@@ -288,70 +318,6 @@ const stream = await openai.responses.create({
 });
 ```
 
-### Combine Custom Tools with Custom Instructions
-
-You can use custom instructions to give the model additional context about how to use custom tools. To do this, use both the `instructions` and `tools` parameters on the request to the Responses API:
-
-```ts
-import { OpenAI } from "openai";
-
-const openai = new OpenAI({
-  baseURL: "https://knowledge.mongodb.com/api/v1",
-  apiKey: "mongodb-api-key",
-  defaultHeaders: {
-    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
-    "X-Request-Origin": "<Request Origin>", //  Required
-  },
-});
-
-const tools =  [{
-  type: "function",
-  name: "mongosh-query",
-  description: "Write a Mongosh query",
-  parameters: {
-    type: "object",
-    properties: {
-      mongosh_query: { type: "string" },
-    },
-    required: ["query"],
-  },
-}];
-
-const stream = await openai.responses.create({
-  model: "mongodb-chat-latest",
-  stream: true,
-  input: [
-    {
-      role: "user",
-      content: "how to aggregate data in movies collection?",
-    },
-  ],
-  tools,
-  // Instructions guiding tool usage
-  instructions: `## ${tools[0].name} usage
-
-If you use the '${tools[0].name}' tool,
-always format the output as follows:
-db.<collection-name>.<operation>(...args)
-
-### Cursor-Returning Operations
-
-For cursor-returning operations like .find() and .aggregate(),
-postfix the query with the appropriate method
-to convert it to the data from the database,
-like .toArray() or .explain().
-Ex: db.<collection-name>.<find|aggregate>(...args).toArray()
-
-## Limiting Queries
-
-Unless explicitly told otherwise by the user, limit queries to at most 10 documents.
-Ex:
-- { $limit: 10} for .aggregate()
-- .limit(10) for .find()
-
-...more instructions...`
-});
-```
 
 ## Conversation Management
 

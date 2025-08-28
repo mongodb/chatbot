@@ -67,8 +67,6 @@ describe("makeGenerateDriverCode", () => {
       sampleGenerationConfig: {
         limit: 1,
         mongoClient,
-        databaseName,
-        collection,
       },
     };
 
@@ -118,8 +116,6 @@ describe("makeGenerateDriverCode", () => {
       sampleGenerationConfig: {
         mongoClient,
         limit: 1,
-        collection,
-        databaseName,
       },
     };
 

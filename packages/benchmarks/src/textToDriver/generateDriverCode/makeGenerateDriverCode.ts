@@ -35,12 +35,9 @@ export type PromptGenerationConfig = Omit<
 
 export interface MakeGenerateDriverCodeParams {
   promptGenerationConfig: PromptGenerationConfig;
-  sampleGenerationConfig: Pick<
-    ExtractSampleDocumentsParams,
-    "limit" | "collection"
-  > & {
+  sampleGenerationConfig: {
     mongoClient: MongoClient;
-    databaseName: string;
+    limit: number;
   };
 }
 
@@ -54,23 +51,30 @@ export async function makeGenerateDriverCode({
 }: MakeGenerateDriverCodeParams) {
   // Create new collections with exampleDocuments added
   const collectionsWithExamples = (await Promise.all(
-    promptGenerationConfig.mongoDb.collections.map(async (collectionInfo) => {
-      const collection = sampleGenerationConfig.mongoClient
-        .db(sampleGenerationConfig.databaseName)
-        .collection(collectionInfo.collectionName);
-      const exampleDocs = await extractDeterministicSampleOfDocuments({
-        collection,
-        limit: sampleGenerationConfig.limit,
-      });
-      assert(exampleDocs.length > 0, "Must have at least one example document");
-      return {
-        ...collectionInfo,
-        exampleDocuments: exampleDocs satisfies Document[] as [
-          Document,
-          ...Document[]
-        ],
-      } satisfies CollectionInfo;
-    })
+    promptGenerationConfig.mongoDb.collections.map(
+      async (collectionInfo, i) => {
+        const collection = sampleGenerationConfig.mongoClient
+          .db(promptGenerationConfig.mongoDb.databaseName)
+          .collection(
+            promptGenerationConfig.mongoDb.collections[i].collectionName
+          );
+        const exampleDocs = await extractDeterministicSampleOfDocuments({
+          collection,
+          limit: sampleGenerationConfig.limit,
+        });
+        assert(
+          exampleDocs.length > 0,
+          "Must have at least one example document"
+        );
+        return {
+          ...collectionInfo,
+          exampleDocuments: exampleDocs satisfies Document[] as [
+            Document,
+            ...Document[]
+          ],
+        } satisfies CollectionInfo;
+      }
+    )
   )) satisfies CollectionInfo[] as [CollectionInfo, ...CollectionInfo[]];
 
   const promptGenerationConfigWithExamples: TextToDriverPromptParams = {

@@ -151,6 +151,8 @@ for await (const event of stream) {
 
 ## Set Custom Instructions
 
+With the OpenAI SDK:
+
 ```ts
 import { OpenAI } from "openai";
 
@@ -168,6 +170,30 @@ const response = await openai.responses.create({
   // Custom instructions
   instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
 });
+```
+
+With the AI SDK:
+
+```ts
+import { streamText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const model = createOpenAI({
+  baseURL: origin + API_PREFIX,
+  apiKey: TEST_OPENAI_API_KEY,
+}).responses("mongodb-chat-latest");
+
+const result = await streamText({
+  model,
+  prompt: "What is MongoDB?",
+  // system: "Don't use this!! Prefer providerOptions",
+  // Use the providerOptions!!
+  providerOptions: {
+    openai: {
+      instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
+    }
+  }
+}); 
 ```
 
 ## Use Custom Tools
@@ -253,42 +279,19 @@ const stream = await openai.responses.create({
 });
 ```
 
-### Combine Custom Tools with Custom Instructions
+### Instructions for Custom Tools 
 
-You can use custom instructions to give the model additional context about how to use custom tools. To do this, use both the `instructions` and `tools` parameters on the request to the Responses API:
+You can prompt to give the model additional context about how to use custom tools.
+To do this, include the custom instructions in the tool's `description` field. This follows the [best practices of the OpenAI GPT-4.1 Prompting Guide for tool usage](https://cookbook.openai.com/examples/gpt4-1_prompting_guide#tool-calls:~:text=Developers%20should%20name%20tools%20clearly%20to%20indicate%20their%20purpose%20and%20add%20a%20clear%2C%20detailed%20description%20in%20the%20%22description%22%20field%20of%20the%20tool.).
+You can also add `instructions` to provide guidance on coordinating multiple tools.
 
 ```ts
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
 
-const tools =  [{
-  type: "function",
-  name: "mongosh-query",
-  description: "Write a Mongosh query",
-  parameters: {
-    type: "object",
-    properties: {
-      mongosh_query: { type: "string" },
-    },
-    required: ["query"],
-  },
-}];
-
-const stream = await openai.responses.create({
-  model: "mongodb-chat-latest",
-  stream: true,
-  input: [
-    {
-      role: "user",
-      content: "how to aggregate data in movies collection?",
-    },
-  ],
-  tools,
-  // Instructions guiding tool usage
-  instructions: `## ${tools[0].name} usage
-  
-If you use the '${tools[0].name}' tool,
+const toolName = 'mongosh-query';
+const toolDescription = `If you use the '${tools[0].name}' tool,
 always format the output as follows:
 db.<collection-name>.<operation>(...args)
 
@@ -308,6 +311,34 @@ Ex:
 - .limit(10) for .find()
 
 ...more instructions...`
+
+const tools =  [{
+  type: "function",
+  name: toolName,
+  description: toolDescription,
+  parameters: {
+    type: "object",
+    properties: {
+      mongosh_query: { type: "string" },
+    },
+    required: ["query"],
+  },
+}];
+
+const stream = await openai.responses.create({
+  model: "mongodb-chat-latest",
+  stream: true,
+  input: [
+    {
+      role: "user",
+      content: "how to aggregate data in movies collection?",
+    },
+  ],
+  tools,
+  // Additional custom instructions guiding tool usage.
+  instructions: `If you're not sure about whether to call the ${toolName}, confirm with the user first.
+
+In your message to the user state the full MQL query that you were planning on executing.`
 });
 ```
 

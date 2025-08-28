@@ -6,9 +6,9 @@ import {
 import {
   extractDeterministicSampleOfDocuments,
   ExtractSampleDocumentsParams,
-} from "./extractDeterministicSampleOfDocuments";
+} from "mongodb-rag-core/executeCode";
 import { strict as assert } from "assert";
-import { Document } from "mongodb-rag-core/mongodb";
+import { Document, MongoClient } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 type ChatCompletionCreateParamsNonStreaming =
@@ -37,8 +37,11 @@ export interface MakeGenerateDriverCodeParams {
   promptGenerationConfig: PromptGenerationConfig;
   sampleGenerationConfig: Pick<
     ExtractSampleDocumentsParams,
-    "limit" | "mongoClient"
-  >;
+    "limit" | "collection"
+  > & {
+    mongoClient: MongoClient;
+    databaseName: string;
+  };
 }
 
 /**
@@ -51,16 +54,17 @@ export async function makeGenerateDriverCode({
 }: MakeGenerateDriverCodeParams) {
   // Create new collections with exampleDocuments added
   const collectionsWithExamples = (await Promise.all(
-    promptGenerationConfig.mongoDb.collections.map(async (collection) => {
+    promptGenerationConfig.mongoDb.collections.map(async (collectionInfo) => {
+      const collection = sampleGenerationConfig.mongoClient
+        .db(sampleGenerationConfig.databaseName)
+        .collection(collectionInfo.collectionName);
       const exampleDocs = await extractDeterministicSampleOfDocuments({
-        mongoClient: sampleGenerationConfig.mongoClient,
-        collectionName: collection.collectionName,
-        databaseName: promptGenerationConfig.mongoDb.databaseName,
+        collection,
         limit: sampleGenerationConfig.limit,
       });
       assert(exampleDocs.length > 0, "Must have at least one example document");
       return {
-        ...collection,
+        ...collectionInfo,
         exampleDocuments: exampleDocs satisfies Document[] as [
           Document,
           ...Document[]

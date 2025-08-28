@@ -65,6 +65,8 @@ const searchRequiresRephraseNotes = [
 ];
 
 const coordinateToolNotes = [
+  `When deciding whether to call ${FETCH_PAGE_TOOL_NAME}, DO NOT ASSUME that the user wants to use the ${FETCH_PAGE_TOOL_NAME} based on the pageUrl in the Front Matter.`,
+  `The ${FETCH_PAGE_TOOL_NAME} tool should only be used if the user asks you to reference the page they are on (e.g. "Use the page I'm on..."), or if the user explicitly provides a URL in their question.`,
   `If the ${FETCH_PAGE_TOOL_NAME} tool returns the string "${SEARCH_ALL_FALLBACK_TEXT}", you MUST immediately call the ${SEARCH_TOOL_NAME} tool.`,
 ];
 

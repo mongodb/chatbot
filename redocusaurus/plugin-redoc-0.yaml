@@ -442,22 +442,47 @@ paths:
 components:
   securitySchemes:
     CustomHeaderAuth:
-      type: apiKey
-      in: header
-      name: ORIGIN
-      description: >
-        Can provide any value. Used to track where requests to the server
+      - type: apiKey
+        in: header
+        name: User-Agent
+        description: >
+          Used to track where requests to the server are coming from.
 
-        are coming from.
+          The server's firewall has allow-list rules based on the `User-Agent`
+          header.
 
-        Alternatively, can provide `X-Request-Origin` header.
+          If you would like to get access to the server, please [contact the
+          Education AI team](../contact).
+      - type: apiKey
+        in: header
+        name: Origin
+        description: >
+          Used to track where requests to the server are coming from. Can be any
+          value.  
+
+          The server's firewall has additional rules based on the `User-Agent`
+          header.
+
+          If you would like to get access to the server, please [contact the
+          Education AI team](../contact).
 
 
-        The server's firewall has additional rules based on the `User-Agent`
-        header.
+          Note that `Origin` and `X-Request-Origin` are mutually exclusive.
+      - type: apiKey
+        in: header
+        name: X-Request-Origin
+        description: >
+          Used to track where requests to the server are coming from. Can be any
+          value.  
 
-        If you would like to get access to the server, please [contact the
-        Education AI team](../contact).
+          The server's firewall has additional rules based on the `User-Agent`
+          header.
+
+          If you would like to get access to the server, please [contact the
+          Education AI team](../contact).
+
+
+          Note that `Origin` and `X-Request-Origin` are mutually exclusive.
   responses:
     BadRequest:
       description: Bad Request

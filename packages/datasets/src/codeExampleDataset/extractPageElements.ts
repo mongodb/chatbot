@@ -64,7 +64,7 @@ export async function makeExtractCodeBlocksWithHeadings() {
           return true;
         },
         // revere order of visiting
-        true
+        true,
       );
       codeBlocks.push({
         code,

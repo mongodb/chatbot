@@ -56,7 +56,7 @@ function asConversationData(data: Record<string, unknown>): ConversationData {
     new Date(data.createdAt).getTime() !== data.createdAt
   ) {
     throw new Error(
-      `Invalid conversation data: createdAt must be a valid datetime number. Got ${data.createdAt}`
+      `Invalid conversation data: createdAt must be a valid datetime number. Got ${data.createdAt}`,
     );
   }
 
@@ -82,7 +82,7 @@ export class RetriableError<Data extends object = object> extends Error {
 
   constructor(
     message: string,
-    config: { retryAfter?: number; data?: Data } = {}
+    config: { retryAfter?: number; data?: Data } = {},
   ) {
     const { retryAfter = 1000, data } = config;
     super(message);
@@ -125,7 +125,7 @@ export type ConversationStreamEvent =
   | FinishedStreamEvent;
 
 const isConversationStreamEventType = (
-  type: string
+  type: string,
 ): type is ConversationStreamEvent["type"] => {
   return (
     type === "delta" ||
@@ -136,7 +136,7 @@ const isConversationStreamEventType = (
 };
 
 const isConversationStreamEvent = (
-  event: object
+  event: object,
 ): event is ConversationStreamEvent => {
   const e = event as ConversationStreamEvent;
   return (
@@ -175,12 +175,12 @@ export class ConversationService {
   constructor(config: ConversationServiceConfig) {
     assert(
       config.serverUrl,
-      "You must define a serverUrl for the ConversationService"
+      "You must define a serverUrl for the ConversationService",
     );
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,
-          window.location.protocol + "//" + window.location.host
+          window.location.protocol + "//" + window.location.host,
         ).href
       : config.serverUrl;
 
@@ -200,7 +200,7 @@ export class ConversationService {
           defaultHeaders,
           fetchOptions?.headers
             ? new Headers(fetchOptions.headers)
-            : new Headers()
+            : new Headers(),
         ),
       };
     };
@@ -224,12 +224,12 @@ export class ConversationService {
   private getUrl(path: string, queryParams: Record<string, string> = {}) {
     if (!path.startsWith("/")) {
       throw new Error(
-        `Invalid path: ${path} - ConversationService paths must start with /`
+        `Invalid path: ${path} - ConversationService paths must start with /`,
       );
     }
     const url = new URL(
       path.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
-      this.serverUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
+      this.serverUrl.replace(/\/?$/, "/"), // Add trailing slash to not lose last segment of baseUrl
     );
     const queryString = new URLSearchParams(queryParams).toString();
     if (!queryString) {
@@ -355,7 +355,7 @@ export class ConversationService {
         if (!isSomeStreamEvent(event)) {
           nonProd(() => {
             console.error(
-              `Received an unknown event: ${JSON.stringify(event)}`
+              `Received an unknown event: ${JSON.stringify(event)}`,
             );
           });
           return;
@@ -369,7 +369,7 @@ export class ConversationService {
         if (!isConversationStreamEvent(event)) {
           nonProd(() => {
             console.error(
-              `Received an invalid conversation event: ${JSON.stringify(event)}`
+              `Received an invalid conversation event: ${JSON.stringify(event)}`,
             );
           });
           return;
@@ -424,7 +424,7 @@ export class ConversationService {
             {
               retryAfter: 1000,
               data: response,
-            }
+            },
           );
         }
       },
@@ -487,7 +487,7 @@ export class ConversationService {
       throw new Error(data.error);
     }
     throw new Error(
-      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`
+      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`,
     );
   }
 
@@ -515,7 +515,7 @@ export class ConversationService {
       throw new Error(data.error);
     }
     throw new Error(
-      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`
+      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`,
     );
   }
 }

@@ -15,7 +15,7 @@ export function averagePrecisionAtK<T extends Primitive>(
   relevantItems: T[],
   retrievedItems: T[],
   matchFunc: MatchFunc<T>,
-  k: number
+  k: number,
 ): number {
   assertKIsValid(k);
 
@@ -30,7 +30,7 @@ export function averagePrecisionAtK<T extends Primitive>(
 
     // Find the matching relevant item
     const relevantItem = relevantItems.find((relevantItem) =>
-      matchFunc(relevantItem, item)
+      matchFunc(relevantItem, item),
     );
 
     if (relevantItem) {

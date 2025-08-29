@@ -18,7 +18,7 @@ export const REASONS = {
   - empty object
  */
 export function isNonEmptyResult(
-  result: DatabaseExecutionResult["result"]
+  result: DatabaseExecutionResult["result"],
 ): IsReasonableResultReturnValue {
   const emptyOutput = {
     success: false,
@@ -65,7 +65,7 @@ export interface IsReasonableResultReturnValue {
  - in mixed array of objects and scalars, the objects do not contain `null` or `''` and the scalars do not contain `null` or `''`
  */
 export function isReasonableResult(
-  result: DatabaseExecutionResult["result"]
+  result: DatabaseExecutionResult["result"],
 ): IsReasonableResultReturnValue {
   const nonEmptyResult = isNonEmptyResult(result);
   if (!nonEmptyResult.success) {
@@ -88,7 +88,7 @@ export function isReasonableResult(
       if (!item || typeof item !== "object") continue;
 
       const hasNullOrEmptyValues = Object.values(item).some(
-        (value) => value === null || value === ""
+        (value) => value === null || value === "",
       );
 
       if (hasNullOrEmptyValues) {
@@ -107,7 +107,7 @@ export function isReasonableResult(
     result.every((r) => typeof r !== "object" || r === null)
   ) {
     const hasNullOrEmptyValues = result.some(
-      (value) => value === null || value === ""
+      (value) => value === null || value === "",
     );
 
     if (hasNullOrEmptyValues) {
@@ -127,12 +127,12 @@ export function isReasonableResult(
   ) {
     // Check objects in the mixed array
     const objectItems = result.filter(
-      (item): item is object => typeof item === "object" && item !== null
+      (item): item is object => typeof item === "object" && item !== null,
     );
 
     for (const item of objectItems) {
       const hasNullOrEmptyValues = Object.values(item).some(
-        (value) => value === null || value === ""
+        (value) => value === null || value === "",
       );
 
       if (hasNullOrEmptyValues) {
@@ -145,11 +145,11 @@ export function isReasonableResult(
 
     // Check scalar values in the mixed array
     const scalarItems = result.filter(
-      (item) => item === null || typeof item !== "object"
+      (item) => item === null || typeof item !== "object",
     );
 
     const hasNullOrEmptyScalars = scalarItems.some(
-      (value) => value === null || value === ""
+      (value) => value === null || value === "",
     );
 
     if (hasNullOrEmptyScalars) {

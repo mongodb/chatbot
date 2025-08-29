@@ -238,7 +238,7 @@ export function makeMongoDbEmbeddedContentStore({
         assert(
           embeddedContent.sourceName === page.sourceName &&
             embeddedContent.url === page.url,
-          `EmbeddedContent source/url (${embeddedContent.sourceName} / ${embeddedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
+          `EmbeddedContent source/url (${embeddedContent.sourceName} / ${embeddedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`,
         );
       });
       await mongoClient.withSession(async (session) => {
@@ -246,7 +246,7 @@ export function makeMongoDbEmbeddedContentStore({
           // First delete all the embeddedContent for the given page
           const deleteResult = await embeddedContentCollection.deleteMany(
             pageIdentity(page),
-            { session }
+            { session },
           );
           if (!deleteResult.acknowledged) {
             throw new Error("EmbeddedContent deletion not acknowledged!");
@@ -257,7 +257,7 @@ export function makeMongoDbEmbeddedContentStore({
             [...embeddedContent],
             {
               session,
-            }
+            },
           );
 
           if (!insertResult.acknowledged) {
@@ -266,7 +266,7 @@ export function makeMongoDbEmbeddedContentStore({
           const { insertedCount } = insertResult;
           if (insertedCount !== embeddedContent.length) {
             throw new Error(
-              `Expected ${embeddedContent.length} inserted, got ${insertedCount}`
+              `Expected ${embeddedContent.length} inserted, got ${insertedCount}`,
             );
           }
         });
@@ -351,7 +351,7 @@ export function makeMongoDbEmbeddedContentStore({
         if (error instanceof MongoServerError) {
           assert(
             error.codeName === "IndexAlreadyExists",
-            `An unexpected MongoError occurred: ${error.name}`
+            `An unexpected MongoError occurred: ${error.name}`,
           );
         } else {
           throw error;
@@ -415,7 +415,7 @@ type MongoDbAtlasVectorSearchFilter = {
 };
 
 const handleFilters = (
-  filter: QueryFilters
+  filter: QueryFilters,
 ): MongoDbAtlasVectorSearchFilter => {
   const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {

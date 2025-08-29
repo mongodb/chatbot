@@ -47,7 +47,7 @@ const pageFormatsWithSynonyms = [
   The list of canonical file formats that we support for pages.
  */
 export const pageFormats = pageFormatsWithSynonyms.map((type) =>
-  typeof type === "string" ? type : type[0]
+  typeof type === "string" ? type : type[0],
 );
 
 // Helper that makes every element of pageFormatsWithSynonyms a tuple.
@@ -55,7 +55,7 @@ export const pageFormats = pageFormatsWithSynonyms.map((type) =>
 // const so does not need to be redefined every time the function is
 // called.
 const pageFormatsAndSynonymsAsTuples = pageFormatsWithSynonyms.map((t) =>
-  typeof t === "string" ? ([t] as const) : t
+  typeof t === "string" ? ([t] as const) : t,
 );
 
 /**
@@ -91,7 +91,7 @@ export function isPageFormat(str: string): str is PageFormat {
  */
 export function pageFormat(
   str: string,
-  defaultPageFormat: PageFormat = "txt"
+  defaultPageFormat: PageFormat = "txt",
 ): PageFormat {
   return asPageFormat(str) ?? defaultPageFormat;
 }

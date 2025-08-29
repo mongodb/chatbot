@@ -13,7 +13,7 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
-    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint": "eslint ./src --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "extractCodeExamples": "npm run build && node ./build/bin/extractCodeExamples.js",
     "genSampleOfCodeExamplesWithPrompts": "npm run build && node ./build/bin/genSampleOfCodeExamplesWithPrompts.js",

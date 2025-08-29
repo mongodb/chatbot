@@ -24,7 +24,7 @@ export async function getBraintrustExperimentSummary({
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
-    }
+    },
   ).then((res) => res.json())) as GetExperimentMetadataResponse;
 
   const summary = (await fetch(
@@ -33,7 +33,7 @@ export async function getBraintrustExperimentSummary({
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
-    }
+    },
   ).then((res) => res.json())) as GetExperimentSummaryResponse;
 
   return { metadata, summary };

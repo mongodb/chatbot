@@ -31,17 +31,17 @@ const functionName = "get_high_level_db_descriptions";
   Creates a Zod schema for database descriptions based on the actual collections in the database
  */
 function createHighLevelDbDescriptionsSchema(
-  databaseMetadata: DatabaseMetadata
+  databaseMetadata: DatabaseMetadata,
 ) {
   const collectionNames = databaseMetadata.collections.map(
-    (metadata) => metadata.collectionName
+    (metadata) => metadata.collectionName,
   );
   // Create a record schema where each key must be one of the collection names
   const collectionDescriptionsSchema = z.array(
     z.object({
       collectionName: z.enum(collectionNames as [string, ...string[]]),
       description: z.string(),
-    })
+    }),
   );
 
   return z.object({
@@ -56,7 +56,7 @@ function createHighLevelDbDescriptionsSchema(
 export async function generateHighLevelDbDescriptions(
   databaseMetadata: DatabaseMetadata,
   llmOptions: LlmOptions,
-  openAiClient: OpenAI
+  openAiClient: OpenAI,
 ) {
   const schema = createHighLevelDbDescriptionsSchema(databaseMetadata);
 

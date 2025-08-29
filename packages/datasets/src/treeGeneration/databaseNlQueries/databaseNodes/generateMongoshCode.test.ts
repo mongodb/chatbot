@@ -55,19 +55,19 @@ describe.skip("generateMqlCode", () => {
         nlQueries.map((nlQuery) => ({
           _id: new ObjectId(),
           parent: useCaseNodes.find(
-            (useCase) => useCase.data.title === useCaseTitle
+            (useCase) => useCase.data.title === useCaseTitle,
           )!,
           data: nlQuery,
           updated: new Date(),
-        }))
+        })),
     );
 
     assert(
       nlQueryNodes.length ===
         Object.entries(sampleNlQueries["Alice Chen"]).reduce(
           (sum, [_, queries]) => sum + queries.length,
-          0
-        )
+          0,
+        ),
     );
     console.log("Generating", nlQueryNodes.length, "MQL queries");
 
@@ -79,15 +79,15 @@ describe.skip("generateMqlCode", () => {
         const mqlCode = await generateMongoshCode(
           nlQueryNode,
           makeSampleLlmOptions(),
-          8
+          8,
         );
 
         console.log(
           JSON.stringify(
             mqlCode.map((nlQuery) => nlQuery.data),
             null,
-            2
-          )
+            2,
+          ),
         );
         return mqlCode;
       });
@@ -101,8 +101,8 @@ describe.skip("generateMqlCode", () => {
         results.flat().map((query) => ({
           nlQuery: query.parent.data.query,
           ...query.data,
-        }))
-      )
+        })),
+      ),
     );
     console.log("Saved to", pathOut);
   });

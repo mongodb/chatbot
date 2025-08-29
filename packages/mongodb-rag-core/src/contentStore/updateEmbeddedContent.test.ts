@@ -150,7 +150,7 @@ describe("updateEmbeddedContent", () => {
     expect(embeddedContent[0].chunkAlgoHash).toBe(
       // You might need to update this expectation when the standard chunkPage
       // function changes
-      "49d78a1d6b12ee6f433a2156060ed5ebfdefb8a90301f1c2fb04e4524944c5eb"
+      "49d78a1d6b12ee6f433a2156060ed5ebfdefb8a90301f1c2fb04e4524944c5eb",
     );
     await updateEmbeddedContent({
       embedder,
@@ -169,7 +169,7 @@ describe("updateEmbeddedContent", () => {
     expect(embeddedContent2[0].chunkAlgoHash).toBe(
       // You might need to update this expectation when the standard chunkPage
       // function changes
-      "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1"
+      "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1",
     );
   });
 
@@ -250,9 +250,9 @@ describe("updateEmbeddedContent", () => {
             (otherPair, j) =>
               i !== j &&
               pair.startTime < otherPair.endTime &&
-              otherPair.startTime < pair.endTime
-          )
-        )
+              otherPair.startTime < pair.endTime,
+          ),
+        ),
       ).toBe(true);
     });
     it("processes pages concurrently", async () => {
@@ -293,9 +293,9 @@ describe("updateEmbeddedContent", () => {
             (otherPair, j) =>
               i !== j &&
               pair.startTime < otherPair.endTime &&
-              otherPair.startTime < pair.endTime
-          )
-        )
+              otherPair.startTime < pair.endTime,
+          ),
+        ),
       ).toBe(true);
     });
   });
@@ -342,7 +342,7 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
     },
   ];
   const mockDataSourceNames = mockDataSources.map(
-    (dataSource) => dataSource.name
+    (dataSource) => dataSource.name,
   );
   beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
@@ -410,7 +410,7 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
       .collection("embedded_content")
       .updateOne(
         { sourceName: mockDataSourceNames[0] },
-        { $set: { updated: beforeSinceDate } }
+        { $set: { updated: beforeSinceDate } },
       );
     // set pages[1] to be last updated after sinceDate (should be re-chunked)
     await mongoClient
@@ -422,7 +422,7 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
       .collection("embedded_content")
       .updateOne(
         { sourceName: mockDataSourceNames[1] },
-        { $set: { updated: afterSinceDate } }
+        { $set: { updated: afterSinceDate } },
       );
     const originalPage1Embedding = await embedStore.loadEmbeddedContent({
       page: pages[0],
@@ -446,10 +446,10 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
     expect(updatedPage1Embedding[0].updated.getTime()).toBe(
-      originalPage1Embedding[0].updated.getTime()
+      originalPage1Embedding[0].updated.getTime(),
     );
     expect(updatedPage2Embedding[0].updated.getTime()).not.toBe(
-      originalPage2Embedding[0].updated.getTime()
+      originalPage2Embedding[0].updated.getTime(),
     );
   });
   it("should update embedded content when only chunk algo has changed", async () => {
@@ -478,10 +478,10 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
     expect(updatedPage1Embedding[0].chunkAlgoHash).toBe(
-      page1Embedding[0].chunkAlgoHash
+      page1Embedding[0].chunkAlgoHash,
     );
     expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(
-      page2Embedding[0].chunkAlgoHash
+      page2Embedding[0].chunkAlgoHash,
     );
   });
   it("should update embedded content when either chunk algo has changed or copy has changed", async () => {
@@ -497,7 +497,7 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
       .collection("embedded_content")
       .updateOne(
         { sourceName: mockDataSourceNames[0] },
-        { $set: { updated: afterSinceDate } }
+        { $set: { updated: afterSinceDate } },
       );
     const originalPage1Embedding = await embedStore.loadEmbeddedContent({
       page: pages[0],
@@ -521,10 +521,10 @@ describe("updateEmbeddedContent updates chunks based on changes to copy or chang
     assert(updatedPage2Embedding.length);
     // both pages should be updated
     expect(updatedPage1Embedding[0].chunkAlgoHash).not.toBe(
-      originalPage1Embedding[0].chunkAlgoHash
+      originalPage1Embedding[0].chunkAlgoHash,
     );
     expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(
-      page2Embedding[0].chunkAlgoHash
+      page2Embedding[0].chunkAlgoHash,
     );
   });
 });

@@ -18,7 +18,7 @@ async function conversationEval() {
   // Get all the conversation eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "..", "..", "evalCases");
   const conversationEvalCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "all_scorers.yml"), "utf8")
+    fs.readFileSync(path.resolve(basePath, "all_scorers.yml"), "utf8"),
   );
 
   // Run the conversation eval

@@ -95,7 +95,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
       { ...page, body: "This is some text.\nLorem ipsum blah, blah, blah!!!" },
       {
         transform: standardChunkFrontMatterUpdater,
-      }
+      },
     );
     expect(chunks).toHaveLength(1);
 
@@ -131,7 +131,7 @@ Lorem ipsum blah, blah, blah!!!`,
       },
       {
         transform: standardChunkFrontMatterUpdater,
-      }
+      },
     );
     expect(codeBlockChunks).toHaveLength(1);
     expect(codeBlockChunks).toStrictEqual([
@@ -173,7 +173,7 @@ Neat, huh?`,
       },
       {
         transform: standardChunkFrontMatterUpdater,
-      }
+      },
     );
     expect(unspecifiedCodeBlockChunks).toHaveLength(1);
     expect(unspecifiedCodeBlockChunks).toStrictEqual([
@@ -223,7 +223,7 @@ This is some text\n`,
       },
       {
         transform: standardChunkFrontMatterUpdater,
-      }
+      },
     );
     expect(chunks).toHaveLength(1);
 
@@ -287,7 +287,7 @@ ${body}`,
       Path.resolve(SRC_ROOT, "../testData/samplePageWithTabs.md"),
       {
         encoding: "utf-8",
-      }
+      },
     );
 
     const pageWithTabs: Page = {
@@ -307,10 +307,10 @@ ${body}`,
     });
     expect(chunks).toHaveLength(3);
     expect(chunks[1].text.startsWith('<Tab name="App Services UI">')).toBe(
-      true
+      true,
     );
     expect(chunks[2].text.startsWith('<Tab name="App Services CLI">')).toBe(
-      true
+      true,
     );
   });
   it("excludes chunks with fewer than minChunkSize tokens", async () => {
@@ -322,7 +322,7 @@ ${body}`,
       {
         transform: standardChunkFrontMatterUpdater,
         minChunkSize: 25,
-      }
+      },
     );
     expect(chunks).toHaveLength(0);
   });

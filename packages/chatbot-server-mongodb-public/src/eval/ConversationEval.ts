@@ -149,7 +149,7 @@ function getConversationRagasConfig(
       endpoint: string;
     };
     embeddingModel: string;
-  }
+  },
 ) {
   return {
     output: scorerArgs.output.assistantMessageContent,
@@ -177,7 +177,7 @@ export interface JudgeModelConfig {
 }
 
 type ConversationEvalScorerConstructor = (
-  judgeModelConfig: JudgeModelConfig
+  judgeModelConfig: JudgeModelConfig,
 ) => ConversationEvalScorer;
 
 const makeConversationFaithfulness: ConversationEvalScorerConstructor =
@@ -213,11 +213,11 @@ const makeFactuality: ConversationEvalScorerConstructor =
 
 const createEvalJudgeModel = async (judgeModelConfig: JudgeModelConfig) => {
   const modelConfig: ModelConfig | undefined = models.find(
-    (m) => m.label === judgeModelConfig.model
+    (m) => m.label === judgeModelConfig.model,
   );
   assert(
     modelConfig !== undefined,
-    "No model config for the requested judge model."
+    "No model config for the requested judge model.",
   );
 
   return wrapLanguageModel({
@@ -256,12 +256,12 @@ const PromptAdherenceAssessmentSchema = z.object({
     z.object({
       reason: z.string(),
       score: z.number().int().min(0).max(1),
-    })
+    }),
   ),
 });
 
 const makePromptAdherence: ConversationEvalScorerConstructor = (
-  judgeModelConfig
+  judgeModelConfig,
 ) => {
   return async (args) => {
     const name = "PromptAdherence";
@@ -302,7 +302,7 @@ const makePromptAdherence: ConversationEvalScorerConstructor = (
       score:
         assessments.reduce(
           (accumulator, current) => accumulator + current.score,
-          0
+          0,
         ) / args.expected?.promptAdherence.length,
       metadata: {
         scores: JSON.stringify(object),
@@ -321,10 +321,11 @@ const ToolCallAmountCorrect: ConversationEvalScorer = (args) => {
   }
 
   const expectedToolCallCount = args.expected.messages.filter(
-    (message) => message.role === "assistant-tool"
+    (message) => message.role === "assistant-tool",
   ).length;
   const actualToolCallCount = args.output.messages.filter(
-    (message) => message.role === "assistant" && message?.toolCall !== undefined
+    (message) =>
+      message.role === "assistant" && message?.toolCall !== undefined,
   ).length;
 
   if (expectedToolCallCount === 0) {
@@ -449,14 +450,14 @@ const ToolArgumentsCorrect: ConversationEvalScorer = (args) => {
       }
       const outputArguments = JSON.parse(toolCall.function.arguments ?? "{}");
       for (const [key, value] of Object.entries(
-        expectedMessage.toolCallArgs as Record<string, string>
+        expectedMessage.toolCallArgs as Record<string, string>,
       )) {
         totalToolArgs++;
         if (outputArguments?.[key] && outputArguments[key] === value) {
           totalToolArgsCorrect++;
         } else {
           console.log(
-            `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`
+            `Mismatch on key ${key} between expected ${value} and output ${outputArguments[key]}`,
           );
         }
       }
@@ -521,7 +522,7 @@ export async function makeConversationEval({
                     },
                   }
                 : undefined,
-            } satisfies Message)
+            }) satisfies Message,
         );
         const latestMessageText = evalCase.messages.at(-1)?.content;
         assert(latestMessageText, "No latest message text found");
@@ -586,14 +587,14 @@ export async function makeConversationEval({
             }),
           {
             name: "generateResponse",
-          }
+          },
         );
         const mockDbMessages = messages.map((m, i) => {
           const msgId = i === messages.length - 1 ? id : new ObjectId();
           return { ...m, id: msgId, createdAt: new Date() };
         });
         const assistantMessageIdx = mockDbMessages.findLastIndex(
-          (m) => m.role === "assistant"
+          (m) => m.role === "assistant",
         );
         const assistantMessageId = mockDbMessages[assistantMessageIdx].id;
 

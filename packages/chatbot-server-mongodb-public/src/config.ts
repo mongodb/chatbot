@@ -118,7 +118,7 @@ export const openAiClient = wrapOpenAI(
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,
-  })
+  }),
 );
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
@@ -162,7 +162,7 @@ embedder.embed = wrapTraced(embedder.embed, { name: "embed" });
 
 embeddedContentStore.findNearestNeighbors = wrapTraced(
   embeddedContentStore.findNearestNeighbors,
-  { name: "findNearestNeighbors" }
+  { name: "findNearestNeighbors" },
 );
 
 export const findContent = wrapTraced(
@@ -173,7 +173,7 @@ export const findContent = wrapTraced(
   }),
   {
     name: "findContent",
-  }
+  },
 );
 
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
@@ -201,7 +201,7 @@ export const findVerifiedAnswer = wrapTraced(
     findNearestNeighborsOptions:
       verifiedAnswerConfig.findNearestNeighborsOptions,
   }),
-  { name: "findVerifiedAnswer" }
+  { name: "findVerifiedAnswer" },
 );
 
 export const pageStore = makeMongoDbPageStore({
@@ -216,7 +216,7 @@ export const loadPage = wrapTraced(pageStore.loadPage, {
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME)
+  mongodb.db(MONGODB_DATABASE_NAME),
 );
 const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
@@ -237,11 +237,11 @@ const inputGuardrail = wrapTraced(
   }),
   {
     name: "inputGuardrail",
-  }
+  },
 );
 
 export const filterPreviousMessages: FilterPreviousMessages = async (
-  conversation
+  conversation,
 ) => {
   return conversation.messages.filter((message) => {
     return (
@@ -294,12 +294,12 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),
-        { name: "generateResponseWithTools" }
+        { name: "generateResponseWithTools" },
       ),
     }),
     {
       name: "generateResponse",
-    }
+    },
   );
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =

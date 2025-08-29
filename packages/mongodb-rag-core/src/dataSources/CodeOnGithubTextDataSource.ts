@@ -89,8 +89,8 @@ export function pageBlobUrl(args: {
     ...(args.filePath === undefined
       ? [""]
       : Array.isArray(args.filePath)
-      ? args.filePath
-      : [args.filePath])
+        ? args.filePath
+        : [args.filePath]),
   );
   return new URL(urlPath, origin).toString();
 }

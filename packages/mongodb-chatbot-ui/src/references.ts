@@ -28,10 +28,10 @@ export type SortReferences = (left: Reference, right: Reference) => -1 | 0 | 1;
 export type ReferenceDomain = string | URL;
 
 export function makePrioritizeReferenceDomain(
-  domains: ReferenceDomain | ReferenceDomain[]
+  domains: ReferenceDomain | ReferenceDomain[],
 ): SortReferences {
   const priorityDomains = (Array.isArray(domains) ? domains : [domains]).map(
-    (domain) => new URL(domain)
+    (domain) => new URL(domain),
   );
 
   // If no priority domains are provided, return a no-op sort function
@@ -42,11 +42,11 @@ export function makePrioritizeReferenceDomain(
   return function prioritizeReferenceDomain(l, r) {
     // Determine the priority level for left and right URLs
     const lPriority = priorityDomains.findIndex((priorityDomain) =>
-      isReferenceToDomain(new URL(l.url), priorityDomain)
+      isReferenceToDomain(new URL(l.url), priorityDomain),
     );
 
     const rPriority = priorityDomains.findIndex((priorityDomain) =>
-      isReferenceToDomain(new URL(r.url), priorityDomain)
+      isReferenceToDomain(new URL(r.url), priorityDomain),
     );
 
     // Both URLs match the same priority level
@@ -69,11 +69,11 @@ export function makePrioritizeReferenceDomain(
 }
 
 /**
- * Determine if a reference is to a specific domain/path.
+ Determine if a reference is to a specific domain/path.
  */
 export function isReferenceToDomain(
   referenceUrl: URL,
-  domainUrl: URL
+  domainUrl: URL,
 ): boolean {
   return (
     referenceUrl.hostname === domainUrl.hostname &&

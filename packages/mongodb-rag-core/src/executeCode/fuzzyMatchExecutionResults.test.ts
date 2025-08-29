@@ -321,7 +321,7 @@ describe("fuzzyMatch() with Aggregations", () => {
         mongoDbOutput,
         expected,
         isAggregation: true,
-      })
+      }),
     ).toBe(true);
   });
 

@@ -54,8 +54,8 @@ export const makeOpenAiEmbedder = ({
             if (err.code === undefined) {
               logger.error(
                 `OpenAI Embedding API request failed with unknown error: ${JSON.stringify(
-                  err
-                )}`
+                  err,
+                )}`,
               );
               return false;
             }
@@ -66,7 +66,7 @@ export const makeOpenAiEmbedder = ({
               logger.info(
                 `OpenAI Embedding API rate limited (attempt ${
                   attemptNumber - 1
-                }): ${errorMessage}`
+                }): ${errorMessage}`,
               );
 
               // Quick optimization for retry where we wait as long as it tells us
@@ -77,7 +77,7 @@ export const makeOpenAiEmbedder = ({
                 : DEFAULT_WAIT_SECONDS;
               if (waitSeconds) {
                 await new Promise((resolve) =>
-                  setTimeout(resolve, waitSeconds * 1000)
+                  setTimeout(resolve, waitSeconds * 1000),
                 );
               }
 
@@ -88,10 +88,10 @@ export const makeOpenAiEmbedder = ({
               logger.info(
                 `OpenAI Embedding API unavailable (attempt ${
                   attemptNumber - 1
-                }): ${errorMessage}`
+                }): ${errorMessage}`,
               );
               await new Promise((resolve) =>
-                setTimeout(resolve, DEFAULT_WAIT_SECONDS * 1000)
+                setTimeout(resolve, DEFAULT_WAIT_SECONDS * 1000),
               );
               return true; // Keep trying until max attempts
             }
@@ -101,7 +101,7 @@ export const makeOpenAiEmbedder = ({
             logger.error(resultMessage);
             return false;
           },
-        }
+        },
       );
     },
   };

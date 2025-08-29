@@ -42,7 +42,7 @@ describe("AcquitRequireOnGithubDataSource", () => {
     expect(mdPages.length).toBeGreaterThan(0);
 
     const convertedPage = mdPages.find((page) =>
-      page.body.includes("```javascript\n")
+      page.body.includes("```javascript\n"),
     );
     assert(convertedPage);
     expect(convertedPage?.metadata).toBeDefined();
@@ -58,7 +58,7 @@ describe("getAcquitTestsFromGithubRepo()", () => {
   it("should return an array of acquit tests", async () => {
     const tests = await getAcquitTestsFromGithubRepo(
       repoUrl,
-      testFileLoaderOptions
+      testFileLoaderOptions,
     );
     expect(tests.length).toBeGreaterThan(0);
   });

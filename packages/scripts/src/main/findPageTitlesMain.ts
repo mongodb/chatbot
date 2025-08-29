@@ -20,7 +20,7 @@ async function main() {
   const yamlPath = process.argv[process.argv.length - 1];
   if (!/\.yaml/i.test(yamlPath)) {
     throw new Error(
-      `Expected 1 argument ending in .yaml - path to verified answers yaml`
+      `Expected 1 argument ending in .yaml - path to verified answers yaml`,
     );
   }
 
@@ -37,7 +37,7 @@ async function main() {
   try {
     const db = client.db(FIND_PAGE_TITLES_DATABASE_NAME);
     const collection = db.collection<{ metadata?: { pageTitle?: string } }>(
-      "embedded_content"
+      "embedded_content",
     );
 
     const newEntries = await Promise.all(
@@ -56,10 +56,10 @@ async function main() {
                     })
                   )?.metadata?.pageTitle,
               };
-            })
+            }),
           ),
         };
-      })
+      }),
     );
 
     console.log(yaml.stringify(newEntries));

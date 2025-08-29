@@ -15,7 +15,7 @@ export type QueryProcessorFuncParams = {
   want to send a canned response).
 */
 export type QueryPreprocessorFunc<
-  ReturnType extends QueryPreprocessorResult = QueryPreprocessorResult
+  ReturnType extends QueryPreprocessorResult = QueryPreprocessorResult,
 > = (params: QueryProcessorFuncParams) => Promise<ReturnType>;
 
 export type QueryPreprocessorResult = {

@@ -52,7 +52,7 @@ function parseCsvToObject() {
 async function getMessagesForTest(
   db: Db,
   collectionName: string,
-  oidString: string
+  oidString: string,
 ): Promise<Message[]> {
   const conversations = db.collection(collectionName);
   const conversationId = ObjectId.isValid(oidString)
@@ -61,7 +61,7 @@ async function getMessagesForTest(
   let testConversation: Message[] = [];
   if (conversationId) {
     const conversation = await conversations.findOne<{ messages: DbMessage[] }>(
-      { _id: conversationId }
+      { _id: conversationId },
     );
     if (!conversation) {
       console.log("conversation not found:", oidString);
@@ -81,7 +81,7 @@ async function getMessagesForTest(
 
 function cleanDataToTestCase(
   csvObject: TestCsvRow,
-  messages: Message[]
+  messages: Message[],
 ): TestCase {
   return {
     name: csvObject.Hypothesis,
@@ -105,7 +105,7 @@ async function convertCsvToYamlAndWriteToFile(csvFilePath: string, db: Db) {
     const messages = await getMessagesForTest(
       db,
       "conversations",
-      csvObject["Conversation ID(s)"]
+      csvObject["Conversation ID(s)"],
     );
     const testCase = cleanDataToTestCase(csvObject, messages);
     testCases.push(testCase);
@@ -117,7 +117,7 @@ async function convertCsvToYamlAndWriteToFile(csvFilePath: string, db: Db) {
 
 async function main() {
   const mongoDb = await MongoClient.connect(
-    process.env.MONGODB_CONNECTION_URI as string
+    process.env.MONGODB_CONNECTION_URI as string,
   );
   const db = mongoDb.db(process.env.MONGODB_DATABASE_NAME as string);
   for (const csvFilePath of csvFilePaths) {

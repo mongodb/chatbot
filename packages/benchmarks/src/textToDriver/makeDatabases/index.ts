@@ -34,11 +34,11 @@ async function main() {
           .filter(
             (doc) =>
               doc.databaseName === databaseName &&
-              doc.collectionName === collectionName
+              doc.collectionName === collectionName,
           )
           .map((doc) => doc.document);
         console.log(
-          `Inserting ${collectionDocs.length} documents into ${databaseName}.${collectionName}...`
+          `Inserting ${collectionDocs.length} documents into ${databaseName}.${collectionName}...`,
         );
         await insertCollectionDocuments({
           client,

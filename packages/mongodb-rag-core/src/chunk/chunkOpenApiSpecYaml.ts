@@ -20,7 +20,7 @@ export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
 
 export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   page: Page,
-  optionsIn?: Partial<ChunkOptions>
+  optionsIn?: Partial<ChunkOptions>,
 ): Promise<ContentChunk[]> {
   const options: ChunkOptions = {
     ...defaultOpenApiSpecYamlChunkOptions,
@@ -87,7 +87,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
               chunkIndex: chunkIndex++,
             };
             return chunk;
-          })
+          }),
         );
       }
     }
@@ -101,12 +101,12 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     components: spec.components,
   };
   let stringChunks = await splitter.splitText(
-    yaml.stringify(otherSpecInfoToKeep)
+    yaml.stringify(otherSpecInfoToKeep),
   );
   if (options.minChunkSize !== undefined) {
     const { minChunkSize } = options;
     stringChunks = stringChunks.filter(
-      (chunk) => tokenizer.encode(chunk).bpe.length > minChunkSize
+      (chunk) => tokenizer.encode(chunk).bpe.length > minChunkSize,
     );
   }
   chunks.push(
@@ -127,7 +127,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
         chunkIndex: chunkIndex++,
       };
       return chunk;
-    })
+    }),
   );
 
   return chunks;

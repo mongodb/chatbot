@@ -21,7 +21,7 @@ describe("computeNormalizedLogisticalExecutionTime", () => {
     const slowerResult = computeNormalizedLogisticalExecutionTime(300, 100);
     const muchSlowerResult = computeNormalizedLogisticalExecutionTime(
       1000,
-      100
+      100,
     );
     expect(slowerResult).toBeGreaterThan(muchSlowerResult);
   });
@@ -30,12 +30,12 @@ describe("computeNormalizedLogisticalExecutionTime", () => {
     // With higher alpha, the score decreases more rapidly as ratio increases
     const resultDefaultAlpha = computeNormalizedLogisticalExecutionTime(
       200,
-      100
+      100,
     ); // alpha = 1
     const resultHigherAlpha = computeNormalizedLogisticalExecutionTime(
       200,
       100,
-      5
+      5,
     );
     expect(resultHigherAlpha).toBeLessThan(resultDefaultAlpha);
   });

@@ -33,7 +33,7 @@ async function main() {
     console.log("Materializing stats since", since?.toISOString());
   } else {
     throw new Error(
-      `--since must be the first day of the month, e.g. "2024-01-01" or "2024-01-01T00:00:00Z"`
+      `--since must be the first day of the month, e.g. "2024-01-01" or "2024-01-01T00:00:00Z"`,
     );
   }
 

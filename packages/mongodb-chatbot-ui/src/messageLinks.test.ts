@@ -135,7 +135,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
     const sortedReferences = [...testReferences].sort(
-      prioritizeCurrentMongoDbReferenceDomain
+      prioritizeCurrentMongoDbReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/docs/manual",
@@ -153,7 +153,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
     const sortedReferences = [...testReferences].sort(
-      prioritizeCurrentMongoDbReferenceDomain
+      prioritizeCurrentMongoDbReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/developer/products/atlas/foobar",
@@ -169,7 +169,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
     const sortedReferences = [...testReferences].sort(
-      prioritizeCurrentMongoDbReferenceDomain
+      prioritizeCurrentMongoDbReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/developer/products/atlas/foobar",

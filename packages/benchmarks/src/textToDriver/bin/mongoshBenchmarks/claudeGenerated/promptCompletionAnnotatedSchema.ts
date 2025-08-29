@@ -29,7 +29,7 @@ async function main() {
     .handleError((error, model) => {
       console.error(
         `Error running experiment for model ${model.label}:`,
-        JSON.stringify(error)
+        JSON.stringify(error),
       );
     })
     .process(async (model) => {

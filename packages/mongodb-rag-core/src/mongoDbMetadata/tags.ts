@@ -39,15 +39,15 @@ const allTags = [
 export const validateTags = (tagNames: string[], custom: boolean): void => {
   if (!custom) {
     const invalidTags = tagNames.filter(
-      (tag) => !allTags.includes(tag as MongoDbTag)
+      (tag) => !allTags.includes(tag as MongoDbTag),
     );
     if (invalidTags.length > 0) {
       throw new Error(
         `Invalid tags found: ${invalidTags.join(
-          ", "
+          ", ",
         )} \nUse the "addCustomTags" transformation instead or use allowed tags: \n  - ${allTags
           .sort()
-          .join("\n  - ")}`
+          .join("\n  - ")}`,
       );
     }
   }

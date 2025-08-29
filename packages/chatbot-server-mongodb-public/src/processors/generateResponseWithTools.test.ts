@@ -121,11 +121,12 @@ const mockReferences = [
 
 // Extract the stream part type from the actual language model object type
 type LanguageModelObject = Exclude<LanguageModel, string>;
-type LanguageModelV2StreamPart = Awaited<
-  ReturnType<LanguageModelObject["doStream"]>
->["stream"] extends ReadableStream<infer T>
-  ? T
-  : never;
+type LanguageModelV2StreamPart =
+  Awaited<
+    ReturnType<LanguageModelObject["doStream"]>
+  >["stream"] extends ReadableStream<infer T>
+    ? T
+    : never;
 
 // Must have, but details don't matter
 const mockFinishChunk: LanguageModelV2StreamPart = {
@@ -220,7 +221,7 @@ const makeMockLanguageModel = (
     () => makeFetchPageToolCallStream(),
     () => makeSearchToolCallStream(),
     () => makeFinalAnswerStream(),
-  ]
+  ],
 ): LanguageModel => {
   // On first call, return fetch_page tool call stream
   // On second call, return search_content tool call stream
@@ -322,7 +323,7 @@ const makeGenerateResponseWithToolsArgs = () =>
         content: "",
       };
     },
-  } satisfies Partial<GenerateResponseWithToolsParams>);
+  }) satisfies Partial<GenerateResponseWithToolsParams>;
 
 const generateResponseBaseArgs = {
   conversation: {
@@ -343,7 +344,7 @@ describe("generateResponseWithTools", () => {
 
   describe("makeGenerateResponseWithTools", () => {
     const generateResponse = makeGenerateResponseWithTools(
-      makeGenerateResponseWithToolsArgs()
+      makeGenerateResponseWithToolsArgs(),
     );
     it("should return a function", () => {
       expect(typeof generateResponse).toBe("function");
@@ -353,7 +354,7 @@ describe("generateResponseWithTools", () => {
       const mockFilterPreviousMessages = jest
         .fn()
         .mockImplementation((_conversation) =>
-          Promise.resolve([])
+          Promise.resolve([]),
         ) as FilterPreviousMessages;
       const generateResponse = makeGenerateResponseWithTools({
         ...makeGenerateResponseWithToolsArgs(),
@@ -372,7 +373,7 @@ describe("generateResponseWithTools", () => {
 
     it("should make reference links", async () => {
       const generateResponse = makeGenerateResponseWithTools(
-        makeGenerateResponseWithToolsArgs()
+        makeGenerateResponseWithToolsArgs(),
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
@@ -380,26 +381,26 @@ describe("generateResponseWithTools", () => {
       const references = (result.messages.at(-1) as AssistantMessage)
         .references;
       expect(references).toEqual(
-        expect.arrayContaining([expect.objectContaining(mockReferences[0])])
+        expect.arrayContaining([expect.objectContaining(mockReferences[0])]),
       );
     });
 
     it("should add custom data to the user message", async () => {
       const generateResponse = makeGenerateResponseWithTools(
-        makeGenerateResponseWithToolsArgs()
+        makeGenerateResponseWithToolsArgs(),
       );
 
       const result = await generateResponse(generateResponseBaseArgs);
 
       const userMessage = result.messages.find(
-        (message) => message.role === "user"
+        (message) => message.role === "user",
       ) as UserMessage;
       expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
         const generateResponse = makeGenerateResponseWithTools(
-          makeGenerateResponseWithToolsArgs()
+          makeGenerateResponseWithToolsArgs(),
         );
 
         const result = await generateResponse(generateResponseBaseArgs);
@@ -466,7 +467,7 @@ describe("generateResponseWithTools", () => {
 
       test("should handle successful streaming", async () => {
         const generateResponse = makeGenerateResponseWithTools(
-          makeGenerateResponseWithToolsArgs()
+          makeGenerateResponseWithToolsArgs(),
         );
 
         const result = await generateResponse({
@@ -546,7 +547,7 @@ describe("generateResponseWithTools", () => {
         });
         expect(mockDataStreamerConfig.streamData).toHaveBeenCalledTimes(1);
         expect(
-          mockDataStreamerConfig.streamData.mock.calls[0][0]
+          mockDataStreamerConfig.streamData.mock.calls[0][0],
         ).toStrictEqual({
           type: "delta",
           data: mockLlmRefusalMessage,
@@ -711,7 +712,7 @@ describe("generateResponseWithTools", () => {
 
     test("should handle parallel tool call successful generation", async () => {
       const result = await generateResponseParallelToolCalls(
-        generateResponseBaseArgs
+        generateResponseBaseArgs,
       );
 
       expectSuccessfulParallelToolCallResult(result);
@@ -762,7 +763,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   assert(firstToolCall.toolCall.type === "function");
   assert(firstToolCall.toolCall.function);
   expect(
-    JSON.parse(firstToolCall.toolCall.function.arguments as string)
+    JSON.parse(firstToolCall.toolCall.function.arguments as string),
   ).toMatchObject(fetchPageToolMockArgs);
 
   const fetchPageToolResponseMessage = result.messages[2];
@@ -789,7 +790,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   assert(secondToolCall.toolCall.type === "function");
   assert(secondToolCall.toolCall.function);
   expect(
-    JSON.parse(secondToolCall.toolCall.function.arguments as string)
+    JSON.parse(secondToolCall.toolCall.function.arguments as string),
   ).toMatchObject(searchToolMockArgs);
 
   const searchToolResponseMessage = result.messages[4];
@@ -808,7 +809,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     content: finalAnswer,
   });
   expect((result.messages[5] as AssistantMessage).references).toEqual(
-    mockReferences
+    mockReferences,
   );
 }
 
@@ -817,7 +818,7 @@ function expectSuccessfulResultCustomTool(
   functionMessage: {
     name: string;
     arguments: string;
-  }
+  },
 ) {
   // Should call the custom tool and stop (due to stopWhen condition)
   expect(result.messages).toHaveLength(2);
@@ -836,7 +837,7 @@ function expectSuccessfulResultCustomTool(
 }
 
 function expectSuccessfulParallelToolCallResult(
-  result: GenerateResponseReturnValue
+  result: GenerateResponseReturnValue,
 ) {
   expect(result).toHaveProperty("messages");
   // User -> Assistant (fetch_page tool call) -> Assistant (fetch_page tool call) ->
@@ -864,7 +865,7 @@ function expectSuccessfulParallelToolCallResult(
   assert(firstToolCall.toolCall.type === "function");
   assert(firstToolCall.toolCall.function);
   expect(
-    JSON.parse(firstToolCall.toolCall.function.arguments as string)
+    JSON.parse(firstToolCall.toolCall.function.arguments as string),
   ).toMatchObject(fetchPageToolMockArgs);
 
   expect(result.messages[2]).toMatchObject({
@@ -883,7 +884,7 @@ function expectSuccessfulParallelToolCallResult(
   assert(secondToolCall.toolCall.type === "function");
   assert(secondToolCall.toolCall.function);
   expect(
-    JSON.parse(secondToolCall.toolCall.function.arguments as string)
+    JSON.parse(secondToolCall.toolCall.function.arguments as string),
   ).toMatchObject({
     ...fetchPageToolMockArgs,
     pageUrl: "https://example2.com/",

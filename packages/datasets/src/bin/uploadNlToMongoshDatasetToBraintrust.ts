@@ -13,10 +13,10 @@ async function main() {
     fs.readFileSync(
       path.resolve(
         dataOutDir,
-        "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time.json"
+        "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time.json",
       ),
-      "utf-8"
-    )
+      "utf-8",
+    ),
   );
   console.log(`Total number of queries: ${dataset.length}`);
   console.log(`First query: ${JSON.stringify(dataset[0], null, 2)}`);

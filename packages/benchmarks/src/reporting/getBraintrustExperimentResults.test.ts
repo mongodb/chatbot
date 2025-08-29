@@ -20,7 +20,7 @@ describe.skip("getBraintrustExperimentResults", () => {
     }
     // At least some items should have tags
     const hasTags = result.some(
-      (item) => item.tags !== undefined && item.tags.length > 0
+      (item) => item.tags !== undefined && item.tags.length > 0,
     );
     expect(hasTags).toBe(true);
   });

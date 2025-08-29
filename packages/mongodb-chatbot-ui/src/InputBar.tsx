@@ -33,8 +33,8 @@ const styles = {
       isError
         ? palette.red.base
         : darkMode
-        ? palette.gray.light2
-        : palette.gray.dark2
+          ? palette.gray.light2
+          : palette.gray.dark2
     };
   `,
 };
@@ -50,7 +50,7 @@ export const InputBar = forwardRef<HTMLFormElement, InputBarProps>(
         ref={ref}
         className={cx(
           styles.suggested_prompts_menu,
-          hasError ?? false ? styles.chatbot_input_error_border : undefined
+          (hasError ?? false) ? styles.chatbot_input_error_border : undefined,
         )}
         shouldRenderGradient={!hasError}
         {...props}
@@ -58,7 +58,7 @@ export const InputBar = forwardRef<HTMLFormElement, InputBarProps>(
         {children}
       </LGInputBar>
     );
-  }
+  },
 );
 
 export interface CharacterCountProps {
@@ -81,7 +81,7 @@ export function CharacterCount({
           darkMode,
           isError: current > max,
         }),
-        className
+        className,
       )}
     >
       {`${current} / ${max}`}

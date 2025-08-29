@@ -14,10 +14,7 @@ import { z } from "zod";
 
 import { generateZodErrorMessage, SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
-import {
-  SearchContentCustomData,
-  ContentRouterLocals,
-} from "./contentRouter";
+import { SearchContentCustomData, ContentRouterLocals } from "./contentRouter";
 import { AddCustomDataFunc } from "../../processors";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 
@@ -33,7 +30,7 @@ export const SearchContentRequest = SomeExpressRequest.merge(
       "req-id": z.string(),
     }),
     body: SearchContentRequestBody,
-  })
+  }),
 );
 
 export type SearchContentRequest = z.infer<typeof SearchContentRequest>;
@@ -69,7 +66,7 @@ export function makeSearchContentRoute({
   const tracedFindContent = wrapTraced(findContent, { name: "searchContent" });
   return async (
     req: ExpressRequest<SearchContentRequest["params"]>,
-    res: ExpressResponse<SearchContentResponseBody, ContentRouterLocals>
+    res: ExpressResponse<SearchContentResponseBody, ContentRouterLocals>,
   ) => {
     try {
       // --- INPUT VALIDATION ---
@@ -108,7 +105,7 @@ export function makeSearchContentRoute({
 }
 
 function mapFindContentResultToSearchContentResponseChunk(
-  result: FindContentResult
+  result: FindContentResult,
 ): SearchContentResponseBody {
   return {
     results: result.content.map(({ url, metadata, text }) => ({
@@ -121,7 +118,7 @@ function mapFindContentResultToSearchContentResponseChunk(
 }
 
 function mapDataSourcesToFilters(
-  dataSources?: SearchRecordDataSource[]
+  dataSources?: SearchRecordDataSource[],
 ): QueryFilters {
   if (!dataSources || dataSources.length === 0) {
     return {};
@@ -170,7 +167,7 @@ async function persistSearchResultsToDatabase({
 async function getCustomData(
   req: ExpressRequest,
   res: ExpressResponse<SearchContentResponseBody, ContentRouterLocals>,
-  addCustomData?: AddCustomDataFunc
+  addCustomData?: AddCustomDataFunc,
 ): Promise<SearchContentCustomData | undefined> {
   try {
     if (addCustomData) {

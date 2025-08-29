@@ -84,7 +84,7 @@ describe("MongoDbTransformedContentStore", () => {
       });
 
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      collectionName
+      collectionName,
     );
   });
 
@@ -109,12 +109,12 @@ describe("MongoDbTransformedContentStore", () => {
     expect(
       await store.loadContent({
         page: { ...page, sourceName: "source3" },
-      })
+      }),
     ).toStrictEqual([]);
     expect(
       await store.loadContent({
         page: { ...page, url: page.url + "/" },
-      })
+      }),
     ).toStrictEqual([]);
   });
 

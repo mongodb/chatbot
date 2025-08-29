@@ -47,7 +47,7 @@ export const Classification = z.object({
     .string()
     .optional()
     .describe(
-      "The reason for the classification. Only available if `chainOfThought` was set to `true`."
+      "The reason for the classification. Only available if `chainOfThought` was set to `true`.",
     ),
 });
 
@@ -84,9 +84,9 @@ export function makeClassifier({
             <Example classification={"${type}"} reason={"${reason ?? "null"}"} >
               ${text}
             </Example>
-          `.trimEnd()
+          `.trimEnd(),
         )
-        .join("\n")
+        .join("\n"),
     )
     .join("\n");
   const makeSystemPrompt = (input: string): string => stripIndents`
@@ -169,7 +169,7 @@ export function makeClassifier({
       throw new Error("Expected function tool call");
     }
     const classification = Classification.parse(
-      JSON.parse(toolCall.function.arguments)
+      JSON.parse(toolCall.function.arguments),
     );
 
     return { classification, inputMessages: messages };

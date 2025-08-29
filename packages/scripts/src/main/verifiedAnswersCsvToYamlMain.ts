@@ -22,7 +22,7 @@ async function main() {
 
   if (!/\.csv$/i.test(csvPath)) {
     throw new Error(
-      `Expected csv path argument ending in .csv, got '${csvPath}'!`
+      `Expected csv path argument ending in .csv, got '${csvPath}'!`,
     );
   }
 
@@ -41,7 +41,7 @@ async function main() {
         .map((line) => line.trim())
         .filter((line) => line !== "")
         .map((url) => ({ url })),
-    })
+    }),
   );
 
   console.log(yaml.stringify(yamlEntries));

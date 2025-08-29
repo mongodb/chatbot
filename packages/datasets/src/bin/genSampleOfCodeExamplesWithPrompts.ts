@@ -15,22 +15,22 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples.json"
+    "docs-chatbot.code-examples.json",
   );
   const pagesPath = path.resolve(
     basePath,
-    "docs-chatbot-2024-17-04.pages.json"
+    "docs-chatbot-2024-17-04.pages.json",
   );
   // get random sample
   const codeExamples = sampleSize(
     JSON.parse(
-      fs.readFileSync(codeExamplesPath, "utf-8")
+      fs.readFileSync(codeExamplesPath, "utf-8"),
     ) as AstExtractedCodeblock[],
-    100
+    100,
   );
 
   const pages = JSON.parse(
-    fs.readFileSync(pagesPath, "utf-8")
+    fs.readFileSync(pagesPath, "utf-8"),
   ) as PersistedPage[];
   const codeBlocksWithPrompts = await appendLlmMetadata({
     pages,
@@ -41,9 +41,9 @@ async function main(): Promise<void> {
   fs.writeFileSync(
     path.resolve(
       basePath,
-      `docs-chatbot.code-examples-with-prompts-${Date.now()}.yaml`
+      `docs-chatbot.code-examples-with-prompts-${Date.now()}.yaml`,
     ),
-    yaml.stringify(codeBlocksWithPrompts)
+    yaml.stringify(codeBlocksWithPrompts),
   );
 }
 main();

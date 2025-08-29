@@ -20,7 +20,7 @@ import { GithubRepoLoaderParams } from "./GitDataSource";
   This data source assumes that the test files are in the same repo as the docs.
  */
 export const makeAcquitRequireMdOnGithubDataSource = async <
-  SourceType extends string = string
+  SourceType extends string = string,
 >({
   name,
   repoUrl,
@@ -59,7 +59,7 @@ export const makeAcquitRequireMdOnGithubDataSource = async <
       logger.info("Loading acquit tests from GitHub repo");
       testsPromise = getAcquitTestsFromGithubRepo(
         repoUrl,
-        testFileLoaderOptions
+        testFileLoaderOptions,
       );
     }
     return testsPromise;
@@ -80,10 +80,10 @@ export const makeAcquitRequireMdOnGithubDataSource = async <
       const { source } = document.metadata;
       const url = pathToPageUrl(source);
       const body = removeMarkdownImagesAndLinks(
-        acquitTransform(document.pageContent, tests)
+        acquitTransform(document.pageContent, tests),
       ).replaceAll(
         "```acquit\n",
-        `\`\`\`${acquitCodeBlockLanguageReplacement ?? ""}\n`
+        `\`\`\`${acquitCodeBlockLanguageReplacement ?? ""}\n`,
       );
       const page: Page<SourceType> = {
         body: body,
@@ -104,7 +104,7 @@ export const makeAcquitRequireMdOnGithubDataSource = async <
 
 export async function getAcquitTestsFromGithubRepo(
   repoUrl: string,
-  repoLoaderOptions: Partial<GithubRepoLoaderParams>
+  repoLoaderOptions: Partial<GithubRepoLoaderParams>,
 ) {
   const testFileSource = makeGitHubDataSource({
     name: "acquit-tests",
@@ -126,7 +126,7 @@ export async function getAcquitTestsFromGithubRepo(
         logger.warn(
           `Error parsing acquit tests for file ${url}: ${
             (error as Error).message
-          }`
+          }`,
         );
         return [];
       }

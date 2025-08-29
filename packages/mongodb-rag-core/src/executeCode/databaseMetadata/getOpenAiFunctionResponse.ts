@@ -50,7 +50,7 @@ export async function getOpenAiFunctionResponse<Schema extends ZodSchema>({
 function parseObjectFromOpenAiResponse<Schema extends ZodSchema>(
   response: OpenAI.ChatCompletion,
   functionName: string,
-  schema: Schema
+  schema: Schema,
 ): z.infer<Schema> {
   const toolCall = response.choices[0].message.tool_calls?.[0];
   if (

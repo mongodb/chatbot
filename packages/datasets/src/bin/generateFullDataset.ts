@@ -15,12 +15,12 @@ async function main() {
     path.resolve(
       dataOutDir,
       "gpt-4o_1743796354104",
-      "referenceAnswers.dataset_gpt-4o_1743796354104.jsonl"
+      "referenceAnswers.dataset_gpt-4o_1743796354104.jsonl",
     ),
     path.resolve(
       dataOutDir,
       "gpt-4o_temp_0.7_1743798673485",
-      "referenceAnswers.dataset_gpt-4o_temp_0.7_1743798673485.jsonl"
+      "referenceAnswers.dataset_gpt-4o_temp_0.7_1743798673485.jsonl",
     ),
   ];
 
@@ -71,7 +71,7 @@ async function main() {
     console.log("Processed dataset:", path.basename(textToMqlOutputPath));
     console.log(`Total answers: ${totalAnsCount}`);
     console.log(
-      `Filtered out ${mutativeOperationsCount} entries with mutative operations`
+      `Filtered out ${mutativeOperationsCount} entries with mutative operations`,
     );
     console.log(`Filtered out ${emptyResultCount} entries with empty results`);
     console.log(`Text to MQL example count: ${referenceAnswers.length}`);
@@ -82,14 +82,14 @@ async function main() {
   countAndLogUsage(allReferenceAnswers);
   const allReferenceAnswersPathOut = path.resolve(
     dataOutDir,
-    "referenceAnswers.gpt-4o.json"
+    "referenceAnswers.gpt-4o.json",
   );
   fs.writeFileSync(
     allReferenceAnswersPathOut,
-    JSON.stringify(allReferenceAnswers, null, 2)
+    JSON.stringify(allReferenceAnswers, null, 2),
   );
   console.log(
-    `Wrote ${allReferenceAnswers.length} reference answers to ${allReferenceAnswersPathOut}`
+    `Wrote ${allReferenceAnswers.length} reference answers to ${allReferenceAnswersPathOut}`,
   );
 }
 

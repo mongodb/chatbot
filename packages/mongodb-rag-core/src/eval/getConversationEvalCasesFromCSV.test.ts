@@ -8,7 +8,7 @@ describe("getConversationEvalCasesFromCSV", () => {
   it("should parse CSV data to produce evaluation cases", async () => {
     const csvFilePath = path.join(
       SRC_ROOT,
-      "../testData/sampleChatbotEvaluationQuestions.csv"
+      "../testData/sampleChatbotEvaluationQuestions.csv",
     );
     const records = await getConversationEvalCasesFromCSV(csvFilePath);
     expect(records.length).toBe(4);
@@ -28,7 +28,7 @@ describe("getConversationEvalCasesFromCSV", () => {
   it("should apply a tranform function that allows for customization of fields", async () => {
     const csvFilePath = path.join(
       SRC_ROOT,
-      "../testData/sampleChatbotEvaluationQuestions.csv"
+      "../testData/sampleChatbotEvaluationQuestions.csv",
     );
     function addTestDataSourceTag(evalCases: ConversationEvalCase[]) {
       return evalCases.map((caseItem) => {
@@ -44,7 +44,7 @@ describe("getConversationEvalCasesFromCSV", () => {
     }
     const records = await getConversationEvalCasesFromCSV(
       csvFilePath,
-      addTestDataSourceTag
+      addTestDataSourceTag,
     );
     expect(records[0]).toMatchObject({
       tags: ["test"],

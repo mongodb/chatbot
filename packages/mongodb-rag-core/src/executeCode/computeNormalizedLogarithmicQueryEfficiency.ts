@@ -27,11 +27,11 @@ export function computeNormalizedLogarithmicQueryEfficiency({
 }: ComputeNormalizedLogarithmicQueryEfficiencyParams): number {
   assert(
     nReturned >= 0 && nExamined >= 0 && nTotal > 0,
-    "Document counts must be non-negative, and total must be > 0"
+    "Document counts must be non-negative, and total must be > 0",
   );
   assert(
     nExamined >= nReturned,
-    "Documents examined must be >= documents returned"
+    "Documents examined must be >= documents returned",
   );
 
   assert(nTotal >= nExamined, "Total documents must be >= documents examined");

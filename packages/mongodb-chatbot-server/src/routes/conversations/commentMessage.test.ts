@@ -68,7 +68,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
 
@@ -89,7 +89,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
     });
     const testEndpointUrlWithNoStore = endpointUrl.replace(
       ":messageId",
-      String(testMsgWithNoStore.id)
+      String(testMsgWithNoStore.id),
     );
 
     const response = await request(app)
@@ -111,7 +111,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe("");
   });
 
@@ -132,7 +132,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
     });
     const testEndpointUrlWithStore = endpointUrl.replace(
       ":messageId",
-      String(testMsgWithStore.id)
+      String(testMsgWithStore.id),
     );
 
     const response = await request(app)
@@ -154,7 +154,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
 
@@ -176,7 +176,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
       });
     const testEndpointUrlWithUndefinedStore = endpointUrl.replace(
       ":messageId",
-      String(testMsgWithUndefinedStore.id)
+      String(testMsgWithUndefinedStore.id),
     );
 
     const response = await request(app)
@@ -198,7 +198,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
 
@@ -224,12 +224,12 @@ describe("POST /conversations/messages/:messageId/comment", () => {
 
     const systemMessageCommentUrl = endpointUrl.replace(
       ":messageId",
-      String(systemMessage.id)
+      String(systemMessage.id),
     );
 
     const userMessageCommentUrl = endpointUrl.replace(
       ":messageId",
-      String(userMessage.id)
+      String(userMessage.id),
     );
 
     const systemMessageCommentRes = await request(app)
@@ -353,7 +353,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
   it("Should return 404 for conversation not in DB", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/comment`
+        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -367,7 +367,7 @@ describe("POST /conversations/messages/:messageId/comment", () => {
   it("Should return 404 for message not in conversation", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/comment`
+        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -409,12 +409,12 @@ describe("POST /conversations/messages/:messageId/comment", () => {
 
     const firstMessageCommentUrl = endpointUrl.replace(
       ":messageId",
-      String(firstMessage.id)
+      String(firstMessage.id),
     );
 
     const secondMessageCommentUrl = endpointUrl.replace(
       ":messageId",
-      String(secondMessage.id)
+      String(secondMessage.id),
     );
 
     const firstMessageRes = await request(app)
@@ -496,7 +496,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
   it('Should tombstone comment with empty string ("") if storeMessageContent is false', async () => {
@@ -537,7 +537,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe("");
   });
 
@@ -579,7 +579,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
 
@@ -602,7 +602,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
     const testEndpointUrlWithUndefinedStore = endpointUrl
       .replace(
         ":conversationId",
-        conversationWithUndefinedStore._id.toHexString()
+        conversationWithUndefinedStore._id.toHexString(),
       )
       .replace(":messageId", String(testMsgWithUndefinedStore.id));
 
@@ -625,7 +625,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).userComment
+      ).userComment,
     ).toBe(testComment);
   });
 
@@ -770,7 +770,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
   it("Should return 400 for invalid conversation ID", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/comment`
+        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -784,7 +784,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
   it("Should return 400 for invalid message ID", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/comment`
+        `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -800,7 +800,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${new ObjectId().toHexString()}/messages/${
           testMsg.id
-        }/comment`
+        }/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -816,7 +816,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment (depre
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${
           conversation._id
-        }/messages/${new ObjectId().toHexString()}/comment`
+        }/messages/${new ObjectId().toHexString()}/comment`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)

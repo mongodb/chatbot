@@ -25,9 +25,9 @@ export const GenerateWithToolsEvalCaseSchema = z.object({
           .record(z.string())
           .optional()
           .describe(
-            "Expected arguments passed to the tool to evaluate against"
+            "Expected arguments passed to the tool to evaluate against",
           ),
-      })
+      }),
     ),
   }),
   metadata: z
@@ -52,7 +52,7 @@ export const GenerateWithToolsEvalCaseSchema = z.object({
         "multi_url",
         "implied_url",
         "fallback_to_search",
-      ])
+      ]),
     )
     .optional()
     .describe("Braintrust tags"),
@@ -63,12 +63,12 @@ export type GenerateWithToolsEvalCase = z.infer<
 >;
 
 export function getGenerateWithToolsEvalCasesFromYamlFile(
-  filePath: string
+  filePath: string,
 ): GenerateWithToolsEvalCase[] {
   const yamlData = fs.readFileSync(filePath, "utf8");
   const yamlEvalCases = yaml.parse(yamlData) as unknown[];
   const evalCases = yamlEvalCases.map((tc) =>
-    GenerateWithToolsEvalCaseSchema.parse(tc)
+    GenerateWithToolsEvalCaseSchema.parse(tc),
   );
   return evalCases;
 }

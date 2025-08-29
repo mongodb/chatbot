@@ -114,7 +114,7 @@ describe("loadPagesDataset", () => {
     // page1 should be returned as it matches the sourceType, page 4 does not match
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
     expect(dataset.map((p) => p.url)).not.toContain(
-      "https://example.com/page4"
+      "https://example.com/page4",
     );
   });
 
@@ -126,7 +126,7 @@ describe("loadPagesDataset", () => {
     });
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
     expect(dataset.map((p) => p.url)).not.toContain(
-      "https://example.com/page2"
+      "https://example.com/page2",
     );
   });
 

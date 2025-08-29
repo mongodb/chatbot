@@ -30,8 +30,11 @@ export const createConversationsMiddlewareRes = () => {
 export function caseInsensitiveHeaders(headers: Record<string, string>) {
   // Express automatically converts all headers to lowercase but
   // node-mocks-http does not. This function is a workaround for that.
-  return Object.entries(headers).reduce((acc, [key, value]) => {
-    acc[key.toLowerCase()] = value;
-    return acc;
-  }, {} as Record<string, string>);
+  return Object.entries(headers).reduce(
+    (acc, [key, value]) => {
+      acc[key.toLowerCase()] = value;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 }

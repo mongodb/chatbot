@@ -13,11 +13,11 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const pathOut = path.resolve(
     basePath,
-    `docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-${Date.now()}.yaml`
+    `docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-${Date.now()}.yaml`,
   );
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-filtered-for-export-1716238251192.yaml"
+    "docs-chatbot.code-examples-with-prompts-filtered-for-export-1716238251192.yaml",
   );
 
   const classifyIsUsefulCodeBlockForTraining =
@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     });
 
   const codeExamples = yaml.parse(
-    fs.readFileSync(codeExamplesPath, "utf-8")
+    fs.readFileSync(codeExamplesPath, "utf-8"),
   ) as AugmentedAstExtractedCodeblockWithUtility[];
 
   const { results: codeExamplesWithUsefulness } =
@@ -54,12 +54,12 @@ async function main(): Promise<void> {
   console.log(
     `Num useful code examples: ${
       codeExamplesWithUsefulness.filter((ex) => ex.isUseful).length
-    }`
+    }`,
   );
   console.log(
     `Num NOT useful code examples: ${
       codeExamplesWithUsefulness.filter((ex) => !ex.isUseful).length
-    }`
+    }`,
   );
 }
 main();

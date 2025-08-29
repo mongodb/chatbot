@@ -13,9 +13,9 @@ describe("withConfig", () => {
           "..",
           "testData",
           "config",
-          "configTest.cjs"
+          "configTest.cjs",
         ),
-      }
+      },
     );
   });
 });

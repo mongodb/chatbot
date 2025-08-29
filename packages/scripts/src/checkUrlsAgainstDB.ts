@@ -48,7 +48,7 @@ async function getFinalUrl(url: string): Promise<string> {
 }
 
 const getUrlRedirects = async (
-  urls: string[]
+  urls: string[],
 ): Promise<{ noRedirect: Set<string>; redirectTo: Set<string> }> => {
   const redirectTo = new Set<string>();
   const noRedirect = new Set<string>();
@@ -97,7 +97,7 @@ async function main({ urlListFilePath }: { urlListFilePath: string }) {
   await fs.writeFileSync(
     outputPath,
     JSON.stringify(Array.from(urlsToIngest)),
-    "utf-8"
+    "utf-8",
   );
   pageStore.close();
   console.log("Done");
@@ -113,7 +113,7 @@ if (require.main === module) {
         "Arguments:\n" +
         "  urlListFilePath: Input json file path (required)\n" +
         "\nReceived args:",
-      args
+      args,
     );
     process.exit(1);
   }

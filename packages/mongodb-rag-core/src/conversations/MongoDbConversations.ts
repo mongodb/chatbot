@@ -17,7 +17,7 @@ import {
  */
 export function makeMongoDbConversationsService(
   database: Db,
-  conversationConstants: ConversationConstants = defaultConversationConstants
+  conversationConstants: ConversationConstants = defaultConversationConstants,
 ): ConversationsService {
   const conversationsCollection =
     database.collection<Conversation>("conversations");
@@ -54,9 +54,8 @@ export function makeMongoDbConversationsService(
         newConversation.creationInterface = params.creationInterface;
       }
 
-      const insertResult = await conversationsCollection.insertOne(
-        newConversation
-      );
+      const insertResult =
+        await conversationsCollection.insertOne(newConversation);
 
       if (
         !insertResult.acknowledged ||
@@ -78,7 +77,7 @@ export function makeMongoDbConversationsService(
           $push: {
             messages: newMessage,
           },
-        }
+        },
       );
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
         throw new Error("Failed to insert message");
@@ -99,7 +98,7 @@ export function makeMongoDbConversationsService(
               $each: newMessages,
             },
           },
-        }
+        },
       );
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
         throw new Error("Failed to insert message");
@@ -133,7 +132,7 @@ export function makeMongoDbConversationsService(
           arrayFilters: [
             { "message.id": messageId, "message.role": "assistant" },
           ],
-        }
+        },
       );
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
         throw new Error("Failed to rate message");
@@ -159,7 +158,7 @@ export function makeMongoDbConversationsService(
         },
         {
           arrayFilters: [{ "message.id": messageId }],
-        }
+        },
       );
 
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
@@ -189,7 +188,7 @@ export function createMessage(messageParams: AddSomeMessageParams) {
   Create a {@link Message} object from the {@link OpenAiChatMessage} object.
  */
 export function createMessageFromOpenAIChatMessage(
-  chatMessage: AddSomeMessageParams
+  chatMessage: AddSomeMessageParams,
 ): Message {
   const dbMessageBase = {
     id: new ObjectId(),

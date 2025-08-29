@@ -87,10 +87,10 @@ export type MongoDbProgrammingLanguageId =
   (typeof mongoDbProgrammingLanguages)[number]["id"];
 export type MongoDbProgrammingLanguageIdEnum = [
   MongoDbProgrammingLanguageId,
-  ...MongoDbProgrammingLanguageId[]
+  ...MongoDbProgrammingLanguageId[],
 ];
 export const mongoDbProgrammingLanguageIds = mongoDbProgrammingLanguages.map(
-  (language) => language.id
+  (language) => language.id,
 ) as MongoDbProgrammingLanguageIdEnum;
 
 export const MongoDBProgrammingLanguageSchema = z.object({

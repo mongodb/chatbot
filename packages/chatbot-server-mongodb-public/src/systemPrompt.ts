@@ -16,7 +16,7 @@ import { OpenAI } from "mongodb-rag-core/openai";
 
 export type MakeSystemPrompt = (
   customSystemPrompt?: string,
-  customToolDefinitions?: OpenAI.FunctionDefinition[]
+  customToolDefinitions?: OpenAI.FunctionDefinition[],
 ) => SystemMessage;
 
 export const llmDoesNotKnowMessage =
@@ -111,7 +111,7 @@ ${mongoDbProducts
     (product) =>
       `* ${product.id}: ${product.name}. ${
         ("description" in product ? product.description : null) ?? ""
-      }`
+      }`,
   )
   .join("\n")}
 
@@ -159,7 +159,7 @@ ${makeMarkdownUnorderedList(toolUseDisclaimers)}
 
 export const makeMongoDbAssistantSystemPrompt: MakeSystemPrompt = (
   customSystemPrompt,
-  customToolDefinitions
+  customToolDefinitions,
 ) => {
   let systemPromptContent = "";
   if (!customSystemPrompt && !customToolDefinitions) {

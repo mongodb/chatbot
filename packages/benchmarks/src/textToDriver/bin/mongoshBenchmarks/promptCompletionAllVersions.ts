@@ -31,53 +31,56 @@ async function main() {
   // 5. annotated schema + chain of thought system prompt
   // 6. annotated schema + lazy system prompt
   // 7. no schema + lazy system prompt
-  const experiments = MODELS.reduce((acc, model) => {
-    acc[model.label] = [
-      {
-        schemaStrategy: "interpreted",
-        systemPromptStrategy: "default",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "interpreted",
-        systemPromptStrategy: "chainOfThought",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "interpreted",
-        systemPromptStrategy: "lazy",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "default",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "chainOfThought",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "lazy",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "none",
-        systemPromptStrategy: "lazy",
-        type: experimentType,
-        model,
-      },
-    ];
-    return acc;
-  }, {} as Record<(typeof MODELS)[number]["label"], Experiment[]>);
+  const experiments = MODELS.reduce(
+    (acc, model) => {
+      acc[model.label] = [
+        {
+          schemaStrategy: "interpreted",
+          systemPromptStrategy: "default",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "interpreted",
+          systemPromptStrategy: "chainOfThought",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "interpreted",
+          systemPromptStrategy: "lazy",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "default",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "chainOfThought",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "lazy",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "none",
+          systemPromptStrategy: "lazy",
+          type: experimentType,
+          model,
+        },
+      ];
+      return acc;
+    },
+    {} as Record<(typeof MODELS)[number]["label"], Experiment[]>,
+  );
 
   await PromisePool.for(Object.values(experiments))
     .withConcurrency(MAX_CONCURRENT_MODELS)

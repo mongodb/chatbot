@@ -71,15 +71,15 @@ export async function runTextToNodeJsDriverEval({
       try {
         await sleep(sleepBeforeMs);
         const metadata = dbMetadatas.find(
-          (metadata) => metadata.databaseName === input.databaseName
+          (metadata) => metadata.databaseName === input.databaseName,
         );
         assert(
           metadata,
-          `DB Metadata not found for database ${input.databaseName}`
+          `DB Metadata not found for database ${input.databaseName}`,
         );
         assert(
           metadata.collections.length,
-          `No collections for database ${metadata.databaseName}`
+          `No collections for database ${metadata.databaseName}`,
         );
 
         const generateCode = await traced(
@@ -100,7 +100,7 @@ export async function runTextToNodeJsDriverEval({
             }),
           {
             name: "makeGenerateDriverCode",
-          }
+          },
         );
 
         const output = await traced(
@@ -112,7 +112,7 @@ export async function runTextToNodeJsDriverEval({
             }),
           {
             name: "generateDriverCode",
-          }
+          },
         );
 
         const execution = await traced(
@@ -124,7 +124,7 @@ export async function runTextToNodeJsDriverEval({
             }),
           {
             name: "executeGeneratedDriverCode",
-          }
+          },
         );
 
         return {

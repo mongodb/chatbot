@@ -117,10 +117,10 @@ async function main({
     transformationType
       ? (cases) =>
           transformationMap[transformationType](cases, transformationOptions)
-      : undefined
+      : undefined,
   );
   const expectedUrls = Array.from(
-    new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
+    new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? [])),
   );
   const urlsNotIngested = await pageStore.getMissingPagesByUrl({
     expectedUrls,
@@ -132,12 +132,12 @@ async function main({
         expectedUrls.length
       } URLs are expected to be referenced by the chatbot, but have not been ingested:\n${urlsNotIngested
         .map((url) => `  - ${url}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
   const yamlFilePath = path.join(
     SRC_ROOT,
-    `../../evalCases/${yamlFileName}.yml`
+    `../../evalCases/${yamlFileName}.yml`,
   );
   console.log(`Writing to: ${yamlFilePath}`);
   const yamlContent = yaml.stringify(evalCases);
@@ -166,10 +166,10 @@ if (require.main === module) {
         "  csvFileName: Input CSV file name (required)\n" +
         "  yamlFileName: Output YAML file name (required)\n" +
         `  transformationType: Type of transformßation to apply (optional, one of: ${availableTransformationTypes.join(
-          ", "
+          ", ",
         )})\n` +
         "\nReceived args:",
-      args
+      args,
     );
     process.exit(1);
   }

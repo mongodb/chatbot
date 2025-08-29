@@ -60,7 +60,7 @@ describe("allCommand", () => {
     },
   ];
   const mockDataSourceNames = mockDataSources.map(
-    (dataSource) => dataSource.name
+    (dataSource) => dataSource.name,
   );
   beforeAll(async () => {
     databaseName = "test-all-command";
@@ -128,7 +128,7 @@ describe("allCommand", () => {
         async doUpdatePagesCommand() {
           return;
         },
-      }
+      },
     );
     lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
     expect(lastSuccessfulRunDate?.getTime()).toBeGreaterThan(Date.now() - 5000);
@@ -153,7 +153,7 @@ describe("allCommand", () => {
             // Sudden failure!
             throw new Error("Fail!");
           },
-        }
+        },
       );
     } catch (e: unknown) {
       expect((e as { message: string }).message).toBe("Fail!");
@@ -167,7 +167,7 @@ describe("allCommand", () => {
     // run the all command with only one data source and verify that the page and embedding from the other data source are deleted
     const remainingDataSources = mockDataSources.slice(0, 1);
     const remainingDataSourcesNames = remainingDataSources.map(
-      (dataSource) => dataSource.name
+      (dataSource) => dataSource.name,
     );
     await doAllCommand(
       {
@@ -187,10 +187,10 @@ describe("allCommand", () => {
               embeddedContentStore: embedStore,
               embedder,
             },
-            { source: remainingDataSourcesNames }
+            { source: remainingDataSourcesNames },
           );
         },
-      }
+      },
     );
 
     const [page1, page2] = await pageStore.loadPages();

@@ -155,7 +155,7 @@ describe("materializeExperimentResultsByCase", () => {
     it("should group results by case id", () => {
       const results = materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        "prompt_response"
+        "prompt_response",
       );
 
       // Should return the correct number of cases
@@ -183,7 +183,7 @@ describe("materializeExperimentResultsByCase", () => {
     it("should correctly map experiment outputs to case results", () => {
       const results = materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        "prompt_response"
+        "prompt_response",
       );
 
       // Find the cases by id
@@ -200,7 +200,7 @@ describe("materializeExperimentResultsByCase", () => {
       // Verify experiment2 results for case1
       expect(case1!.results.experiment2.model).toBe("experiment2");
       expect(case1!.results.experiment2.response).toBe(
-        "different output for experiment 2"
+        "different output for experiment 2",
       );
       expect(case1!.results.experiment2.metrics).toEqual({
         accuracy: 0.75,
@@ -211,7 +211,7 @@ describe("materializeExperimentResultsByCase", () => {
     it("should correctly handle scores", () => {
       const results = materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        "prompt_response"
+        "prompt_response",
       );
 
       // Find the cases by id
@@ -234,15 +234,15 @@ describe("materializeExperimentResultsByCase", () => {
     expect(() =>
       materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        fakeExperimentType as ExperimentType
-      )
+        fakeExperimentType as ExperimentType,
+      ),
     ).toThrow(`Unsupported experiment type: ${fakeExperimentType}`);
     const naturalLanguageToCodeType = "natural_language_to_code";
     expect(() =>
       materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        naturalLanguageToCodeType
-      )
+        naturalLanguageToCodeType,
+      ),
     ).toThrow(`Unsupported experiment type: ${naturalLanguageToCodeType}`);
   });
 });

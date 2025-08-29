@@ -8,12 +8,12 @@ export const Question = z.object({
   embedding_model: z
     .string()
     .describe(
-      "The name of the embedding model used to generate the embedding."
+      "The name of the embedding model used to generate the embedding.",
     ),
   embedding_model_version: z
     .string()
     .describe(
-      "The version of the embedding model used to generate the embedding."
+      "The version of the embedding model used to generate the embedding.",
     ),
   text: z.string().describe("The text of the question."),
 });
@@ -26,7 +26,7 @@ export const VerifiedAnswer = z.object({
   answer: z
     .string()
     .describe(
-      "The text of the verified answer. This is returned verbatim to the user as the response to their question."
+      "The text of the verified answer. This is returned verbatim to the user as the response to their question.",
     ),
   author_email: z
     .string()
@@ -36,7 +36,7 @@ export const VerifiedAnswer = z.object({
   references: z
     .array(Reference)
     .describe(
-      "Reference links with additional information related to the answer."
+      "Reference links with additional information related to the answer.",
     ),
   created: z.date().describe("The date and time the answer was created."),
   updated: z

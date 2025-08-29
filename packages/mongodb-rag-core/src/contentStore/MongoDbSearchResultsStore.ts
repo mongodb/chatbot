@@ -101,7 +101,7 @@ export function makeMongoDbSearchResultsStore({
       }
       if (!insertResult.insertedId) {
         throw new Error(
-          "No insertedId returned from MongoDbSearchResultsStore.saveSearchResult insertOne"
+          "No insertedId returned from MongoDbSearchResultsStore.saveSearchResult insertOne",
         );
       }
     },

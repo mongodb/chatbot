@@ -64,7 +64,7 @@ export type ScrubbedMessageByRating = {
             },
           },
         ],
-      }
+      },
     );
   } finally {
     await client.close();

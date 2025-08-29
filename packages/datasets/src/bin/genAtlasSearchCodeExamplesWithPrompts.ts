@@ -14,15 +14,15 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-headings.json"
+    "docs-chatbot.code-examples-with-headings.json",
   );
   const pagesPath = path.resolve(
     basePath,
-    "docs-chatbot-2024-17-04.pages.json"
+    "docs-chatbot-2024-17-04.pages.json",
   );
   const codeExamples = (
     JSON.parse(
-      fs.readFileSync(codeExamplesPath, "utf-8")
+      fs.readFileSync(codeExamplesPath, "utf-8"),
     ) as AstExtractedCodeblock[]
   ).filter((example) => {
     return (
@@ -33,12 +33,12 @@ async function main(): Promise<void> {
     );
   });
   const pages = JSON.parse(
-    fs.readFileSync(pagesPath, "utf-8")
+    fs.readFileSync(pagesPath, "utf-8"),
   ) as PersistedPage[];
   const BATCH_SIZE = 5;
   const pathOut = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-atlas-search.yaml"
+    "docs-chatbot.code-examples-with-prompts-atlas-search.yaml",
   );
   for (let i = 0; i < codeExamples.length; i += BATCH_SIZE) {
     const codeBlocksWithPrompts = await appendLlmMetadata({
@@ -51,7 +51,7 @@ async function main(): Promise<void> {
     console.log(
       `Appending codeblocks ${i} to ${i + BATCH_SIZE - 1} of ${
         codeExamples.length
-      } to file: ${pathOut}`
+      } to file: ${pathOut}`,
     );
     fs.appendFileSync(pathOut, yaml.stringify(codeBlocksWithPrompts));
   }

@@ -9,12 +9,12 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-1723650460861.yaml"
+    "docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-1723650460861.yaml",
   );
   console.log(`Processing examples from ${codeExamplesPath}`);
 
   const filteredCodeExamples = yaml.parse(
-    fs.readFileSync(codeExamplesPath, "utf-8")
+    fs.readFileSync(codeExamplesPath, "utf-8"),
   ) as AugmentedAstExtractedCodeblockWithUtility[];
 
   const MIN_LEN = 150;
@@ -23,7 +23,7 @@ async function main(): Promise<void> {
       (example) =>
         example.isUseful &&
         example.code.length >= MIN_LEN &&
-        example.metadata.sourceName !== "devcenter"
+        example.metadata.sourceName !== "devcenter",
     )
     .map((example) => {
       return {
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
     });
   console.log(
     `Num useful examples with length >= ${MIN_LEN}:`,
-    flatMapCodeExamples.length
+    flatMapCodeExamples.length,
   );
 
   stringify(flatMapCodeExamples, { header: true }, (err, output) => {
@@ -54,7 +54,7 @@ async function main(): Promise<void> {
 
     const pathOut = path.resolve(
       basePath,
-      `docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-${Date.now()}.csv`
+      `docs-chatbot.code-examples-with-prompts-with-utility-filtered-for-export-${Date.now()}.csv`,
     );
 
     fs.appendFileSync(pathOut, output);

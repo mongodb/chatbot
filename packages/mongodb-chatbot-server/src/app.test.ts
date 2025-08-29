@@ -72,7 +72,7 @@ describe("App", () => {
         .set("X-FORWARDED-FOR", ipAddress);
 
       expect(res.header["access-control-allow-origin"]).toBe(
-        "http://example.com"
+        "http://example.com",
       );
       expect(res.status).toBe(200);
     });

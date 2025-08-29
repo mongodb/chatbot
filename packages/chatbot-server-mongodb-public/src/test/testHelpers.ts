@@ -56,7 +56,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   const ipAddress = "127.0.0.1";
 
   const { appConfig, systemPrompt, mongodb, conversations } = makeTestAppConfig(
-    defaultConfigOverrides
+    defaultConfigOverrides,
   );
   const app = await makeApp(appConfig);
 

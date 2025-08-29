@@ -37,7 +37,6 @@ describe("makeListDataSourcesRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
 
     const data = res._getJSONData();
@@ -58,7 +57,6 @@ describe("makeListDataSourcesRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(handler(req, res as any)).rejects.toMatchObject({
       message: ERROR_MESSAGES.UNABLE_TO_LIST_DATA_SOURCES,
       httpStatus: 500,
@@ -75,7 +73,6 @@ describe("makeListDataSourcesRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
 
     const data = res._getJSONData();

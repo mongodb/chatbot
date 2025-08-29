@@ -244,7 +244,7 @@ export function makeConversationsRouter({
     makeCreateConversationRoute({
       conversations,
       createConversationCustomData,
-    })
+    }),
   );
 
   /*
@@ -252,7 +252,7 @@ export function makeConversationsRouter({
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
    */
   const addMessageRateLimit = makeRateLimit(
-    rateLimitConfig?.addMessageRateLimitConfig
+    rateLimitConfig?.addMessageRateLimitConfig,
   );
   /*
     Slow down the response to the addMessageToConversationRoute after certain number
@@ -289,14 +289,14 @@ export function makeConversationsRouter({
     addMessageRateLimit,
     addMessageSlowDown,
     validateRequestSchema(AddMessageRequest),
-    addMessageToConversationRoute
+    addMessageToConversationRoute,
   );
 
   // Get conversations by conversation ID.
   conversationsRouter.get(
     "/:conversationId",
     validateRequestSchema(GetConversationRequest),
-    makeGetConversationRoute({ conversations })
+    makeGetConversationRoute({ conversations }),
   );
 
   // Rate a message.
@@ -307,7 +307,7 @@ export function makeConversationsRouter({
       conversations,
       updateTrace: rateMessageUpdateTrace,
       braintrustLogger,
-    })
+    }),
   );
 
   // Rate a message. Old deprecated endpoint.
@@ -318,7 +318,7 @@ export function makeConversationsRouter({
       conversations,
       updateTrace: rateMessageUpdateTrace,
       braintrustLogger,
-    })
+    }),
   );
 
   // Comment on a message.
@@ -330,7 +330,7 @@ export function makeConversationsRouter({
       maxCommentLength: maxUserCommentLength,
       updateTrace: commentMessageUpdateTrace,
       braintrustLogger,
-    })
+    }),
   );
 
   // Comment on a message. Old deprecated endpoint.
@@ -342,7 +342,7 @@ export function makeConversationsRouter({
       maxCommentLength: maxUserCommentLength,
       updateTrace: commentMessageUpdateTrace,
       braintrustLogger,
-    })
+    }),
   );
 
   return conversationsRouter;

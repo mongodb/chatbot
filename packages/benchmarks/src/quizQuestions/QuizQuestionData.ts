@@ -21,7 +21,7 @@ export const QuizQuestionDataSchema = z.object({
       answer: z.string(),
       isCorrect: z.boolean(),
       label: z.string(),
-    })
+    }),
   ),
   explanation: z
     .string()

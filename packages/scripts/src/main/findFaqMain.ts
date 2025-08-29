@@ -34,7 +34,7 @@ async function main() {
 
   if (Number.isNaN(epsilon) || epsilon <= 0) {
     throw new Error(
-      `Failed to parse epsilon value: ${args[1]}. Epsilon must be a floating point value > 0.`
+      `Failed to parse epsilon value: ${args[1]}. Epsilon must be a floating point value > 0.`,
     );
   }
 

@@ -7,7 +7,7 @@ import { LlmOptions } from "mongodb-rag-core/executeCode";
 export const MAX_CONCURRENT_EXPERIMENTS = 5;
 
 export function makeLlmOptions(
-  model: ModelConfig
+  model: ModelConfig,
 ): Omit<LlmOptions, "openAiClient"> {
   // Different because OpenAI reasoning models have slightly different options
   if (

@@ -35,7 +35,7 @@ export function makeRateMessageUpdateTrace({
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId),
-      conversation._id
+      conversation._id,
     );
 
     const userMessage = tracingData.userMessage;
@@ -90,7 +90,7 @@ export function makeRateMessageUpdateTrace({
               userMessage,
               assistantMessage,
               rating,
-            })}`
+            })}`,
           );
         }
       }

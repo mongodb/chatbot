@@ -10,7 +10,7 @@ import { DatabaseExecutionResult } from "../DatabaseExecutionResult";
   This function builds on {@link getSimplifiedSchema}, but simplifies the types further.
  */
 export async function getVerySimplifiedSchema(
-  result: unknown
+  result: unknown,
 ): Promise<Record<string, unknown> | string> {
   if (typeof result === "number") return { type: "Number" };
   else if (typeof result === "boolean") return { type: "Boolean" };
@@ -38,7 +38,7 @@ export async function getVerySimplifiedSchema(
 }
 
 async function furtherSimplifySchema(
-  elem: unknown
+  elem: unknown,
 ): Promise<Record<string, unknown>> {
   const schema = await getSimplifiedSchema(Array.isArray(elem) ? elem : [elem]);
   const result = furtherSimplySchemaRecursiveHelper(schema);
@@ -46,7 +46,7 @@ async function furtherSimplifySchema(
 }
 
 function furtherSimplySchemaRecursiveHelper(
-  schema: SimplifiedSchema | SimplifiedSchemaField
+  schema: SimplifiedSchema | SimplifiedSchemaField,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
@@ -80,7 +80,7 @@ function furtherSimplySchemaRecursiveHelper(
           result[key] = {
             type: "Document",
             properties: furtherSimplySchemaRecursiveHelper(
-              value.types[0].fields
+              value.types[0].fields,
             ),
           };
         } else {
@@ -101,7 +101,7 @@ function furtherSimplySchemaRecursiveHelper(
               items: {
                 type: "Document",
                 properties: furtherSimplySchemaRecursiveHelper(
-                  value.types[0].types[0].fields
+                  value.types[0].types[0].fields,
                 ),
               },
             };

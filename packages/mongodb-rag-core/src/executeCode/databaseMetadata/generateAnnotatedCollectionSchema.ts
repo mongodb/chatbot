@@ -23,7 +23,7 @@ const functionDescription =
   "Generate annotated schema and index definitions for the specified collection.";
 
 function makeDetailedCollectionDescriptionSchema(
-  collectionInfo: CollectionInfo
+  collectionInfo: CollectionInfo,
 ) {
   const indexNames = collectionInfo.indexes
     .map((metadata) => metadata.name)
@@ -35,7 +35,7 @@ function makeDetailedCollectionDescriptionSchema(
       z.object({
         name: z.enum(indexNames as [string, ...string[]]),
         description: z.string(),
-      })
+      }),
     )
     .optional();
 
@@ -43,7 +43,7 @@ function makeDetailedCollectionDescriptionSchema(
     typeScriptSchema: z
       .string()
       .describe(
-        "Annotated TypeScript schema for the collection. Annotate with TypeDoc comments."
+        "Annotated TypeScript schema for the collection. Annotate with TypeDoc comments.",
       ),
     indexDescriptions: indexDescriptionSchema,
     searchIndexes: z.array(z.string()).optional(),
@@ -102,5 +102,5 @@ Again, analyze the collection named '${collectionMetadata.collectionName}'.`,
     },
     {
       name: "generateAnnotatedCollectionSchema",
-    }
+    },
   );

@@ -94,12 +94,12 @@ async function generateMongoshDataset({
   }
   const referenceAnswersOutputPath = path.resolve(
     datasetOutDir,
-    `referenceAnswers.dataset_${datasetUuid}.jsonl`
+    `referenceAnswers.dataset_${datasetUuid}.jsonl`,
   );
   // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
     datasetOutDir,
-    `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
+    `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`,
   );
   const executeMongoshQuery = makeExecuteMongoshQuery({
     uri: dataset.connectionUri,
@@ -107,7 +107,7 @@ async function generateMongoshDataset({
   });
 
   console.log(
-    `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
+    `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`,
   );
 
   const nodeStore = makeMongoDbNodeStore(persistence);
@@ -126,7 +126,7 @@ async function generateMongoshDataset({
   const userNodes = await generateDatabaseUsers(
     databaseInfoNode,
     llmConfigs.users.llmConfig,
-    llmConfigs.users.numGenerations
+    llmConfigs.users.numGenerations,
   );
   await nodeStore.storeNodes({ nodes: userNodes });
 
@@ -140,11 +140,11 @@ async function generateMongoshDataset({
       const useCases = await generateDatabaseUseCases(
         userNode,
         llmConfigs.useCases.llmConfig,
-        llmConfigs.useCases.numGenerations
+        llmConfigs.useCases.numGenerations,
       );
       await nodeStore.storeNodes({ nodes: useCases });
       console.log(
-        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
+        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`,
       );
       return useCases;
     });
@@ -156,7 +156,7 @@ async function generateMongoshDataset({
 
   // Process use cases in parallel with limited concurrency
   const { results: nlQueryNodesByUseCase } = await PromisePool.withConcurrency(
-    llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY
+    llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY,
   )
     .for(useCaseNodes)
     .handleError((err) => {
@@ -166,13 +166,13 @@ async function generateMongoshDataset({
       const nlQueries = await generateNaturalLanguageQueries(
         useCaseNode,
         llmConfigs.nlQueries.llmConfig,
-        llmConfigs.nlQueries.numGenerations
+        llmConfigs.nlQueries.numGenerations,
       );
       await nodeStore.storeNodes({
         nodes: nlQueries,
       });
       console.log(
-        `Generated ${nlQueries.length} NL queries for use case: ${useCaseNode.data.title}`
+        `Generated ${nlQueries.length} NL queries for use case: ${useCaseNode.data.title}`,
       );
 
       return nlQueries;
@@ -187,19 +187,19 @@ async function generateMongoshDataset({
       const dbCodeNodes = await generateMongoshCode(
         nlQueryNode,
         llmConfigs.dbQueries.llmConfig,
-        llmConfigs.dbQueries.numGenerations
+        llmConfigs.dbQueries.numGenerations,
       );
       await nodeStore.storeNodes({ nodes: dbCodeNodes });
 
       console.log(
-        `Generated ${dbCodeNodes.length} DB queries for NL query: ${nlQueryNode.data.query}`
+        `Generated ${dbCodeNodes.length} DB queries for NL query: ${nlQueryNode.data.query}`,
       );
       return dbCodeNodes;
     });
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
       .withConcurrency(
-        llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY
+        llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY,
       )
       .process(async (dbCodeNode) => {
         const dbExecution = await generateDatabaseExecutionResult({
@@ -219,7 +219,7 @@ async function generateMongoshDataset({
         console.log(
           `Generated DB execution: ${dbExecution.data.result
             ?.toString()
-            .slice(0, 20)} ...`
+            .slice(0, 20)} ...`,
         );
         const { success, reason } = isReasonableResult(dbExecution.data.result);
         if (!success) {
@@ -233,7 +233,7 @@ async function generateMongoshDataset({
       // Find the most frequent and performant database execution result
       const { fastestMostFrequentIndex } =
         findMostFrequentAndPerformantDatabaseExecutionResult(
-          dbExecutions.map((node) => node.data)
+          dbExecutions.map((node) => node.data),
         );
       if (
         fastestMostFrequentIndex !== null &&
@@ -255,12 +255,12 @@ async function generateMongoshDataset({
           generateDatabaseNlQueryDatasetEntry(dbExecution);
         fs.appendFileSync(
           textToMqlOutputPath,
-          JSON.stringify(textToMqlDatasetEntry) + "\n"
+          JSON.stringify(textToMqlDatasetEntry) + "\n",
         );
         if (dbExecution.data.isReferenceAnswer) {
           fs.appendFileSync(
             referenceAnswersOutputPath,
-            JSON.stringify(textToMqlDatasetEntry) + "\n"
+            JSON.stringify(textToMqlDatasetEntry) + "\n",
           );
         }
       }
@@ -269,7 +269,7 @@ async function generateMongoshDataset({
     }
 
     console.log(
-      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
+      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`,
     );
   }
 }

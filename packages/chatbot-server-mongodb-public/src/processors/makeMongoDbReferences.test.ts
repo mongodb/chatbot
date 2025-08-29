@@ -185,21 +185,21 @@ describe("mongodbReferenceType", () => {
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "c" },
-      })
+      }),
     ).toBe("Docs");
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Aggregate Is The New Find",
         metadata: { sourceName: "practical-aggregations-book" },
-      })
+      }),
     ).toBe("Book");
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "snooty-docs" },
-      })
+      }),
     ).toBe("Docs");
     expect(
       mongodbReferenceType({
@@ -208,7 +208,7 @@ describe("mongodbReferenceType", () => {
         metadata: {
           sourceName: "mongodb-university",
         },
-      })
+      }),
     ).toBe("Learn");
   });
 
@@ -218,14 +218,14 @@ describe("mongodbReferenceType", () => {
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["docs"] },
-      })
+      }),
     ).toBe("Docs");
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["video"] },
-      })
+      }),
     ).toBe("Video");
   });
 
@@ -234,13 +234,13 @@ describe("mongodbReferenceType", () => {
       mongodbReferenceType({
         url: "https://www.mongodb.com/docs/foo/bar",
         title: "Some Page Title",
-      })
+      }),
     ).toBe("Docs");
     expect(
       mongodbReferenceType({
         url: "https://learn.mongodb.com/catalog",
         title: "Some Page Title",
-      })
+      }),
     ).toBe("Learn");
   });
 
@@ -250,27 +250,27 @@ describe("mongodbReferenceType", () => {
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "unknown" },
-      })
+      }),
     ).toBe(undefined);
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["unknown"] },
-      })
+      }),
     ).toBe(undefined);
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: {},
-      })
+      }),
     ).toBe(undefined);
     expect(
       mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
-      })
+      }),
     ).toBe(undefined);
   });
 

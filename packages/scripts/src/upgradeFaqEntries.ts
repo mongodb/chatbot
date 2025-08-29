@@ -59,7 +59,7 @@ export type CountUserMessagesFunc = (args: {
 }) => Promise<number>;
 
 export type FindQuestionsFromFaqDateFunc = (
-  date: Date
+  date: Date,
 ) => Promise<{ createdAt: Date }[]>;
 
 const deletedProps: Exclude<keyof FaqEntryV0, keyof FaqEntry>[] = [
@@ -85,7 +85,7 @@ export const upgradeFaqEntry = async ({
 
   const { questions, faqScore, _id: entryId, created: entryCreated } = entry;
   const [question, ...sampleOriginals] = randomlySampleQuestions(
-    questions.map(({ content }) => content)
+    questions.map(({ content }) => content),
   );
 
   const snapshotTotal = await findSnapshotTotal({
@@ -137,7 +137,7 @@ export const findSnapshotTotal = async ({
           curTime > maxTime ? createdAt : acc[1],
         ];
       },
-      [questions[0].createdAt, questions[0].createdAt]
+      [questions[0].createdAt, questions[0].createdAt],
     );
 
     // Need to count total user messages from snapshot, because 'questions' only
@@ -150,7 +150,7 @@ export const findSnapshotTotal = async ({
     return snapshotTotal;
   } catch (error) {
     console.error(
-      `Failed to reconstruct counts for ${entryId}: ${(error as Error).message}`
+      `Failed to reconstruct counts for ${entryId}: ${(error as Error).message}`,
     );
     return -1;
   }

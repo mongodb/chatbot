@@ -15,7 +15,7 @@ export function recallAtK<T extends Primitive>(
   relevantItems: T[],
   retrievedItems: T[],
   matchFunc: MatchFunc<T>,
-  k: number
+  k: number,
 ): number {
   assertKIsValid(k);
 
@@ -31,7 +31,8 @@ export function recallAtK<T extends Primitive>(
   topKRetrieved.forEach((item) => {
     const match = relevantItems.find(
       (relevantItem) =>
-        matchFunc(relevantItem, item) && !matchedRelevantItems.has(relevantItem)
+        matchFunc(relevantItem, item) &&
+        !matchedRelevantItems.has(relevantItem),
     );
     if (match) {
       matchedRelevantItems.add(match); // Add only the first match

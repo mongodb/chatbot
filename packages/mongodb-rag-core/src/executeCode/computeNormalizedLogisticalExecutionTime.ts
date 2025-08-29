@@ -14,11 +14,11 @@ import { strict as assert } from "assert";
 export function computeNormalizedLogisticalExecutionTime(
   generatedTimeMs: number,
   referenceTimeMs: number,
-  alpha = 1
+  alpha = 1,
 ): number {
   assert(
     generatedTimeMs > 0 && referenceTimeMs > 0,
-    "Execution times must be greater than 0"
+    "Execution times must be greater than 0",
   );
 
   const ratio = generatedTimeMs / referenceTimeMs;

@@ -89,7 +89,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
   const createBaseRequestParams = (
     text: string,
     shouldStream = false,
-    dataStreamer?: DataStreamer
+    dataStreamer?: DataStreamer,
   ) => ({
     reqId: "",
     latestMessageText: text,
@@ -114,7 +114,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
 
   it("uses onNoVerifiedAnswerFound if no verified answer is found", async () => {
     const answer = await generateResponse(
-      createBaseRequestParams("not verified")
+      createBaseRequestParams("not verified"),
     );
 
     expect(answer.messages).toMatchObject(noVerifiedAnswerFoundMessages);
@@ -122,7 +122,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
 
   it("uses verified answer if available", async () => {
     const answer = await generateResponse(
-      createBaseRequestParams(MAGIC_VERIFIABLE)
+      createBaseRequestParams(MAGIC_VERIFIABLE),
     );
 
     expect(answer.messages).toHaveLength(2);
@@ -134,7 +134,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       ...createBaseRequestParams(
         MAGIC_VERIFIABLE,
         true,
-        createMockDataStreamer()
+        createMockDataStreamer(),
       ),
       customSystemPrompt: "Custom system prompt",
     });
@@ -147,7 +147,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       ...createBaseRequestParams(
         MAGIC_VERIFIABLE,
         true,
-        createMockDataStreamer()
+        createMockDataStreamer(),
       ),
       toolDefinitions: [
         { name: "tool", description: "description", parameters: {} },
@@ -162,7 +162,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       ...createBaseRequestParams(
         MAGIC_VERIFIABLE,
         true,
-        createMockDataStreamer()
+        createMockDataStreamer(),
       ),
       toolChoice: "auto",
     });
@@ -175,7 +175,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       const mockDataStreamer = createMockDataStreamer();
 
       await generateResponse(
-        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer)
+        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer),
       );
 
       expect(mockDataStreamer.streamData).toHaveBeenCalledTimes(3);
@@ -225,7 +225,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
         });
 
       await generateResponseWithActualStream(
-        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer)
+        createBaseRequestParams(MAGIC_VERIFIABLE, true, mockDataStreamer),
       );
 
       // Check that streamResponses was called for text delta first
@@ -285,7 +285,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       const mockDataStreamer = createMockDataStreamer();
 
       await generateResponse(
-        createBaseRequestParams(MAGIC_VERIFIABLE, false, mockDataStreamer)
+        createBaseRequestParams(MAGIC_VERIFIABLE, false, mockDataStreamer),
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();
@@ -294,7 +294,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
 
     it("throws an error when shouldStream is true but dataStreamer is missing", async () => {
       await expect(
-        generateResponse(createBaseRequestParams(MAGIC_VERIFIABLE, true))
+        generateResponse(createBaseRequestParams(MAGIC_VERIFIABLE, true)),
       ).rejects.toThrow("Must have dataStreamer if shouldStream=true");
     });
 
@@ -302,7 +302,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
       const mockDataStreamer = createMockDataStreamer();
 
       await generateResponse(
-        createBaseRequestParams("not verified", true, mockDataStreamer)
+        createBaseRequestParams("not verified", true, mockDataStreamer),
       );
 
       expect(mockDataStreamer.streamData).not.toHaveBeenCalled();

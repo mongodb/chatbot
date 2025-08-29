@@ -41,7 +41,7 @@ describe("getMetaField", () => {
   it("returns the description field if it exists", () => {
     const description = getMetaField(rstContent, "description");
     expect(description).toEqual(
-      "Learn how to improve the performance of an application."
+      "Learn how to improve the performance of an application.",
     );
   });
 
@@ -73,7 +73,7 @@ More content here.`;
 
     const updatedContent = updateMetaDescription(
       rstContent,
-      "Learn how to improve the performance of an application."
+      "Learn how to improve the performance of an application.",
     );
 
     const expectedUpdatedContent = `Some content here.
@@ -98,7 +98,7 @@ More content here.`;
     const updatedContent = updateMetaDescription(
       originalContent,
       "New description",
-      { allowOverwrite: false }
+      { allowOverwrite: false },
     );
 
     // Should remain unchanged
@@ -117,7 +117,7 @@ More content here.`;
     const updatedContent = updateMetaDescription(
       originalContent,
       "New description",
-      { allowOverwrite: true }
+      { allowOverwrite: true },
     );
 
     const expectedContent = `Some content here.
@@ -133,7 +133,7 @@ More content here.`;
   it("updates a description on an existing meta directive that already has one", () => {
     const updatedContent = updateMetaDescription(
       rstContent,
-      "This is the updated description."
+      "This is the updated description.",
     );
 
     const expectedUpdatedContent = `Some content here.
@@ -211,36 +211,36 @@ This is some content`;
     expect(
       findRstPageTitle(`~~~~~~~~~~~~~~~~~~~~~~
 This Is The Page Title
-~~~~~~~~~~~~~~~~~~~~~~`)
+~~~~~~~~~~~~~~~~~~~~~~`),
     ).toEqual(3);
     expect(
       findRstPageTitle(`======================
 This Is The Page Title
-======================`)
+======================`),
     ).toEqual(3);
     // Handle source constants in title
     expect(
       findRstPageTitle(`===========================
 This Is The Page Title {+some-source-constant+}
-===========================`)
+===========================`),
     ).toEqual(3);
     expect(
       findRstPageTitle(`----------------------
 This Is The Page Title
-----------------------`)
+----------------------`),
     ).toEqual(3);
 
     expect(
       findRstPageTitle(`This Is The Page Title
-~~~~~~~~~~~~~~~~~~~~~~`)
+~~~~~~~~~~~~~~~~~~~~~~`),
     ).toEqual(2);
     expect(
       findRstPageTitle(`This Is The Page Title
-======================`)
+======================`),
     ).toEqual(2);
     expect(
       findRstPageTitle(`This Is The Page Title
-----------------------`)
+----------------------`),
     ).toEqual(2);
   });
 
@@ -341,7 +341,7 @@ describe("upsertMetaDirectiveInFile", () => {
     // Use actual test file
     const filePath = path.join(
       __dirname,
-      "../testData/meta2rst/yes-meta-no-description.rst"
+      "../testData/meta2rst/yes-meta-no-description.rst",
     );
 
     // Call the function with a new description
@@ -359,7 +359,7 @@ describe("upsertMetaDirectiveInFile", () => {
 
     // Verify the description was added correctly
     expect(getMetaField(updatedContent, "description")).toEqual(
-      "This is a new description for testing."
+      "This is a new description for testing.",
     );
 
     // Verify keywords were preserved
@@ -370,7 +370,7 @@ describe("upsertMetaDirectiveInFile", () => {
     // Use actual test file
     const filePath = path.join(
       __dirname,
-      "../testData/meta2rst/yes-meta-yes-description.rst"
+      "../testData/meta2rst/yes-meta-yes-description.rst",
     );
 
     // Call the function with an updated description
@@ -388,7 +388,7 @@ describe("upsertMetaDirectiveInFile", () => {
 
     // Verify the description was updated correctly
     expect(getMetaField(updatedContent, "description")).toEqual(
-      "This is an updated description for testing."
+      "This is an updated description for testing.",
     );
 
     // Verify keywords were preserved
@@ -399,7 +399,7 @@ describe("upsertMetaDirectiveInFile", () => {
     // Use actual test file
     const filePath = path.join(
       __dirname,
-      "../testData/meta2rst/no-meta-no-description.rst"
+      "../testData/meta2rst/no-meta-no-description.rst",
     );
 
     // Call the function with a new description and keywords
@@ -418,7 +418,7 @@ describe("upsertMetaDirectiveInFile", () => {
     // Verify the meta directive was added with correct fields
     expect(hasMetaDirective(updatedContent)).toBe(true);
     expect(getMetaField(updatedContent, "description")).toEqual(
-      "This is a brand new description."
+      "This is a brand new description.",
     );
     expect(getMetaField(updatedContent, "keywords")).toEqual("new keywords");
   });

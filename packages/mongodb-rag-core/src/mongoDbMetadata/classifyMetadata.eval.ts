@@ -344,7 +344,7 @@ async function main() {
   ];
 
   const ProductNameCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
-    args
+    args,
   ) => {
     const name = "ProductNameCorrect";
     if (args.expected?.product === undefined) {
@@ -381,7 +381,7 @@ async function main() {
   };
 
   const TopicCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
-    args
+    args,
   ) => {
     const name = "TopicCorrect";
     if (args.expected?.topic === undefined) {
@@ -413,7 +413,7 @@ async function main() {
             model: openai.languageModel(modelLabel),
             middleware: [BraintrustMiddleware({ debug: true })],
           }),
-          input
+          input,
         );
       } catch (error) {
         console.log(`Error evaluating input: ${input}`);

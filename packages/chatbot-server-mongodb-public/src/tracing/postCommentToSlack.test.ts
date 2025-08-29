@@ -25,7 +25,7 @@ describe.skip("postCommentToSlack", () => {
   it("should post message to slack", async () => {
     if (!SLACK_BOT_TOKEN || !SLACK_COMMENT_CONVERSATION_ID) {
       throw new Error(
-        "SLACK_BOT_TOKEN and SLACK_COMMENT_CONVERSATION_ID must be set"
+        "SLACK_BOT_TOKEN and SLACK_COMMENT_CONVERSATION_ID must be set",
       );
     }
     const id = new ObjectId();
@@ -85,7 +85,7 @@ describe("makeBraintrustLogUrl", () => {
       traceId: "67c2023c218d1c08ae1cf0ed",
     });
     expect(url).toBe(
-      "https://www.braintrust.dev/app/mongodb-education-ai/p/chatbot-responses-prod/logs?search=%7B%22filter%22:%5B%7B%22text%22:%22id%2520=%2520%252267c2023c218d1c08ae1cf0ed%2522%22%7D%5D%7D&r=67c2023c218d1c08ae1cf0ed"
+      "https://www.braintrust.dev/app/mongodb-education-ai/p/chatbot-responses-prod/logs?search=%7B%22filter%22:%5B%7B%22text%22:%22id%2520=%2520%252267c2023c218d1c08ae1cf0ed%2522%22%7D%5D%7D&r=67c2023c218d1c08ae1cf0ed",
     );
   });
 });

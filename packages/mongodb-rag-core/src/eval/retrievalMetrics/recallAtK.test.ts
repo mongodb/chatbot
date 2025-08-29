@@ -66,7 +66,7 @@ describe("recallAtK", () => {
     const k = 0;
 
     expect(() =>
-      recallAtK(relevantItems, retrievedItems, matchFunc, k)
+      recallAtK(relevantItems, retrievedItems, matchFunc, k),
     ).toThrow();
   });
 

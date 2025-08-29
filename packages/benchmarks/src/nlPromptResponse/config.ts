@@ -44,7 +44,7 @@ const judgeOpenAiClient = wrapOpenAI(
   new OpenAI({
     baseURL: BRAINTRUST_ENDPOINT,
     apiKey: BRAINTRUST_API_KEY,
-  })
+  }),
 );
 async function getTopQuestionDatasetDataset() {
   return initDataset(projectName, {
@@ -73,7 +73,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
         "Product knowledge questions from MongoDB Product Maangement team",
       async getDataset() {
         return (await getTopQuestionDatasetDataset()).filter((d) =>
-          d.tags.includes("product_knowledge")
+          d.tags.includes("product_knowledge"),
         );
       },
     },
@@ -81,7 +81,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
       description: "Tech support questions provided by Technical Services team",
       async getDataset() {
         return (await getTopQuestionDatasetDataset()).filter((d) =>
-          d.tags.includes("tech_support")
+          d.tags.includes("tech_support"),
         );
       },
     },
@@ -89,7 +89,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
       description: "Marketing questions provided by Marketing team",
       async getDataset() {
         return (await getTopQuestionDatasetDataset()).filter((d) =>
-          d.tags.includes("marketing")
+          d.tags.includes("marketing"),
         );
       },
     },
@@ -97,7 +97,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
       description: "100 questions from MongoDB Documentation team",
       async getDataset() {
         return (await getTopQuestionDatasetDataset()).filter((d) =>
-          d.tags.includes("docs_100")
+          d.tags.includes("docs_100"),
         );
       },
     },
@@ -134,7 +134,7 @@ export const nlPromptResponseBenchmark: BenchmarkConfig<
           model: judgeModelConfig.deployment,
           temperature: 0,
         },
-        judgeModelConfig.label
+        judgeModelConfig.label,
       ),
     },
   },

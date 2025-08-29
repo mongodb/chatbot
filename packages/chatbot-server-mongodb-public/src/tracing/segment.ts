@@ -61,7 +61,7 @@ function parseSegmentTrackParams(args: {
       }: ${JSON.stringify({
         params: args.params,
         error: parsedTrackParams.error,
-      })}`
+      })}`,
     );
   }
   return parsedTrackParams.data;
@@ -85,7 +85,7 @@ const BaseTrackEventParamsSchema = z.object({
 export type BaseTrackEventParams = z.infer<typeof BaseTrackEventParamsSchema>;
 
 function parseInternalTrackEventParams<
-  Schema extends typeof BaseTrackEventParamsSchema
+  Schema extends typeof BaseTrackEventParamsSchema,
 >(args: {
   params: unknown;
   schema: Schema;
@@ -97,7 +97,7 @@ function parseInternalTrackEventParams<
       `Invalid params passed to ${args.functionName}: ${JSON.stringify({
         params: args.params,
         error: parsedParams.error,
-      })}`
+      })}`,
     );
   }
   return parsedParams.data;
@@ -131,7 +131,7 @@ function parseOriginUrl(origin: string | undefined): ParsedOrigin | null {
 }
 
 function createBaseProperties(
-  params: BaseTrackEventParams
+  params: BaseTrackEventParams,
 ): AnyEventPropertiesParams | null {
   const parsedOrigin = parseOriginUrl(params.origin);
   if (!parsedOrigin) {
@@ -165,7 +165,7 @@ export function makeTrackUserSentMessage({
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
   return async function trackUserSentMessage(
-    params: TrackUserSentMessageParams
+    params: TrackUserSentMessageParams,
   ) {
     const parsedParams = parseInternalTrackEventParams({
       params,
@@ -210,7 +210,7 @@ export function makeTrackAssistantResponded({
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
   return async function trackAssistantResponded(
-    params: TrackAssistantRespondedParams
+    params: TrackAssistantRespondedParams,
   ) {
     const parsedParams = parseInternalTrackEventParams({
       params,
@@ -254,7 +254,7 @@ export function makeTrackUserRatedMessage({
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
   return async function trackUserRatedMessage(
-    params: TrackUserRatedMessageParams
+    params: TrackUserRatedMessageParams,
   ) {
     const parsedParams = parseInternalTrackEventParams({
       params,
@@ -296,7 +296,7 @@ export function makeTrackUserCommentedMessage({
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
   return async function trackUserCommentedMessage(
-    params: TrackUserCommentedMessageParams
+    params: TrackUserCommentedMessageParams,
   ) {
     const parsedParams = parseInternalTrackEventParams({
       params,

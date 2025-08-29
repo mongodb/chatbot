@@ -14,26 +14,26 @@ export function extractSampleMessages({
   maxNumMessagesAfter?: number;
 }) {
   const commentIdx = messages.findLastIndex((message) =>
-    message.id.equals(targetMessageId)
+    message.id.equals(targetMessageId),
   );
   assert(
     commentIdx !== -1,
-    `Comment for message with ID ${targetMessageId.toHexString()} not found in messages with a comment.`
+    `Comment for message with ID ${targetMessageId.toHexString()} not found in messages with a comment.`,
   );
   const sampleMessagesStartIndex = Math.max(
     0,
-    commentIdx - maxNumMessagesBefore
+    commentIdx - maxNumMessagesBefore,
   );
   const sampleMessagesEndIndex = Math.min(
     messages.length,
-    commentIdx + maxNumMessagesAfter
+    commentIdx + maxNumMessagesAfter,
   );
   const sampleMessages = messages.slice(
     sampleMessagesStartIndex,
-    sampleMessagesEndIndex
+    sampleMessagesEndIndex,
   );
   const targetMessageIndex = sampleMessages.findIndex((message) =>
-    message.id.equals(targetMessageId)
+    message.id.equals(targetMessageId),
   );
   return {
     sampleMessages,

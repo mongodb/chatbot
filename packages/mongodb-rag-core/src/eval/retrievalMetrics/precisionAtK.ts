@@ -16,7 +16,7 @@ export function precisionAtK<T extends Primitive>(
   relevantItems: T[],
   retrievedItems: T[],
   matchFunc: MatchFunc<T>,
-  k = 5
+  k = 5,
 ): number {
   assertKIsValid(k);
 
@@ -35,7 +35,8 @@ export function precisionAtK<T extends Primitive>(
   topKRetrieved.forEach((item) => {
     const match = relevantItems.find(
       (relevantItem) =>
-        matchFunc(relevantItem, item) && !matchedRelevantItems.has(relevantItem)
+        matchFunc(relevantItem, item) &&
+        !matchedRelevantItems.has(relevantItem),
     );
     if (match) {
       matchedRelevantItems.add(match); // Add only the first match

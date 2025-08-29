@@ -369,7 +369,7 @@ describe("makeBenchmarkCli", () => {
       // Check that error handling was called
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error running benchmark:",
-        expect.any(Error)
+        expect.any(Error),
       );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
@@ -401,8 +401,8 @@ describe("makeBenchmarkCli", () => {
             },
           ],
           null,
-          2
-        )
+          2,
+        ),
       );
     });
   });
@@ -430,8 +430,8 @@ describe("makeBenchmarkCli", () => {
             },
           ],
           null,
-          2
-        )
+          2,
+        ),
       );
     });
   });

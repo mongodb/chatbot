@@ -44,10 +44,10 @@ const testReferences = [
 describe("makePrioritizeReferenceDomain", () => {
   it("moves references with the given domain ahead of other references", () => {
     const prioritizeReferenceDomain = makePrioritizeReferenceDomain(
-      "https://mongodb.com"
+      "https://mongodb.com",
     );
     const sortedReferences = [...testReferences].sort(
-      prioritizeReferenceDomain
+      prioritizeReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/developer/products/atlas/foobar",
@@ -60,10 +60,10 @@ describe("makePrioritizeReferenceDomain", () => {
 
   it("supports prioritizing references with a specific path", () => {
     const prioritizeReferenceDomain = makePrioritizeReferenceDomain(
-      new URL("https://mongodb.com/docs")
+      new URL("https://mongodb.com/docs"),
     );
     const sortedReferences = [...testReferences].sort(
-      prioritizeReferenceDomain
+      prioritizeReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/docs/manual",
@@ -88,7 +88,7 @@ describe("makePrioritizeReferenceDomain", () => {
       "https://www.example.com",
     ]);
     const sortedReferences = [...testReferences].sort(
-      prioritizeReferenceDomain
+      prioritizeReferenceDomain,
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
       "https://mongodb.com/docs/atlas",
@@ -106,8 +106,8 @@ describe("isReferenceToDomain", () => {
     expect(
       isReferenceToDomain(
         new URL(reference.url),
-        new URL("https://mongodb.com")
-      )
+        new URL("https://mongodb.com"),
+      ),
     ).toBe(true);
   });
 
@@ -116,8 +116,8 @@ describe("isReferenceToDomain", () => {
     expect(
       isReferenceToDomain(
         new URL(reference.url),
-        new URL("https://www.example.com")
-      )
+        new URL("https://www.example.com"),
+      ),
     ).toBe(false);
   });
 });

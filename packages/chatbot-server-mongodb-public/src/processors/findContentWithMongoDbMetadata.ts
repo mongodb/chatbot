@@ -15,7 +15,7 @@ export const makeFindContentWithMongoDbMetadata = ({
       const { product, programmingLanguage } =
         await classifyMongoDbProgrammingLanguageAndProduct(
           classifierModel,
-          query
+          query,
         );
 
       const preProcessedQuery = updateFrontMatter(query, {
@@ -32,7 +32,7 @@ export const makeFindContentWithMongoDbMetadata = ({
     },
     {
       name: "findContentWithMongoDbMetadata",
-    }
+    },
   );
   return wrappedFindContent;
 };

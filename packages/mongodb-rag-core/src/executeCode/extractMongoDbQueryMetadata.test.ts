@@ -101,7 +101,7 @@ describe("extractMongoDbQueryOperators", () => {
 
     const operators = extractMongoDbQueryOperators(code);
     expect(operators.sort()).toEqual(
-      ["$match", "$group", "$sort", "$sum"].sort()
+      ["$match", "$group", "$sort", "$sum"].sort(),
     );
   });
 

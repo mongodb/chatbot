@@ -15,7 +15,7 @@ export const ToolDefinitionSchema = z.object({
     .record(z.string(), z.any())
     .optional()
     .describe(
-      "The parameters the tool accepts, as a map of parameter name to its definition."
+      "The parameters the tool accepts, as a map of parameter name to its definition.",
     ),
   strict: z
     .boolean()
@@ -39,9 +39,9 @@ export const ConversationEvalCaseSchema = z.object({
           .string()
           .optional()
           .describe(
-            "Only required for tool call messages. Name of the tool being called."
+            "Only required for tool call messages. Name of the tool being called.",
           ),
-      })
+      }),
     )
     .min(1),
   tags: z.array(z.string()).optional(),
@@ -62,19 +62,19 @@ export const ConversationEvalCaseSchema = z.object({
           .record(z.string())
           .optional()
           .describe(
-            "Expected arguments passed to the tool to evaluate against"
+            "Expected arguments passed to the tool to evaluate against",
           ),
-      })
+      }),
     )
     .optional()
     .describe(
-      "Expected new messages. This array starts with the final messages in 'messages'."
+      "Expected new messages. This array starts with the final messages in 'messages'.",
     ),
   expectedPromptAdherence: z
     .array(z.string())
     .optional()
     .describe(
-      "System prompt adherance criteria for the response. Do not add criteria for response quality."
+      "System prompt adherance criteria for the response. Do not add criteria for response quality.",
     ),
   expectedLinks: z
     .array(z.string())
@@ -106,11 +106,11 @@ export type ConversationEvalCase = z.infer<typeof ConversationEvalCaseSchema>;
 
  */
 export function getConversationsEvalCasesFromYaml(
-  yamlData: string
+  yamlData: string,
 ): ConversationEvalCase[] {
   const yamlEvalCases = yaml.parse(yamlData) as unknown[];
   const evalCases = yamlEvalCases.map((tc) =>
-    ConversationEvalCaseSchema.parse(tc)
+    ConversationEvalCaseSchema.parse(tc),
   );
   return evalCases;
 }

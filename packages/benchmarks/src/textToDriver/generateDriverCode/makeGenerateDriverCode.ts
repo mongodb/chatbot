@@ -22,7 +22,7 @@ type MongoDbWithoutExampleDocs = Omit<
 > & {
   collections: [
     CollectionWithoutExampleDocs,
-    ...CollectionWithoutExampleDocs[]
+    ...CollectionWithoutExampleDocs[],
   ];
 };
 
@@ -56,7 +56,7 @@ export async function makeGenerateDriverCode({
         const collection = sampleGenerationConfig.mongoClient
           .db(promptGenerationConfig.mongoDb.databaseName)
           .collection(
-            promptGenerationConfig.mongoDb.collections[i].collectionName
+            promptGenerationConfig.mongoDb.collections[i].collectionName,
           );
         const exampleDocs = await extractDeterministicSampleOfDocuments({
           collection,
@@ -64,17 +64,17 @@ export async function makeGenerateDriverCode({
         });
         assert(
           exampleDocs.length > 0,
-          "Must have at least one example document"
+          "Must have at least one example document",
         );
         return {
           ...collectionInfo,
           exampleDocuments: exampleDocs satisfies Document[] as [
             Document,
-            ...Document[]
+            ...Document[],
           ],
         } satisfies CollectionInfo;
-      }
-    )
+      },
+    ),
   )) satisfies CollectionInfo[] as [CollectionInfo, ...CollectionInfo[]];
 
   const promptGenerationConfigWithExamples: TextToDriverPromptParams = {
@@ -85,7 +85,7 @@ export async function makeGenerateDriverCode({
     },
   };
   const promptMessages = await makeTextToDriverPrompt(
-    promptGenerationConfigWithExamples
+    promptGenerationConfigWithExamples,
   );
   return async function generateDriverCode({
     openAiClient,

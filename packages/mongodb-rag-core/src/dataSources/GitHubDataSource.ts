@@ -43,7 +43,7 @@ export type MakeGitHubDataSourceArgs<SourceType extends string = string> = {
     makeGitHubDataSource.
    */
   handleDocumentInRepo(
-    document: Document<{ source: string }>
+    document: Document<{ source: string }>,
   ): Promise<
     | undefined
     | Omit<Page<SourceType>, "sourceName">

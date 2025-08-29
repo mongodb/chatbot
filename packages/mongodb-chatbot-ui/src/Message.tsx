@@ -100,7 +100,7 @@ export const Message = ({
       setRatingCommentErrorMessage(undefined);
     } catch (err) {
       setRatingCommentErrorMessage(
-        "Oops, there was an issue submitting the response to the server. Please try again."
+        "Oops, there was an issue submitting the response to the server. Please try again.",
       );
     }
   }
@@ -150,8 +150,8 @@ export const Message = ({
                   messageData.rating === undefined
                     ? undefined
                     : messageData.rating
-                    ? "liked"
-                    : "disliked",
+                      ? "liked"
+                      : "disliked",
                 description: "How was the response?",
                 hideThumbsUp: submittedRatingValue === "disliked",
                 hideThumbsDown: submittedRatingValue === "liked",
@@ -166,7 +166,7 @@ export const Message = ({
                   }
                   await conversation.rateMessage(
                     messageData.id,
-                    value === "liked" ? true : false
+                    value === "liked" ? true : false,
                   );
                 },
               }}

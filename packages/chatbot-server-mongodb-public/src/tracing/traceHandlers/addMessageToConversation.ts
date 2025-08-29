@@ -63,7 +63,7 @@ export function makeAddMessageToConversationUpdateTrace({
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId),
-      conversation._id
+      conversation._id,
     );
     logRequest({
       reqId,
@@ -123,7 +123,7 @@ ${tracingData.userMessage?.content}
 </user_message_content>
 <assistant_message_content>
 ${tracingData.assistantMessage?.content}
-</assistant_message_content>`
+</assistant_message_content>`,
       );
       // update tags
       for (const tag of Object.values(metadata)) {
@@ -168,7 +168,7 @@ ${tracingData.assistantMessage?.content}
           throw new Error(
             `Missing required data ${JSON.stringify({
               userMessage,
-            })}`
+            })}`,
           );
         }
 
@@ -188,7 +188,7 @@ ${tracingData.assistantMessage?.content}
             `Missing required data ${JSON.stringify({
               userMessage,
               assistantMessage,
-            })}`
+            })}`,
           );
         }
       } else {
@@ -216,7 +216,7 @@ ${tracingData.assistantMessage?.content}
                 type: "error",
               });
               return undefined;
-            }
+            },
           )
         : undefined;
 
@@ -243,7 +243,7 @@ ${tracingData.assistantMessage?.content}
 
 function getTracingScores(
   tracingData: ReturnType<typeof extractTracingData>,
-  k: number
+  k: number,
 ) {
   return {
     // These metrics should start at 0,
@@ -255,13 +255,13 @@ function getTracingScores(
     InputGuardrailPass: tracingData.isVerifiedAnswer
       ? null
       : tracingData.rejectQuery === true
-      ? 0
-      : 1,
+        ? 0
+        : 1,
     LlmAnswerAttempted: tracingData.isVerifiedAnswer
       ? null
       : tracingData.llmDoesNotKnow === true
-      ? 0
-      : 1,
+        ? 0
+        : 1,
     [`RetrievedChunksOver${k}`]: tracingData.isVerifiedAnswer
       ? null
       : tracingData.numRetrievedChunks / k,
@@ -272,7 +272,7 @@ function validatePercentToJudge(percentToJudge?: number) {
   if (percentToJudge !== undefined) {
     assert(
       percentToJudge >= 0 && percentToJudge <= 1,
-      `percentToJudge must be between 0 and 1. Received: ${percentToJudge}`
+      `percentToJudge must be between 0 and 1. Received: ${percentToJudge}`,
     );
   }
 }

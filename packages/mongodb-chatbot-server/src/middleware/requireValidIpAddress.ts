@@ -5,7 +5,7 @@ import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 import { isValidIp } from "../routes/conversations/utils";
 
 export function requireValidIpAddress<
-  Locals extends Record<string, any>
+  Locals extends Record<string, any>,
 >(): RequestHandler<ParamsDictionary, unknown, unknown, ParsedQs, Locals> {
   return (req, res, next) => {
     const reqId = getRequestId(req);

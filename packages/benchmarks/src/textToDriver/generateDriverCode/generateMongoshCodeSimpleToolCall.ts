@@ -227,7 +227,7 @@ Natural language query: ${nlQuery}`,
 
 function makeFewShotExamplesPrompt(
   examples: FewShotExample[],
-  fewShotType: FewShotPromptType = "basic"
+  fewShotType: FewShotPromptType = "basic",
 ): string {
   if (fewShotType === "chainOfThought") {
     return `
@@ -241,7 +241,7 @@ Output:
 {
   ${THOUGHTS_FIELD}: "${ex.output.chainOfThought}",
   ${CODE_FIELD}: "${ex.output.content}"
-}`
+}`,
     )
     .join("\n\n")}`;
   } else {
@@ -253,7 +253,7 @@ Output:
 Output:
 {
   ${CODE_FIELD}: "${ex.output.content}"
-}`
+}`,
     )
     .join("\n\n")}`;
   }

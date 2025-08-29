@@ -80,7 +80,7 @@ export const makeIngestMetaStore = ({
             lastIngestDate: new Date(),
           },
         },
-        { upsert: true }
+        { upsert: true },
       );
     },
   };

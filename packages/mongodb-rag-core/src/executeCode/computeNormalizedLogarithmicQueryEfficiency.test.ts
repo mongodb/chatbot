@@ -8,7 +8,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: smallerPerfectEfficiency,
         nExamined: smallerPerfectEfficiency,
         nTotal: 1000000,
-      })
+      }),
     ).toBeCloseTo(1.0);
     const largerPerfectEfficiency = 1000;
     expect(
@@ -16,7 +16,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: largerPerfectEfficiency,
         nExamined: largerPerfectEfficiency,
         nTotal: 1000000,
-      })
+      }),
     ).toBeCloseTo(1.0);
   });
 
@@ -54,7 +54,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 100,
         nExamined: 1000000,
         nTotal: 1000000,
-      })
+      }),
     ).toBeCloseTo(0.0);
   });
 
@@ -66,21 +66,21 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 500000,
         nExamined: 800000,
         nTotal,
-      })
+      }),
     ).toBeCloseTo(0.3219, 3);
     expect(
       computeNormalizedLogarithmicQueryEfficiency({
         nReturned: 500000,
         nExamined: 900000,
         nTotal,
-      })
+      }),
     ).toBeCloseTo(0.152, 3);
     expect(
       computeNormalizedLogarithmicQueryEfficiency({
         nReturned: 500000,
         nExamined: 1000000,
         nTotal,
-      })
+      }),
     ).toBeCloseTo(0.0, 3);
   });
 
@@ -90,7 +90,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 900000,
         nExamined: 950000,
         nTotal: 1000000,
-      })
+      }),
     ).toBeCloseTo(0.4868, 3);
   });
 
@@ -100,7 +100,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 1000000,
         nExamined: 1000000,
         nTotal: 1000000,
-      })
+      }),
     ).toBe(1.0);
   });
 
@@ -110,14 +110,14 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 100,
         nExamined: 0,
         nTotal: 1000,
-      })
+      }),
     ).toThrow();
     expect(() =>
       computeNormalizedLogarithmicQueryEfficiency({
         nReturned: 100,
         nExamined: 100,
         nTotal: 0,
-      })
+      }),
     ).toThrow();
     // Examined must be >= returned
     expect(() =>
@@ -125,7 +125,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 100,
         nExamined: 50,
         nTotal: 1000,
-      })
+      }),
     ).toThrow();
     // Total must be >= examined
     expect(() =>
@@ -133,7 +133,7 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nReturned: 100,
         nExamined: 200,
         nTotal: 150,
-      })
+      }),
     ).toThrow();
   });
 
@@ -194,6 +194,6 @@ describe("computeNormalizedLogarithmicQueryEfficiency", () => {
         nTotal,
       });
       expect(result).toBeCloseTo(expected, 3);
-    }
+    },
   );
 });

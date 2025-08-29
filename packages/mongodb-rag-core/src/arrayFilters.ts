@@ -2,10 +2,10 @@
   Given an array of PromiseSettledResults, return those that are fulfilled as PromiseFulfilledResults.
  */
 export const filterFulfilled = <T>(
-  array: PromiseSettledResult<T>[]
+  array: PromiseSettledResult<T>[],
 ): PromiseFulfilledResult<T>[] =>
   array.filter(
-    ({ status }) => status === "fulfilled"
+    ({ status }) => status === "fulfilled",
   ) as PromiseFulfilledResult<T>[];
 
 /**

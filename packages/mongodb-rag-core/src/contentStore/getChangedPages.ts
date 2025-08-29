@@ -25,12 +25,12 @@ export const getChangedPages = async ({
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
 
   logger.info(
-    `After de-duplication based on page URL, there are ${oldPages.size} pages currently in the store and ${newPages.size} pages from the data source ${sourceName} to be processed.`
+    `After de-duplication based on page URL, there are ${oldPages.size} pages currently in the store and ${newPages.size} pages from the data source ${sourceName} to be processed.`,
   );
 
   // Perform set difference to find deleted, created, and changed pages.
   logger.info(
-    `Comparing pages currently in the store against pages from the data source ${sourceName} to determine which pages need to be created, updated, or deleted...`
+    `Comparing pages currently in the store against pages from the data source ${sourceName} to determine which pages need to be created, updated, or deleted...`,
   );
   // deleted = elements in old but not in new
   const deleted = [...oldPages]
@@ -47,7 +47,7 @@ export const getChangedPages = async ({
         ...page,
         updated: new Date(),
         action: "deleted",
-      })
+      }),
     );
 
   // created = elements in new but not in old
@@ -65,7 +65,7 @@ export const getChangedPages = async ({
         ...page,
         updated: new Date(),
         action: "created",
-      })
+      }),
     );
 
   // updated = elements in both old and new (that have the same url, but different content)
@@ -78,7 +78,7 @@ export const getChangedPages = async ({
       // Filter out pages that haven't changed
       return !deepEqual(
         comparablePartialPage(oldPage),
-        comparablePartialPage(page)
+        comparablePartialPage(page),
       );
     })
     .map(
@@ -86,7 +86,7 @@ export const getChangedPages = async ({
         ...page,
         updated: new Date(),
         action: "updated",
-      })
+      }),
     );
 
   return { deleted, created, updated };

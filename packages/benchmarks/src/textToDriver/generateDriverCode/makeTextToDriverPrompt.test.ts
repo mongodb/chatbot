@@ -76,7 +76,7 @@ describe("makeTextToDriverPrompt", () => {
     // parseSchema should return a schema based on the documents
     const parsedSchema = await parseSchema([{ field1: "value1" }]);
     expect(systemPrompt.content).toContain(
-      JSON.stringify(parsedSchema, null, 2)
+      JSON.stringify(parsedSchema, null, 2),
     );
   });
 
@@ -118,7 +118,7 @@ describe("makeTextToDriverPrompt", () => {
     const systemPrompt = result[0];
     expect(systemPrompt.content).toContain("Example documents:");
     expect(systemPrompt.content).toContain(
-      JSON.stringify(params.mongoDb.collections[0].exampleDocuments, null, 2)
+      JSON.stringify(params.mongoDb.collections[0].exampleDocuments, null, 2),
     );
   });
 
@@ -141,7 +141,7 @@ describe("makeTextToDriverPrompt", () => {
     const systemPrompt = result[0];
     expect(systemPrompt.content).toContain("Indexes:");
     expect(systemPrompt.content).toContain(
-      JSON.stringify(params.mongoDb.collections[0].indexes, null, 2)
+      JSON.stringify(params.mongoDb.collections[0].indexes, null, 2),
     );
   });
 
@@ -169,17 +169,17 @@ describe("makeTextToDriverPrompt", () => {
 
     const systemPrompt = result[0];
     expect(systemPrompt.content).toContain(
-      `## \`"${params.mongoDb.collections[0].collectionName}"\` collection`
+      `## \`"${params.mongoDb.collections[0].collectionName}"\` collection`,
     );
     expect(systemPrompt.content).toContain(
-      `## \`"${params.mongoDb.collections[1].collectionName}"\` collection`
+      `## \`"${params.mongoDb.collections[1].collectionName}"\` collection`,
     );
     expect(systemPrompt.content).toContain("Indexes:");
     expect(systemPrompt.content).toContain(
-      JSON.stringify(params.mongoDb.collections[0].indexes, null, 2)
+      JSON.stringify(params.mongoDb.collections[0].indexes, null, 2),
     );
     expect(systemPrompt.content).toContain(
-      JSON.stringify(params.mongoDb.collections[1].indexes, null, 2)
+      JSON.stringify(params.mongoDb.collections[1].indexes, null, 2),
     );
   });
 
@@ -223,7 +223,7 @@ describe("makeTextToDriverPrompt", () => {
 
     const systemPrompt = result[0];
     expect(
-      systemPrompt.content.startsWith(customInstructions.trim() + "\n\n")
+      systemPrompt.content.startsWith(customInstructions.trim() + "\n\n"),
     ).toBe(true);
   });
 });

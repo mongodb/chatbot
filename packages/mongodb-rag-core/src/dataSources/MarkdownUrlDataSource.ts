@@ -6,7 +6,7 @@ import { extractMarkdownH1 } from "./extractMarkdownH1";
 import { Page, PageMetadata } from "../contentStore";
 
 export interface MakeMarkdownUrlDataSourceParams<
-  SourceType extends string = string
+  SourceType extends string = string,
 > {
   /** Name of project */
   sourceName: string;
@@ -78,10 +78,10 @@ export function makeMarkdownUrlDataSource<SourceType extends string = string>({
           } catch (error) {
             console.warn(`Failed to create page from ${url},`, error);
           }
-        })
+        }),
       );
       return settledPages.filter(
-        (page): page is Page<SourceType> => page !== undefined
+        (page): page is Page<SourceType> => page !== undefined,
       );
     },
   };

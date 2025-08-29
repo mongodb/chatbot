@@ -60,14 +60,14 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             // Check if benchmark type exists
             if (!config.benchmarks[argv.type]) {
               errors.push(
-                `Unknown benchmark type: ${argv.type}. Use 'benchmark list' to see available types.`
+                `Unknown benchmark type: ${argv.type}. Use 'benchmark list' to see available types.`,
               );
             }
 
             // Validate tasks exist
             if (argv.task && !config.benchmarks[argv.type].tasks[argv.task]) {
               errors.push(
-                `Unknown task: ${argv.task}. Use 'benchmark list' to see available tasks for type ${argv.type}.`
+                `Unknown task: ${argv.task}. Use 'benchmark list' to see available tasks for type ${argv.type}.`,
               );
             }
 
@@ -75,7 +75,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             for (const dataset of argv.dataset ?? []) {
               if (!config.benchmarks[argv.type].datasets[dataset]) {
                 errors.push(
-                  `Unknown dataset: ${dataset}. Use 'benchmark list' to see available datasets for type ${argv.type}.`
+                  `Unknown dataset: ${dataset}. Use 'benchmark list' to see available datasets for type ${argv.type}.`,
                 );
               }
             }
@@ -84,14 +84,14 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             const attemptedModels = argv.model ?? [];
             // Resolve models
             const modelsToRun = config.models.filter((m) =>
-              attemptedModels.includes(m.label)
+              attemptedModels.includes(m.label),
             );
 
             if (modelsToRun.length === 0) {
               throw new Error(
                 `Unknown model(s). Model(s) provided: ${attemptedModels.join(
-                  ", "
-                )}. Use 'benchmark models list' to see available models.`
+                  ", ",
+                )}. Use 'benchmark models list' to see available models.`,
               );
             }
 
@@ -117,7 +117,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             // Validate sampling
             if (argv.sampleType && argv.sampleSize === undefined) {
               errors.push(
-                "sampleSize is required when sampleType is provided."
+                "sampleSize is required when sampleType is provided.",
               );
             }
             if (
@@ -160,7 +160,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
           console.error("Error running benchmark:", error);
           process.exit(1);
         }
-      }
+      },
     )
     .command("list", "List all available benchmarks", () => {
       console.log(
@@ -185,8 +185,8 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
           })),
           null,
-          2
-        )
+          2,
+        ),
       );
     })
     .command("models list", "List all available models", () => {
@@ -198,11 +198,11 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               provider,
               deployment,
               maxConcurrency,
-            })
+            }),
           ),
           null,
-          2
-        )
+          2,
+        ),
       );
     })
     .demandCommand(1, "You need to specify a command")

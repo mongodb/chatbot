@@ -24,7 +24,7 @@ type MetaDescriptionRecord = z.infer<typeof metaDescriptionRecordSchema>;
 async function readRowsFromGoogleSheet(
   sheetId: string,
   tabName: string,
-  credentialsPath: string
+  credentialsPath: string,
 ): Promise<any[]> {
   const auth = new google.auth.GoogleAuth({
     keyFile: credentialsPath,
@@ -57,7 +57,7 @@ async function batchUpdateSheet(
   sheetId: string,
   tabName: string,
   credentialsPath: string,
-  updates: { rowIndex: number; status: string; description?: string }[]
+  updates: { rowIndex: number; status: string; description?: string }[],
 ) {
   const auth = new google.auth.GoogleAuth({
     keyFile: credentialsPath,
@@ -72,10 +72,10 @@ async function batchUpdateSheet(
   });
   const headers = headerResp.data.values?.[0] || [];
   const statusColIdx = headers.findIndex(
-    (h: string) => h.trim().toLowerCase() === "status"
+    (h: string) => h.trim().toLowerCase() === "status",
   );
   const descColIdx = headers.findIndex(
-    (h: string) => h.trim().toLowerCase() === "description"
+    (h: string) => h.trim().toLowerCase() === "description",
   );
   if (statusColIdx === -1 || descColIdx === -1)
     throw new Error("Status or Description column not found in sheet");
@@ -85,7 +85,7 @@ async function batchUpdateSheet(
   for (const { rowIndex, status, description } of updates) {
     // Status
     const statusColLetter = String.fromCharCode(
-      "A".charCodeAt(0) + statusColIdx
+      "A".charCodeAt(0) + statusColIdx,
     );
     const statusCell = `${tabName}!${statusColLetter}${rowIndex + 2}`;
     data.push({
@@ -134,7 +134,7 @@ async function main() {
   const rawRows: any[] = await readRowsFromGoogleSheet(
     SHEETS_ID,
     SHEETS_TAB,
-    SHEETS_CREDENTIALS
+    SHEETS_CREDENTIALS,
   );
 
   // Only process rows with Status === '' (empty string)
@@ -167,7 +167,7 @@ async function main() {
     let metaJson: Record<string, string> = {};
     const artifactPath = path.resolve(
       __dirname,
-      `../runlogs/GenerateDocsMetaDescription/${runId}/metaDescriptions.json`
+      `../runlogs/GenerateDocsMetaDescription/${runId}/metaDescriptions.json`,
     );
     let commandError: string | null = null;
     try {
@@ -217,11 +217,11 @@ async function main() {
         SHEETS_ID,
         SHEETS_TAB,
         SHEETS_CREDENTIALS,
-        updates
+        updates,
       );
       for (const { rowIndex, status } of updates) {
         console.log(
-          `Row ${rowIndex + 2} updated: ${status.substring(0, 80)}...`
+          `Row ${rowIndex + 2} updated: ${status.substring(0, 80)}...`,
         );
       }
     } catch (err: any) {

@@ -187,7 +187,7 @@ ${resultsSchemaGuidelines}
 ${outputGuidelines(numChildren)}`;
 
 const makeAtlasSearchSystemMessage = (
-  numChildren: number
+  numChildren: number,
 ) => `${baseSystemMessage}
 
 <query_specificity_guidelines>
@@ -484,7 +484,7 @@ export const generateNaturalLanguageQueries = wrapTraced(
           parent: { data: databaseInfo },
         },
       },
-      numChildren
+      numChildren,
     ) => {
       return makeGenerateNaturalLanguageQueryPrompt({
         numChildren,
@@ -497,7 +497,7 @@ export const generateNaturalLanguageQueries = wrapTraced(
   }),
   {
     name: "generateNaturalLanguageQueries",
-  }
+  },
 );
 
 export const generateNaturalLanguageAtlasSearchQueries = wrapTraced(
@@ -511,7 +511,7 @@ export const generateNaturalLanguageAtlasSearchQueries = wrapTraced(
           parent: { data: databaseInfo },
         },
       },
-      numChildren
+      numChildren,
     ) => {
       return makeGenerateNaturalLanguageQueryPrompt({
         numChildren,
@@ -525,12 +525,12 @@ export const generateNaturalLanguageAtlasSearchQueries = wrapTraced(
   }),
   {
     name: "generateNaturalLanguageAtlasSearchQueries",
-  }
+  },
 );
 
 function getSystemMessage(
   queryType: Required<MakeGenerateNaturalLanguageQueryPromptParams>["queryType"],
-  numChildren: number
+  numChildren: number,
 ) {
   switch (queryType) {
     case "mql":

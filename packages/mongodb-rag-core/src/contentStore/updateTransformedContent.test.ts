@@ -82,7 +82,7 @@ describe("updateTransformedContent", () => {
     });
 
     expect(
-      (await transformedContentStore.loadContent()).length
+      (await transformedContentStore.loadContent()).length,
     ).toBeGreaterThanOrEqual(1);
   });
 
@@ -118,7 +118,7 @@ describe("updateTransformedContent", () => {
 
     // Make sure content populated
     expect(
-      (await transformedContentStore.loadContent()).length
+      (await transformedContentStore.loadContent()).length,
     ).toBeGreaterThanOrEqual(1);
 
     // Now proceed to check deletion...
@@ -126,7 +126,7 @@ describe("updateTransformedContent", () => {
       async () => {
         // Nothing to see here...
         return [];
-      }
+      },
     );
     await updateTransformedContent({
       pages,
@@ -177,10 +177,10 @@ describe("updateTransformedContent", () => {
     });
     expect(transformedContent2).toHaveLength(1);
     expect(transformedContent2[0].transformAlgoHash).toEqual(
-      expect.any(String)
+      expect.any(String),
     );
     expect(transformedContent2[0].transformAlgoHash).not.toBe(
-      transformAlgoHash
+      transformAlgoHash,
     );
   });
 
@@ -212,9 +212,9 @@ describe("updateTransformedContent", () => {
           (otherPair, j) =>
             i !== j &&
             pair.startTime < otherPair.endTime &&
-            otherPair.startTime < pair.endTime
-        )
-      )
+            otherPair.startTime < pair.endTime,
+        ),
+      ),
     ).toBe(true);
   });
 });

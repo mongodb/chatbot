@@ -15,7 +15,7 @@ export interface TransformConcurrencyOptions {
 }
 
 export type TransformPage<T extends TransformedContent> = (
-  page: Page
+  page: Page,
 ) => Promise<T[]>;
 
 /**
@@ -59,7 +59,7 @@ const getHashForFunc = (f: { toString(): string }): string => {
 };
 
 export async function updateTranformedContentForPage<
-  TC extends TransformedContent
+  TC extends TransformedContent,
 >({
   page,
   store,
@@ -74,7 +74,7 @@ export async function updateTranformedContentForPage<
   if (contentChunks.length === 0) {
     // This could happen if source returned a page with no content
     logger.warn(
-      `No content for page ${page.sourceName}:${page.url} - deleting any existing content and continuing`
+      `No content for page ${page.sourceName}:${page.url} - deleting any existing content and continuing`,
     );
     await store.deleteContent({ page });
     return;
@@ -94,7 +94,7 @@ export async function updateTranformedContentForPage<
     hasContentChunks && hasSameNumberOfChunks && hasSameTransformAlgoHash;
   if (doNotUpdate) {
     logger.info(
-      `Transformed content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}). Skipping transform.`
+      `Transformed content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}). Skipping transform.`,
     );
     return;
   }
@@ -106,7 +106,7 @@ export async function updateTranformedContentForPage<
       ({
         ...chunk,
         transformAlgoHash,
-      } satisfies TC)
+      }) satisfies TC,
   );
 
   await store.updateContent({

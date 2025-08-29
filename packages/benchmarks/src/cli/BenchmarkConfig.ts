@@ -18,11 +18,11 @@ export interface BenchmarkTask<
   Output,
   Expected,
   Metadata extends BaseMetadata = DefaultMetadataType,
-  Parameters extends EvalParameters = EvalParameters
+  Parameters extends EvalParameters = EvalParameters,
 > {
   taskFunc: (
     modelProvider: ModelProvider,
-    deployment: ModelConfig
+    deployment: ModelConfig,
   ) =>
     | Promise<EvalTask<Input, Output, Expected, Metadata, Parameters>>
     | EvalTask<Input, Output, Expected, Metadata, Parameters>;
@@ -33,7 +33,7 @@ export interface BenchmarkScorer<
   Input,
   Output,
   Expected,
-  Metadata extends BaseMetadata
+  Metadata extends BaseMetadata,
 > {
   scorerFunc: EvalScorer<Input, Output, Expected, Metadata>;
   description?: string;
@@ -43,7 +43,7 @@ export interface BenchmarkConfig<
   Input = unknown,
   Output = unknown,
   Expected = unknown,
-  Metadata extends BaseMetadata = DefaultMetadataType
+  Metadata extends BaseMetadata = DefaultMetadataType,
 > {
   description?: string;
   projectName: string;

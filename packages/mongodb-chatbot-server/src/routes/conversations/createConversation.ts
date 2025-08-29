@@ -16,9 +16,7 @@ import {
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import {
-  ConversationsRouterLocals,
-} from "./conversationsRouter";
+import { ConversationsRouterLocals } from "./conversationsRouter";
 import { AddCustomDataFunc } from "../../processors";
 import { creationInterface } from "./constants";
 
@@ -42,7 +40,7 @@ export function makeCreateConversationRoute({
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse<ApiConversation, ConversationsRouterLocals>
+    res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -53,7 +51,7 @@ export function makeCreateConversationRoute({
       const customData = await getCustomData(
         req,
         res,
-        createConversationCustomData
+        createConversationCustomData,
       );
       const conversationInDb = await conversations.create({
         customData,
@@ -89,7 +87,7 @@ export function makeCreateConversationRoute({
 async function getCustomData(
   req: ExpressRequest,
   res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
-  createConversationCustomData?: AddCustomDataFunc
+  createConversationCustomData?: AddCustomDataFunc,
 ): Promise<ConversationCustomData | undefined> {
   try {
     if (createConversationCustomData) {

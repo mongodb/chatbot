@@ -51,7 +51,7 @@ export function addReferenceSourceType(reference: Reference): Reference {
   @returns The link variant type to use, or undefined if no variant matches.
  */
 export function mongodbReferenceType(
-  ref: Reference
+  ref: Reference,
 ): ReferenceVariant | undefined {
   const sourceName = ref.metadata?.sourceName ?? null;
   if (sourceName) {

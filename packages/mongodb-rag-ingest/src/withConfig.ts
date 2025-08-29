@@ -11,7 +11,7 @@ export const loadConfig = async ({
   config: configPathIn,
 }: LoadConfigArgs): Promise<Config> => {
   const path = Path.resolve(
-    configPathIn === undefined ? "ingest.config.cjs" : configPathIn
+    configPathIn === undefined ? "ingest.config.cjs" : configPathIn,
   );
 
   const maybePartialConfig = (await import(path)).default;
@@ -24,35 +24,35 @@ export const loadConfig = async ({
     dataSources: checkRequiredProperty(
       partialConfig,
       "dataSources",
-      missingProperties
+      missingProperties,
     ),
     embeddedContentStore: checkRequiredProperty(
       partialConfig,
       "embeddedContentStore",
-      missingProperties
+      missingProperties,
     ),
     embedder: checkRequiredProperty(
       partialConfig,
       "embedder",
-      missingProperties
+      missingProperties,
     ),
     ingestMetaStore: checkRequiredProperty(
       partialConfig,
       "ingestMetaStore",
-      missingProperties
+      missingProperties,
     ),
     pageStore: checkRequiredProperty(
       partialConfig,
       "pageStore",
-      missingProperties
+      missingProperties,
     ),
   };
 
   if (missingProperties.length !== 0) {
     throw new Error(
       `Config is missing the following properties: ${missingProperties.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
   }
 
@@ -61,7 +61,7 @@ export const loadConfig = async ({
 
 export const withConfig = async <T>(
   action: (config: ResolvedConfig, args: T) => Promise<void>,
-  args: LoadConfigArgs & T
+  args: LoadConfigArgs & T,
 ) => {
   const config = await loadConfig(args);
   const [resolvedConfig, cleanup] = await resolveConfig(config);
@@ -75,7 +75,7 @@ export const withConfig = async <T>(
         } catch (error) {
           logger.error(`Cleanup failed: ${(error as Error).message}`);
         }
-      })
+      }),
     );
   }
 };
@@ -84,7 +84,7 @@ export const withConfig = async <T>(
   Apply config options to CLI command.
  */
 export const withConfigOptions = <T>(
-  args: yargs.Argv<T>
+  args: yargs.Argv<T>,
 ): yargs.Argv<T & LoadConfigArgs> => {
   return args.option("config", {
     string: true,
@@ -105,7 +105,7 @@ type Constructed<T> = Awaited<T extends () => infer R ? R : T>;
   Resolve any promises in the config object.
  */
 const resolveConfig = async (
-  config: Config
+  config: Config,
 ): Promise<[ResolvedConfig, CleanupFunc[]]> => {
   const cleanup: CleanupFunc[] = [];
   try {
@@ -123,8 +123,8 @@ const resolveConfig = async (
               });
             }
             return [k, resolved];
-          })
-        )
+          }),
+        ),
       ),
       cleanup,
     ];
@@ -144,7 +144,7 @@ const resolve = async <T>(v: T): Promise<Constructed<T>> =>
 function checkRequiredProperty<T, K extends keyof T>(
   object: T,
   k: K,
-  missingProperties: string[]
+  missingProperties: string[],
 ): Exclude<T[K], undefined> {
   const value = object[k];
   if (value === undefined) {

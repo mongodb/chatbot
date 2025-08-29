@@ -28,7 +28,7 @@ describe.skip("Braintrust models", () => {
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);
       await expectModelResponse(openAiClient, model.deployment);
-    }
+    },
   );
 });
 

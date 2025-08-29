@@ -413,7 +413,7 @@ const dataset: RewriteNlQueryDatasetEntry[] = [
     ({
       ...entry,
       tags: [entry.expected.classification, ...entry.input.tags],
-    } as RewriteNlQueryDatasetEntry)
+    }) as RewriteNlQueryDatasetEntry,
 );
 
 const modelDeployment: (typeof models)[number]["deployment"] =

@@ -4,7 +4,7 @@ import { END_SNIPPET, START_SNIPPET } from "./contextualizeCodeBlock";
 
 export const makePrompt = (
   contextStr: string,
-  numQuestions = 3
+  numQuestions = 3,
 ) => `Your job is to generate prompts for a Large Language Model (LLM) that a code example would complete.
 This information will be used to train an LLM, so precision is incredibly important.
 Given the contextual information, generate ${numQuestions} prompts that the code between ${START_SNIPPET} and ${END_SNIPPET} would complete.
@@ -96,7 +96,7 @@ export function makeCreatePromptsFromText({
       },
     });
     const prompts = JSON.parse(
-      result?.choices?.[0].message?.function_call?.arguments ?? ""
+      result?.choices?.[0].message?.function_call?.arguments ?? "",
     ).prompts as string[];
     return prompts;
   };

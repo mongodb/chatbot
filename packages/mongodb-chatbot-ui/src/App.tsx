@@ -202,7 +202,7 @@ function GitCommitLink() {
   const color = darkMode ? "white" : "black";
   if (!VITE_GIT_COMMIT) {
     console.warn(
-      "VITE_GIT_COMMIT is not defined. Did you forget to define it in a build script?"
+      "VITE_GIT_COMMIT is not defined. Did you forget to define it in a build script?",
     );
     return null;
   }

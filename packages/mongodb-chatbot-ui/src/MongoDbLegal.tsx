@@ -19,7 +19,7 @@ export function MongoDbLegalDisclosureText() {
       hideExternalIcon
       href={addQueryParams(
         "https://www.mongodb.com/legal/acceptable-use-policy",
-        { tck }
+        { tck },
       )}
     >
       Acceptable Use Policy
@@ -41,7 +41,7 @@ export function MongoDbDataUsagePolicyText() {
       hideExternalIcon
       href={addQueryParams(
         "https://www.mongodb.com/docs/ai-chatbot-data-usage/",
-        { tck }
+        { tck },
       )}
     >
       Data Usage Policy

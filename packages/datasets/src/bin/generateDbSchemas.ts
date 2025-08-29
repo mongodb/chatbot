@@ -26,7 +26,7 @@ async function generateDbSchema(mongoClient: MongoClient, dbName: string) {
   const model = "gpt-4o";
   const pathOut = path.resolve(
     __dirname,
-    "annotatedDbSchema" + "_" + dbName + "_" + model + ".yaml"
+    "annotatedDbSchema" + "_" + dbName + "_" + model + ".yaml",
   );
   const dbInfo = await generateAnnotatedDatabaseInfoNode({
     mongoDb: {
@@ -44,7 +44,7 @@ async function generateDbSchema(mongoClient: MongoClient, dbName: string) {
 
   fs.writeFileSync(
     pathOut,
-    yaml.stringify(JSON.parse(prettyPrintMongoDbDocument(dbInfo.data)))
+    yaml.stringify(JSON.parse(prettyPrintMongoDbDocument(dbInfo.data))),
   );
 }
 

@@ -52,7 +52,7 @@ describe("POST /responses", () => {
     const testPort = 5200;
     ({ server, ipAddress, origin } = await makeTestLocalServer(
       appConfig,
-      testPort
+      testPort,
     ));
   });
 
@@ -64,11 +64,11 @@ describe("POST /responses", () => {
   const makeClientAndRequest = (
     body?: RequestBody,
     overrideOrigin?: string,
-    overrideIpAddress?: string
+    overrideIpAddress?: string,
   ) => {
     const openAiClient = makeOpenAiClient(
       overrideOrigin ?? origin,
-      overrideIpAddress ?? ipAddress
+      overrideIpAddress ?? ipAddress,
     );
     return makeCreateResponseRequestStream(openAiClient, body);
   };
@@ -333,7 +333,7 @@ describe("POST /responses", () => {
       await expectValidResponses({ requestBody, stream });
 
       expect(updatedConversation?.storeMessageContent).toEqual(
-        storeMessageContent
+        storeMessageContent,
       );
       expectDefaultMessageContent({
         initialMessages,
@@ -444,7 +444,7 @@ describe("POST /responses", () => {
       const stream = await makeClientAndRequest(
         requestBody,
         customOrigin,
-        customIpAddress
+        customIpAddress,
       );
 
       const results = await expectValidResponses({ requestBody, stream });
@@ -644,7 +644,7 @@ describe("POST /responses", () => {
       const stream = await makeClientAndRequest(
         requestBody,
         customOrigin,
-        customIpAddress
+        customIpAddress,
       );
 
       await expectValidResponses({ requestBody, stream });
@@ -658,7 +658,7 @@ describe("POST /responses", () => {
                 content: "You are a helpful assistant.",
               }),
               expect.objectContaining({
-                role: "user", 
+                role: "user",
                 content: "First question",
               }),
               expect.objectContaining({
@@ -668,7 +668,7 @@ describe("POST /responses", () => {
             ]),
           }),
           latestMessageText: "Second question",
-        })
+        }),
       );
 
       customServer.close();
@@ -689,7 +689,6 @@ describe("POST /responses", () => {
 
     it("Should return error responses if empty message array", async () => {
       const stream = await makeClientAndRequest({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         input: [] as any,
       });
 
@@ -721,7 +720,7 @@ describe("POST /responses", () => {
         stream,
         message: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
           max_output_tokens,
-          4000
+          4000,
         ),
       });
     });
@@ -804,7 +803,7 @@ describe("POST /responses", () => {
           type: "message" as const,
           role: "user" as const,
           content: `Message ${i}`,
-        })
+        }),
       );
       const stream = await makeClientAndRequest({
         input: input as any,
@@ -1012,7 +1011,7 @@ describe("POST /responses", () => {
       await expectInvalidResponses({
         stream,
         message: CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
-          maxUserMessagesInConversation
+          maxUserMessagesInConversation,
         ),
       });
     });
@@ -1218,7 +1217,7 @@ const expectValidResponses = async ({
     }
     if (requestBody.previous_response_id) {
       expect(response.previous_response_id).toBe(
-        requestBody.previous_response_id
+        requestBody.previous_response_id,
       );
     } else {
       expect(response.previous_response_id).toBeNull();

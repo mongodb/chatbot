@@ -153,7 +153,7 @@ describe("runBenchmark", () => {
       const invalidArgs = { ...mockArgs, type: "unknown-benchmark" };
 
       await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
-        "Unknown benchmark type: unknown-benchmark"
+        "Unknown benchmark type: unknown-benchmark",
       );
     });
 
@@ -161,7 +161,7 @@ describe("runBenchmark", () => {
       const invalidArgs = { ...mockArgs, datasets: ["unknown-dataset"] };
 
       await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
-        "No valid datasets found"
+        "No valid datasets found",
       );
     });
 
@@ -169,7 +169,7 @@ describe("runBenchmark", () => {
       const invalidArgs = { ...mockArgs, task: "unknown-task" };
 
       await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
-        "No valid tasks found"
+        "No valid tasks found",
       );
     });
 
@@ -185,10 +185,10 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, mockArgs);
 
       expect(
-        mockConfig.benchmarks["test-benchmark"].datasets.dataset1.getDataset
+        mockConfig.benchmarks["test-benchmark"].datasets.dataset1.getDataset,
       ).toHaveBeenCalled();
       expect(
-        mockConfig.benchmarks["test-benchmark"].datasets.dataset2.getDataset
+        mockConfig.benchmarks["test-benchmark"].datasets.dataset2.getDataset,
       ).not.toHaveBeenCalled();
     });
 
@@ -201,10 +201,10 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, multiDatasetArgs);
 
       expect(
-        mockConfig.benchmarks["test-benchmark"].datasets.dataset1.getDataset
+        mockConfig.benchmarks["test-benchmark"].datasets.dataset1.getDataset,
       ).toHaveBeenCalled();
       expect(
-        mockConfig.benchmarks["test-benchmark"].datasets.dataset2.getDataset
+        mockConfig.benchmarks["test-benchmark"].datasets.dataset2.getDataset,
       ).toHaveBeenCalled();
     });
 
@@ -261,14 +261,14 @@ describe("runBenchmark", () => {
     it("should throw error when sampleSize is negative", () => {
       const dataset = [1, 2, 3, 4, 5];
       expect(() => getSample(dataset, -1, "firstN")).toThrow(
-        "sampleSize is required"
+        "sampleSize is required",
       );
     });
 
     it("should throw error when sampleSize exceeds dataset length", () => {
       const dataset = [1, 2, 3];
       expect(() => getSample(dataset, 5, "firstN")).toThrow(
-        "sampleSize must be less than or equal to the length of the dataset"
+        "sampleSize must be less than or equal to the length of the dataset",
       );
     });
   });
@@ -331,7 +331,7 @@ describe("runBenchmark", () => {
           metadata: expect.objectContaining({
             taskConcurrency: 3,
           }),
-        })
+        }),
       );
     });
 
@@ -342,7 +342,7 @@ describe("runBenchmark", () => {
         "test-project",
         expect.objectContaining({
           maxConcurrency: 5, // From model.maxConcurrency
-        })
+        }),
       );
     });
 
@@ -373,7 +373,7 @@ describe("runBenchmark", () => {
         "test-project",
         expect.objectContaining({
           maxConcurrency: 1, // Default fallback
-        })
+        }),
       );
     });
   });
@@ -390,7 +390,7 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, mockArgs);
 
       expect(mockPromisePoolInstance.handleError).toHaveBeenCalledWith(
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -408,7 +408,7 @@ describe("runBenchmark", () => {
       expect(result).toBeDefined();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining("✗ Failed experiment:"),
-        expect.any(Error)
+        expect.any(Error),
       );
 
       // First model should have undefined result due to error, second should succeed
@@ -452,7 +452,7 @@ describe("runBenchmark", () => {
       };
 
       await expect(
-        runBenchmark(configWithFailingDataset, mockArgs)
+        runBenchmark(configWithFailingDataset, mockArgs),
       ).rejects.toThrow("Dataset load failed");
     });
 
@@ -473,10 +473,10 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, mockArgs);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Running benchmark: test-benchmark"
+        "Running benchmark: test-benchmark",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Model(s): test-model-1, test-model-2"
+        "Model(s): test-model-1, test-model-2",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith("Dataset(s): dataset1");
       expect(consoleLogSpy).toHaveBeenCalledWith("Model concurrency: 2");
@@ -486,13 +486,13 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, mockArgs);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Running experiments for model: test-model-1"
+        "Running experiments for model: test-model-1",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Running experiment: test-experiment-name"
+        "Running experiment: test-experiment-name",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "✓ Completed experiment: test-experiment-name"
+        "✓ Completed experiment: test-experiment-name",
       );
     });
 
@@ -511,7 +511,7 @@ describe("runBenchmark", () => {
       await runBenchmark(mockConfig, multiDatasetArgs);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Dataset(s): dataset1, dataset2"
+        "Dataset(s): dataset1, dataset2",
       );
     });
   });
@@ -600,7 +600,7 @@ describe("runBenchmark", () => {
     it("should handle different experiment names per model", async () => {
       // Mock makeExperimentName to return different names based on model
       mockMakeExperimentName.mockImplementation(
-        ({ model }) => `experiment-${model}`
+        ({ model }) => `experiment-${model}`,
       );
 
       const result = await runBenchmark(mockConfig, mockArgs);
@@ -634,7 +634,7 @@ describe("runBenchmark", () => {
         "test-project",
         expect.objectContaining({
           scores: [mockScorerFunc],
-        })
+        }),
       );
     });
 
@@ -664,7 +664,7 @@ describe("runBenchmark", () => {
         "test-project",
         expect.objectContaining({
           scores: [expect.any(Function), expect.any(Function)],
-        })
+        }),
       );
     });
   });
@@ -675,7 +675,7 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[0]
+        mockConfig.models[0],
       );
     });
 
@@ -684,12 +684,12 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[0]
+        mockConfig.models[0],
       );
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[1]
+        mockConfig.models[1],
       );
     });
 

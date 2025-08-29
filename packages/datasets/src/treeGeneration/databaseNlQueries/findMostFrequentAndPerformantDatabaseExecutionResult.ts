@@ -29,13 +29,13 @@ export const fuzzyMatchDatabaseExecutionResults: FuzzyMatch<
 };
 
 export function fuzzyClusterDatabaseExecutionResults(
-  items: DatabaseExecutionResultNode["data"][]
+  items: DatabaseExecutionResultNode["data"][],
 ): number[][] {
   return fuzzyClusterItems(items, fuzzyMatchDatabaseExecutionResults);
 }
 
 export function getClusterFastestExecutionTimeExecutionResultIndex(
-  cluster: DatabaseExecutionResultNode["data"][] | null
+  cluster: DatabaseExecutionResultNode["data"][] | null,
 ): number | null {
   if (cluster === null || cluster.length === 0) return null;
 
@@ -55,7 +55,7 @@ export function getClusterFastestExecutionTimeExecutionResultIndex(
 
 export function findMostFrequentAndPerformantDatabaseExecutionResult(
   items: DatabaseExecutionResultNode["data"][],
-  minClusterSize = 1
+  minClusterSize = 1,
 ) {
   const clusters = fuzzyClusterDatabaseExecutionResults(items);
   const largestCluster = findLargestCluster(clusters);

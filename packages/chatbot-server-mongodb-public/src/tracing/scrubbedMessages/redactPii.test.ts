@@ -85,14 +85,15 @@ describe("redactPii", () => {
 
     // Should replace all three names
     expect(result.redactedText).toBe(
-      "Hello, I am [NAME] and this is [NAME] and [NAME]."
+      "Hello, I am [NAME] and this is [NAME] and [NAME].",
     );
     expect(result.piiFound).toContain("name");
     expect(result.piiFound.filter((type) => type === "name").length).toBe(1); // Only count 'name' once in piiFound
   });
 
   it("should redact names at the beginning and end of text", () => {
-    const text = "Aaron is at the beginning and Abraham is in the middle and Abby is at the end";
+    const text =
+      "Aaron is at the beginning and Abraham is in the middle and Abby is at the end";
     const result = redactPii(text);
 
     expect(result.redactedText).toContain("[NAME] is at the beginning");

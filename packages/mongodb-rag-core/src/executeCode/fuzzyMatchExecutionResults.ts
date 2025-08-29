@@ -58,7 +58,7 @@ export function fuzzyMatchExecutionResults({
       expectedEjson,
       outputEjson,
       orderMatters,
-      allowedNumberDifference
+      allowedNumberDifference,
     );
   }
 
@@ -67,7 +67,7 @@ export function fuzzyMatchExecutionResults({
       expectedEjson,
       outputEjson,
       orderMatters,
-      allowedNumberDifference
+      allowedNumberDifference,
     );
   }
   return null;
@@ -77,7 +77,7 @@ export function fuzzyMatchAggregation(
   truthArray: Record<string, unknown>[],
   testInput: MongoDbOutput,
   nestedArrayOrderMatters: boolean,
-  allowedNumberDifference = 0.01
+  allowedNumberDifference = 0.01,
 ): boolean {
   const testIsArray = Array.isArray(testInput);
   let testArray: Record<string, unknown>[];
@@ -106,8 +106,8 @@ export function fuzzyMatchAggregation(
         truthObj,
         testObj,
         nestedArrayOrderMatters,
-        allowedNumberDifference
-      )
+        allowedNumberDifference,
+      ),
     );
 
     if (matchIndex === -1) {
@@ -133,7 +133,7 @@ export function fuzzyMatchArrays(
   truthArray: Array<Record<string, unknown>>,
   testArray: Array<Record<string, unknown>>,
   orderMatters?: boolean,
-  allowedNumberDifference?: number
+  allowedNumberDifference?: number,
 ): boolean {
   // If array lengths are different, they can't match
   if (truthArray.length !== testArray.length) return false;
@@ -146,7 +146,7 @@ export function fuzzyMatchArrays(
           truthArray[i],
           testArray[i],
           orderMatters,
-          allowedNumberDifference
+          allowedNumberDifference,
         )
       ) {
         return false;
@@ -166,8 +166,8 @@ export function fuzzyMatchArrays(
         truthObj,
         testObj,
         orderMatters,
-        allowedNumberDifference
-      )
+        allowedNumberDifference,
+      ),
     );
 
     if (matchIndex === -1) {
@@ -192,7 +192,7 @@ function fuzzyMatchObjects(
   truthObject: Record<string, unknown>,
   testObject: Record<string, unknown>,
   nestedArrayOrderMatters?: boolean,
-  allowedNumberDifference = 0.01
+  allowedNumberDifference = 0.01,
 ) {
   const truthKeys = Object.keys(truthObject);
 
@@ -227,7 +227,7 @@ function fuzzyMatchObjects(
         !fuzzyMatchObjects(
           truthVal as Record<string, unknown>,
           testVal as Record<string, unknown>,
-          nestedArrayOrderMatters
+          nestedArrayOrderMatters,
         )
       )
         return false;
@@ -247,7 +247,7 @@ function fuzzyMatchObjectsIgnoreKeys(
   truthObject: Record<string, unknown>,
   testObject: Record<string, unknown>,
   nestedArrayOrderMatters?: boolean,
-  allowedNumberDifference = 0.01
+  allowedNumberDifference = 0.01,
 ): boolean {
   const truthValues = Object.values(truthObject);
   const testValues = Object.values(testObject);
@@ -264,8 +264,8 @@ function fuzzyMatchObjectsIgnoreKeys(
         truthValue,
         testValue,
         nestedArrayOrderMatters,
-        allowedNumberDifference
-      )
+        allowedNumberDifference,
+      ),
     );
 
     if (matchIndex === -1) {
@@ -288,7 +288,7 @@ function fuzzyMatchValues(
   truthVal: unknown,
   testVal: unknown,
   nestedArrayOrderMatters?: boolean,
-  allowedNumberDifference = 0.01
+  allowedNumberDifference = 0.01,
 ): boolean {
   // Fuzzy conditions:
   // - If values are numbers, allow a small difference
@@ -303,7 +303,7 @@ function fuzzyMatchValues(
         truthVal as Array<Record<string, unknown>>,
         testVal as Array<Record<string, unknown>>,
         nestedArrayOrderMatters,
-        allowedNumberDifference
+        allowedNumberDifference,
       ) === false
     )
       return false;
@@ -319,7 +319,7 @@ function fuzzyMatchValues(
         truthVal as Record<string, unknown>,
         testVal as Record<string, unknown>,
         nestedArrayOrderMatters,
-        allowedNumberDifference
+        allowedNumberDifference,
       ) === false
     )
       return false;

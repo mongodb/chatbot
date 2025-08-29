@@ -33,37 +33,40 @@ async function main() {
   // 2. annotated schema + chain of thought system prompt
   // 3. annotated schema + default system prompt + few shot
   // 4. annotated schema + chain of thought system prompt + few shot
-  const experiments = toolCallModels.reduce((acc, model) => {
-    acc[model.label] = [
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "default",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "chainOfThought",
-        type: experimentType,
-        model,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "default",
-        type: experimentType,
-        model,
-        fewShot: true,
-      },
-      {
-        schemaStrategy: "annotated",
-        systemPromptStrategy: "chainOfThought",
-        type: experimentType,
-        model,
-        fewShot: true,
-      },
-    ];
-    return acc;
-  }, {} as Record<(typeof MODELS)[number]["label"], Experiment[]>);
+  const experiments = toolCallModels.reduce(
+    (acc, model) => {
+      acc[model.label] = [
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "default",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "chainOfThought",
+          type: experimentType,
+          model,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "default",
+          type: experimentType,
+          model,
+          fewShot: true,
+        },
+        {
+          schemaStrategy: "annotated",
+          systemPromptStrategy: "chainOfThought",
+          type: experimentType,
+          model,
+          fewShot: true,
+        },
+      ];
+      return acc;
+    },
+    {} as Record<(typeof MODELS)[number]["label"], Experiment[]>,
+  );
   await PromisePool.for(Object.values(experiments))
     .withConcurrency(MAX_CONCURRENT_MODELS)
     .process(async (experiments) => {

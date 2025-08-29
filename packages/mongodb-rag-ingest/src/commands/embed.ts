@@ -31,12 +31,12 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
             })
             .demandOption(
               "since",
-              "Please provide a 'since' date for the update"
+              "Please provide a 'since' date for the update",
             ),
         handler: ({ since: sinceString, source, ...updateArgs }) => {
           if (isNaN(Date.parse(sinceString))) {
             throw new Error(
-              `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
+              `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`,
             );
           }
           const since = new Date(sinceString);
@@ -84,14 +84,14 @@ export const doUpdateEmbedCommand = async (
     chunkOptions,
     concurrencyOptions,
   }: ResolvedConfig,
-  { since, source }: UpdateEmbedCommandArgs
+  { since, source }: UpdateEmbedCommandArgs,
 ) => {
   const sourceNames =
     source === undefined
       ? undefined
       : Array.isArray(source)
-      ? source
-      : [source];
+        ? source
+        : [source];
 
   await updateEmbeddedContent({
     since,
@@ -110,18 +110,18 @@ type DeleteEmbedCommandArgs = {
 
 export const doDeleteEmbedCommand = async (
   { embeddedContentStore }: ResolvedConfig,
-  { source }: DeleteEmbedCommandArgs
+  { source }: DeleteEmbedCommandArgs,
 ) => {
   const sourceNames =
     source === undefined
       ? undefined
       : Array.isArray(source)
-      ? source
-      : [source];
+        ? source
+        : [source];
   logger.info(
     `Embeddings to be deleted:\n${sourceNames
       ?.map((name) => `- ${name}`)
-      .join("\n")}`
+      .join("\n")}`,
   );
   await embeddedContentStore.deleteEmbeddedContent({
     dataSources: sourceNames,

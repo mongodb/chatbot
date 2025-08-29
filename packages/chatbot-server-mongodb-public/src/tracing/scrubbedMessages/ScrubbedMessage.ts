@@ -4,7 +4,7 @@ import { Pii } from "./redactPii";
 import { OriginCode } from "mongodb-chatbot-server";
 
 export type ScrubbedMessage<
-  Analysis extends Record<string, unknown> | undefined = undefined
+  Analysis extends Record<string, unknown> | undefined = undefined,
 > = Omit<DbMessage<SomeMessage>, "id"> & {
   /**
     The ID, which should match the ID of the original message within the

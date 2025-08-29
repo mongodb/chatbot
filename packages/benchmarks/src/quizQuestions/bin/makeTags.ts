@@ -74,6 +74,6 @@ export function makeTags(qq: QuizQuestionData) {
     tags.push("data_modeling");
   }
   return Array.from(
-    new Set(tags.map((t) => t.toLowerCase().split(" ").join("_")))
+    new Set(tags.map((t) => t.toLowerCase().split(" ").join("_"))),
   );
 }

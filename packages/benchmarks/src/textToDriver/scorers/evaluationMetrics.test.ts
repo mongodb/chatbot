@@ -417,7 +417,7 @@ describe("makeQueryPerformanceMongosh", () => {
     expect(mockProfileMongoshQuery).toHaveBeenCalledWith(
       "db.users.find({})",
       "test_db",
-      connectionUri
+      connectionUri,
     );
   });
 
@@ -608,7 +608,7 @@ describe("makeQueryPerformanceMongosh", () => {
     expect(mockProfileMongoshQuery).toHaveBeenCalledWith(
       "db.custom.aggregate([{$match: {}}])",
       "custom_db",
-      connectionUri
+      connectionUri,
     );
   });
 
@@ -651,7 +651,7 @@ describe("makeQueryPerformanceMongosh", () => {
 
     expect((result as any).metadata).toEqual(complexMockProfile);
     expect(
-      (result as any).metadata.explainOutput.queryPlanner.winningPlan.indexName
+      (result as any).metadata.explainOutput.queryPlanner.winningPlan.indexName,
     ).toBe("product_index");
     expect((result as any).metadata.collection.name).toBe("products");
   });

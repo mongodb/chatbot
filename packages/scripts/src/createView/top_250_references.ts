@@ -93,7 +93,7 @@ export type TopReference = {
             $limit: NUM_REFERENCES,
           },
         ],
-      }
+      },
     );
   } finally {
     await client.close();

@@ -25,7 +25,7 @@ describe("validateRequestSchema", () => {
           message: z.string(),
         }),
         ip: z.string(),
-      })
+      }),
     );
 
     const middleware = validateRequestSchema(ValidRequestSchema);

@@ -7,7 +7,7 @@ import { mongoDbVerifyInformationMessage } from "./ui-text";
 import { lazy } from "react";
 
 const ModalView = lazy(() =>
-  import("./ModalView").then((m) => ({ default: m.ModalView }))
+  import("./ModalView").then((m) => ({ default: m.ModalView })),
 );
 
 export type DocsChatbotProps = DarkModeProps & {

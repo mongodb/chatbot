@@ -6,7 +6,7 @@ async function main() {
   const dataOutDir = path.join(__dirname, "..", "..", "dataOut");
   const datasetInPath = path.join(
     dataOutDir,
-    "atlas-sample-dataset-claude-rewritten.1752073270894.json"
+    "atlas-sample-dataset-claude-rewritten.1752073270894.json",
   );
 
   console.log("Reading dataset from", datasetInPath);
@@ -18,7 +18,7 @@ async function main() {
   const fixedDataset = dataset.map((d) => d.datasetEntry);
   const pathOut = path.join(
     dataOutDir,
-    "atlas-sample-dataset-claude-rewritten.json"
+    "atlas-sample-dataset-claude-rewritten.json",
   );
   console.log("Writing fixed dataset to", pathOut);
   fs.writeFileSync(pathOut, JSON.stringify(fixedDataset, null, 2));

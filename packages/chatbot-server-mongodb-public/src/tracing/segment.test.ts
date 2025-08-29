@@ -117,9 +117,9 @@ describe("Segment Tracking", () => {
         trackUserSentMessage({
           ...commonParams,
           tags: ["tag1"],
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserSentMessage/
+        /Unable to create track event params for trackUserSentMessage/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -135,9 +135,9 @@ describe("Segment Tracking", () => {
           ...commonParams,
           origin: "invalid-url",
           tags: ["tag1"],
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserSentMessage/
+        /Unable to create track event params for trackUserSentMessage/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -294,9 +294,9 @@ describe("Segment Tracking", () => {
         trackAssistantResponded({
           ...commonParams,
           isVerifiedAnswer: false,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackAssistantResponded/
+        /Unable to create track event params for trackAssistantResponded/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -312,9 +312,9 @@ describe("Segment Tracking", () => {
           ...commonParams,
           origin: "invalid-url",
           isVerifiedAnswer: true,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackAssistantResponded/
+        /Unable to create track event params for trackAssistantResponded/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -469,9 +469,9 @@ describe("Segment Tracking", () => {
         trackUserRatedMessage({
           ...commonParams,
           rating: true,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserRatedMessage/
+        /Unable to create track event params for trackUserRatedMessage/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -487,9 +487,9 @@ describe("Segment Tracking", () => {
           ...commonParams,
           origin: "invalid-url",
           rating: true,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserRatedMessage/
+        /Unable to create track event params for trackUserRatedMessage/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -655,9 +655,9 @@ describe("Segment Tracking", () => {
           ...commonParams,
           comment: "This was very helpful!",
           rating: true,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserCommentedMessage/
+        /Unable to create track event params for trackUserCommentedMessage/,
       );
 
       expect(mockAnalytics.track).not.toHaveBeenCalled();
@@ -674,9 +674,9 @@ describe("Segment Tracking", () => {
           origin: "invalid-url",
           comment: "Test comment",
           rating: true,
-        })
+        }),
       ).rejects.toThrow(
-        /Unable to create track event params for trackUserCommentedMessage/
+        /Unable to create track event params for trackUserCommentedMessage/,
       );
       expect(mockAnalytics.track).not.toHaveBeenCalled();
     });

@@ -37,15 +37,15 @@ async function main() {
   const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
   const pathToFile = path.join(
     dataOutDir,
-    "atlas_sample_data_benchmark_gpt-4o_filtered.json"
+    "atlas_sample_data_benchmark_gpt-4o_filtered.json",
   );
   const pathOut = path.join(
     dataOutDir,
-    "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time.json"
+    "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time.json",
   );
   const fileContent = fs.readFileSync(pathToFile, "utf-8");
   const dataset = TextToMongoshEvalResult.array().parse(
-    JSON.parse(fileContent)
+    JSON.parse(fileContent),
   );
 
   const executeMongoshQuery = makeExecuteMongoshQuery({
@@ -65,7 +65,7 @@ async function main() {
       const executionResults = [];
       for (const _execution of Array.from(
         { length: SAMPLE_NUM_EXECUTIONS },
-        (_, i) => i
+        (_, i) => i,
       )) {
         console.log("Executing execution", _execution + 1);
         const executionResult = await executeMongoshQuery({
@@ -78,12 +78,12 @@ async function main() {
 
       console.log(executionResults);
       const validExecutionResults = executionResults.filter(
-        (result) => result.executionTimeMs !== null
+        (result) => result.executionTimeMs !== null,
       );
       const averageExecutionTime =
         validExecutionResults.reduce(
           (acc, result) => acc + (result.executionTimeMs ?? 0),
-          0
+          0,
         ) / validExecutionResults.length;
       entry.expected.executionTimeMs = averageExecutionTime;
     });

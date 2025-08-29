@@ -16,7 +16,7 @@ const openAiClient = wrapOpenAI(
   new OpenAI({
     apiKey: BRAINTRUST_API_KEY,
     baseURL: BRAINTRUST_ENDPOINT,
-  })
+  }),
 );
 
 const evalData = useCaseNodes.map((useCase) => {

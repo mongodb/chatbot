@@ -75,7 +75,7 @@ A. Tacos
 B. Pizza
 C. Sushi
 D. Enchiladas
-Response:`
+Response:`,
     );
   });
   it("should include the answer when `includeAnswer: true`", () => {
@@ -86,7 +86,7 @@ A. Tacos
 B. Pizza
 C. Sushi
 D. Enchiladas
-Response: B`
+Response: B`,
     );
   });
   it("should not include the answer when `includeAnswer: false`", () => {
@@ -97,7 +97,7 @@ A. Tacos
 B. Pizza
 C. Sushi
 D. Enchiladas
-Response: `
+Response: `,
     );
   });
 });
@@ -124,8 +124,8 @@ describe("makeHelmQuizQuestionPrompt", () => {
     });
     expect(
       (promptWithSubject[0].content as string).startsWith(
-        `The following are multiple choice questions (with answers) about ${subject}.`
-      )
+        `The following are multiple choice questions (with answers) about ${subject}.`,
+      ),
     ).toBe(true);
 
     const promptWithoutSubject = makeHelmQuizQuestionPrompt({
@@ -133,8 +133,8 @@ describe("makeHelmQuizQuestionPrompt", () => {
     });
     expect(
       (promptWithoutSubject[0].content as string).startsWith(
-        "The following are multiple choice questions (with answers)."
-      )
+        "The following are multiple choice questions (with answers).",
+      ),
     ).toBe(true);
   });
   it("should include few-shot examples", () => {

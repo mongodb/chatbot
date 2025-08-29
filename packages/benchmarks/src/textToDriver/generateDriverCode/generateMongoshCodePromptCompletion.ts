@@ -79,8 +79,8 @@ export function makeGenerateMongoshCodePromptCompletionTask({
     systemPromptStrategy === "chainOfThought"
       ? nlQuerySystemPromptCoT
       : systemPromptStrategy === "lazy"
-      ? nlQuerySystemPromptLazy
-      : nlQuerySystemPrompt;
+        ? nlQuerySystemPromptLazy
+        : nlQuerySystemPrompt;
 
   const executeMongoshQuery = makeExecuteMongoshQuery({
     uri,

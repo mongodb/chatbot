@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf ./build ./tsconfig.build.tsbuildinfo",
-    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint": "eslint ./src --report-unused-disable-directives",
     "release": "release-it",
     "test": "vitest run"
   },
@@ -38,11 +38,8 @@
   "devDependencies": {
     "@types/common-tags": "^1.8.4",
     "@types/node": "^24.2.1",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "^8.39.1",
     "autoevals": "^0.0.130",
     "braintrust": "^0.2.4",
-    "eslint": "^9.33.0",
     "fix-dts-default-cjs-exports": "^1.0.1",
     "release-it": "^16.3.0",
     "tsup": "^8.5.0",

@@ -9,7 +9,7 @@ export type RequestCustomData = Record<string, unknown> | undefined;
  */
 export type AddCustomDataFunc = (
   request: Request,
-  response: Response
+  response: Response,
 ) => Promise<RequestCustomData>;
 
 const addIpToCustomData: AddCustomDataFunc = async (req) =>
@@ -96,7 +96,7 @@ export type AddDefinedCustomDataFunc = (
 
 export const addDefaultCustomData: AddDefinedCustomDataFunc = async (
   req,
-  res
+  res,
 ) => {
   return {
     ...(await addIpToCustomData(req, res)),

@@ -36,7 +36,7 @@ const separators = [
 ];
 export const chunkMd: ChunkFunc = async function (
   page: Page,
-  optionsIn?: Partial<ChunkOptions>
+  optionsIn?: Partial<ChunkOptions>,
 ) {
   const options = { ...defaultMdChunkOptions, ...optionsIn };
   const { tokenizer, maxChunkSize, minChunkSize, chunkOverlap, transform } =
@@ -51,7 +51,7 @@ export const chunkMd: ChunkFunc = async function (
   let chunks = await splitter.createDocuments([page.body]);
   if (minChunkSize) {
     chunks = chunks.filter(
-      (chunk) => tokenizer.encode(chunk.pageContent).bpe.length > minChunkSize
+      (chunk) => tokenizer.encode(chunk.pageContent).bpe.length > minChunkSize,
     );
   }
   return await Promise.all(
@@ -75,6 +75,6 @@ export const chunkMd: ChunkFunc = async function (
         chunk["metadata"] = metadata;
       }
       return chunk;
-    })
+    }),
   );
 };

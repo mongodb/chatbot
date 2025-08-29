@@ -16,7 +16,7 @@ describe.skip("makeGenerateMongoshCodeToolCallTask", () => {
 
     const openai = createOpenAI({
       ...(await getOpenAiEndpointAndApiKey(
-        models.find((m) => m.label === llmOptions.model)!
+        models.find((m) => m.label === llmOptions.model)!,
       )),
     });
     const task = makeGenerateMongoshCodeToolCallTask({
@@ -34,7 +34,7 @@ describe.skip("makeGenerateMongoshCodeToolCallTask", () => {
         databaseName: "sample_mflix",
         nlQuery: "Find all users",
       },
-      {} as any
+      {} as any,
     );
     expect(result.execution.result).toBeTruthy();
     expect(result.execution.error).toBe(null);

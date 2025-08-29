@@ -34,16 +34,16 @@ async function savePageMarkdown(page: Page) {
   const res = await fs.writeFile(
     path.join(
       OUTPUT_DIRECTORY,
-      `${page.sourceName}_${page.title?.replaceAll(/\//g, "_") ?? page._id}.md`
+      `${page.sourceName}_${page.title?.replaceAll(/\//g, "_") ?? page._id}.md`,
     ),
-    page.body
+    page.body,
   );
   return res;
 }
 
 function partition<T, Pass extends T = T, Fail extends T = T>(
   arr: T[],
-  test: (elem: T) => boolean
+  test: (elem: T) => boolean,
 ) {
   type PassFail = [Pass[], Fail[]];
   const passes: Pass[] = [];

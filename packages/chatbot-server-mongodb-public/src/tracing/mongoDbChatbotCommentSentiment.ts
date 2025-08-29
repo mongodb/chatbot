@@ -53,7 +53,7 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
       const { sentiment, reasoning } = await getSentiment(
         openAiClient,
         judgeLlm,
-        messagesForLlm
+        messagesForLlm,
       );
 
       const SENTIMENT_SCORES = {
@@ -75,13 +75,13 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
     },
     {
       name: "JudgeMongoDbChatbotCommentSentiment",
-    }
+    },
   );
 
 async function getSentiment(
   openAiClient: OpenAI,
   judgeLlm: string,
-  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
 ) {
   const modelRes = await openAiClient.chat.completions.create({
     messages: messages,
@@ -102,7 +102,7 @@ async function getSentiment(
 
 function makeUserMessage(
   messages: Message[],
-  messageWithCommentId: ObjectId
+  messageWithCommentId: ObjectId,
 ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
   const { sampleMessages, targetMessageIndex } = extractSampleMessages({
     messages,

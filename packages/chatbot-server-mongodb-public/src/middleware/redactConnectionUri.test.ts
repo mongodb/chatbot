@@ -29,7 +29,7 @@ describe("redactConnectionUri", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect((req.body as { message: string }).message).toBe(
-      "This is a normal message without any connection URI"
+      "This is a normal message without any connection URI",
     );
   });
 
@@ -50,11 +50,11 @@ describe("redactConnectionUri", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect((req.body as { message: string }).message).toBe(
-      "I'm using this connection string: mongodb://<USERNAME>:<PASSWORD>@localhost:27017/mydb"
+      "I'm using this connection string: mongodb://<USERNAME>:<PASSWORD>@localhost:27017/mydb",
     );
     expect((req.body as { message: string }).message).not.toContain("user123");
     expect((req.body as { message: string }).message).not.toContain(
-      "password456"
+      "password456",
     );
   });
 
@@ -79,7 +79,7 @@ describe("redactConnectionUri", () => {
     expect((req.body as { message: string }).message).toBe(
       "I have two connection strings: " +
         "mongodb://<USERNAME>:<PASSWORD>@localhost:27017/db1 and " +
-        "mongodb+srv://<USERNAME>:<PASSWORD>@cluster0.mongodb.net/db2"
+        "mongodb+srv://<USERNAME>:<PASSWORD>@cluster0.mongodb.net/db2",
     );
     expect((req.body as { message: string }).message).not.toContain("user1");
     expect((req.body as { message: string }).message).not.toContain("pass1");
@@ -118,7 +118,7 @@ describe("redactConnectionUri", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect((req.body as { someOtherField: string }).someOtherField).toBe(
-      "value"
+      "value",
     );
   });
 });

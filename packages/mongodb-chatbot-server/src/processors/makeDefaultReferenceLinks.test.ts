@@ -142,7 +142,7 @@ describe("makeDefaultReferenceLinks()", () => {
   test("Multiple sources from different pages should return 1 link per page", () => {
     const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
     const multipleReferencesDifferentPage = makeDefaultReferenceLinks(
-      twoChunksDifferentPage
+      twoChunksDifferentPage,
     );
     const expectedMultipleReferencesDifferentPage = [
       {
@@ -163,7 +163,7 @@ describe("makeDefaultReferenceLinks()", () => {
       },
     ];
     expect(multipleReferencesDifferentPage).toEqual(
-      expectedMultipleReferencesDifferentPage
+      expectedMultipleReferencesDifferentPage,
     );
     // All three sources. Two from the same page. One from a different page.
     const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
@@ -188,7 +188,7 @@ describe("makeDefaultReferenceLinks()", () => {
       },
     ];
     expect(multipleSourcesWithSomePageOverlap).toEqual(
-      expectedMultipleSourcesWithSomePageOverlap
+      expectedMultipleSourcesWithSomePageOverlap,
     );
   });
 });

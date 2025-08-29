@@ -110,5 +110,5 @@ ${JSON.stringify(parent.data, null, 2)}`,
   }),
   {
     name: "generateDatabaseUsers",
-  }
+  },
 );

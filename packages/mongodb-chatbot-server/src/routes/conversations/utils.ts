@@ -24,7 +24,7 @@ export const ApiConversation = z.object({
 
 export function convertMessageFromDbToApi(
   message: Message,
-  conversationId?: ObjectId
+  conversationId?: ObjectId,
 ): ApiMessage {
   const { id, createdAt, role, content } = message;
   const apiMessage = {
@@ -74,7 +74,7 @@ function isMessageAllowedInApiResponse(message: Message) {
 }
 
 export function convertConversationFromDbToApi(
-  conversation: Conversation
+  conversation: Conversation,
 ): ApiConversation {
   return {
     _id: conversation._id.toHexString(),

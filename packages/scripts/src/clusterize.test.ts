@@ -32,7 +32,7 @@ describe("clusterize", () => {
         },
       ],
       ({ v }) => v, // Getter function returns vector field from data object
-      { epsilon: 1 }
+      { epsilon: 1 },
     );
 
     // Expect clusters [a, b], [c, d, e] and noise f

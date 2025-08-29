@@ -16,11 +16,11 @@ export type GenerateChildren<
   ChildNode extends WithParentNode<
     GenerationNode<unknown, string | undefined>,
     ParentNode
-  >
+  >,
 > = (
   parent: ParentNode,
   llmOptions: GenerateChildrenLlmOptions,
-  numChildren: number
+  numChildren: number,
 ) => Promise<ChildNode[]>;
 
 export interface ResponseFunction {
@@ -39,14 +39,14 @@ export interface MakeGenerateChildrenWithOpenAiParams<
   ChildNode extends WithParentNode<
     GenerationNode<unknown, string | undefined>,
     ParentNode
-  >
+  >,
 > {
   /**
     Function that generates a prompt for a parent node.
     */
   makePromptMessages: (
     parentNode: ParentNode,
-    numChildren: number
+    numChildren: number,
   ) => Promise<OpenAI.ChatCompletionMessageParam[]>;
 
   /**
@@ -77,7 +77,7 @@ export function makeGenerateChildrenWithOpenAi<
   ChildNode extends WithParentNode<
     GenerationNode<unknown, string | undefined>,
     ParentNode
-  >
+  >,
 >({
   makePromptMessages,
   response,
@@ -91,7 +91,7 @@ export function makeGenerateChildrenWithOpenAi<
   return async function generateChildrenWithOpenAI(
     parent: ParentNode,
     llmOptions: LlmOptions,
-    numChildren
+    numChildren,
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent, numChildren);
 
@@ -145,7 +145,7 @@ export function makeGenerateChildrenWithOpenAi<
 
     const filteredChildren = await filterChildNodes(
       filterNodes,
-      parsedChildren
+      parsedChildren,
     );
 
     return makeChildrenNodes(parent, filteredChildren, childType);
@@ -157,7 +157,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   ChildNode extends WithParentNode<
     GenerationNode<unknown, string | undefined>,
     ParentNode
-  >
+  >,
 >({
   makePromptMessages,
   response,
@@ -173,7 +173,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   return async function generateNChoiceChildrenWithOpenAI(
     parent,
     llmOptions,
-    numChildren
+    numChildren,
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent, numChildren);
     const { ...clientConfig } = llmOptions;
@@ -205,11 +205,11 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
             ? -offset * claudeVariationOffset
             : offset * claudeVariationOffset;
           return Math.round((variation + defaultTemperature) * 100) / 100;
-        }
+        },
       );
       const { results: choices } = await PromisePool.for(variedTemperatures)
         .withConcurrency(
-          llmOptions.__claudeMaxConcurrency ?? defaultMaxConcurrency
+          llmOptions.__claudeMaxConcurrency ?? defaultMaxConcurrency,
         )
         .handleError((error) => {
           console.error("Error generating children", error);
@@ -306,13 +306,13 @@ async function filterChildNodes<
     GenerationNode<unknown, string | undefined>,
     ParentNode
   >,
-  C extends z.ZodTypeAny
+  C extends z.ZodTypeAny,
 >(
   filterNodes: MakeGenerateChildrenWithOpenAiParams<
     ParentNode,
     ChildNode
   >["filterNodes"],
-  parsedChildren: z.infer<C>[]
+  parsedChildren: z.infer<C>[],
 ): Promise<z.infer<C>[]> {
   if (filterNodes) {
     const { filter, concurrency = 1 } = filterNodes;
@@ -331,11 +331,11 @@ function makeChildrenNodes<
   ChildNode extends WithParentNode<
     GenerationNode<unknown, string | undefined>,
     ParentNode
-  >
+  >,
 >(
   parent: ParentNode,
   children: ChildNode["data"][],
-  type?: ChildNode["type"]
+  type?: ChildNode["type"],
 ): ChildNode[] {
   return children.map(
     (child) =>
@@ -345,6 +345,6 @@ function makeChildrenNodes<
         parent,
         data: child,
         updated: new Date(),
-      } as ChildNode)
+      }) as ChildNode,
   );
 }

@@ -148,7 +148,7 @@ describe("useConversation", () => {
       expect(result.current.messages[0].content).toBe(userMessage);
       expect(result.current.messages[1].role).toBe("assistant");
       expect(result.current.messages[1].content).toBe(
-        "Hello from the assistant"
+        "Hello from the assistant",
       );
     });
   });
@@ -190,7 +190,7 @@ describe("useConversation", () => {
 
     // Rate the assistant message
     const assistantMessage = result.current.messages.find(
-      (m) => m.role === "assistant"
+      (m) => m.role === "assistant",
     );
     if (!assistantMessage) {
       throw new Error("Assistant message not found");
@@ -245,7 +245,7 @@ describe("useConversation", () => {
       expect(fetchCalls.length).toBeGreaterThan(0);
       const lastCallArgs = fetchCalls[fetchCalls.length - 1];
       expect(lastCallArgs[0]).toBe(
-        "http://localhost:3000/api/v1/conversations"
+        "http://localhost:3000/api/v1/conversations",
       );
 
       // Get the headers from the request options
@@ -287,7 +287,7 @@ describe("useConversation", () => {
       expect(fetchCalls.length).toBeGreaterThan(0);
       const lastCallArgs = fetchCalls[fetchCalls.length - 1];
       expect(lastCallArgs[0]).toBe(
-        "http://localhost:3000/api/v1/conversations"
+        "http://localhost:3000/api/v1/conversations",
       );
 
       // Get the headers from the request options
@@ -317,7 +317,7 @@ describe("useConversation", () => {
       expect(fetchCalls.length).toBeGreaterThan(1);
       const lastCallArgs = fetchCalls[fetchCalls.length - 1];
       expect(lastCallArgs[0]).toBe(
-        "http://localhost:3000/api/v1/conversations"
+        "http://localhost:3000/api/v1/conversations",
       );
 
       // Get the headers from the request options

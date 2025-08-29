@@ -106,7 +106,7 @@ describe("MongoDbNodeStore", () => {
 
     // Retrieve the grandchild node
     const retrievedNode = await nodeStore.retrieveNode<Node>(
-      grandchildNode._id
+      grandchildNode._id,
     );
 
     // Verify the node and its parent hierarchy
@@ -122,10 +122,10 @@ describe("MongoDbNodeStore", () => {
     // Check that grandparent is properly embedded
     expect((retrievedNode?.parent as Node).parent).toBeTruthy();
     expect(((retrievedNode?.parent as Node).parent as Node)._id).toEqual(
-      rootNode._id
+      rootNode._id,
     );
     expect(((retrievedNode?.parent as Node).parent as Node).data.name).toBe(
-      "Root"
+      "Root",
     );
 
     // Check that the root's parent is null

@@ -62,7 +62,7 @@ describe("makeSearchContentRoute", () => {
       headers: { "req-id": "test-req-id" },
     });
     const res = createResponse();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     await handler(req, res as any);
 
     const data = res._getJSONData();
@@ -70,7 +70,7 @@ describe("makeSearchContentRoute", () => {
     expect(Array.isArray(data.results)).toBe(true);
     expect(data.results.length).toBe(2);
     expect(data.results[0].url).toBe(
-      "https://www.mongodb.com/docs/manual/aggregation"
+      "https://www.mongodb.com/docs/manual/aggregation",
     );
   });
 
@@ -83,7 +83,7 @@ describe("makeSearchContentRoute", () => {
       headers: { "req-id": "test-req-id" },
     });
     const res = createResponse();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     await handler(req, res as any);
 
     expect(findContent).toHaveBeenCalledWith({
@@ -103,7 +103,6 @@ describe("makeSearchContentRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
     expect(searchResultsStore.saveSearchResult).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -111,7 +110,7 @@ describe("makeSearchContentRoute", () => {
         results: baseFindContentResult.content,
         dataSources: baseReqBody.dataSources,
         limit: baseReqBody.limit,
-      })
+      }),
     );
   });
 
@@ -125,7 +124,6 @@ describe("makeSearchContentRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(handler(req, res as any)).rejects.toMatchObject({
       message: "Unable to query search database",
       httpStatus: 500,
@@ -143,13 +141,12 @@ describe("makeSearchContentRoute", () => {
     });
     const res = createResponse();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req, res as any);
     expect(findContent).toHaveBeenCalledWith(
       expect.objectContaining({
         limit: 1,
         filters: expect.objectContaining({ sourceName: ["source2"] }),
-      })
+      }),
     );
   });
 });

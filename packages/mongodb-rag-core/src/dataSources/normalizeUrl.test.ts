@@ -62,7 +62,7 @@ describe("normalizeUrl", () => {
       removeHash: false,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/atlas/atlas-vector-search/rag/#why-use-rag-"
+      "mongodb.com/docs/atlas/atlas-vector-search/rag/#why-use-rag-",
     );
   });
 
@@ -72,7 +72,7 @@ describe("normalizeUrl", () => {
       removeHash: true,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/atlas/atlas-vector-search/rag"
+      "mongodb.com/docs/atlas/atlas-vector-search/rag",
     );
   });
 
@@ -99,7 +99,7 @@ describe("normalizeUrl", () => {
       removeQueryString: true,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/manual/core/read-preference"
+      "mongodb.com/docs/manual/core/read-preference",
     );
   });
 
@@ -110,7 +110,7 @@ describe("normalizeUrl", () => {
       removeQueryString: false,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference"
+      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot#configure-read-preference",
     );
   });
 
@@ -121,7 +121,7 @@ describe("normalizeUrl", () => {
       removeQueryString: true,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/manual/core/read-preference/#configure-read-preference"
+      "mongodb.com/docs/manual/core/read-preference/#configure-read-preference",
     );
   });
 
@@ -132,7 +132,7 @@ describe("normalizeUrl", () => {
       removeQueryString: true,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/manual/core/read-preference"
+      "mongodb.com/docs/manual/core/read-preference",
     );
   });
 
@@ -143,7 +143,7 @@ describe("normalizeUrl", () => {
       removeQueryString: false,
     };
     expect(normalizeUrl(params)).toBe(
-      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot"
+      "mongodb.com/docs/manual/core/read-preference/?tck=mongodb_ai_chatbot",
     );
   });
 
@@ -164,14 +164,14 @@ describe("ensureProtocol", () => {
   it("should not add https:// if url already has https://", () => {
     expect(ensureProtocol("https://example.com")).toBe("https://example.com");
     expect(ensureProtocol("https://example.com/path")).toBe(
-      "https://example.com/path"
+      "https://example.com/path",
     );
   });
 
   it("should not add https:// if url already has http://", () => {
     expect(ensureProtocol("http://example.com")).toBe("http://example.com");
     expect(ensureProtocol("http://example.com/path")).toBe(
-      "http://example.com/path"
+      "http://example.com/path",
     );
   });
 

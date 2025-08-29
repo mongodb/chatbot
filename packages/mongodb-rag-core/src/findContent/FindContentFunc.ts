@@ -8,7 +8,7 @@ export type FindContentFuncArgs = {
 };
 
 export type FindContentFunc = (
-  args: FindContentFuncArgs
+  args: FindContentFuncArgs,
 ) => Promise<FindContentResult>;
 
 export type FindContentResult = {

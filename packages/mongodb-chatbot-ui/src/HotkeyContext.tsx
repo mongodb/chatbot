@@ -13,7 +13,7 @@ const defaultHotkeyContextData: HotkeyContextData = {
 };
 
 const HotkeyContext = createContext<HotkeyContextData>(
-  defaultHotkeyContextData
+  defaultHotkeyContextData,
 );
 
 export function HotkeyContextProvider({

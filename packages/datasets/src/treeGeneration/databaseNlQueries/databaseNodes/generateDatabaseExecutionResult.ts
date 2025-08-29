@@ -49,5 +49,5 @@ export const generateDatabaseExecutionResult = wrapTraced(
   },
   {
     name: "generateDatabaseExecutionResult",
-  }
+  },
 );

@@ -12,17 +12,17 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath1 = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-all-1713802102876.yaml"
+    "docs-chatbot.code-examples-with-prompts-all-1713802102876.yaml",
   );
   const codeExamplesPath2 = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-all-1716234694210.yaml"
+    "docs-chatbot.code-examples-with-prompts-all-1716234694210.yaml",
   );
   const codeExamples1 = yaml.parse(
-    fs.readFileSync(codeExamplesPath1, "utf-8")
+    fs.readFileSync(codeExamplesPath1, "utf-8"),
   ) as AugmentedAstExtractedCodeblock[];
   const codeExamples2 = yaml.parse(
-    fs.readFileSync(codeExamplesPath2, "utf-8")
+    fs.readFileSync(codeExamplesPath2, "utf-8"),
   ) as AugmentedAstExtractedCodeblock[];
   const codeExamples = codeExamples1.concat(codeExamples2);
 
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
 
   const pathOut = path.resolve(
     basePath,
-    `docs-chatbot.code-examples-with-prompts-filtered-small-for-export-${Date.now()}.yaml`
+    `docs-chatbot.code-examples-with-prompts-filtered-small-for-export-${Date.now()}.yaml`,
   );
 
   fs.appendFileSync(pathOut, yaml.stringify(filteredCodeExamples));

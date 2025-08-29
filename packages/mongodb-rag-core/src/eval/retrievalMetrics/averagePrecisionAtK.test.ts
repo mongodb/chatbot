@@ -76,7 +76,7 @@ describe("averagePrecisionAtK", () => {
     const k = 0;
 
     expect(() =>
-      averagePrecisionAtK(relevantItems, retrievedItems, matchFunc, k)
+      averagePrecisionAtK(relevantItems, retrievedItems, matchFunc, k),
     ).toThrow();
   });
 

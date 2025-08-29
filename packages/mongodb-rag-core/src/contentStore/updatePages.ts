@@ -34,7 +34,7 @@ export const updatePages = async ({
         // If a flaky data source returns no pages, we would mark all pages in
         // that source as deleted. This is probably not wanted.
         logger.warn(
-          `Expected at least 1 page from ${source.name}. Discarding result.`
+          `Expected at least 1 page from ${source.name}. Discarding result.`,
         );
       }
       await persistPages({
@@ -66,7 +66,7 @@ export const persistPages = async ({
   });
 
   logger.info(
-    `${sourceName}: ${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
+    `${sourceName}: ${deleted.length} deleted / ${created.length} created / ${updated.length} updated`,
   );
   await store.updatePages([...deleted, ...created, ...updated]);
 };

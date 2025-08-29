@@ -20,11 +20,11 @@ import { tagify } from "./tagify";
 export function extractTracingData(
   messages: Message[],
   assistantMessageId: ObjectId,
-  conversationId: ObjectId
+  conversationId: ObjectId,
 ) {
   const evalAssistantMessageIdx = messages.findLastIndex(
     (message) =>
-      message.role === "assistant" && message.id.equals(assistantMessageId)
+      message.role === "assistant" && message.id.equals(assistantMessageId),
   );
   assert(evalAssistantMessageIdx !== -1, "Assistant message not found");
   const evalAssistantMessage = messages[
@@ -56,7 +56,7 @@ export function extractTracingData(
 
   const contextContent = getContextsFromMessages(
     messages.slice(previousUserMessageIdx + 1, evalAssistantMessageIdx),
-    assistantMessageId.toHexString()
+    assistantMessageId.toHexString(),
   );
   const numRetrievedChunks = contextContent.length;
   if (numRetrievedChunks === 0) {
@@ -71,7 +71,7 @@ export function extractTracingData(
     tags.push("verified_answer");
   }
   const llmDoesNotKnow = evalAssistantMessage.content.includes(
-    llmDoesNotKnowMessage
+    llmDoesNotKnowMessage,
   );
   if (llmDoesNotKnow) {
     tags.push("llm_does_not_know");
@@ -110,7 +110,7 @@ export function extractTracingData(
 
 export function getContextsFromMessages(
   messages: Message[],
-  reqId: string
+  reqId: string,
 ): { text: string; url: string }[] {
   const contexts: { text: string; url: string }[] = [];
 

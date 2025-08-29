@@ -113,7 +113,7 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
       title: chunk.metadata?.pageTitle ?? chunk.url,
       url: chunk.url,
       text: chunk.text,
-    }))
+    })),
   );
   return baseReferences.map((ref) => {
     const url = new URL(ref.url);

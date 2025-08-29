@@ -12,7 +12,7 @@ export type DatabaseNlQueryDatasetEntry =
   };
 
 export function generateDatabaseNlQueryDatasetEntry(
-  dbExecutionNode: DatabaseExecutionResultNode
+  dbExecutionNode: DatabaseExecutionResultNode,
 ): DatabaseNlQueryDatasetEntry {
   return {
     nlQuery: dbExecutionNode.parent.parent.data.query,
@@ -38,7 +38,7 @@ const TruncatedArticle = z.object({
 });
 
 export function generateDatabaseNlQueryDatasetEntryAtlasSearch(
-  dbExecutionNode: DatabaseExecutionResultNode
+  dbExecutionNode: DatabaseExecutionResultNode,
 ): DatabaseNlQueryDatasetEntry {
   const entry = generateDatabaseNlQueryDatasetEntry(dbExecutionNode);
 
@@ -61,7 +61,7 @@ export function generateDatabaseNlQueryDatasetEntryAtlasSearch(
 }
 
 export function convertDatabaseNlQueryDatasetEntryToBraintrust(
-  entry: DatabaseNlQueryDatasetEntry
+  entry: DatabaseNlQueryDatasetEntry,
 ): DatabaseNlQueryDatasetEntryBraintrust {
   const tags = [entry.complexity, entry.language, entry.databaseName];
   return {
@@ -86,7 +86,7 @@ export function convertDatabaseNlQueryDatasetEntryToBraintrust(
 }
 
 export function convertBraintrustDatabaseNlQueryDatasetEntryToFlat(
-  entry: DatabaseNlQueryDatasetEntryBraintrust
+  entry: DatabaseNlQueryDatasetEntryBraintrust,
 ): DatabaseNlQueryDatasetEntry {
   return {
     nlQuery: entry.input.nlQuery,

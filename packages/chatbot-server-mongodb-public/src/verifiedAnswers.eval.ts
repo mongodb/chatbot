@@ -59,10 +59,10 @@ const verifiedAnswersPath = path.resolve(
   "..",
   "..",
   "..",
-  "verified-answers.yaml"
+  "verified-answers.yaml",
 );
 const verifiedAnswerSpecs = parseVerifiedAnswerYaml(
-  fs.readFileSync(verifiedAnswersPath, "utf-8")
+  fs.readFileSync(verifiedAnswersPath, "utf-8"),
 );
 const verifiedAnswerIndex = makeVerifiedAnswerIndex(verifiedAnswerSpecs);
 
@@ -155,7 +155,7 @@ function makeVerifiedAnswerEvalCase(args: {
       answer: args.similarVerifiedAnswerQuery
         ? findExactVerifiedAnswer(
             args.similarVerifiedAnswerQuery,
-            args.verifiedAnswerIndex
+            args.verifiedAnswerIndex,
           )
         : undefined,
     },
@@ -200,7 +200,7 @@ const SearchScore: VerifiedAnswersEvalCaseScorer = (args) => {
 
 // BUG: Getting Mongo connection closed errors on this scorer with the clean up.
 const ReferenceAnswerCosineSimilarity: VerifiedAnswersEvalCaseScorer = async (
-  args
+  args,
 ) => {
   const name = "ReferenceAnswerCosineSimilarity";
   const { similarVerifiedAnswerQuery } = args.metadata;
@@ -216,13 +216,13 @@ const ReferenceAnswerCosineSimilarity: VerifiedAnswersEvalCaseScorer = async (
   });
   assert(
     verifiedAnswer,
-    `No verified answer found for query: ${similarVerifiedAnswerQuery}`
+    `No verified answer found for query: ${similarVerifiedAnswerQuery}`,
   );
   return {
     name,
     score: cosineSimilarity(
       args.output.queryEmbedding,
-      verifiedAnswer.question.embedding
+      verifiedAnswer.question.embedding,
     ),
   };
 };
@@ -232,7 +232,7 @@ type VerifiedAnswerIndex = Record<string, string>;
   Construct index of all verified answer for faster look up
  */
 function makeVerifiedAnswerIndex(
-  verifiedAnswerSpecs: VerifiedAnswerSpec[]
+  verifiedAnswerSpecs: VerifiedAnswerSpec[],
 ): VerifiedAnswerIndex {
   const verifiedAnswerIndex: VerifiedAnswerIndex = {};
   for (const { questions, answer } of verifiedAnswerSpecs) {
@@ -245,7 +245,7 @@ function makeVerifiedAnswerIndex(
 
 function findExactVerifiedAnswer(
   query: string,
-  verifiedAnswerIndex: VerifiedAnswerIndex
+  verifiedAnswerIndex: VerifiedAnswerIndex,
 ): string | undefined {
   return verifiedAnswerIndex[query];
 }

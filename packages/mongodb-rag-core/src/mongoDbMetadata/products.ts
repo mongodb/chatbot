@@ -389,8 +389,8 @@ export type MongoDbDriverName = (typeof mongodbDrivers)[number]["name"];
 export type MongoDbProductId = (typeof mongoDbProducts)[number]["id"];
 export type MongoDbProductNameEnum = [
   MongoDbProductName,
-  ...MongoDbProductName[]
+  ...MongoDbProductName[],
 ];
 export const mongoDbProductNames = mongoDbProducts.map(
-  (prod) => prod.name
+  (prod) => prod.name,
 ) as MongoDbProductNameEnum;

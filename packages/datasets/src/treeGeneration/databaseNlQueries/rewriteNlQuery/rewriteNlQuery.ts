@@ -9,7 +9,7 @@ const RewriteClassificationSchema = z.object({
     .string()
     .optional()
     .describe(
-      "Rewritten natural language query to be less ambiguous. Only include this field if the classification is 'ambiguous'"
+      "Rewritten natural language query to be less ambiguous. Only include this field if the classification is 'ambiguous'",
     ),
 });
 
@@ -323,7 +323,7 @@ ${JSON.stringify(example.output, null, 2)}
 
 export function makeRewriteNlQueryPrompt(model: LanguageModel) {
   return async (
-    datasetEntry: DatabaseNlQueryDatasetEntryBraintrust
+    datasetEntry: DatabaseNlQueryDatasetEntryBraintrust,
   ): Promise<{
     classification: RewriteClassification;
     datasetEntry: DatabaseNlQueryDatasetEntryBraintrust;

@@ -24,7 +24,7 @@ export const GetConversationRequest = SomeExpressRequest.merge(
     params: z.object({
       conversationId: z.string(),
     }),
-  })
+  }),
 );
 
 export interface GetConversationRouteParams {

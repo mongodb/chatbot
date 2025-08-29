@@ -16,7 +16,7 @@ const defaultState = {
       get: () => () => {
         throw new Error(ConversationStoreNotInitialized);
       },
-    }
+    },
   ),
 } as ReturnType<ConversationStore["getInitialState"]>;
 

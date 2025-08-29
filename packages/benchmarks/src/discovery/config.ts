@@ -24,7 +24,7 @@ export const discoveryBenchmarkConfig: BenchmarkConfig<
         "Set of questions generated with help of LLM about MongoDB-related areas.",
       getDataset: async () =>
         getDiscoveryConversationEvalDataFromYamlFile(
-          path.resolve(__dirname, "..", "..", "datasets", "discovery.yml")
+          path.resolve(__dirname, "..", "..", "datasets", "discovery.yml"),
         ),
     },
   },

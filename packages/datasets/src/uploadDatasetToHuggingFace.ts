@@ -22,7 +22,7 @@ export interface UploadDatasetToHuggingFaceParams {
  Uploads data to a HuggingFace repository.
  */
 export async function uploadDatasetToHuggingFace(
-  params: UploadDatasetToHuggingFaceParams
+  params: UploadDatasetToHuggingFaceParams,
 ) {
   const { huggingFace, data, commit } = params;
   const commitOutput = await uploadFiles({

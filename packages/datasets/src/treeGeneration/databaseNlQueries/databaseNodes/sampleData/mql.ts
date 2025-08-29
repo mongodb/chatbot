@@ -368,7 +368,7 @@ export const userNodes: DatabaseUserNode[] = sampleDatabaseUsers.map(
     data: user,
     type: "database_user",
     updated: new Date(),
-  })
+  }),
 );
 
 // Get a sample user and their use cases

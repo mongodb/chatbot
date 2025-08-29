@@ -13,7 +13,7 @@ export function includeChunksForMaxTokensPossible({
 }): EmbeddedContent[] {
   let total = 0;
   const fitRangeEndIndex = content.findIndex(
-    ({ tokenCount }) => (total += tokenCount) > maxTokens
+    ({ tokenCount }) => (total += tokenCount) > maxTokens,
   );
   return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
 }

@@ -128,7 +128,7 @@ describe("aggregateScoresByTag", () => {
 
 // Helper function to create mock eval cases with scores
 function createMockEvalCases<T extends string>(
-  tagData: { tag: string; scores: Record<T, number[]>; input?: unknown }[]
+  tagData: { tag: string; scores: Record<T, number[]>; input?: unknown }[],
 ): ExperimentResult<EvalCase<unknown, unknown, unknown>, unknown, [T]>[] {
   return tagData.flatMap(({ tag, scores, input = {} }) => {
     return Object.entries(scores).flatMap(([scoreName, scoreValues]) => {

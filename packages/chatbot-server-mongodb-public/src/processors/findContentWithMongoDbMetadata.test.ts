@@ -16,11 +16,8 @@ jest.mock("mongodb-rag-core", () => {
 });
 
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
-import {
-  makeFindContentWithMongoDbMetadata,
-} from "./findContentWithMongoDbMetadata";
+import { makeFindContentWithMongoDbMetadata } from "./findContentWithMongoDbMetadata";
 import { classifyMongoDbProgrammingLanguageAndProduct } from "mongodb-rag-core/mongoDbMetadata";
-
 
 const mockedClassify =
   classifyMongoDbProgrammingLanguageAndProduct as jest.Mock;
@@ -54,7 +51,7 @@ How do I use MongoDB with TypeScript?`;
 
     const wrappedFindContent = makeFindContentWithMongoDbMetadata({
       findContent: findContentMock,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       classifierModel: {} as any,
     });
 

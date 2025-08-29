@@ -6,7 +6,7 @@ const testDataPath = path.resolve(__dirname, "..", "..", "..", "testData");
 const fileInPath = path.resolve(testDataPath, "university-quiz-questions.json");
 const jsonFileOutPath = path.resolve(
   testDataPath,
-  "university-quiz-questions-annotated.json"
+  "university-quiz-questions-annotated.json",
 );
 
 /**
@@ -22,7 +22,7 @@ const augmentJson = (filePath: string): QuizQuestionData[] => {
     results.push(quizQuestion);
   }
   return results.map(
-    (qq) => QuizQuestionDataSchema.parse(qq) satisfies QuizQuestionData
+    (qq) => QuizQuestionDataSchema.parse(qq) satisfies QuizQuestionData,
   );
 };
 
@@ -33,7 +33,7 @@ const augmentJson = (filePath: string): QuizQuestionData[] => {
     fs.writeFileSync(
       jsonFileOutPath,
       JSON.stringify(quizQuestions, null, 2),
-      "utf-8"
+      "utf-8",
     );
     console.log("Quiz questions written to ", jsonFileOutPath);
   } catch (error) {

@@ -39,7 +39,7 @@ export function makeMongoDbNodeStore({
       return res;
     },
     async retrieveNode<
-      Node extends GenerationNode<unknown, string | undefined>
+      Node extends GenerationNode<unknown, string | undefined>,
     >(nodeId: ObjectId) {
       // Use an aggregation pipeline to get the node and all its ancestors in one query
       const result = await collection
@@ -110,7 +110,7 @@ export function makeMongoDbNodeStore({
 
     async updateNode<Node extends GenerationNode<unknown, string | undefined>>(
       nodeId: ObjectId,
-      node: Node
+      node: Node,
     ) {
       const dbNode = convertGenerationNodeToDbNode(node);
       await collection.updateOne({ _id: nodeId }, { $set: dbNode });
@@ -120,7 +120,7 @@ export function makeMongoDbNodeStore({
       Builds a node hierarchy by connecting nodes with their parents.
      */
     buildNodeHierarchy<
-      Node extends GenerationNode<unknown, string | undefined>
+      Node extends GenerationNode<unknown, string | undefined>,
     >(node: Node, ancestors: Node[]): Node {
       if (!ancestors.length) {
         return node;
@@ -163,7 +163,7 @@ export function makeMongoDbNodeStore({
 }
 
 export function convertGenerationNodeToDbNode<T>(
-  node: GenerationNode<T, string | undefined>
+  node: GenerationNode<T, string | undefined>,
 ): DbGenerationNode<T> {
   const parents: (ObjectId | null)[] = [];
   let parent: typeof node.parent | null | undefined = node.parent;

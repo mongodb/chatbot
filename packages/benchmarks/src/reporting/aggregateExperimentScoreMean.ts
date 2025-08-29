@@ -7,10 +7,10 @@ import { ScoreStats, calculateStats } from "./calculateStats";
  */
 export function aggregateExperimentScoreMean<
   EC extends EvalCase<unknown, unknown, unknown>,
-  ScoreTypes extends string[]
+  ScoreTypes extends string[],
 >(
   experimentResults: ExperimentResult<EC, unknown, ScoreTypes>[],
-  scoreName: ScoreTypes[number] // Type the scoreName as an element of ScoreTypes array
+  scoreName: ScoreTypes[number], // Type the scoreName as an element of ScoreTypes array
 ): ScoreStats | null {
   // Filter out results with undefined or null scores for the given score name
   const validScores = experimentResults

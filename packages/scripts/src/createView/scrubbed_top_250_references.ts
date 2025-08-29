@@ -73,7 +73,7 @@ export type ScrubbedTopReference = {
             $limit: NUM_REFERENCES,
           },
         ],
-      }
+      },
     );
   } finally {
     await client.close();

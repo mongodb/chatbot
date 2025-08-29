@@ -8,11 +8,11 @@ export type ChunkTransformer = (
   chunk: Omit<ContentChunk, "tokenCount">,
   details: {
     page: Page;
-  }
+  },
 ) => Promise<Omit<ContentChunk, "tokenCount">>;
 
 export type ChunkMetadataGetter<
-  T extends Record<string, unknown> = Record<string, unknown>
+  T extends Record<string, unknown> = Record<string, unknown>,
 > = (args: {
   chunk: Omit<ContentChunk, "tokenCount">;
 
@@ -35,9 +35,9 @@ export type ChunkMetadataGetter<
   text.
  */
 export const makeChunkFrontMatterUpdater = <
-  T extends Record<string, unknown> = Record<string, unknown>
+  T extends Record<string, unknown> = Record<string, unknown>,
 >(
-  getMetadata: ChunkMetadataGetter<T>
+  getMetadata: ChunkMetadataGetter<T>,
 ): ChunkTransformer => {
   return async (chunk, { page }) => {
     // Extract existing front matter, if any
@@ -88,8 +88,8 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
         .map((match) => {
           assert(match !== null);
           return match[1];
-        })
-    )
+        }),
+    ),
   );
 
   const metadata: Awaited<ReturnType<typeof standardMetadataGetter>> = {
@@ -99,7 +99,7 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
 
   // Which code examples
   const specifiedLanguages = codeBlockLanguages.filter(
-    (language) => language !== ""
+    (language) => language !== "",
   );
 
   if (specifiedLanguages.length) {
@@ -118,5 +118,5 @@ function getPageChunkMetadata(pageMetadata: Page["metadata"]) {
 }
 
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
-  standardMetadataGetter
+  standardMetadataGetter,
 );

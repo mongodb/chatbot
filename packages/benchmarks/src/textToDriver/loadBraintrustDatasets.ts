@@ -23,7 +23,7 @@ const DatabaseMetadataDatasetEntrySchema = z.object({
       z.object({
         collectionName: z.string(),
         indexes: z.array(z.record(z.unknown())),
-      })
+      }),
     ),
   }),
 });
@@ -79,7 +79,7 @@ export async function loadBraintrustMetadata({
           collectionName: c.collectionName,
           indexes: c.indexes.map((idx) => EJSON.deserialize(idx)),
         })),
-      })
+      }),
     );
   return metadata;
 }

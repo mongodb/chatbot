@@ -81,7 +81,7 @@ export interface CollectionInfo {
   to send to the LLM along with each natural language prompt.
  */
 export async function makeTextToDriverPrompt(
-  params: TextToDriverPromptParams
+  params: TextToDriverPromptParams,
 ): Promise<
   [ChatCompletionSystemMessageParam, ...ChatCompletionMessageParam[]]
 > {
@@ -93,7 +93,7 @@ export async function makeTextToDriverPrompt(
 }
 
 async function makeSystemPromptMessage(
-  params: Omit<TextToDriverPromptParams, "fewShotExamples">
+  params: Omit<TextToDriverPromptParams, "fewShotExamples">,
 ) {
   let systemPromptMessage = params.customInstructions
     ? params.customInstructions.trim() + "\n\n"
@@ -105,7 +105,7 @@ async function makeSystemPromptMessage(
 
 export const COLLECTIONS_REQUIRED_ERROR = "At least one collection is required";
 async function makeDatabasePromptContent(
-  params: TextToDriverPromptParams["mongoDb"]
+  params: TextToDriverPromptParams["mongoDb"],
 ) {
   assert(params.collections.length > 0, COLLECTIONS_REQUIRED_ERROR);
   let databasePrompt =
@@ -130,7 +130,7 @@ async function makeCollectionPromptContent({
 }) {
   assert(
     collection.exampleDocuments.length > 0,
-    EXAMPLE_DOCUMENTS_REQUIRED_ERROR
+    EXAMPLE_DOCUMENTS_REQUIRED_ERROR,
   );
 
   let collectionPromptContent = `## \`"${collection.collectionName}"\` collection\n\n`;

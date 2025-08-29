@@ -50,7 +50,7 @@ describe("handleHtmlDocument()", () => {
       Path.resolve(SRC_ROOT, "../testData/sampleJava.html"),
       {
         encoding: "utf-8",
-      }
+      },
     );
     page = await handleHtmlDocument("index.html", html, options);
   });

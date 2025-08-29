@@ -149,7 +149,7 @@ describe("Conversations Router", () => {
     let called = false;
     const middlewareWithConversationsService: ConversationsMiddleware = async (
       _,
-      res
+      res,
     ) => {
       const noMatch = await res.locals.conversations.findById({
         _id: new ObjectId(),

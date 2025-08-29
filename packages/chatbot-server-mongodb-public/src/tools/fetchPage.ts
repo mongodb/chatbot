@@ -68,7 +68,7 @@ ${makeMarkdownNumberedList(fetchPageToolNotes)}`,
     },
     execute: wrapTraced(
       async function (
-        args: MongoDbFetchPageToolArgs
+        args: MongoDbFetchPageToolArgs,
       ): Promise<FetchPageToolResult> {
         const normalizedUrl = normalizeUrl({ url: args.pageUrl });
         const page = await loadPage({
@@ -86,12 +86,12 @@ ${makeMarkdownNumberedList(fetchPageToolNotes)}`,
           findContent,
           makeReferences,
           args.query,
-          normalizedUrl
+          normalizedUrl,
         );
       },
       {
         name: "fetchPageTool",
-      }
+      },
     ),
   });
 }
@@ -103,7 +103,7 @@ async function getPageContent(
   findContent: FindContentFunc,
   makeReferences: MakeReferenceLinksFunc,
   query: string,
-  normalizedUrl: string
+  normalizedUrl: string,
 ): Promise<{
   text: string;
   references?: Reference[];
@@ -111,7 +111,7 @@ async function getPageContent(
   if (page === null) {
     // Fall back - no page for this URL
     logger.info(
-      `${FETCH_PAGE_TOOL_NAME} did not find a page for URL ${normalizedUrl}`
+      `${FETCH_PAGE_TOOL_NAME} did not find a page for URL ${normalizedUrl}`,
     );
     return { text: searchFallbackText };
   }
@@ -137,7 +137,7 @@ async function getPageContent(
   }
   // Page content is too long, do truncate-search
   logger.info(
-    `Page for ${normalizedUrl} is very long, truncating and searching for most relevant content`
+    `Page for ${normalizedUrl} is very long, truncating and searching for most relevant content`,
   );
   const references = makeReferences([referenceContent]);
   const mostRelevantChunks = await findContent({
@@ -149,7 +149,7 @@ async function getPageContent(
       (c) => `
 <result> 
 ${c.text} 
-</result>`
+</result>`,
     );
 
     const text = `<search_results>

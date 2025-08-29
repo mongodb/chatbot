@@ -77,7 +77,7 @@ describe("Conversations Service", () => {
 
     expect(conversationInDb).toHaveProperty(
       "storeMessageContent",
-      storeMessageContent
+      storeMessageContent,
     );
   });
   test("Should create a conversation with creationInterface", async () => {
@@ -91,7 +91,7 @@ describe("Conversations Service", () => {
 
     expect(conversationInDb).toHaveProperty(
       "creationInterface",
-      creationInterface
+      creationInterface,
     );
   });
   test("Should add a message to a conversation", async () => {
@@ -140,13 +140,13 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(
-      (conversationInDb?.messages[1] as UserMessage).contentForLlm
+      (conversationInDb?.messages[1] as UserMessage).contentForLlm,
     ).toStrictEqual(contentForLlm);
     expect(
-      (conversationInDb?.messages[1] as UserMessage)?.content
+      (conversationInDb?.messages[1] as UserMessage)?.content,
     ).toStrictEqual(originalUserContent);
     expect(
-      (conversationInDb?.messages[1] as UserMessage)?.embedding
+      (conversationInDb?.messages[1] as UserMessage)?.embedding,
     ).toStrictEqual(embedding);
   });
   test("Should add a message to a conversation with custom data", async () => {
@@ -291,7 +291,7 @@ describe("Conversations Service", () => {
 
     expect(result).toBe(true);
     expect((conversationInDb?.messages[2] as AssistantMessage)?.rating).toBe(
-      true
+      true,
     );
   });
   test("Should add a user comment to a message", async () => {

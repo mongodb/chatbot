@@ -66,7 +66,7 @@ export class ProfoundApi {
     options: {
       method?: "GET" | "POST";
       body?: Record<string, unknown>;
-    } = {}
+    } = {},
   ): Promise<T> {
     const { method = "POST", body } = options;
     const res = await fetch(
@@ -77,13 +77,13 @@ export class ProfoundApi {
           "Content-Type": "application/json",
         },
         body: method === "POST" && body ? JSON.stringify(body) : undefined,
-      }
+      },
     );
 
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(
-        `Profound API error: ${res.status} ${res.statusText} - ${errorText}`
+        `Profound API error: ${res.status} ${res.statusText} - ${errorText}`,
       );
     }
 
@@ -93,14 +93,13 @@ export class ProfoundApi {
   private async paginatedRequest<T>(
     endpoint: string,
     body: Record<string, any> = {},
-    maxLimit = 50000 // Limit set by Profound
+    maxLimit = 50000, // Limit set by Profound
   ): Promise<T> {
     let offset = 0;
     const limit = maxLimit;
     let allData: any[] = [];
     let totalRows: number | undefined = undefined;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       console.log(`Requesting the next ${limit} records, offset by ${offset}`);
       const paginatedBody = {

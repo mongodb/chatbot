@@ -10,9 +10,7 @@ import { z } from "zod";
 
 import { SomeExpressRequest } from "../../middleware";
 import { makeRequestError } from "../conversations/utils";
-import {
-  ContentRouterLocals,
-} from "./contentRouter";
+import { ContentRouterLocals } from "./contentRouter";
 
 export type GetDataSourcesRequest = z.infer<typeof GetDataSourcesRequest>;
 
@@ -21,7 +19,7 @@ export const GetDataSourcesRequest = SomeExpressRequest.merge(
     headers: z.object({
       "req-id": z.string(),
     }),
-  })
+  }),
 );
 
 export interface ListDataSourcesResponseBody {
@@ -41,7 +39,7 @@ export function makeListDataSourcesRoute({
 }: MakeListDataSourcesRouteParams) {
   return async (
     _req: ExpressRequest,
-    res: ExpressResponse<ListDataSourcesResponseBody, ContentRouterLocals>
+    res: ExpressResponse<ListDataSourcesResponseBody, ContentRouterLocals>,
   ) => {
     try {
       // Fetch data sources from the store

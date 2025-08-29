@@ -9,11 +9,11 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const pathIn = path.resolve(
     basePath,
-    "docs-devcenter-content-snapshot.2024-05-20.json"
+    "docs-devcenter-content-snapshot.2024-05-20.json",
   );
   const pathOut = path.resolve(
     basePath,
-    `docs-chatbot.code-examples-with-headings-${Date.now()}.json`
+    `docs-chatbot.code-examples-with-headings-${Date.now()}.json`,
   );
   const pageParser = await makePageParser();
   const extractCodeBlocksWithHeadings =

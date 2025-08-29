@@ -31,7 +31,7 @@ export type GitHubReleaseArtifacts = {
   /**
    Fetches the Jira Issue Keys mentioned in the message of commits between the previous version and the current version.
    */
-  getJiraIssueKeys(jiraProject: string): Promise<string[]>;
+  getJiraIssueKeys(_jiraProject: string): Promise<string[]>;
 };
 
 export const GitHubReleaseInfo = z.object({

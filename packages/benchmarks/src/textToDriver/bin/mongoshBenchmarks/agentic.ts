@@ -24,7 +24,7 @@ async function main() {
   await PromisePool.for(
     MODELS
       // these models don't support tool calls. filtering out.
-      .filter((m) => !m.label.includes("llama") || m.label.includes("mistral"))
+      .filter((m) => !m.label.includes("llama") || m.label.includes("mistral")),
   )
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {

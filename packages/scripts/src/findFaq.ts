@@ -118,7 +118,7 @@ export const findFaq = async ({
   let currentQuestion: Partial<QuestionAndResponses> | undefined;
   const questions: QuestionAndResponses[] = [];
   const addQuestionToList = (
-    partialQuestion: Partial<QuestionAndResponses> | undefined
+    partialQuestion: Partial<QuestionAndResponses> | undefined,
   ) => {
     if (partialQuestion === undefined) {
       return;
@@ -127,7 +127,7 @@ export const findFaq = async ({
     assert(
       embedding !== undefined &&
         question !== undefined &&
-        responses !== undefined
+        responses !== undefined,
     );
     questions.push({ embedding, question, responses });
   };
@@ -170,7 +170,7 @@ export const findFaq = async ({
       assert(q.embedding);
       return q.embedding;
     },
-    clusterizeOptions
+    clusterizeOptions,
   );
 
   const faqEntries = clusters
@@ -179,7 +179,7 @@ export const findFaq = async ({
 
       // Get a random sample of questions to represent the question cluster
       const [question, ...sampleOriginals] = randomlySampleQuestions(
-        cluster.map(({ question }) => question.content)
+        cluster.map(({ question }) => question.content),
       );
 
       return {
@@ -206,7 +206,7 @@ export const findFaq = async ({
   client.
  */
 export const makeFaqVectorStoreCollectionWrapper = (
-  collection: Collection<WithId<FaqEntry & { created: Date; epsilon: number }>>
+  collection: Collection<WithId<FaqEntry & { created: Date; epsilon: number }>>,
 ): VectorStore<WithId<FaqEntry>> => {
   return {
     findNearestNeighbors(vector, options) {
@@ -273,7 +273,7 @@ export const assignFaqIds = async ({
       // See if there already is an ID for this FAQ.
       const previousFaqs = await faqStore.findNearestNeighbors(q.embedding);
       const previousFaqsWithFaqIds = previousFaqs.filter(
-        (q) => q.faqId !== undefined
+        (q) => q.faqId !== undefined,
       );
       previousFaqsWithFaqIds.sort((a, b) => b.score - a.score);
 
@@ -285,11 +285,11 @@ export const assignFaqIds = async ({
           previousFaqsWithFaqIds[0]?.faqId === undefined
             ? "Generated new"
             : "Reused existing"
-        } faqId ${faqId} for question category "${q.question}"`
+        } faqId ${faqId} for question category "${q.question}"`,
       );
 
       return { ...q, faqId };
-    })
+    }),
   );
 };
 
@@ -315,18 +315,18 @@ export const assignRepresentativeQuestion = async ({
           ],
         });
         console.log(
-          `Generated representative question: "${q.question}" -> "${representativeQuestion}"`
+          `Generated representative question: "${q.question}" -> "${representativeQuestion}"`,
         );
         return { ...q, question: representativeQuestion };
       } catch (error) {
         console.warn(
           `Failed to generate representation question for '${q.question}': ${
             (error as Error).message
-          }`
+          }`,
         );
         return q;
       }
-    })
+    }),
   );
 };
 
@@ -337,7 +337,7 @@ export const randomSample = <T>(
     size?: number;
     probs?: Array<number>;
     replace?: boolean;
-  }
+  },
 ) => randomSampleImpl(a, options) as T[];
 
 export const randomlySampleQuestions = (questions: string[]) =>

@@ -18,7 +18,7 @@ export const ClassifyMongoDbProgrammingLanguageSchema = z.object({
     .enum(mongoDbProgrammingLanguageIds)
     .nullable()
     .describe(
-      "Most important programming language present in the content. If no programming language is present, set to `null`."
+      "Most important programming language present in the content. If no programming language is present, set to `null`.",
     ),
 });
 
@@ -49,7 +49,7 @@ ${mongoDbProgrammingLanguages.map((l) => ` - ${l.id}: ${l.name}`).join("\n")}`,
     ).object.programmingLanguage as MongoDbProgrammingLanguageId | null,
   {
     name: "classifyMongoDbProgrammingLanguage",
-  }
+  },
 );
 
 export const ClassifyMongoDbProductSchema = z.object({
@@ -58,7 +58,7 @@ export const ClassifyMongoDbProductSchema = z.object({
     .nullable()
     .describe(
       `Most important MongoDB product present in the content.
-If it is not clear what the product is, set to \`null\`.`
+If it is not clear what the product is, set to \`null\`.`,
     ),
 });
 
@@ -92,7 +92,7 @@ Keep in mind:
     ).object.mongoDbProduct as MongoDbProductId | null,
   {
     name: "classifyMongoDbProduct",
-  }
+  },
 );
 
 export const ClassifyMongoDbTopicSchema = z.object({
@@ -100,7 +100,7 @@ export const ClassifyMongoDbTopicSchema = z.object({
     .enum(mongoDbTopics.map((t) => t.id) as [string, ...string[]])
     .nullable()
     .describe(
-      `Most important MongoDB-related topic present in the content. If none of the listed topics are clearly present, set to \`null\`.`
+      `Most important MongoDB-related topic present in the content. If none of the listed topics are clearly present, set to \`null\`.`,
     ),
 });
 
@@ -129,7 +129,7 @@ ${mongoDbTopics
     ).object.topic as MongoDbTopicId | null,
   {
     name: "classifyMongoDbTopic",
-  }
+  },
 );
 
 function nullOnErr() {
@@ -140,20 +140,20 @@ export const classifyMongoDbProgrammingLanguageAndProduct = wrapTraced(
   async (model: LanguageModel, data: string, maxRetries?: number) => {
     const [programmingLanguage, product] = await Promise.all([
       classifyMongoDbProgrammingLanguage(model, data, maxRetries).catch(
-        nullOnErr
+        nullOnErr,
       ),
       classifyMongoDbProduct(model, data, maxRetries).catch(nullOnErr),
     ]);
     return { programmingLanguage, product };
   },
-  { name: "classifyMongoDbProgrammingLanguageAndProduct" }
+  { name: "classifyMongoDbProgrammingLanguageAndProduct" },
 );
 
 export const classifyMongoDbMetadata = wrapTraced(
   async (model: LanguageModel, data: string, maxRetries?: number) => {
     const [programmingLanguage, product, topic] = await Promise.all([
       classifyMongoDbProgrammingLanguage(model, data, maxRetries).catch(
-        nullOnErr
+        nullOnErr,
       ),
       classifyMongoDbProduct(model, data, maxRetries).catch(nullOnErr),
       classifyMongoDbTopic(model, data, maxRetries).catch(nullOnErr),
@@ -167,7 +167,7 @@ export const classifyMongoDbMetadata = wrapTraced(
   },
   {
     name: "classifyMongoDbMetadata",
-  }
+  },
 );
 
 // Type guard to check if a value is a non-null MongoDbTag

@@ -109,5 +109,5 @@ ${makePromptDbInfo(databaseInfo)}
   }),
   {
     name: "generateMongoshCode",
-  }
+  },
 );

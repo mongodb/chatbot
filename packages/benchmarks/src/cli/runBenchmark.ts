@@ -27,7 +27,7 @@ export async function runBenchmark(
     modelConcurrency,
     sampleSize,
     sampleType,
-  }: RunBenchmarkArgs
+  }: RunBenchmarkArgs,
 ) {
   const benchmarkConfig = config.benchmarks[type];
   if (!benchmarkConfig) {
@@ -36,7 +36,7 @@ export async function runBenchmark(
 
   // Resolve datasets
   const datasetsToRun = Object.entries(benchmarkConfig.datasets).filter(
-    ([name]) => datasets.includes(name)
+    ([name]) => datasets.includes(name),
   );
 
   if (datasetsToRun.length === 0) {
@@ -45,7 +45,7 @@ export async function runBenchmark(
 
   // Resolve tasks
   const taskToRun = Object.entries(benchmarkConfig.tasks).find(([name]) =>
-    task.includes(name)
+    task.includes(name),
   )?.[1];
 
   if (!taskToRun) {
@@ -79,12 +79,12 @@ export async function runBenchmark(
           (
             await Promise.all(
               datasetsToRun.map(([_datasetName, datasetConfig]) =>
-                datasetConfig.getDataset()
-              )
+                datasetConfig.getDataset(),
+              ),
             )
           ).flat(),
           sampleSize,
-          sampleType
+          sampleType,
         );
         const datasetName = datasetsToRun.map(([name]) => name).join("+");
 
@@ -98,7 +98,7 @@ export async function runBenchmark(
         console.log(`Running experiment: ${experimentName}`);
 
         const scores = Object.values(benchmarkConfig.scorers).map(
-          (scorer) => scorer.scorerFunc
+          (scorer) => scorer.scorerFunc,
         );
 
         try {
@@ -135,13 +135,13 @@ export async function runBenchmark(
 export function getSample<T>(
   dataset: T[],
   sampleSize: RunBenchmarkArgs["sampleSize"],
-  sampleType: RunBenchmarkArgs["sampleType"]
+  sampleType: RunBenchmarkArgs["sampleType"],
 ) {
   if (sampleSize) {
     assert(sampleSize > 0, "sampleSize is required");
     assert(
       sampleSize <= dataset.length,
-      "sampleSize must be less than or equal to the length of the dataset"
+      "sampleSize must be less than or equal to the length of the dataset",
     );
     if (sampleType === "firstN" || !sampleType) {
       return dataset.slice(0, sampleSize);

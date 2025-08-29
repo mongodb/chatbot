@@ -13,7 +13,7 @@ export const generateDatabaseUseCases = wrapTraced(
     openAiClient: makeOpenAiClient(),
     makePromptMessages: async (
       { data: user, parent: { data: databaseInfo } },
-      numMessages
+      numMessages,
     ) => {
       const systemPrompt = `You are an expert user researcher who understands how different professionals use database information in their roles. Given a database user profile, generate realistic use cases that describe what information they need to retrieve from a database and why.
 
@@ -62,5 +62,5 @@ Based on this profile, what are the most realistic and specific information need
   }),
   {
     name: "generateDatabaseUseCases",
-  }
+  },
 );

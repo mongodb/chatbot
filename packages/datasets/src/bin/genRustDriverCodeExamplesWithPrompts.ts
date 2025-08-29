@@ -14,16 +14,16 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-headings.json"
+    "docs-chatbot.code-examples-with-headings.json",
   );
   const pagesPath = path.resolve(
     basePath,
-    "docs-chatbot-2024-17-04.pages.json"
+    "docs-chatbot-2024-17-04.pages.json",
   );
   // get rust examples
   const codeExamples = (
     JSON.parse(
-      fs.readFileSync(codeExamplesPath, "utf-8")
+      fs.readFileSync(codeExamplesPath, "utf-8"),
     ) as AstExtractedCodeblock[]
   )
     .filter((example) => {
@@ -35,7 +35,7 @@ async function main(): Promise<void> {
     })
     .slice(0, 15);
   const pages = JSON.parse(
-    fs.readFileSync(pagesPath, "utf-8")
+    fs.readFileSync(pagesPath, "utf-8"),
   ) as PersistedPage[];
   const codeBlocksWithPrompts = await appendLlmMetadata({
     pages,
@@ -46,9 +46,9 @@ async function main(): Promise<void> {
   fs.writeFileSync(
     path.resolve(
       basePath,
-      "docs-chatbot.code-examples-with-prompts-rust-driver.yaml"
+      "docs-chatbot.code-examples-with-prompts-rust-driver.yaml",
     ),
-    yaml.stringify(codeBlocksWithPrompts)
+    yaml.stringify(codeBlocksWithPrompts),
   );
 }
 main();

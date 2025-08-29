@@ -8,7 +8,7 @@ export type GetPdfBufferFunc = (url: string) => Promise<Buffer>;
 export type GetTitleFromPdfFunc = (pdfMdContent: string) => string | undefined;
 
 export type MakePdfToMarkdownDataSourceArgs<
-  SourceType extends string = string
+  SourceType extends string = string,
 > = {
   /**
     The data source name.
@@ -49,7 +49,7 @@ export type MakePdfToMarkdownDataSourceArgs<
 
 /** Loads PDF and converts content to Page */
 export function makePdfToMarkdownDataSource<
-  SourceType extends string = string
+  SourceType extends string = string,
 >({
   name,
   urls,
@@ -80,10 +80,10 @@ export function makePdfToMarkdownDataSource<
           } catch (error) {
             console.warn(`Failed to create PDF page for url '${url}',`, error);
           }
-        })
+        }),
       );
       return pages.filter(
-        (page): page is Page<SourceType> => page !== undefined
+        (page): page is Page<SourceType> => page !== undefined,
       );
     },
   };

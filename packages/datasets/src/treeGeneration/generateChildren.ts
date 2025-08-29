@@ -113,7 +113,11 @@ export function makeGenerateChildrenWithOpenAi<
       });
       const responseMessage = completion.choices[0].message;
 
-      const children = responseMessage.tool_calls?.[0].function.arguments;
+      const toolCall = responseMessage.tool_calls?.[0];
+      if (!toolCall || toolCall.type !== "function") {
+        throw new Error("Expected function tool call");
+      }
+      const children = toolCall.function.arguments;
 
       if (!children) {
         throw new Error("No children returned from completion");
@@ -238,7 +242,12 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
     }
 
     let children: ChildNode["data"][] = completion.choices
-      .map((choice) => choice.message.tool_calls?.[0].function.arguments)
+      .map((choice) => {
+        const toolCall = choice.message.tool_calls?.[0];
+        return toolCall?.type === "function"
+          ? toolCall.function.arguments
+          : undefined;
+      })
       .filter((child): child is string => child !== undefined)
       .map((child) => response.schema.parse(JSON.parse(child)));
 

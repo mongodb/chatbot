@@ -6,7 +6,7 @@ import {
   EvalParameters,
   EvalScorer,
   EvalTask,
-} from "braintrust";
+} from "mongodb-rag-core/braintrust";
 
 export interface BenchmarkDataset<Input, Expected, Metadata> {
   description?: string;

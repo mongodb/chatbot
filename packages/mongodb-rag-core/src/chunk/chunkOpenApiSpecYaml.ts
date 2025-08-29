@@ -1,5 +1,4 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import yaml from "yaml";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import {
@@ -11,7 +10,7 @@ import {
 import { logger } from "../logger";
 import { Page } from "../contentStore/Page";
 import { updateFrontMatter } from "../frontMatter/updateFrontMatter";
-
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
   maxChunkSize: 1250,
   chunkOverlap: 0,

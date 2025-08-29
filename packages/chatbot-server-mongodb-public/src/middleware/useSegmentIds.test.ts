@@ -13,7 +13,7 @@ const baseReq = {
   body: { message: "Hello, world!" },
   params: { conversationId: "conversation-1234" },
   query: { stream: "true" },
-  headers: { "req-id": "request-1234" },
+  headers: { "req-id": "request-1234" } as any,
   ip: "127.0.0.1",
 };
 
@@ -30,8 +30,8 @@ describe("useSegmentIds", () => {
     req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
       [SEGMENT_USER_ID_HEADER]: "test-user-id",
-    });
-    req.ip = baseReq.ip;
+    }) as any;
+    (req as any).ip = baseReq.ip;
 
     middleware(req, res, next);
 
@@ -52,7 +52,7 @@ describe("useSegmentIds", () => {
     req.query = baseReq.query;
     req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
-    });
+    }) as any;
 
     middleware(req, res, next);
 
@@ -72,8 +72,8 @@ describe("useSegmentIds", () => {
     req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
       [SEGMENT_ANONYMOUS_ID_HEADER]: "test-user-id",
-    });
-    req.ip = baseReq.ip;
+    }) as any;
+    (req as any).ip = baseReq.ip;
 
     middleware(req, res, next);
 
@@ -94,7 +94,7 @@ describe("useSegmentIds", () => {
     req.query = baseReq.query;
     req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
-    });
+    }) as any;
 
     middleware(req, res, next);
 
@@ -115,8 +115,8 @@ describe("useSegmentIds", () => {
       ...baseReq.headers,
       [SEGMENT_USER_ID_HEADER]: "test-user-id",
       [SEGMENT_ANONYMOUS_ID_HEADER]: "test-anonymous-id",
-    });
-    req.ip = baseReq.ip;
+    }) as any;
+    (req as any).ip = baseReq.ip;
 
     middleware(req, res, next);
 

@@ -43,6 +43,7 @@
     "autoevals": "^0.0.130",
     "braintrust": "^0.2.4",
     "eslint": "^9.33.0",
+    "fix-dts-default-cjs-exports": "^1.0.1",
     "release-it": "^16.3.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
@@ -54,6 +55,6 @@
     "dotenv": "^17.2.1",
     "mongodb-rag-core": "*",
     "yaml": "^2.8.1",
-    "zod": "^4.0.17"
+    "zod": "^4.1.5"
   }
 }

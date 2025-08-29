@@ -181,20 +181,21 @@ async function readRowsFromGoogleSheet(
       "https://www.googleapis.com/auth/drive.readonly",
     ],
   });
-  const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4" });
   // Get all rows from the sheet
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: tabName,
+    auth,
   });
   const rows = response.data.values;
   if (!rows || rows.length < 2) {
     return [];
   }
   const headers = rows[0];
-  return rows.slice(1).map((row) => {
+  return rows.slice(1).map((row: string[]) => {
     const obj: Record<string, string> = {};
-    headers.forEach((header, i) => {
+    headers.forEach((header: string, i: number) => {
       obj[header] = row[i] || "";
     });
     return obj;
@@ -216,15 +217,16 @@ async function updateStatusInGoogleSheet(
     keyFile: credentialsPath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-  const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4" });
   // First, get the header row to find the Status column index
   const headerResp = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: tabName + "!1:1",
+    auth,
   });
   const headers = headerResp.data.values?.[0] || [];
   const statusColIdx = headers.findIndex(
-    (h) => h.trim().toLowerCase() === "status"
+    (h: string) => h.trim().toLowerCase() === "status"
   );
   if (statusColIdx === -1) {
     throw new Error("Status column not found in sheet");

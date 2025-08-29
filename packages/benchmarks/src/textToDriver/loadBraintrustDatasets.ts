@@ -1,4 +1,4 @@
-import { initDataset } from "braintrust";
+import { initDataset } from "mongodb-rag-core/braintrust";
 import { z } from "zod";
 import { Document, BSON } from "mongodb-rag-core/mongodb";
 import {

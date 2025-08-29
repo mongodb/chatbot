@@ -1,4 +1,4 @@
-import { Eval, EvalCase, EvalScorer } from "braintrust";
+import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 import { z } from "zod";
 

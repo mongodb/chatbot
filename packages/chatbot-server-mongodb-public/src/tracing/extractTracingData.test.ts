@@ -50,6 +50,7 @@ describe("extractTracingData", () => {
   };
   const fetchPageToolCallMessage = { ...baseFetchPageToolCallMessage };
   assert(fetchPageToolCallMessage.toolCall);
+  assert(fetchPageToolCallMessage.toolCall.type === "function");
   fetchPageToolCallMessage.toolCall.function.arguments =
     '{"pageUrl":"https://mongodb.com/docs/page","query":"rephrased user query"}';
 

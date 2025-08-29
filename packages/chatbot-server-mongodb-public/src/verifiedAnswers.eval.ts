@@ -1,4 +1,4 @@
-import { Eval, EvalCase, EvalScorer } from "braintrust";
+import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   findVerifiedAnswer,

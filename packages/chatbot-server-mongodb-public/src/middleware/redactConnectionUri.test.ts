@@ -8,7 +8,7 @@ const baseReq = {
   body: { message: "Hello, world!" },
   params: { conversationId: "conversation-1234" },
   query: { stream: "true" },
-  headers: { "req-id": "request-1234" },
+  headers: { "req-id": "request-1234" } as any,
 };
 
 describe("redactConnectionUri", () => {

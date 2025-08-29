@@ -132,7 +132,7 @@ const resolveConfig = async (
 };
 
 const resolve = async <T>(v: T): Promise<Constructed<T>> =>
-  typeof v === "function" ? v() : v;
+  typeof v === "function" ? v() : (v as Constructed<T>);
 
 /**
   Asserts that the given property is defined in the given object and returns

@@ -132,10 +132,11 @@ export function getContextsFromMessages(
         const assistantToolCallMessage = messages[
           idx - 1
         ] as DbMessage<AssistantMessage>;
-        const url = assistantToolCallMessage?.toolCall?.function.arguments
-          ? JSON.parse(assistantToolCallMessage.toolCall.function.arguments)
-              .pageUrl
-          : undefined;
+        const toolCall = assistantToolCallMessage?.toolCall;
+        const url =
+          toolCall?.type === "function" && toolCall.function.arguments
+            ? JSON.parse(toolCall.function.arguments).pageUrl
+            : undefined;
         if (
           url === undefined ||
           !toolResponseMessage.content ||

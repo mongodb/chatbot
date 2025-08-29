@@ -1,4 +1,4 @@
-import { traced } from "braintrust";
+import { traced } from "mongodb-rag-core/braintrust";
 import {
   GenerateDriverCodeParams,
   makeGenerateDriverCode,

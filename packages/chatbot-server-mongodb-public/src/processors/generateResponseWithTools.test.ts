@@ -757,11 +757,12 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
+  const firstToolCall = result.messages[1] as AssistantMessage;
+  assert(firstToolCall.toolCall);
+  assert(firstToolCall.toolCall.type === "function");
+  assert(firstToolCall.toolCall.function);
   expect(
-    JSON.parse(
-      (result.messages[1] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
+    JSON.parse(firstToolCall.toolCall.function.arguments as string)
   ).toMatchObject(fetchPageToolMockArgs);
 
   const fetchPageToolResponseMessage = result.messages[2];
@@ -783,11 +784,12 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
+  const secondToolCall = result.messages[3] as AssistantMessage;
+  assert(secondToolCall.toolCall);
+  assert(secondToolCall.toolCall.type === "function");
+  assert(secondToolCall.toolCall.function);
   expect(
-    JSON.parse(
-      (result.messages[3] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
+    JSON.parse(secondToolCall.toolCall.function.arguments as string)
   ).toMatchObject(searchToolMockArgs);
 
   const searchToolResponseMessage = result.messages[4];
@@ -857,11 +859,12 @@ function expectSuccessfulParallelToolCallResult(
     },
     content: "",
   });
+  const firstToolCall = result.messages[1] as AssistantMessage;
+  assert(firstToolCall.toolCall);
+  assert(firstToolCall.toolCall.type === "function");
+  assert(firstToolCall.toolCall.function);
   expect(
-    JSON.parse(
-      (result.messages[1] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
+    JSON.parse(firstToolCall.toolCall.function.arguments as string)
   ).toMatchObject(fetchPageToolMockArgs);
 
   expect(result.messages[2]).toMatchObject({
@@ -875,11 +878,12 @@ function expectSuccessfulParallelToolCallResult(
     },
     content: "",
   });
+  const secondToolCall = result.messages[2] as AssistantMessage;
+  assert(secondToolCall.toolCall);
+  assert(secondToolCall.toolCall.type === "function");
+  assert(secondToolCall.toolCall.function);
   expect(
-    JSON.parse(
-      (result.messages[2] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
+    JSON.parse(secondToolCall.toolCall.function.arguments as string)
   ).toMatchObject({
     ...fetchPageToolMockArgs,
     pageUrl: "https://example2.com/",

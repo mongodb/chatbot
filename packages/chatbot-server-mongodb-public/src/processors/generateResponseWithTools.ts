@@ -27,11 +27,8 @@ import {
   stepCountIs,
   jsonSchema,
   JSONSchema7,
-  StaticToolCall,
-  StaticToolResult,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
-
 import {
   InputGuardrail,
   FilterPreviousMessages,
@@ -463,18 +460,7 @@ export function makeGenerateResponseWithTools({
             ],
 
             // Appends references when a reference-returning tool is called
-            onStepFinish: async ({ toolResults, toolCalls }) => {
-              for (const toolCall of toolCalls) {
-                if (toolCall.dynamic) {
-                  continue;
-                }
-                if (toolCall.toolName === SEARCH_TOOL_NAME) {
-                  userMessageCustomData = {
-                    ...userMessageCustomData,
-                    ...toolCall.input,
-                  };
-                }
-              }
+            onStepFinish: async ({ toolResults }) => {
               for (const toolResult of toolResults) {
                 if (toolResult.dynamic) {
                   continue;
@@ -626,18 +612,24 @@ export function makeGenerateResponseWithTools({
         generationPromise,
       ]);
 
+      // Add tool call results to the DB
+      assert(result, "result is required");
+      (await result.toolCalls).forEach((toolCall) => {
+        if (toolCall.dynamic) {
+          return;
+        }
+        if (toolCall.toolName === SEARCH_TOOL_NAME) {
+          userMessageCustomData = {
+            ...userMessageCustomData,
+            ...toolCall.input,
+          };
+        }
+      });
+
       // If the guardrail rejected the query,
       // return the LLM refusal message
       if (guardrailResult?.rejected) {
         userMessage.rejectQuery = guardrailResult.rejected;
-        userMessage.metadata = {
-          ...userMessage.metadata,
-        };
-        userMessage.customData = {
-          ...userMessage.customData,
-          ...userMessageCustomData,
-          ...guardrailResult,
-        };
         if (streamingModeActive) {
           stream.onLlmRefusal({
             dataStreamer,
@@ -659,15 +651,8 @@ export function makeGenerateResponseWithTools({
       }
 
       // Otherwise, return the generated response
-      assert(result, "result is required");
       const llmResponse = await result?.response;
       const messages = llmResponse?.messages || [];
-
-      // Add metadata to user message
-      userMessage.metadata = {
-        ...userMessage.metadata,
-        ...userMessageCustomData,
-      };
 
       // If we received messages from the LLM, use them, otherwise handle error case
       if (messages && messages.length > 0) {
@@ -737,6 +722,7 @@ function handleReturnGeneration({
   userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
+  userMessage.metadata = userMessage.metadata ?? {};
   userMessage.customData = {
     ...userMessage.customData,
     ...userMessageCustomData,

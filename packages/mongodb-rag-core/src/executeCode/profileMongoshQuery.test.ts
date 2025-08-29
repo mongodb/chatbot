@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 import {
   addExplainToQuery,
@@ -26,55 +26,55 @@ describe.skip("profileMongoshQuery", () => {
   describe("addExplainToQuery", () => {
     it("should add explain to db.collection.method() pattern", () => {
       expect(addExplainToQuery("db.users.find({})")).toBe(
-        'db.users.find({}).explain("executionStats")',
+        'db.users.find({}).explain("executionStats")'
       );
       expect(addExplainToQuery("db.products.findOne({ id: 1 })")).toBe(
-        'db.products.find({ id: 1 }).limit(1).explain("executionStats")',
+        'db.products.find({ id: 1 }).limit(1).explain("executionStats")'
       );
       expect(addExplainToQuery("db.orders.aggregate([{ $match: {} }])")).toBe(
-        'db.orders.aggregate([{ $match: {} }]).explain("executionStats")',
+        'db.orders.aggregate([{ $match: {} }]).explain("executionStats")'
       );
     });
 
     it("should add explain to db['collection'].method() pattern", () => {
       expect(addExplainToQuery("db['users'].find({})")).toBe(
-        "db['users'].find({}).explain(\"executionStats\")",
+        "db['users'].find({}).explain(\"executionStats\")"
       );
       expect(addExplainToQuery('db["products"].find({ id: 1 })')).toBe(
-        'db["products"].find({ id: 1 }).explain("executionStats")',
+        'db["products"].find({ id: 1 }).explain("executionStats")'
       );
     });
 
     it("should add explain to db.getCollection() pattern", () => {
       expect(addExplainToQuery("db.getCollection('users').find({})")).toBe(
-        "db.getCollection('users').find({}).explain(\"executionStats\")",
+        "db.getCollection('users').find({}).explain(\"executionStats\")"
       );
       expect(addExplainToQuery('db.getCollection("products").findOne()')).toBe(
-        'db.getCollection("products").find().limit(1).explain("executionStats")',
+        'db.getCollection("products").find().limit(1).explain("executionStats")'
       );
     });
 
     it("should add explain to db.collection.method().sort() pattern", () => {
       expect(addExplainToQuery("db.users.find({}).sort({ age: 1 })")).toBe(
-        'db.users.find({}).sort({ age: 1 }).explain("executionStats")',
+        'db.users.find({}).sort({ age: 1 }).explain("executionStats")'
       );
     });
 
     it("should add explain to db.collection.method().limit() pattern", () => {
       expect(addExplainToQuery("db.users.find({}).limit(10)")).toBe(
-        'db.users.find({}).limit(10).explain("executionStats")',
+        'db.users.find({}).limit(10).explain("executionStats")'
       );
     });
 
     it("should transform findOne to find().limit(1).explain() for all patterns", () => {
       expect(addExplainToQuery("db.users.findOne({})")).toBe(
-        'db.users.find({}).limit(1).explain("executionStats")',
+        'db.users.find({}).limit(1).explain("executionStats")'
       );
       expect(addExplainToQuery("db['users'].findOne({ age: 30 })")).toBe(
-        "db['users'].find({ age: 30 }).limit(1).explain(\"executionStats\")",
+        "db['users'].find({ age: 30 }).limit(1).explain(\"executionStats\")"
       );
       expect(addExplainToQuery("db.getCollection('users').findOne()")).toBe(
-        "db.getCollection('users').find().limit(1).explain(\"executionStats\")",
+        "db.getCollection('users').find().limit(1).explain(\"executionStats\")"
       );
     });
 
@@ -109,7 +109,7 @@ describe.skip("profileMongoshQuery", () => {
     it("should use fallback pattern for unmatched queries", () => {
       const query = "db.someWeirdPattern.notAMethod";
       expect(addExplainToQuery(query)).toBe(
-        'db.someWeirdPattern.notAMethod.explain("executionStats")',
+        'db.someWeirdPattern.notAMethod.explain("executionStats")'
       );
     });
   });
@@ -228,7 +228,7 @@ describe.skip("profileMongoshQuery", () => {
       const count = await getMongoshCollectionDocumentCount(
         MONGO_MEMORY_SERVER_URI,
         collectionName,
-        databaseName,
+        databaseName
       );
 
       expect(count).toBe(3);
@@ -240,7 +240,7 @@ describe.skip("profileMongoshQuery", () => {
       const count = await getMongoshCollectionDocumentCount(
         MONGO_MEMORY_SERVER_URI,
         collectionName,
-        databaseName,
+        databaseName
       );
 
       expect(count).toBe(0);
@@ -250,7 +250,7 @@ describe.skip("profileMongoshQuery", () => {
       const count = await getMongoshCollectionDocumentCount(
         MONGO_MEMORY_SERVER_URI,
         "non_existent_collection",
-        databaseName,
+        databaseName
       );
 
       expect(count).toBe(0);
@@ -284,7 +284,7 @@ describe.skip("profileMongoshQuery", () => {
       const result = await profileMongoshQuery(
         `db.${collectionName}.find({ age: { $gt: 25 } })`,
         databaseName,
-        MONGO_MEMORY_SERVER_URI,
+        MONGO_MEMORY_SERVER_URI
       );
 
       expect(result).toMatchObject({
@@ -307,7 +307,7 @@ describe.skip("profileMongoshQuery", () => {
       const result = await profileMongoshQuery(
         "invalidQuery",
         databaseName,
-        MONGO_MEMORY_SERVER_URI,
+        MONGO_MEMORY_SERVER_URI
       );
 
       expect(result).toMatchObject({
@@ -322,7 +322,7 @@ describe.skip("profileMongoshQuery", () => {
       const result = await profileMongoshQuery(
         `db.getCollection("${collectionName}").find({ name: 'John' })`,
         databaseName,
-        MONGO_MEMORY_SERVER_URI,
+        MONGO_MEMORY_SERVER_URI
       );
 
       expect(result).toMatchObject({
@@ -345,7 +345,7 @@ describe.skip("profileMongoshQuery", () => {
       const result = await profileMongoshQuery(
         `db['${collectionName}'].find({ city: "NYC" })`,
         databaseName,
-        MONGO_MEMORY_SERVER_URI,
+        MONGO_MEMORY_SERVER_URI
       );
 
       expect(result).toMatchObject({
@@ -371,7 +371,7 @@ describe.skip("profileMongoshQuery", () => {
       const result = await profileMongoshQuery(
         `db.${collectionName}.find({ age: 30 })`,
         databaseName,
-        MONGO_MEMORY_SERVER_URI,
+        MONGO_MEMORY_SERVER_URI
       );
 
       expect(result).toMatchObject({

@@ -3,7 +3,7 @@ import { strict as assert } from "assert";
 import { Eval, BraintrustMiddleware } from "../braintrust";
 import { Scorer } from "autoevals";
 import { classifyMongoDbMetadata, MongoDbTag } from "./";
-import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "../aiSdk";
 import { getOpenAiEndpointAndApiKey, models } from "../models";
 
 async function main() {
@@ -344,7 +344,7 @@ async function main() {
   ];
 
   const ProductNameCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
-    args,
+    args
   ) => {
     const name = "ProductNameCorrect";
     if (args.expected?.product === undefined) {
@@ -381,7 +381,7 @@ async function main() {
   };
 
   const TopicCorrect: Scorer<MetadataClassifierEvalOutput, unknown> = (
-    args,
+    args
   ) => {
     const name = "TopicCorrect";
     if (args.expected?.topic === undefined) {
@@ -413,7 +413,7 @@ async function main() {
             model: openai.languageModel(modelLabel),
             middleware: [BraintrustMiddleware({ debug: true })],
           }),
-          input,
+          input
         );
       } catch (error) {
         console.log(`Error evaluating input: ${input}`);

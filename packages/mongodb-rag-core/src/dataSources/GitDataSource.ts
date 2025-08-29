@@ -9,6 +9,44 @@ import { logger } from "../logger";
 import { Page, PageMetadata } from "../contentStore";
 
 /**
+ * An interface that represents the parameters for the GithubRepoLoader
+ * class. It extends the AsyncCallerParams interface and adds additional
+ * properties specific to the GitHub repository loader.
+ */
+export interface GithubRepoLoaderParams {
+  /**
+   * The base URL of the GitHub instance.
+   * To be used when you are not targeting github.com, e.g. a GitHub Enterprise instance.
+   */
+  baseUrl?: string;
+  /**
+   * The API endpoint URL of the GitHub instance.
+   * To be used when you are not targeting github.com, e.g. a GitHub Enterprise instance.
+   */
+  apiUrl?: string;
+  branch?: string;
+  recursive?: boolean;
+  /**
+   * Set to true to recursively process submodules. Is only effective, when recursive=true.
+   */
+  processSubmodules?: boolean;
+  unknown?: unknown;
+  accessToken?: string;
+  ignoreFiles?: (string | RegExp)[];
+  ignorePaths?: string[];
+  verbose?: boolean;
+  /**
+   * The maximum number of concurrent calls that can be made. Defaults to 2.
+   */
+  maxConcurrency?: number;
+  /**
+   * The maximum number of retries that can be made for a single call,
+   * with an exponential backoff between each attempt. Defaults to 2.
+   */
+  maxRetries?: number;
+}
+
+/**
   Function to convert a file in the repo into a `Page` or `Page[]`.
   @param path - Path to file in repo
   @param content - Contents of file in repo

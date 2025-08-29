@@ -1,10 +1,10 @@
-import { GithubRepoLoaderParams } from "@langchain/community/document_loaders/web/github";
 import {
   getAcquitTestsFromGithubRepo,
   makeAcquitRequireMdOnGithubDataSource,
 } from "./AcquitRequireMdOnGithubDataSource";
 import "dotenv/config";
 import { strict as assert } from "assert";
+import { GithubRepoLoaderParams } from "./GitDataSource";
 
 jest.setTimeout(90000);
 const repoUrl = "https://github.com/Automattic/mongoose";

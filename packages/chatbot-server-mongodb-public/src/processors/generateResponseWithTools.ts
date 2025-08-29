@@ -39,13 +39,8 @@ import {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
+import { MongoDbSearchToolArgs, SEARCH_TOOL_NAME } from "../tools/search";
 import {
-  MongoDbSearchToolArgs,
-  SEARCH_TOOL_NAME,
-  SearchTool,
-} from "../tools/search";
-import {
-  FetchPageTool,
   FETCH_PAGE_TOOL_NAME,
   MongoDbFetchPageToolArgs,
 } from "../tools/fetchPage";
@@ -53,11 +48,11 @@ import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
 /**
-  Hidden tools are internal to the MongoDB Responses API.
+  Tools that are internal to the MongoDB Responses API.
   The model may choose to call them under the hood,
   but their usage should not be exposed to the client through streaming.
  */
-const HIDDEN_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
+const INTERNAL_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
 
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
@@ -71,8 +66,11 @@ export interface GenerateResponseWithToolsParams {
    */
   additionalTools?: ToolSet;
   maxSteps: number;
-  searchTool: SearchTool;
-  fetchPageTool: FetchPageTool;
+  internalTools: {
+    [name: string]: Tool;
+  };
+  // searchTool: SearchTool;
+  // fetchPageTool: FetchPageTool;
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
@@ -352,10 +350,9 @@ export function makeGenerateResponseWithTools({
   inputGuardrail,
   makeSystemPrompt,
   filterPreviousMessages,
+  internalTools,
   additionalTools,
   maxSteps,
-  searchTool,
-  fetchPageTool,
   stream,
 }: GenerateResponseWithToolsParams): GenerateResponse {
   return async function generateResponseWithTools({
@@ -391,9 +388,8 @@ export function makeGenerateResponseWithTools({
           )
         : [];
 
-      const toolSet = {
-        [SEARCH_TOOL_NAME]: searchTool,
-        [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+      const defaultToolSet = {
+        ...internalTools,
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
@@ -404,7 +400,7 @@ export function makeGenerateResponseWithTools({
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies ModelMessage[],
-        tools: toolSet,
+        tools: defaultToolSet,
         toolChoice,
         maxSteps,
       };
@@ -422,6 +418,7 @@ export function makeGenerateResponseWithTools({
         : undefined;
 
       const references: References = [];
+      // TODO remove userMessageCustomData
       // Both search_content and fetch_page tools have an input search query
       const userMessageCustomData: {
         [SEARCH_TOOL_NAME]?: Partial<MongoDbSearchToolArgs>;
@@ -447,8 +444,7 @@ export function makeGenerateResponseWithTools({
         try {
           // Create the complete tool set with proper typing
           const allTools = {
-            [SEARCH_TOOL_NAME]: searchTool,
-            [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+            ...defaultToolSet,
             ...formatToolDefinitionsForAiSdk(toolDefinitions),
           } as const;
 
@@ -492,7 +488,7 @@ export function makeGenerateResponseWithTools({
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end
           let toolCallId = "";
-          let hiddenToolActivated = false;
+          let internalToolActivated = false;
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -539,9 +535,9 @@ export function makeGenerateResponseWithTools({
                 if (streamingModeActive) {
                   const { id, toolName } = chunk;
                   toolCallId = id;
-                  hiddenToolActivated = HIDDEN_TOOLS.includes(toolName);
+                  internalToolActivated = INTERNAL_TOOLS.includes(toolName);
 
-                  if (hiddenToolActivated) break;
+                  if (internalToolActivated) break;
 
                   stream.onFunctionCallStart?.({
                     dataStreamer,
@@ -565,7 +561,7 @@ export function makeGenerateResponseWithTools({
               case "tool-input-end":
                 break;
               case "tool-call":
-                if (streamingModeActive && !hiddenToolActivated) {
+                if (streamingModeActive && !internalToolActivated) {
                   const { input, toolCallId, toolName } = chunk;
                   stream.onFunctionCallDone?.({
                     dataStreamer,
@@ -575,7 +571,7 @@ export function makeGenerateResponseWithTools({
                     chunkId: "",
                   });
                 } else {
-                  hiddenToolActivated = false;
+                  internalToolActivated = false;
                 }
                 break;
               case "finish":

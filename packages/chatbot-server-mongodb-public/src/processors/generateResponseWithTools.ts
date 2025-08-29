@@ -44,7 +44,11 @@ import {
   SEARCH_TOOL_NAME,
   SearchTool,
 } from "../tools/search";
-import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
+import {
+  FetchPageTool,
+  FETCH_PAGE_TOOL_NAME,
+  MongoDbFetchPageToolArgs,
+} from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
@@ -418,7 +422,11 @@ export function makeGenerateResponseWithTools({
         : undefined;
 
       const references: References = [];
-      let userMessageCustomData: Partial<MongoDbSearchToolArgs> = {};
+      // Both search_content and fetch_page tools have an input search query
+      const userMessageCustomData: {
+        [SEARCH_TOOL_NAME]?: Partial<MongoDbSearchToolArgs>;
+        [FETCH_PAGE_TOOL_NAME]?: Partial<MongoDbFetchPageToolArgs>;
+      } = {};
 
       // Create an AbortController for the generation
       const generationController = new AbortController();
@@ -612,20 +620,6 @@ export function makeGenerateResponseWithTools({
         generationPromise,
       ]);
 
-      // Add tool call results to the DB
-      assert(result, "result is required");
-      (await result.toolCalls).forEach((toolCall) => {
-        if (toolCall.dynamic) {
-          return;
-        }
-        if (toolCall.toolName === SEARCH_TOOL_NAME) {
-          userMessageCustomData = {
-            ...userMessageCustomData,
-            ...toolCall.input,
-          };
-        }
-      });
-
       // If the guardrail rejected the query,
       // return the LLM refusal message
       if (guardrailResult?.rejected) {
@@ -651,6 +645,7 @@ export function makeGenerateResponseWithTools({
       }
 
       // Otherwise, return the generated response
+      assert(result, "result is required");
       const llmResponse = await result?.response;
       const messages = llmResponse?.messages || [];
 
@@ -723,17 +718,16 @@ function handleReturnGeneration({
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
   userMessage.metadata = userMessage.metadata ?? {};
+
+  const { formattedMessages, toolCallCustomData } =
+    formatMessageForReturnGeneration(messages, reqId, references ?? []);
+
   userMessage.customData = {
     ...userMessage.customData,
+    ...toolCallCustomData,
     ...userMessageCustomData,
     ...guardrailResult,
   };
-
-  const formattedMessages = formatMessageForReturnGeneration(
-    messages,
-    reqId,
-    references ?? []
-  );
 
   return {
     messages: [userMessage, ...formattedMessages],
@@ -817,11 +811,23 @@ function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   reqId: string,
   references: References
-): [...SomeMessage[], AssistantMessage] {
+): {
+  formattedMessages: [...SomeMessage[], AssistantMessage];
+  toolCallCustomData: Record<string, unknown>;
+} {
   const messagesOut: Array<SomeMessage | AssistantMessage> = [];
+  const toolCallCustomData: Record<string, unknown> = {};
   messages.forEach((m) => {
     if (m.role === "assistant") {
-      messagesOut.push(...makeAssitantMessage(reqId, m));
+      const newAssistantMessages = makeAssitantMessage(reqId, m);
+      messagesOut.push(...newAssistantMessages);
+
+      // For now, only capture custom data from the first message if it has a tool call
+      if (newAssistantMessages[0].toolCall) {
+        toolCallCustomData[newAssistantMessages[0].toolCall.function.name] = {
+          ...JSON.parse(newAssistantMessages[0].toolCall.function.arguments),
+        };
+      }
     } else if (m.role === "tool") {
       messagesOut.push(...makeToolMessage(m));
     }
@@ -836,7 +842,10 @@ function formatMessageForReturnGeneration(
   }
   const latestMessage = messagesOut.at(-1) as AssistantMessage;
   latestMessage.references = references;
-  return messagesOut as [...SomeMessage[], AssistantMessage];
+  return {
+    formattedMessages: messagesOut as [...SomeMessage[], AssistantMessage],
+    toolCallCustomData,
+  };
 }
 
 function formatMessageForAiSdk(message: SomeMessage): ModelMessage {

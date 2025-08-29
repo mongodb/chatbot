@@ -19,6 +19,7 @@ import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/gen
 import {
   ATLAS_SEARCH_AGENT_MAX_STEPS,
   atlasSearchAgentPrompt,
+  atlasSearchAgentPromptWithRecommendation,
 } from "./generateDriverCode/languagePrompts/atlasSearch";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";

@@ -7,13 +7,17 @@ export const ATLAS_SEARCH_AGENT_MAX_STEPS = 20;
 const role = `You are a MongoDB Atlas Search expert. You are given a natural language query and you need to generate the appropriate Atlas Search query.`;
 
 const taskOverview = `<task-overview>
-Call the ${submitFinalSolutionToolName} tool to submit the final solution when you are satisfies with the generated query.
-You can call tools up to ${ATLAS_SEARCH_AGENT_MAX_STEPS} times when generating the final solution.
+${listExamplesInPrompt([
+  `Use the available tools to help you explore the database, generate the query, think about the problem, and submit the final solution.`,
+  `Test out your query on the database before submitting the final solution.`,
+  `Call the ${submitFinalSolutionToolName} tool to submit the final solution when you are satisfies with the generated query.`,
+  `You can call tools up to ${ATLAS_SEARCH_AGENT_MAX_STEPS} times when generating the final solution.`,
+])}
 </task-overview>`;
 
 const tools = `<tools>
 
-You may use the available tools to help you explore the database, generate the query, think about the problem, and submit the final solution.
+Use the following tools to help you accomplish the task:
 
 <tool name="${thinkToolName}">
 1. Use the tool to think about the problem as you are calling tools to respond.
@@ -93,7 +97,7 @@ ${listExamplesInPrompt([
   "Leverage text search with appropriate analyzers - use text operator for full-text search, phrase for exact matches, autocomplete for type-ahead",
   "Apply scoring and boosting strategically - use boost option to increase importance of certain fields or conditions",
   "Include proper field specifications in your operators - specify which indexed fields to search against",
-  "Use limit and sort stages after $search to manage result sets, but avoid blocking operations when possible",
+  "Use $limit and $sort stages after $search to manage result sets, but avoid blocking operations when possible",
   "For complex text matching, consider wildcard or regex operators but note they are resource-intensive",
   "Utilize stored source fields when you need specific fields in subsequent pipeline stages to avoid full document lookup",
   "When using autocomplete, configure appropriate minGrams and maxGrams values (typically maxGrams of 10 for English)",

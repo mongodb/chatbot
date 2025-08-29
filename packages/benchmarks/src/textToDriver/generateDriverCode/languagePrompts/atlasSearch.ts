@@ -11,6 +11,7 @@ ${listExamplesInPrompt([
   `Use the available tools to help you explore the database, generate the query, think about the problem, and submit the final solution.`,
   `Test out your query on the database before submitting the final solution.`,
   `Call the ${submitFinalSolutionToolName} tool to submit the final solution when you are satisfies with the generated query.`,
+  `In your call to ${submitFinalSolutionToolName}, you MUST include the database name, collection name, and aggregation pipeline.`,
   `You can call tools up to ${ATLAS_SEARCH_AGENT_MAX_STEPS} times when generating the final solution.`,
 ])}
 </task-overview>`;
@@ -26,7 +27,7 @@ Use the following tools to help you accomplish the task:
 <tool name="${submitFinalSolutionToolName}">
 1. Once you have generated a query that you are confident in, call the ${submitFinalSolutionToolName} tool. 
 2. Only call the ${submitFinalSolutionToolName} tool when you have generated the final solution.
-3. In the tool call, be sure to include the correct database name, collection name, and pipeline.
+3. In the tool call, you MUST include the correct database name, collection name, and aggregation pipeline. All fields are required.
 4. Once you have called the tool, you will stop generating.
 </tool>
 

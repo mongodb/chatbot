@@ -40,7 +40,7 @@ When testing database operations, we use the MongoDB Memory Server to create an 
 1. Tests run in isolation without affecting a real database.
 2. No need to set up and maintain a separate test database.
 3. Tests can run in parallel without conflicts.
-4. Tests are faster since they use an in-memory database.****
+4. Tests are faster since they use an in-memory database.\*\*\*\*
 
 ### Example: Testing Database Operations
 
@@ -117,7 +117,6 @@ it("should handle errors gracefully", async () => {
 });
 ```
 
-
 ## Best Practices
 
 1. **Isolation**: Each test should be independent and not rely on the state from other tests.
@@ -125,4 +124,4 @@ it("should handle errors gracefully", async () => {
 3. **Descriptive names**: Use descriptive test names that explain what is being tested.
 4. **Arrange-Act-Assert**: Structure tests with clear arrange, act, and assert sections.
 5. **Test edge cases**: Include tests for error conditions and edge cases.
-6. **Avoid test interdependence**: Tests should not depend on each other's execution order. 
+6. **Avoid test interdependence**: Tests should not depend on each other's execution order.

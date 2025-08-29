@@ -22,6 +22,8 @@ const openAiClient = wrapOpenAI(
   })
 );
 
+const atlasSearchLabel = "atlas_search";
+
 const evalData = useCaseNodes.map((useCase) => {
   const databaseInfo = useCase.parent.parent.data;
   const user = useCase.parent.data;
@@ -37,7 +39,7 @@ const evalData = useCaseNodes.map((useCase) => {
       user: user.name,
       useCase: useCase.data.title,
     },
-    tags: ["atlas_search"],
+    tags: [atlasSearchLabel],
   };
 });
 
@@ -49,7 +51,6 @@ const llmOptions: LlmOptions = {
 };
 
 async function main() {
-  console.log("evalData", evalData.length);
   await Eval("generate-atlas-search-natural-language", {
     experimentName: `atlas-search-enhanced-prompt-evaluation-${llmOptions.model}`,
     data: evalData,
@@ -58,7 +59,7 @@ async function main() {
     async task(input) {
       const promptMessages = makeGenerateNaturalLanguageQueryPrompt({
         ...input,
-        queryType: "atlas_search", // Ensure we use Atlas Search prompts
+        queryType: atlasSearchLabel, // Ensure we use Atlas Search prompts
       });
       const { results } = await getOpenAiFunctionResponse({
         messages: promptMessages,

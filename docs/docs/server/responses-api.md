@@ -39,6 +39,7 @@ The Responses API includes the following features:
 ## API Specification
 
 For a complete reference on the MongoDB Responses API, refer to the [OpenAPI specification](/server/openapi/#tag/Responses).
+
 ## Call the Responses API
 
 As the MongoDB Knowledge Service Responses API uses the same interface as the OpenAI responses API, all clients that support the official OpenAI Responses API should also work for this API.
@@ -56,7 +57,14 @@ Example usage with OpenAI client `openai`:
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const response = await openai.responses.create({
   model: "mongodb-chat-latest",
@@ -84,10 +92,15 @@ import { streamText } from "ai";
 // NOTE: we are using the AI SDK v5 with LanguageModelV2
 import { createOpenAI } from "@ai-sdk/openai";
 
-const model = createOpenAI({
-  baseURL: origin + API_PREFIX,
-  apiKey: TEST_OPENAI_API_KEY,
-}).responses("mongodb-chat-latest");
+const openai = createOpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  headers: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
+const model = openai.responses("mongodb-chat-latest");
 
 const result = await streamText({
   model,
@@ -102,13 +115,14 @@ for await (const chunk of result.toUIMessageStream()) {
 ### `curl` Request
 
 ```sh
-curl -v -X POST POST 'https://knowledge.mongodb.com/api/v1/responses' \
+curl -X POST 'https://knowledge.mongodb.com/api/v1/responses' \
   -H 'Content-Type: application/json' \
-  -H 'ORIGIN: mongodb.com' \
+  -H 'User-Agent: <User Agent>' \
+  -H 'X-Request-Origin: <Request Origin>' \
   -d '{
     "model": "mongodb-chat-latest",
     "stream": true,
-    "input": "How do I create an index in MongoDB?",
+    "input": "How do I create an index in MongoDB?"
   }'
 ```
 
@@ -151,10 +165,19 @@ for await (const event of stream) {
 
 ## Set Custom Instructions
 
+With the OpenAI SDK:
+
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const response = await openai.responses.create({
   model: "mongodb-chat-latest",
@@ -170,6 +193,34 @@ const response = await openai.responses.create({
 });
 ```
 
+With the AI SDK:
+
+```ts
+import { streamText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const model = createOpenAI({
+  baseURL: origin + API_PREFIX,
+  apiKey: TEST_OPENAI_API_KEY,
+}).responses("mongodb-chat-latest");
+
+const result = await streamText({
+  model,
+  prompt: "What is MongoDB?",
+  headers: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+  // system: "Don't use this!! Prefer providerOptions",
+  // Use the providerOptions!!
+  providerOptions: {
+    openai: {
+      instructions: "You are located on the MongoDB Atlas cloud platform. Use that as context to inform your response."
+    }
+  }
+}); 
+```
+
 ## Use Custom Tools
 
 You can add custom tools to the Responses API to make it produce structured output or agentically interact with services.
@@ -177,7 +228,14 @@ You can add custom tools to the Responses API to make it produce structured outp
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 //Custom tool definition
 const tools =  [{
@@ -220,7 +278,14 @@ You can force the Responses API to use a custom tool with the `tool_choice` para
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const tools =  [{
   type: "function",
@@ -253,64 +318,6 @@ const stream = await openai.responses.create({
 });
 ```
 
-### Combine Custom Tools with Custom Instructions
-
-You can use custom instructions to give the model additional context about how to use custom tools. To do this, use both the `instructions` and `tools` parameters on the request to the Responses API:
-
-```ts
-import { OpenAI } from "openai";
-
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
-
-const tools =  [{
-  type: "function",
-  name: "mongosh-query",
-  description: "Write a Mongosh query",
-  parameters: {
-    type: "object",
-    properties: {
-      mongosh_query: { type: "string" },
-    },
-    required: ["query"],
-  },
-}];
-
-const stream = await openai.responses.create({
-  model: "mongodb-chat-latest",
-  stream: true,
-  input: [
-    {
-      role: "user",
-      content: "how to aggregate data in movies collection?",
-    },
-  ],
-  tools,
-  // Instructions guiding tool usage
-  instructions: `## ${tools[0].name} usage
-  
-If you use the '${tools[0].name}' tool,
-always format the output as follows:
-db.<collection-name>.<operation>(...args)
-
-### Cursor-Returning Operations
-
-For cursor-returning operations like .find() and .aggregate(),
-postfix the query with the appropriate method
-to convert it to the data from the database,
-like .toArray() or .explain().
-Ex: db.<collection-name>.<find|aggregate>(...args).toArray()
-
-## Limiting Queries
-
-Unless explicitly told otherwise by the user, limit queries to at most 10 documents.
-Ex:
-- { $limit: 10} for .aggregate()
-- .limit(10) for .find()
-
-...more instructions...`
-});
-```
-
 
 ## Conversation Management
 
@@ -335,6 +342,7 @@ In stateful conversations, the server manages conversation history. You referenc
 By setting `previous_response_id`, all messages in conversation are stored together in the database. This makes conversations easier to analyze.
 
 **Requirements for stateful conversations:**
+
 1. Must set `store: true | undefined`
 1. Must use the same `user` ID for all requests in the conversation
 1. Maximum of 50 user messages per conversation
@@ -345,7 +353,14 @@ If any of these requirements are violated, the server responds with an error.
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 const userId = "user123";
 
 // First message in conversation
@@ -384,14 +399,21 @@ const followUpResponse = await openai.responses.create({
 
 In stateless conversations, you provide the entire conversation context in each request.
 
-You can use stateless conversations for any storage setting,  `store: true | false | undefined`. 
+You can use stateless conversations for any storage setting, `store: true | false | undefined`.
 
 If you set `store: false`, you **must** use a stateless conversation because the server doesn't maintain conversation history.
 
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const firstMessage = {
   type: "message",
@@ -441,12 +463,14 @@ const followUpResponse = await openai.responses.create({
 ```
 
 **Benefits of stateless conversations:**
+
 - Works with `store: false` for privacy
 - No user ID consistency requirements
 - Full control over conversation context
 - No 50 message limit (though total content must be ≤250,000 characters)
 
 **Considerations:**
+
 - More bandwidth usage (sending full context each time)
 - Client responsible for managing conversation history
 - Must manually track and include all relevant context
@@ -474,7 +498,14 @@ All data retention is in line with MongoDB data retention policies.
 ```ts
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({ baseURL: "https://knowledge.mongodb.com/api/v1" });
+const openai = new OpenAI({
+  baseURL: "https://knowledge.mongodb.com/api/v1",
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const stream = await openai.responses.create({
   model: "mongodb-chat-latest",
@@ -504,7 +535,14 @@ import { OpenAI } from "openai";
 
 const knowledgeServiceBaseUrl = "https://knowledge.mongodb.com/api/v1";
 
-const openai = new OpenAI({ baseURL: knowledgeServiceBaseUrl });
+const openai = new OpenAI({
+  baseURL: knowledgeServiceBaseUrl,
+  apiKey: "mongodb-api-key",
+  defaultHeaders: {
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
+  },
+});
 
 const stream = await openai.responses.create({
   model: "mongodb-chat-latest",
@@ -534,7 +572,8 @@ const rateResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/messa
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'ORIGIN': 'your-domain.com'
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
   },
   body: JSON.stringify({
     rating: true // true for thumbs up, false for thumbs down
@@ -546,7 +585,8 @@ const commentResponse = await fetch(`${knowledgeServiceBaseUrl}/conversations/me
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'ORIGIN': 'your-domain.com'
+    "User-Agent": "<User Agent>", // Required - if not provided or allowed the request will fail
+    "X-Request-Origin": "<Request Origin>", //  Required
   },
   body: JSON.stringify({
     comment: "This response was very helpful for understanding MongoDB Atlas setup."

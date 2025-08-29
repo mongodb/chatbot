@@ -134,7 +134,6 @@ export const sampleDatabaseUsers = [
   },
 ] as const satisfies DatabaseUser[];
 
-// TODO: update
 export const sampleUseCases = {
   "Yuki Tanaka": [
     {

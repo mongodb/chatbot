@@ -14,5 +14,6 @@
     "strictNullChecks": true,
     "skipLibCheck": true,
     "strict": true,
+    "isolatedModules": true
   }
 }

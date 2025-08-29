@@ -31,7 +31,7 @@ export interface MakeVerifiedAnswerGenerateResponseParams {
 }
 
 export type StreamFunction<Params> = (
-  params: { dataStreamer: DataStreamer } & Params,
+  params: { dataStreamer: DataStreamer } & Params
 ) => void;
 
 export const addMessageToConversationVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponseParams["stream"] =

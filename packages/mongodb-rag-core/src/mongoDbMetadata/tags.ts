@@ -38,7 +38,9 @@ const allTags = [
  */
 export const validateTags = (tagNames: string[], custom: boolean): void => {
   if (!custom) {
-    const invalidTags = tagNames.filter((tag) => !allTags.includes(tag as MongoDbTag));
+    const invalidTags = tagNames.filter(
+      (tag) => !allTags.includes(tag as MongoDbTag)
+    );
     if (invalidTags.length > 0) {
       throw new Error(
         `Invalid tags found: ${invalidTags.join(

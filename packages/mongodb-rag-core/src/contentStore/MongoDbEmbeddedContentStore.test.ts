@@ -13,7 +13,10 @@ import {
 } from "./MongoDbEmbeddedContentStore";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
-import { MONGO_MEMORY_REPLICA_SET_URI, MONGO_MEMORY_SERVER_URI } from "../test/constants";
+import {
+  MONGO_MEMORY_REPLICA_SET_URI,
+  MONGO_MEMORY_SERVER_URI,
+} from "../test/constants";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -632,6 +635,12 @@ describe("listDataSources", () => {
 
     const result = await store.listDataSources();
     expect(result.length).toBeGreaterThan(0); // Real fetch happened
-    expect(result).toStrictEqual([{ id: "docs", versions: [{ label: "v12.0", isCurrent: true }], type: "docs" }])
+    expect(result).toStrictEqual([
+      {
+        id: "docs",
+        versions: [{ label: "v12.0", isCurrent: true }],
+        type: "docs",
+      },
+    ]);
   });
 });

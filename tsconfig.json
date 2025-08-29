@@ -13,6 +13,6 @@
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
   }
 }

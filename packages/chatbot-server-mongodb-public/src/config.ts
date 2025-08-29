@@ -121,13 +121,6 @@ export const openAiClient = wrapOpenAI(
   })
 );
 
-// For parts of the application that use the Vercel AI SDK
-export const azure = createAzure({
-  apiKey: OPENAI_API_KEY,
-  resourceName: OPENAI_RESOURCE_NAME,
-  apiVersion: OPENAI_API_VERSION,
-});
-
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -220,13 +213,6 @@ export const loadPage = wrapTraced(pageStore.loadPage, {
   name: "loadPageFromStore",
 });
 
-export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  })
-);
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
@@ -373,7 +359,7 @@ const addMessageToConversationUpdateTrace =
     embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     scrubbedMessageStore,
     analyzerModel: wrapLanguageModel({
-      model: azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
+      model: azureOpenAi(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT),
       middleware: [BraintrustMiddleware({ debug: true })],
     }),
   });

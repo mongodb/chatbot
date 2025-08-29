@@ -7,6 +7,7 @@ import { TEXT_TO_DRIVER_ENV_VARS } from "../TextToDriverEnvVars";
 import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import PromisePool from "@supercharge/promise-pool";
 import { openAiClientFactory } from "../../openAiClients";
+import { ModelConfig } from "mongodb-rag-core/models";
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -35,7 +36,11 @@ async function main() {
     await sleep(500);
     const modelExperiments = MODELS.filter((m) => m.authorized === true).map(
       (modelInfo) => {
-        const modelExperiments = [];
+        const modelExperiments: {
+          modelInfo: ModelConfig;
+          promptType: string;
+          generateCollectionSchemas: boolean;
+        }[] = [];
         for (const promptType of Object.keys(prompts)) {
           for (const generateCollectionSchemas of [true, false]) {
             modelExperiments.push({

@@ -1534,7 +1534,7 @@
     To increase the timeout of your multi-document transaction, use the transactionLifetimeLimitSeconds parameter.
     The default is 60 seconds. To set it to two minutes:
     ```
-    db.adminCommand( { setParameter: 1, transactionLifetimeLimitSeconds: <PLACEHOLDER: ANYTHING GREATER THAN 60> } )
+    db.adminCommand( { setParameter: 1, transactionLifetimeLimitSeconds: 120 } )
     ```
   reject: false
   tags:
@@ -1593,20 +1593,22 @@
     - Pull Migrations - involves pulling data from the source cluster into the Atlas destination cluster. 
     - Push Migrations - involves pushing data from the source cluster to the destination cluster.
 
-    Some information about migration verification might be included, as it is relevant to the page the user is on. If it is included, please verify that:
-    The verification process can be enabled in the Atlas UI for pull migrations. For push migrations, the verification process is not supported.
+    The verification process can be enabled in the Atlas UI for pull migrations. For push migrations, the Atlas verification process is not supported.
   reject: false
   tags:
     - fetch_page
 - name: should explain limitations or warnings from a documentation page
   messages:
     - role: user
-      content: Are there any limitations to using change streams? Use this page https://www.mongodb.com/docs/manual/changestreams/
+      content: Are there any limitations to using change streams? Use this page https://www.mongodb.com/docs/manual/changeStreams/
   expectation: >
     The ASSISTANT lists key limitations, considerations, or warnings about MongoDB change streams.
   reference: |
-    Change streams require replica sets or sharded clusters and are not available on standalone servers. 
-    There are also limits on the types of operations that can be observed.
+    There are several limitations and considerations when using change streams:
+
+    - Change streams require replica sets or sharded clusters and are not available on standalone servers. 
+    - Each open change stream uses a connection from the connection pool. If you open more change streams than the pool allows, you may experience notification latency.
+    - There are also limits on the types of operations that can be observed.
   reject: false
   tags:
     - fetch_page
@@ -1687,6 +1689,127 @@
   expectation: >
     The ASSISTANT uses correct formatting in the response: proper syntax, line spacing, and indentation. 
   reject: false
+  tags:
+    - fetch_page
+- name: Answers simple query from table content on a page
+  messages:
+    - role: user
+      content: Can i use paypal to pay my bill? reference this page https://www.mongodb.com/docs/atlas/billing/invoices/
+  expectation: >
+    The ASSISTANT answers that yes, you can pay for Atlas with PayPal.
+  reference: |
+    Yes, you can use PayPal to pay your MongoDB Atlas bill. MongoDB Atlas supports PayPal as a payment method for invoices.
+  reject: false
+  tags:
+    - fetch_page
+- name: Get relevant content from page to answer somewhat vague user query
+  messages:
+    - role: user
+      content: >
+        using this page https://www.mongodb.com/docs/manual/core/indexes/index-types/index-compound/ how do I choose the order of fields when creating a compound index?
+  expectation: >
+    Gives information about creating the compound index with ordered fields.
+    Gives information about choosing which fields to prioritize using the ESR guideline.
+  reference: |
+    When creating a compound index, the order of fields determines how MongoDB organizes and searches the data. You control the order by listing the fields in the index definition object, from left to right.
+    For example:
+
+    ```javascript
+    db.collection.createIndex({ 
+        field1: 1,     // first field (highest priority)
+        field2: -1,    // second field
+        field3: 1      // third field, etc.
+    })
+    ```
+
+    To maximize your compound index performance, analyze your query patterns and create your compound index with equality fields first, followed by sort fields, then range fields. This pattern is known as the ESR (Equality, Sort, Range) guideline.
+  reject: false
+  tags:
+    - fetch_page
+- name: Gets simple code example from short tutorial page
+  messages:
+    - role: user
+      content: >  
+        use this page and write a code example for how to find one document where name is "John"
+        https://www.mongodb.com/docs/languages/python/pymongo-driver/current/crud/query/find/#find-one-document
+  expectation: >
+    The ASSISTANT provides a code example for using the find_one() method in PyMongo, directly referencing the example from the documentation page.
+  reference: |
+    Here is a Python example showing how to use the find_one() method with PyMongo:
+
+    <evaluation_information>The code example does not need to exactly match the below code. It must, however, contain a `find_one()` function call with a filter for {"name": "John"}.</evaluation_information>
+    ```python
+    from pymongo import MongoClient
+
+    # connect to your cluster
+    uri = "<connection-string>"
+    client = MongoClient(uri)
+
+    db = client["<your_database>"]
+    collection = db["<your_collection>"]
+
+    result = collection.find_one({"name": "John"})
+    print(result)
+    ```
+
+    Make sure to replace <connection-string>, <your_database>, and <your_collection> with your actual MongoDB connection string, database name, and collection name.  
+  reject: false  
+  tags:
+    - fetch_page
+- name: Gets code example from very long tutorial page
+  messages:
+    - role: user
+      content: >
+        use this page and write a code example for how to implement type ahead search
+        https://www.mongodb.com/docs/atlas/atlas-search/tutorial/partial-match/?deployment-type=atlas&interface=driver&language=python
+  expectation: >
+    The ASSISTANT provides a code example for using the autocomplete operator in a MongoDB Atlas Search index, directly referencing the example from the documentation page.
+  reference: |
+    Here is a Python example showing how to use the Atlas Search autocomplete operator with PyMongo:
+
+    <evaluation_information>The code example does not need to exactly match the below code. It must, however, contain a `$search` query with the `autocomplete` operator.</evaluation_information>
+    ```python    
+    from pymongo import MongoClient
+
+    # connect to your Atlas cluster
+    uri = "<connection-string>"
+    client = MongoClient(uri)
+
+    def run():
+      try:
+          # Set database and collection
+          database = client["sample_mflix"]
+          coll = database["movies"]
+
+          # Replace 'Great' with user input for type-ahead functionality (e.g., partial word)
+          query_text = "Great"
+
+          # Define aggregation pipeline with the $search autocomplete operator
+          pipeline = [
+              {
+                  "$search": {
+                      "index": "partial-match-tutorial-autocomplete",
+                      "autocomplete": {
+                          "query": query_text,
+                          "path": "title"
+                      }
+                  }
+              },
+              {"$limit": 10},
+              {"$project": {"_id": 0, "title": 1}}
+          ]
+          # Execute the pipeline and print results
+          results = coll.aggregate(pipeline)
+          for doc in results:
+              print(doc)
+      finally:
+          client.close()
+    
+    if __name__ == "__main__":
+        run()
+    ```
+    Make sure to replace <connection-string> with your actual MongoDB connection string. This script searches the title field in the sample_mflix.movies collection for titles that begin with "Great", limits the results to 10 documents, and projects only the title field.
+  reject: false  
   tags:
     - fetch_page
 # Based on EAI-1202

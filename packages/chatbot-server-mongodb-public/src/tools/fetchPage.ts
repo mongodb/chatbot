@@ -6,7 +6,10 @@ import {
   Reference,
 } from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
-import { normalizeUrl } from "mongodb-rag-core/dataSources";
+import {
+  normalizeUrl,
+  makeMarkdownNumberedList,
+} from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { Tool, tool } from "mongodb-rag-core/aiSdk";
 
@@ -38,6 +41,13 @@ export interface MakeFetchPageToolParams {
   pageLengthCutoff?: number;
 }
 
+const fetchPageToolNotes = [
+  `Remember - do not assume that the user wants to use the ${FETCH_PAGE_TOOL_NAME} based on the pageUrl in the Front Matter. Only call this tool when specifically instructed to use a certain page.`,
+  `If the user provides multiple URLs in their query, call the ${FETCH_PAGE_TOOL_NAME} once for each URL, and do not call the ${FETCH_PAGE_TOOL_NAME} for the URL in the Front Matter.`,
+  "Sometimes, when a page is very long, a search will be performed over the page. Therefore, you must also provide a search query to the tool.",
+  "Do not include URLs in the search query.",
+];
+
 export function makeFetchPageTool({
   loadPage,
   findContent,
@@ -47,7 +57,9 @@ export function makeFetchPageTool({
 }: MakeFetchPageToolParams): FetchPageTool {
   return tool({
     inputSchema: MongoDbFetchPageToolArgsSchema,
-    description: "Fetch all content for a specific URL",
+    description: `Fetches the entire page contents for a specific URL. Use this tool as follows:
+
+${makeMarkdownNumberedList(fetchPageToolNotes)}`,
     toModelOutput(output) {
       return {
         type: "content",

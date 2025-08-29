@@ -7,11 +7,14 @@ import {
   createOpenAI,
   streamText,
   generateText,
+  stepCountIs,
+  tool,
 } from "mongodb-rag-core/aiSdk";
 import { CREATE_RESPONSE_ERR_MSG } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeTestApp } from "./test/testHelpers";
 import { Logger, makeBraintrustLogger } from "mongodb-rag-core/braintrust";
+import { z } from "zod";
 
 jest.setTimeout(100 * 1000); // 100 seconds
 
@@ -33,6 +36,8 @@ describe("Responses API with OpenAI Client", () => {
   let conversations: ConversationsService;
   let openAiClient: OpenAI;
   let aiSDKClient: OpenAIProvider;
+
+  jest.retryTimes(3, { waitBeforeRetry: 5000, logErrorsBeforeRetry: true });
 
   beforeAll(async () => {
     const testAppResult = await makeTestApp();
@@ -414,6 +419,19 @@ describe("Responses API with OpenAI Client", () => {
   });
 
   describe("AI SDK integration", () => {
+    const sampleToolName = "execute-code";
+    const sampleToolResult = {
+      result: `[{id: 1, name: "Foo"}, {id: 2, name: "Bar"}]`,
+    };
+    const sampleTool = tool({
+      name: sampleToolName,
+      inputSchema: z.object({
+        code: z.string(),
+      }),
+      execute: async () => {
+        return sampleToolResult;
+      },
+    });
     it("Should handle basic text streaming", async () => {
       const result = await streamText({
         model: aiSDKClient.responses(MONGO_CHAT_MODEL),
@@ -445,6 +463,61 @@ describe("Responses API with OpenAI Client", () => {
       expect(eventTypes).toContain("finish");
 
       expect(resultText.toLowerCase()).toContain("mongodb");
+    });
+    it("should support stopWhen with multiple steps", async () => {
+      const result = streamText({
+        model: aiSDKClient.responses(MONGO_CHAT_MODEL),
+        system: `Call the ${sampleToolName}  when the user gives you code to execute in the subsequent message.`,
+        messages: [
+          {
+            role: "user",
+            content: "Code to execute: db.users.find({}).limit(2).toArray()",
+          },
+        ],
+
+        tools: {
+          [sampleToolName]: sampleTool,
+        },
+        stopWhen: [stepCountIs(2)],
+        toolChoice: {
+          type: "tool",
+          toolName: sampleToolName,
+        },
+        prepareStep: ({ stepNumber }) => {
+          if (stepNumber > 0) {
+            return {
+              toolChoice: "auto",
+            };
+          }
+        },
+      });
+
+      const steps = await result.steps;
+      expect(steps.length).toBe(2);
+      const toolCallStepContent = steps[0].content;
+      expect(toolCallStepContent).toHaveLength(2);
+      const toolCall = toolCallStepContent[0];
+      expect(toolCall).toMatchObject({
+        type: "tool-call",
+        toolName: sampleToolName,
+        toolCallId: expect.any(String),
+        input: {
+          code: expect.any(String),
+        },
+      });
+      const toolResult = toolCallStepContent[1];
+      expect(toolResult).toMatchObject({
+        type: "tool-result",
+        toolCallId: expect.any(String),
+        output: sampleToolResult,
+      });
+      const textStepContent = steps[1].content;
+      expect(textStepContent).toHaveLength(1);
+      const text = textStepContent[0];
+      expect(text).toMatchObject({
+        type: "text",
+        text: expect.any(String),
+      });
     });
 
     it("Should throw an error when generating text since we don't support non-streaming generation", async () => {

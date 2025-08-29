@@ -3,6 +3,7 @@ import { Eval } from "mongodb-rag-core/braintrust";
 import { BenchmarkCliConfig } from "./BenchmarkConfig";
 import { makeExperimentName } from "../makeExperimentName";
 import { ModelConfig } from "mongodb-rag-core/models";
+import { strict as assert } from "assert";
 
 export interface RunBenchmarkArgs {
   type: string;
@@ -11,6 +12,8 @@ export interface RunBenchmarkArgs {
   datasets: string[];
   taskConcurrency?: number;
   modelConcurrency: number;
+  sampleSize?: number;
+  sampleType?: "firstN" | "random";
 }
 
 export async function runBenchmark(
@@ -22,6 +25,8 @@ export async function runBenchmark(
     datasets,
     taskConcurrency,
     modelConcurrency,
+    sampleSize,
+    sampleType,
   }: RunBenchmarkArgs
 ) {
   const benchmarkConfig = config.benchmarks[type];
@@ -70,13 +75,17 @@ export async function runBenchmark(
 
         // Run each task-dataset combination
 
-        const dataset = (
-          await Promise.all(
-            datasetsToRun.map(([_datasetName, datasetConfig]) =>
-              datasetConfig.getDataset()
+        const dataset = getSample(
+          (
+            await Promise.all(
+              datasetsToRun.map(([_datasetName, datasetConfig]) =>
+                datasetConfig.getDataset()
+              )
             )
-          )
-        ).flat();
+          ).flat(),
+          sampleSize,
+          sampleType
+        );
         const datasetName = datasetsToRun.map(([name]) => name).join("+");
 
         const experimentName = makeExperimentName({
@@ -121,4 +130,24 @@ export async function runBenchmark(
   } finally {
     await benchmarkConfig.environment?.afterAll?.();
   }
+}
+
+export function getSample<T>(
+  dataset: T[],
+  sampleSize: RunBenchmarkArgs["sampleSize"],
+  sampleType: RunBenchmarkArgs["sampleType"]
+) {
+  if (sampleSize) {
+    assert(sampleSize > 0, "sampleSize is required");
+    assert(
+      sampleSize <= dataset.length,
+      "sampleSize must be less than or equal to the length of the dataset"
+    );
+    if (sampleType === "firstN" || !sampleType) {
+      return dataset.slice(0, sampleSize);
+    } else if (sampleType === "random") {
+      return [...dataset].sort(() => Math.random() - 0.5).slice(0, sampleSize);
+    }
+  }
+  return dataset;
 }

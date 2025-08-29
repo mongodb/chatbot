@@ -1,5 +1,5 @@
 import { generateDatabaseUseCases } from "./generateUseCases";
-import { makeSampleLlmOptions, userNodes } from "./sampleData";
+import { makeSampleLlmOptions, userNodes } from "./sampleData/mql";
 
 // Skipping LLM call tests
 describe.skip("generateDatabaseUseCases", () => {

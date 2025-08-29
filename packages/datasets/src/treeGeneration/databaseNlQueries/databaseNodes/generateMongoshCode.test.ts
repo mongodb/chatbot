@@ -10,7 +10,7 @@ import {
   sampleUseCases,
   sampleNlQueries,
   makeSampleLlmOptions,
-} from "./sampleData";
+} from "./sampleData/mql";
 import PromisePool from "@supercharge/promise-pool";
 import { strict as assert } from "assert";
 import { generateMongoshCode } from "./generateMongoshCode";

@@ -96,8 +96,27 @@ export async function makeMongoDbMcpAgent({
   );
   for (const toolName in mcpToolSet) {
     const execute = mcpToolSet[toolName].execute;
+
     if (execute) {
-      mcpToolSet[toolName].execute = wrapTraced(execute, {
+      const wrappedExecute = async (...args: Parameters<typeof execute>) => {
+        try {
+          return await execute(...args);
+        } catch (error) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text: `Error executing ${toolName}: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              },
+            ],
+          };
+        }
+      };
+
+      mcpToolSet[toolName].execute = wrapTraced(wrappedExecute, {
         name: toolName,
       });
     }
@@ -120,6 +139,7 @@ export async function makeMongoDbMcpAgent({
       model,
       system: systemPrompt,
       messages,
+
       stopWhen: [
         stepCountIs(maxSteps),
         hasToolCall(submitFinalSolutionToolName),

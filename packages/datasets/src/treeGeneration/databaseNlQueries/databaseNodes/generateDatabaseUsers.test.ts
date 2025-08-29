@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { DatabaseInfoNode } from "./nodeTypes";
-import { sampleMovieDbInfo, makeSampleLlmOptions } from "./sampleData";
+import { sampleMovieDbInfo, makeSampleLlmOptions } from "./sampleData/mql";
 import { DatabaseInfoSchema } from "mongodb-rag-core/executeCode";
 
 // Skipping LLM call tests

@@ -51,6 +51,10 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
     OPENAI_EMBEDDING_MODEL_NAME: "",
     OPENAI_EMBEDDING_MODEL_VERSION: "",
   });
+  console.log(`Uploading verified answers to ${MONGODB_DATABASE_NAME}`);
+  console.log(`  From file: ${path}`);
+  console.log(`  Model: ${embeddingModelName} (${embeddingModelVersion})`);
+  console.log(`  Deployment: ${deployment}`);
   const yaml = await fs.readFile(path, "utf-8");
   const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yaml);
   const openAiClient = new AzureOpenAI({

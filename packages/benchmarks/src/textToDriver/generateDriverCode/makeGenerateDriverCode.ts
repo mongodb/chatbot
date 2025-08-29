@@ -6,9 +6,9 @@ import {
 import {
   extractDeterministicSampleOfDocuments,
   ExtractSampleDocumentsParams,
-} from "./extractDeterministicSampleOfDocuments";
+} from "mongodb-rag-core/executeCode";
 import { strict as assert } from "assert";
-import { Document } from "mongodb-rag-core/mongodb";
+import { Document, MongoClient } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 type ChatCompletionCreateParamsNonStreaming =
@@ -35,10 +35,10 @@ export type PromptGenerationConfig = Omit<
 
 export interface MakeGenerateDriverCodeParams {
   promptGenerationConfig: PromptGenerationConfig;
-  sampleGenerationConfig: Pick<
-    ExtractSampleDocumentsParams,
-    "limit" | "mongoClient"
-  >;
+  sampleGenerationConfig: {
+    mongoClient: MongoClient;
+    limit: number;
+  };
 }
 
 /**
@@ -51,22 +51,30 @@ export async function makeGenerateDriverCode({
 }: MakeGenerateDriverCodeParams) {
   // Create new collections with exampleDocuments added
   const collectionsWithExamples = (await Promise.all(
-    promptGenerationConfig.mongoDb.collections.map(async (collection) => {
-      const exampleDocs = await extractDeterministicSampleOfDocuments({
-        mongoClient: sampleGenerationConfig.mongoClient,
-        collectionName: collection.collectionName,
-        databaseName: promptGenerationConfig.mongoDb.databaseName,
-        limit: sampleGenerationConfig.limit,
-      });
-      assert(exampleDocs.length > 0, "Must have at least one example document");
-      return {
-        ...collection,
-        exampleDocuments: exampleDocs satisfies Document[] as [
-          Document,
-          ...Document[]
-        ],
-      } satisfies CollectionInfo;
-    })
+    promptGenerationConfig.mongoDb.collections.map(
+      async (collectionInfo, i) => {
+        const collection = sampleGenerationConfig.mongoClient
+          .db(promptGenerationConfig.mongoDb.databaseName)
+          .collection(
+            promptGenerationConfig.mongoDb.collections[i].collectionName
+          );
+        const exampleDocs = await extractDeterministicSampleOfDocuments({
+          collection,
+          limit: sampleGenerationConfig.limit,
+        });
+        assert(
+          exampleDocs.length > 0,
+          "Must have at least one example document"
+        );
+        return {
+          ...collectionInfo,
+          exampleDocuments: exampleDocs satisfies Document[] as [
+            Document,
+            ...Document[]
+          ],
+        } satisfies CollectionInfo;
+      }
+    )
   )) satisfies CollectionInfo[] as [CollectionInfo, ...CollectionInfo[]];
 
   const promptGenerationConfigWithExamples: TextToDriverPromptParams = {

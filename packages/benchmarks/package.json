@@ -19,6 +19,7 @@
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
+    "prebenchmark": "npm run build",
     "benchmark": "node ./build/bin/mongoDbBenchmarkCli.js"
   },
   "devDependencies": {

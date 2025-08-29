@@ -93,7 +93,6 @@ export const action =
       const pages = await pageStore.loadPages({
         query: {
           url: { $in: hrefs },
-          sourceName: /^snooty/,
         },
       });
       logger.logInfo(`Loaded ${pages.length} pages.`);

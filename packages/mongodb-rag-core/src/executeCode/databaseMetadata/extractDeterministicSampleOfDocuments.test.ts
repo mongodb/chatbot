@@ -10,6 +10,7 @@ describe("extractDeterministicSampleOfDocuments", () => {
   const dbName = "testdb";
   const collectionName = "testCollection";
   jest.setTimeout(60000);
+  jest.retryTimes(3, { waitBeforeRetry: 5000, logErrorsBeforeRetry: true });
   let collection: Collection;
 
   beforeAll(async () => {

@@ -49,6 +49,7 @@
     "mongodb-rag-core": "*",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
+    "simple-get": "^4.0.1",
     "tslib": "~2.6",
     "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0",

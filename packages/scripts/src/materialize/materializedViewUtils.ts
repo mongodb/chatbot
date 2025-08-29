@@ -31,8 +31,8 @@ export async function ensureCollectionWithIndex({
         collectionName,
         ...indexProps,
       },
-      { depth: null, colors: false }
-    )
+      { depth: null, colors: false },
+    ),
   );
   await client.connect();
   const db = client.db(databaseName);
@@ -40,7 +40,7 @@ export async function ensureCollectionWithIndex({
     .listCollections({ name: collectionName })
     .toArray();
   const collectionExists = existingCollections.some(
-    (collection) => collection.name === collectionName
+    (collection) => collection.name === collectionName,
   );
   const collection = collectionExists
     ? db.collection(collectionName)
@@ -89,7 +89,7 @@ export async function ensureIndex({
 export function startOfMonth(date: Date | string) {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return new Date(
-    Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), 1, 0, 0, 0, 0)
+    Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), 1, 0, 0, 0, 0),
   );
 }
 
@@ -109,7 +109,7 @@ export function isStartOfMonth(date?: Date | string): boolean {
 
 export function startOfWeek(
   date: Date,
-  weekStartsOn: "sunday" | "monday" = "sunday"
+  weekStartsOn: "sunday" | "monday" = "sunday",
 ) {
   return new Date(
     Date.UTC(
@@ -119,13 +119,13 @@ export function startOfWeek(
       0,
       0,
       0,
-      0
-    )
+      0,
+    ),
   );
 }
 
 export function startOfDay(date: Date) {
   return new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0),
   );
 }

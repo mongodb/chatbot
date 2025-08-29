@@ -16,7 +16,7 @@ const defaultCodeChunkOptions: ChunkOptions = {
 
 export const chunkCode: ChunkFunc = async function (
   page: Page,
-  optionsIn?: Partial<ChunkOptions>
+  optionsIn?: Partial<ChunkOptions>,
 ) {
   const options = { ...defaultCodeChunkOptions, ...optionsIn };
   const { tokenizer, maxChunkSize, minChunkSize, chunkOverlap, transform } =
@@ -34,7 +34,7 @@ export const chunkCode: ChunkFunc = async function (
   let chunks = await splitter.createDocuments([page.body]);
   if (minChunkSize) {
     chunks = chunks.filter(
-      (chunk) => tokenizer.encode(chunk.pageContent).bpe.length > minChunkSize
+      (chunk) => tokenizer.encode(chunk.pageContent).bpe.length > minChunkSize,
     );
   }
   return await Promise.all(
@@ -54,7 +54,7 @@ export const chunkCode: ChunkFunc = async function (
         tokenCount: tokenizer.encode(transformedChunk.text).bpe.length,
       };
       return chunk;
-    })
+    }),
   );
 };
 
@@ -100,13 +100,13 @@ const supportedLanguageMap: Record<
 };
 
 export function isSupportedLanguage(
-  str: PageFormat
+  str: PageFormat,
 ): str is LangchainSupportedCodePageFormat {
   return str in supportedLanguageMap;
 }
 
 export function pageFormatToLanguage(
-  format: PageFormat
+  format: PageFormat,
 ): SupportedTextSplitterLanguage | undefined {
   return (
     supportedLanguageMap[format as LangchainSupportedCodePageFormat] ??

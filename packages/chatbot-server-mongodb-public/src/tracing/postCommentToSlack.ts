@@ -32,7 +32,7 @@ export async function postCommentToSlack({
     messageWithCommentId,
     slackConversationId,
     llmAsAJudge,
-    braintrust
+    braintrust,
   );
   const res = await client.chat.postMessage({
     ...builder,
@@ -50,12 +50,12 @@ async function makeSlackMessageText(
   braintrust?: {
     orgName: string;
     projectName: string;
-  }
+  },
 ) {
   const tracingData = extractTracingData(
     conversation.messages,
     messageWithCommentId,
-    conversation._id
+    conversation._id,
   );
   const {
     isVerifiedAnswer,
@@ -89,19 +89,19 @@ async function makeSlackMessageText(
     : null;
   const verifiedAnswerMd = verifiedAnswerId
     ? `\n:white_check_mark: ${Md.bold(
-        `Verified Answer:`
+        `Verified Answer:`,
       )} ${verifiedAnswerId}}\n`
     : "";
 
   const feedbackMd = `${Md.bold(
-    rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback"
+    rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback",
   )}
 ${verifiedAnswerMd}
 ${Md.bold("User Comment:")}
 ${userComment}`;
 
   const messagesMd = `${Md.blockquote(
-    `${Md.bold(Md.emoji("bust_in_silhouette") + ` User`)}`
+    `${Md.bold(Md.emoji("bust_in_silhouette") + ` User`)}`,
   )}
 
 ${slackify(fixNewLines(userMessage.content))}
@@ -130,7 +130,7 @@ ${Md.listBullet(`Number of Retrieved Chunks: ${numRetrievedChunks}`)}
 ${Md.listBullet(`Tags: ${tags.map(Md.codeInline).join(", ")}`)}`;
 
   const idMetadataMd = `Conversation ID: ${Md.codeInline(
-    conversation._id.toHexString()
+    conversation._id.toHexString(),
   )}
 Message ID: ${Md.codeInline(messageId)}
 ${
@@ -166,7 +166,7 @@ ${
   const maybeAuthUser = conversation.customData?.authUser;
   if (maybeAuthUser && typeof maybeAuthUser === "string") {
     messageBlocks.unshift(
-      Blocks.Section({ text: `Auth User: ${Md.user(maybeAuthUser)}` })
+      Blocks.Section({ text: `Auth User: ${Md.user(maybeAuthUser)}` }),
     );
   }
 
@@ -197,7 +197,7 @@ export function makeBraintrustLogUrl(args: {
 }) {
   const urlEncodedTraceId = encodeURI(`id = "${args.traceId}"`);
   const searchFilter = encodeURI(
-    `{"filter":[{"text":"${urlEncodedTraceId}"}]}`
+    `{"filter":[{"text":"${urlEncodedTraceId}"}]}`,
   );
   return `https://www.braintrust.dev/app/${args.orgName}/p/${args.projectName}/logs?search=${searchFilter}&r=${args.traceId}`;
 }

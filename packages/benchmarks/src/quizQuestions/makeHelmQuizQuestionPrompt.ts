@@ -26,7 +26,7 @@ type ChatMessage = CoreMessage;
  */
 export function quizQuestionToHelmPrompt(
   quizQuestion: QuizQuestionData,
-  includeAnswer: boolean
+  includeAnswer: boolean,
 ): string {
   return `Question: ${quizQuestion.questionText}
 ${quizQuestion.answers
@@ -119,7 +119,7 @@ Only provide the answer the final question using the exact same format as the pr
             role: "assistant",
             content: quizQuestionToHelmAnswer(quizQuestionExample),
           },
-        ] satisfies ChatMessage[]
+        ] satisfies ChatMessage[],
     );
 
   const currentQuestion = {
@@ -129,7 +129,7 @@ Only provide the answer the final question using the exact same format as the pr
   promptMessages.push(
     systemPrompt,
     ...(fewShotExamples?.flat() ?? []),
-    currentQuestion
+    currentQuestion,
   );
   return promptMessages;
 }

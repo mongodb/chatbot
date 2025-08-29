@@ -34,11 +34,11 @@ export const DatabaseInfoSchema = z.object({
             v: z.number().optional(),
             background: z.boolean().optional(),
             "2dsphereIndexVersion": z.number().optional(),
-          })
+          }),
         )
         .optional()
         .describe("Indexes on the collection."),
-    })
+    }),
   ),
 });
 
@@ -88,7 +88,7 @@ export async function generateAnnotatedDatabaseInfo({
       // Generate high-level database descriptions
       const highLevelDescriptions = await generateHighLevelDbDescriptions(
         databaseMetadata,
-        llmOptions
+        llmOptions,
       );
 
       // Create initial annotated database info
@@ -111,7 +111,7 @@ export async function generateAnnotatedDatabaseInfo({
       for (let i = 0; i < annotatedDatabaseInfo.collections.length; i++) {
         const annotatedCollection = annotatedDatabaseInfo.collections[i];
         const collection = databaseMetadata.collections.find(
-          (c) => c.collectionName === annotatedCollection.name
+          (c) => c.collectionName === annotatedCollection.name,
         );
         if (!collection) {
           continue;
@@ -135,7 +135,7 @@ export async function generateAnnotatedDatabaseInfo({
           }
 
           const collectionIndexDescription = annotatedCollection.indexes?.find(
-            (index) => index.name === indexDescription.name
+            (index) => index.name === indexDescription.name,
           );
 
           if (!collectionIndexDescription) {
@@ -147,6 +147,6 @@ export async function generateAnnotatedDatabaseInfo({
       }
       return annotatedDatabaseInfo;
     },
-    { name: "generateAnnotatedDatabaseInfo" }
+    { name: "generateAnnotatedDatabaseInfo" },
   );
 }

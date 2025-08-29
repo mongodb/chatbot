@@ -94,7 +94,7 @@ function resolveFilePath(args: {
       `https://mongodb.com/docs/${
         args.pathPrefix ? args.pathPrefix + "/" : ""
       }`,
-      ""
+      "",
     )
     // Remove "/current" from the start if it exists
     .replace(/^current/, "")
@@ -113,8 +113,8 @@ function resolveFilePath(args: {
         dirIndexFilePath,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
   if (fs.existsSync(txtFilePath)) {
     return txtFilePath;
@@ -145,7 +145,7 @@ let dataSource: "google-sheets" | "csv" | null = null;
 if (SHEETS_ID && SHEETS_TAB) {
   if (!SHEETS_CREDENTIALS) {
     console.error(
-      "ERROR: GOOGLE_APPLICATION_CREDENTIALS env var must be set to use Google Sheets."
+      "ERROR: GOOGLE_APPLICATION_CREDENTIALS env var must be set to use Google Sheets.",
     );
     process.exit(1);
   }
@@ -156,7 +156,7 @@ if (SHEETS_ID && SHEETS_TAB) {
   console.log(`Using local CSV file: ${CSV_FILE_PATH}`);
 } else {
   console.error(
-    "ERROR: You must set either GOOGLE_SHEETS_ID and GOOGLE_SHEETS_TAB (and GOOGLE_APPLICATION_CREDENTIALS), or CSV_FILE_PATH."
+    "ERROR: You must set either GOOGLE_SHEETS_ID and GOOGLE_SHEETS_TAB (and GOOGLE_APPLICATION_CREDENTIALS), or CSV_FILE_PATH.",
   );
   process.exit(1);
 }
@@ -172,7 +172,7 @@ if (SHEETS_ID && SHEETS_TAB) {
 async function readRowsFromGoogleSheet(
   sheetId: string,
   tabName: string,
-  credentialsPath: string
+  credentialsPath: string,
 ): Promise<any[]> {
   const auth = new google.auth.GoogleAuth({
     keyFile: credentialsPath,
@@ -181,20 +181,21 @@ async function readRowsFromGoogleSheet(
       "https://www.googleapis.com/auth/drive.readonly",
     ],
   });
-  const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4" });
   // Get all rows from the sheet
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: tabName,
+    auth,
   });
   const rows = response.data.values;
   if (!rows || rows.length < 2) {
     return [];
   }
   const headers = rows[0];
-  return rows.slice(1).map((row) => {
+  return rows.slice(1).map((row: string[]) => {
     const obj: Record<string, string> = {};
-    headers.forEach((header, i) => {
+    headers.forEach((header: string, i: number) => {
       obj[header] = row[i] || "";
     });
     return obj;
@@ -210,21 +211,22 @@ async function updateStatusInGoogleSheet(
   tabName: string,
   credentialsPath: string,
   rowIndex: number,
-  newStatus: string
+  newStatus: string,
 ): Promise<void> {
   const auth = new google.auth.GoogleAuth({
     keyFile: credentialsPath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-  const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4" });
   // First, get the header row to find the Status column index
   const headerResp = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: tabName + "!1:1",
+    auth,
   });
   const headers = headerResp.data.values?.[0] || [];
   const statusColIdx = headers.findIndex(
-    (h) => h.trim().toLowerCase() === "status"
+    (h: string) => h.trim().toLowerCase() === "status",
   );
   if (statusColIdx === -1) {
     throw new Error("Status column not found in sheet");
@@ -252,13 +254,13 @@ async function main() {
     assert(SHEETS_TAB, "SHEETS_TAB is required for Google Sheets");
     assert(
       SHEETS_CREDENTIALS,
-      "SHEETS_CREDENTIALS is required for Google Sheets"
+      "SHEETS_CREDENTIALS is required for Google Sheets",
     );
     // Read from Google Sheets
     rawRows = await readRowsFromGoogleSheet(
       SHEETS_ID,
       SHEETS_TAB,
-      SHEETS_CREDENTIALS
+      SHEETS_CREDENTIALS,
     );
   } else if (dataSource === "csv") {
     if (!CSV_FILE_PATH) {
@@ -288,22 +290,25 @@ async function main() {
     });
 
   // Transform and group by repo (existing logic)
-  const updatesByRepo = metaDescriptionRecords.reduce((acc, record) => {
-    const [org, repo] = record.repo.split("/");
-    if (!acc[record.repo]) {
-      acc[record.repo] = {
-        org,
-        repo,
-        pathPrefix: record.pathPrefix,
-        updates: [],
-      };
-    }
-    acc[record.repo].updates.push({
-      url: record.url,
-      metaDescription: record.metaDescription,
-    });
-    return acc;
-  }, {} as Record<string, RepoUpdates>);
+  const updatesByRepo = metaDescriptionRecords.reduce(
+    (acc, record) => {
+      const [org, repo] = record.repo.split("/");
+      if (!acc[record.repo]) {
+        acc[record.repo] = {
+          org,
+          repo,
+          pathPrefix: record.pathPrefix,
+          updates: [],
+        };
+      }
+      acc[record.repo].updates.push({
+        url: record.url,
+        metaDescription: record.metaDescription,
+      });
+      return acc;
+    },
+    {} as Record<string, RepoUpdates>,
+  );
 
   // Write updates to files
   const missingFileUrls: string[] = [];
@@ -313,7 +318,7 @@ async function main() {
   // For Google Sheets, we need to keep track of which metaDescriptionRecord maps to which row
   let processedCount = 0;
   for (const { org, repo, pathPrefix, updates } of Object.values(
-    updatesByRepo
+    updatesByRepo,
   )) {
     console.log(`\n\nREPO: ${org}/${repo}`);
     const repoPath = path.join(baseReposDir, org, repo);
@@ -344,12 +349,12 @@ async function main() {
             },
             {
               allowOverwrite: false,
-            }
+            },
           );
         } catch (e) {
           console.log(
             `ERROR: Failed to upsert meta directive: ${update.url}`,
-            e
+            e,
           );
           updateStatus = "ERROR";
         }
@@ -362,11 +367,11 @@ async function main() {
           SHEETS_TAB!,
           SHEETS_CREDENTIALS!,
           rowIndex,
-          updateStatus
+          updateStatus,
         ).catch((err) => {
           console.error(
             `Failed to update status in Google Sheet for row ${rowIndex + 2}:`,
-            err
+            err,
           );
         });
         processedCount++;

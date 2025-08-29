@@ -65,7 +65,7 @@ export async function getDatabaseMetadata({
     const collectionMetadata = await getCollectionMetadata(
       db,
       collection.name,
-      numSamplesPerCollection
+      numSamplesPerCollection,
     );
     collectionsMetadata.push(collectionMetadata);
   }
@@ -80,7 +80,7 @@ export async function getDatabaseMetadata({
 async function getCollectionMetadata(
   db: Db,
   collectionName: string,
-  sampleDocumentLimit: number
+  sampleDocumentLimit: number,
 ): Promise<CollectionInfo> {
   const collection = db.collection(collectionName);
 

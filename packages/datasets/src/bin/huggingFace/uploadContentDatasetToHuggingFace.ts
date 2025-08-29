@@ -40,7 +40,7 @@ async function uploadContentDatasetToHuggingFace() {
       forbiddenUrls: Array.from(forbiddenUrls),
     });
     logger.info(
-      `Loaded pages dataset from MongoDB. Dataset has ${dataset.length} entries`
+      `Loaded pages dataset from MongoDB. Dataset has ${dataset.length} entries`,
     );
 
     const currentDate = new Date().toISOString();
@@ -50,7 +50,7 @@ async function uploadContentDatasetToHuggingFace() {
     const fileBaseName = "public-content";
 
     logger.info(
-      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CONTENT_REPO}'`
+      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CONTENT_REPO}'`,
     );
 
     const res = await uploadDatasetToHuggingFace({
@@ -73,7 +73,7 @@ async function uploadContentDatasetToHuggingFace() {
       ],
     });
     logger.info(
-      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CONTENT_REPO}'`
+      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CONTENT_REPO}'`,
     );
     logger.info(res);
   } finally {

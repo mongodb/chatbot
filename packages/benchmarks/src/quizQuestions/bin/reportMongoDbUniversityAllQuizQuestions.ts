@@ -51,7 +51,7 @@ type CsvData = Record<string, string | number | null | undefined>;
 async function writeDataToCsv(
   data: CsvData[],
   headers: CsvHeader[],
-  filePath: string
+  filePath: string,
 ): Promise<void> {
   const csvWriter = createObjectCsvWriter({
     path: filePath,
@@ -115,14 +115,14 @@ async function main() {
     await writeDataToCsv(
       csvEntries,
       createCsvHeaders(csvEntries),
-      path.join(outputDir, `${experimentName}_aggregates.csv`)
+      path.join(outputDir, `${experimentName}_aggregates.csv`),
     );
 
     const experimentAggregate: ExperimentAggregate = {
       model,
       "All Questions (% correct)": aggregateExperimentScoreMean(
         results,
-        "CorrectQuizAnswer"
+        "CorrectQuizAnswer",
       )?.mean as number,
       "All Questions (count)": results.length,
     };
@@ -139,7 +139,7 @@ async function main() {
   await writeDataToCsv(
     experimentAggregates,
     createCsvHeaders(experimentAggregates),
-    path.join(outputDir, "all_quiz_question_experiment_aggregates.csv")
+    path.join(outputDir, "all_quiz_question_experiment_aggregates.csv"),
   );
 }
 

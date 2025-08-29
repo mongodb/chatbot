@@ -112,7 +112,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
     assert(conversation);
     const userMessageWithCustomData = conversation.messages.findLast(
-      (m): m is DbMessage<UserMessage> => m.role === "user"
+      (m): m is DbMessage<UserMessage> => m.role === "user",
     );
     expect(userMessageWithCustomData?.customData).toStrictEqual({
       ip: ipAddress,
@@ -142,7 +142,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     const conversationId = conversation._id.toString();
     const testEndpointUrl = endpointUrl.replace(
       ":conversationId",
-      conversationId
+      conversationId,
     );
     const requestBody: AddMessageRequestBody = {
       message:
@@ -165,7 +165,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(
           endpointUrl.replace(":conversationId", conversationId) +
-            "?stream=true"
+            "?stream=true",
         )
         .set("Origin", origin)
         .send(requestBody);
@@ -175,7 +175,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.text).toContain(`data: {"type":"references","data":[{`);
       expect(res.text).toContain(`data: {"type":"finished","data":"`);
       expect(res.text).toContain(
-        `data: {"type":"metadata","data":{"conversationId":"${conversationId}"}}`
+        `data: {"type":"metadata","data":{"conversationId":"${conversationId}"}}`,
       );
     });
     it("should stream two requests concurrently", async () => {
@@ -190,13 +190,15 @@ describe("POST /conversations/:conversationId/messages", () => {
       const [res1, res2] = await Promise.all([
         request(app)
           .post(
-            endpointUrl.replace(":conversationId", newConvoId1) + "?stream=true"
+            endpointUrl.replace(":conversationId", newConvoId1) +
+              "?stream=true",
           )
           .set("Origin", origin)
           .send(requestBody),
         request(app)
           .post(
-            endpointUrl.replace(":conversationId", newConvoId2) + "?stream=true"
+            endpointUrl.replace(":conversationId", newConvoId2) +
+              "?stream=true",
           )
           .set("Origin", origin)
           .send(requestBody),
@@ -269,7 +271,7 @@ describe("POST /conversations/:conversationId/messages", () => {
             content: `message ${i}`,
             role: "user",
           } satisfies SomeMessage;
-        }
+        },
       );
       await conversations.addManyConversationMessages({
         conversationId: _id,
@@ -360,7 +362,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         _id: ObjectId.createFromHexString(res.body.metadata.conversationId),
       });
       expect(conversation?._id.toString()).toEqual(
-        res.body.metadata.conversationId
+        res.body.metadata.conversationId,
       );
       expect(conversation?.messages).toHaveLength(2);
       expect(conversation?.messages[0]).toMatchObject({
@@ -393,7 +395,7 @@ describe("POST /conversations/:conversationId/messages", () => {
 async function createNewConversation(
   app: Express,
   ipAddress: string,
-  origin = "http://localhost"
+  origin = "http://localhost",
 ) {
   const createConversationRes = await request(app)
     .post(DEFAULT_API_PREFIX + "/conversations")

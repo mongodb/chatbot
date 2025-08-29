@@ -15,7 +15,7 @@ export function updateMetaDescription(
   newDescription: string,
   options: UpsertMetaDirectiveOptions = {
     allowOverwrite: true,
-  }
+  },
 ): string {
   const hasMetaDescription = getMetaField(content, "description") !== null;
   if (hasMetaDescription && !options.allowOverwrite) {
@@ -27,7 +27,7 @@ export function updateMetaDescription(
       // Replace existing description
       return match.replace(
         descriptionFieldRegex,
-        `$1:description: ${newDescription}\n`
+        `$1:description: ${newDescription}\n`,
       );
     } else {
       // Add description field (preserve the final newline)
@@ -38,7 +38,7 @@ export function updateMetaDescription(
 
 export function getMetaField(
   content: string,
-  fieldName: "description" | "keywords"
+  fieldName: "description" | "keywords",
 ): string | null {
   const fieldRegex =
     fieldName === "description" ? descriptionFieldRegex : keywordsFieldRegex;
@@ -148,7 +148,7 @@ export function upsertMetaDirective(
   metaDirectiveArgs: MetaDirectiveArgs,
   options: UpsertMetaDirectiveOptions = {
     allowOverwrite: true,
-  }
+  },
 ): string {
   const pageHasMetaDirective = hasMetaDirective(rstPageContent);
   if (pageHasMetaDirective) {
@@ -158,7 +158,7 @@ export function upsertMetaDirective(
     return updateMetaDescription(
       rstPageContent,
       metaDirectiveArgs.description,
-      options
+      options,
     );
   } else {
     const metaDirective = constructMetaDirective(metaDirectiveArgs);
@@ -183,13 +183,13 @@ export function upsertMetaDirectiveInFile(
   metaDirectiveArgs: MetaDirectiveArgs,
   options: UpsertMetaDirectiveOptions = {
     allowOverwrite: true,
-  }
+  },
 ): void {
   const rstPageContent = fs.readFileSync(filePath, "utf8");
   const newRstPageContent = upsertMetaDirective(
     rstPageContent,
     metaDirectiveArgs,
-    options
+    options,
   );
   fs.writeFileSync(filePath, newRstPageContent);
 }

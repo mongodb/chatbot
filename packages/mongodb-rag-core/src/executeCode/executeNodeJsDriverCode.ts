@@ -29,7 +29,7 @@ export interface ExecuteGeneratedDriverCodeParams {
 
  */
 export async function executeNodeJsDriverCode(
-  params: ExecuteGeneratedDriverCodeParams
+  params: ExecuteGeneratedDriverCodeParams,
 ): Promise<DatabaseExecutionResult> {
   const { generatedDriverCode, mongoClient, databaseName } = params;
   const database = mongoClient.db(databaseName);

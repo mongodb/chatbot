@@ -9,14 +9,14 @@ describe("removeMarkdownFileExtension", () => {
   it("should remove .markdown extension from a URL", () => {
     const url = "https://example.com/another/page.markdown";
     expect(removeMarkdownFileExtension(url)).toBe(
-      "https://example.com/another/page"
+      "https://example.com/another/page",
     );
   });
 
   it("should not change a URL without a markdown extension", () => {
     const url = "https://example.com/page.html";
     expect(removeMarkdownFileExtension(url)).toBe(
-      "https://example.com/page.html"
+      "https://example.com/page.html",
     );
   });
 

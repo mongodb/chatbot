@@ -10,7 +10,7 @@ import * as readline from "readline";
 import { countAndLogUsage } from "../treeGeneration/databaseNlQueries/analyzeDataset";
 
 async function readJsonlFile(
-  filePath: string
+  filePath: string,
 ): Promise<DatabaseNlQueryDatasetEntry[]> {
   const entries: DatabaseNlQueryDatasetEntry[] = [];
   const fileStream = fs.createReadStream(filePath);
@@ -76,7 +76,7 @@ async function main() {
   }
 
   console.log(
-    `\nTotal entries before deduplication: ${allBraintrustEntries.length}`
+    `\nTotal entries before deduplication: ${allBraintrustEntries.length}`,
   );
 
   // 5. De-duplicate the array based on the NL query
@@ -91,12 +91,12 @@ async function main() {
   });
 
   console.log(
-    `Total entries after deduplication: ${deduplicatedEntries.length}`
+    `Total entries after deduplication: ${deduplicatedEntries.length}`,
   );
   console.log(
     `Removed ${
       allBraintrustEntries.length - deduplicatedEntries.length
-    } duplicate entries`
+    } duplicate entries`,
   );
 
   // 6. Write the array of braintrust entries to a new file
@@ -104,10 +104,10 @@ async function main() {
   fs.writeFileSync(outputPath, JSON.stringify(deduplicatedEntries));
 
   console.log(
-    `\nSuccessfully wrote ${deduplicatedEntries.length} entries to ${outputPath}`
+    `\nSuccessfully wrote ${deduplicatedEntries.length} entries to ${outputPath}`,
   );
   countAndLogUsage(
-    deduplicatedEntries.map(convertBraintrustDatabaseNlQueryDatasetEntryToFlat)
+    deduplicatedEntries.map(convertBraintrustDatabaseNlQueryDatasetEntryToFlat),
   );
 }
 

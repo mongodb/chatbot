@@ -18,10 +18,7 @@ export interface EmbedConcurrencyOptions {
   createChunks?: number;
 }
 
-const getHashForFunc = (
-  f: ChunkFunc,
-  o?: Partial<ChunkOptions>
-): string => {
+const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
   const data = JSON.stringify(o ?? {}) + f.toString();
   const hash = createHash("sha256");
   hash.update(data);
@@ -80,13 +77,10 @@ export const updateEmbeddedContent = async ({
   logger.info(
     `Found ${pagesWithChangedContent.length} changed pages since ${since}${
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
-    }`
+    }`,
   );
   // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
-  const chunkAlgoHash = getHashForFunc(
-    chunkPage,
-    chunkOptions
-  );
+  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
   const dataSourcesWithChangedChunking =
     await embeddedContentStore.getDataSources({
       chunkAlgoHash: {
@@ -105,7 +99,7 @@ export const updateEmbeddedContent = async ({
       pagesWithChangedChunking.length
     } pages with changed chunkingHashes ${
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
-    }`
+    }`,
   );
   const changedPages = [
     ...pagesWithChangedContent,
@@ -117,7 +111,7 @@ export const updateEmbeddedContent = async ({
       switch (page.action) {
         case "deleted":
           logger.info(
-            `Deleting embedded content for ${page.sourceName}: ${page.url}`
+            `Deleting embedded content for ${page.sourceName}: ${page.url}`,
           );
           await embeddedContentStore.deleteEmbeddedContent({
             page,
@@ -157,7 +151,7 @@ export const updateEmbeddedContentForPage = async ({
   if (contentChunks.length === 0) {
     // This could happen if source returned a page with no content
     logger.warn(
-      `No content for page ${page.sourceName}:${page.url} - deleting any existing content and continuing`
+      `No content for page ${page.sourceName}:${page.url} - deleting any existing content and continuing`,
     );
     await store.deleteEmbeddedContent({ page });
     return;
@@ -180,7 +174,7 @@ export const updateEmbeddedContentForPage = async ({
     existingContent[0].chunkAlgoHash === chunkAlgoHash
   ) {
     logger.info(
-      `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
+      `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`,
     );
     return;
   }
@@ -188,18 +182,18 @@ export const updateEmbeddedContentForPage = async ({
   logger.info(
     `${
       page.action === "created" ? "Creating" : "Updating"
-    } embedded content for ${page.sourceName}:${page.url}`
+    } embedded content for ${page.sourceName}:${page.url}`,
   );
 
   const { results: embeddedContent } = await PromisePool.withConcurrency(
-    concurrencyOptions?.createChunks ?? 1
+    concurrencyOptions?.createChunks ?? 1,
   )
     .for(contentChunks)
     .process(async (chunk, index) => {
       logger.info(
         `Vectorizing chunk ${index + 1}/${contentChunks.length} for ${
           page.sourceName
-        }: ${page.url}`
+        }: ${page.url}`,
       );
       const { embedding } = await embedder.embed({
         text: chunk.text,

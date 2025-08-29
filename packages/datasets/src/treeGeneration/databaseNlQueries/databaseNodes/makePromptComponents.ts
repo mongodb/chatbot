@@ -32,7 +32,7 @@ Atlas Search Indexes:
 ${
   c.searchIndexes?.map((i) => `${JSON.stringify(i)}`) ??
   "No Atlas Search indexes"
-}`
+}`,
   )
   .join("\n")}`;
 }
@@ -54,7 +54,7 @@ Data Needed: ${useCase.dataNeeded ? useCase.dataNeeded.join(", ") : "N/A"}`;
 }
 
 export function makePromptNaturalLanguageQueryInfo(
-  query: NaturalLanguageQuery
+  query: NaturalLanguageQuery,
 ) {
   return `## Natural Language Query
 

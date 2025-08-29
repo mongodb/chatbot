@@ -35,7 +35,7 @@ describe("calculateStats", () => {
 
   test("throws error for empty array", () => {
     expect(() => calculateStats([])).toThrow(
-      "Cannot calculate statistics for an empty array"
+      "Cannot calculate statistics for an empty array",
     );
   });
 });

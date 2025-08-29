@@ -10,7 +10,7 @@ async function main() {
   const pathOut = path.join(
     __dirname,
     "testData",
-    "multiple_choice_results.json"
+    "multiple_choice_results.json",
   );
 
   console.log(`Reporting multiple choice benchmark results to ${pathOut}`);

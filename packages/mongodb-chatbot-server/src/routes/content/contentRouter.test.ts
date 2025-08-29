@@ -29,7 +29,7 @@ const findContentMock = jest.fn().mockResolvedValue({
 }) satisfies FindContentFunc;
 
 function makeMockContentRouterConfig(
-  overrides: Partial<MakeContentRouterParams> = {}
+  overrides: Partial<MakeContentRouterParams> = {},
 ) {
   return {
     findContent: findContentMock,

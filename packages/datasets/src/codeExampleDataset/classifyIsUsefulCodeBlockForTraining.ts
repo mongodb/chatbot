@@ -29,7 +29,7 @@ function makeUserMessage(
   codeExample: Pick<
     AugmentedAstExtractedCodeblock,
     "code" | "programmingLanguage" | "prompts"
-  >
+  >,
 ): OpenAI.Chat.ChatCompletionUserMessageParam {
   return {
     role: "user",
@@ -41,14 +41,14 @@ ${codeExample.code}
 \`\`\``,
       },
       null,
-      2
+      2,
     ),
   };
 }
 
 function makeAssistantFunctionCallMessage(
   usefulnessReasoning: string,
-  isUseful: boolean
+  isUseful: boolean,
 ): OpenAI.Chat.ChatCompletionAssistantMessageParam {
   return {
     role: "assistant",
@@ -73,7 +73,7 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to add the current date and time to an environment variable. It does not relate to any MongoDB product or feature.",
-    false
+    false,
   ),
   // Example 2
   makeUserMessage({
@@ -94,7 +94,7 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to create a map marker in SwiftUI. It does not relate to any MongoDB product or feature.",
-    false
+    false,
   ),
   // Example 3
   makeUserMessage({
@@ -132,7 +132,7 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   }),
   makeAssistantFunctionCallMessage(
     "This example shows how to use MongoDB Atlas Search in an aggregation pipeline. It relates to the MongoDB product Atlas Search.",
-    true
+    true,
   ),
   // Example 4
   makeUserMessage({
@@ -190,7 +190,7 @@ http.ListenAndServe(":12345", router)
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to create a simple API with Go and MongoDB. It relates to the MongoDB Go driver.",
-    true
+    true,
   ),
   // Example 5
   makeUserMessage({
@@ -205,7 +205,7 @@ func SearchTweetsEndpoint(response http.ResponseWriter, request *http.Request) {
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to define API endpoint functions in Go. It doesn't relate to any MongoDB product or feature.",
-    false
+    false,
   ),
   // Example 6
   makeUserMessage({
@@ -234,7 +234,7 @@ func SearchTweetsEndpoint(response http.ResponseWriter, request *http.Request) {
   }),
   makeAssistantFunctionCallMessage(
     "This example shows how to create a RealmObject subclass with a private constructor in C#. It relates to the MongoDB Realm product.",
-    true
+    true,
   ),
   // Example 7
   makeUserMessage({
@@ -250,7 +250,7 @@ dotnet new console`,
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to initialize a .NET console project. .NET is not a MongoDB product or feature. The code example does not relate to any MongoDB product or feature.",
-    false
+    false,
   ),
   // Example 8
   makeUserMessage({
@@ -264,7 +264,7 @@ dotnet new console`,
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to create a local MongoDB deployment using the Atlas CLI. It relates to the MongoDB Atlas product.",
-    true
+    true,
   ),
   // Example 9
   makeUserMessage({
@@ -294,7 +294,7 @@ demo.launch()`,
   }),
   makeAssistantFunctionCallMessage(
     "The example shows how to create a Gradio interface for a question answering app. It seems that the Gradio app has something to do with MongoDB Atlas Vector Search. However, the code example does not directly relate to any MongoDB product or feature.",
-    false
+    false,
   ),
   // Example 10
   makeUserMessage({
@@ -312,7 +312,7 @@ demo.launch()`,
   }),
   makeAssistantFunctionCallMessage(
     'The example shows how to define a deprecated HTTP service configuration in JSON. It is not clear what a "deprecated HTTP service configuration is". The code example does clearly not relate to any MongoDB product or feature.',
-    false
+    false,
   ),
 ];
 
@@ -358,7 +358,7 @@ ${codeExample.code}
       },
     });
     const utility = JSON.parse(
-      result.choices[0].message?.function_call?.arguments ?? ""
+      result.choices[0].message?.function_call?.arguments ?? "",
     ) as CodeExampleUtility;
     return utility;
   };

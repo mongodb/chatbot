@@ -26,7 +26,7 @@ export type MessageRatingWithFeedbackCommentProps = {
 };
 
 export function MessageRatingWithFeedbackComment(
-  props: MessageRatingWithFeedbackCommentProps
+  props: MessageRatingWithFeedbackCommentProps,
 ) {
   const {
     submit,

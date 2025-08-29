@@ -18,7 +18,7 @@ async function conversationEval() {
   // Get ONLY architecture center conversations
   const basePath = path.resolve(__dirname, "..", "..", "..", "evalCases");
   const conversationEvalCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
+    fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8"),
   ).filter((c) => c.tags?.includes("atlas-architecture"));
 
   // Run the conversation eval

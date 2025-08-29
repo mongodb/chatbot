@@ -6,14 +6,14 @@ import { wrapTraced } from "mongodb-rag-core/braintrust";
 export const MessageAnalysisSchema = z.object({
   topics: z
     .array(
-      z.enum(mongoDbTopics.map((topic) => topic.id) as [string, ...string[]])
+      z.enum(mongoDbTopics.map((topic) => topic.id) as [string, ...string[]]),
     )
     .nullable()
     .describe(`MongoDB-related topics from the user query.`),
   keywords: z
     .array(z.string())
     .describe(
-      `Keywords and phrases from the user query. Limit to a small handful.`
+      `Keywords and phrases from the user query. Limit to a small handful.`,
     ),
 
   sentiment: z
@@ -21,7 +21,7 @@ export const MessageAnalysisSchema = z.object({
     .optional()
     .nullable()
     .describe(
-      `In a few words, characterize the sentiment of the given message.`
+      `In a few words, characterize the sentiment of the given message.`,
     ),
 
   relevance: z
@@ -29,7 +29,7 @@ export const MessageAnalysisSchema = z.object({
     .min(0)
     .max(1)
     .describe(
-      `On a scale of 0-1, rate how appropriate it is to ask the given query of a chatbot whose expertise is in MongoDB.`
+      `On a scale of 0-1, rate how appropriate it is to ask the given query of a chatbot whose expertise is in MongoDB.`,
     ),
 });
 
@@ -48,7 +48,7 @@ export type MessageAnalysis = z.infer<typeof MessageAnalysisSchema>;
 export const analyzeMessage = wrapTraced(
   async function (
     messageContent: string,
-    model: LanguageModel
+    model: LanguageModel,
   ): Promise<MessageAnalysis> {
     const result = await generateObject({
       model,
@@ -68,5 +68,5 @@ export const analyzeMessage = wrapTraced(
   },
   {
     name: "analyzeMessage",
-  }
+  },
 );

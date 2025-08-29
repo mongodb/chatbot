@@ -21,16 +21,16 @@ async function conversationEval() {
   // Get all the conversation eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "evalCases");
   const miscCases = await getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
+    fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8"),
   );
   const faqCases = await getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
+    fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8"),
   );
   const dotComCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
   const voyageCases = await getConversationEvalCasesFromBraintrust({
     projectName: CONVERSATION_EVAL_PROJECT_NAME,
@@ -40,20 +40,20 @@ async function conversationEval() {
   const systemPromptCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "system_prompt_conversations.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
   const internalToolCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "internal_tools_conversations.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
   const customToolCases = await getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "custom_tool_conversations.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
 
   const conversationEvalCases = [

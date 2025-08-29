@@ -40,7 +40,7 @@ describe.skip("generateMongoshCodeAgentic", () => {
         nlQuery: nlQuery,
         databaseName: dbName,
       },
-      mockHooks
+      mockHooks,
     );
     console.log("GeneratedMqlCode", mqlCode.execution.result);
   });

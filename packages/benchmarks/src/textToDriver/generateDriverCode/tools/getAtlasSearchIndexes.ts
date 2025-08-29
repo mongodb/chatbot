@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const getAtlasSearchIndexesToolName = "atlas-search-indexes";
 export const makeGetAtlasSearchIndexesTool = (
-  mongoClient: MongoClient
+  mongoClient: MongoClient,
 ): Tool => {
   return tool({
     name: getAtlasSearchIndexesToolName,
@@ -14,7 +14,7 @@ export const makeGetAtlasSearchIndexesTool = (
       z.object({
         databaseName: z.string(),
         collectionName: z.string(),
-      })
+      }),
     ),
     execute: wrapTraced(
       async ({ databaseName, collectionName }) => {
@@ -26,7 +26,7 @@ export const makeGetAtlasSearchIndexesTool = (
       },
       {
         name: getAtlasSearchIndexesToolName,
-      }
+      },
     ),
   });
 };

@@ -27,6 +27,6 @@ export const thinkTool: Tool = tool({
     },
     {
       name: "think",
-    }
+    },
   ),
 });

@@ -1,6 +1,10 @@
 import { NextFunction, RequestHandler, Response, Router } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
-import { FindContentFunc, MongoDbEmbeddedContentStore, MongoDbSearchResultsStore } from "mongodb-rag-core";
+import {
+  FindContentFunc,
+  MongoDbEmbeddedContentStore,
+  MongoDbSearchResultsStore,
+} from "mongodb-rag-core";
 import { ParsedQs } from "qs";
 
 import validateRequestSchema from "../../middleware/validateRequestSchema";
@@ -11,7 +15,10 @@ import {
   addDefaultCustomData,
   RequestCustomData,
 } from "../../processors";
-import { GetDataSourcesRequest, makeListDataSourcesRoute } from "./listDataSources";
+import {
+  GetDataSourcesRequest,
+  makeListDataSourcesRoute,
+} from "./listDataSources";
 
 export type SearchContentCustomData = RequestCustomData;
 
@@ -87,10 +94,14 @@ export function makeContentRouter({
       findContent,
       searchResultsStore,
       addCustomData,
-    })
+    }),
   );
 
-  contentRouter.get("/sources", validateRequestSchema(GetDataSourcesRequest), makeListDataSourcesRoute({ embeddedContentStore }));
+  contentRouter.get(
+    "/sources",
+    validateRequestSchema(GetDataSourcesRequest),
+    makeListDataSourcesRoute({ embeddedContentStore }),
+  );
 
   return contentRouter;
 }

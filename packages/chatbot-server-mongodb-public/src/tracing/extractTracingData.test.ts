@@ -50,6 +50,7 @@ describe("extractTracingData", () => {
   };
   const fetchPageToolCallMessage = { ...baseFetchPageToolCallMessage };
   assert(fetchPageToolCallMessage.toolCall);
+  assert(fetchPageToolCallMessage.toolCall.type === "function");
   fetchPageToolCallMessage.toolCall.function.arguments =
     '{"pageUrl":"https://mongodb.com/docs/page","query":"rephrased user query"}';
 
@@ -120,7 +121,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesNoContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.numRetrievedChunks).toBe(0);
     expect(tracingData.tags.includes("no_retrieved_content")).toBe(true);
@@ -136,11 +137,11 @@ describe("extractTracingData", () => {
     const tracingDataWithContext = extractTracingData(
       messagesWithContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingDataWithContext.numRetrievedChunks).toBe(2);
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
-      false
+      false,
     );
   });
   test("should get number of retrieved chunks in fetch_page tool", () => {
@@ -153,12 +154,12 @@ describe("extractTracingData", () => {
     const tracingDataWithoutContext = extractTracingData(
       messagesNoContext,
       msgId,
-      conversationId
+      conversationId,
     );
     console.log(tracingDataWithoutContext.contextContent);
     expect(tracingDataWithoutContext.numRetrievedChunks).toBe(0);
     expect(
-      tracingDataWithoutContext.tags.includes("no_retrieved_content")
+      tracingDataWithoutContext.tags.includes("no_retrieved_content"),
     ).toBe(true);
 
     const messagesWithContext: Message[] = [
@@ -170,11 +171,11 @@ describe("extractTracingData", () => {
     const tracingDataWithContext = extractTracingData(
       messagesWithContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingDataWithContext.numRetrievedChunks).toBe(1);
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
-      false
+      false,
     );
   });
   test("should get number of retrieved chunks in search+fetch_page tool", () => {
@@ -190,12 +191,12 @@ describe("extractTracingData", () => {
     const tracingDataWithoutContext = extractTracingData(
       messagesNoContext,
       msgId,
-      conversationId
+      conversationId,
     );
     console.log(tracingDataWithoutContext.contextContent);
     expect(tracingDataWithoutContext.numRetrievedChunks).toBe(0);
     expect(
-      tracingDataWithoutContext.tags.includes("no_retrieved_content")
+      tracingDataWithoutContext.tags.includes("no_retrieved_content"),
     ).toBe(true);
 
     // Fetch_page finds no context, Search tool finds context
@@ -209,11 +210,11 @@ describe("extractTracingData", () => {
     const tracingDataFallbackHasContext = extractTracingData(
       messagesFallbackHasContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingDataFallbackHasContext.numRetrievedChunks).toBe(2);
     expect(
-      tracingDataFallbackHasContext.tags.includes("no_retrieved_content")
+      tracingDataFallbackHasContext.tags.includes("no_retrieved_content"),
     ).toBe(false);
   });
   test("should capture verified answer", () => {
@@ -232,7 +233,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesNoContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.isVerifiedAnswer).toBe(true);
     expect(tracingData.tags.includes("verified_answer")).toBe(true);
@@ -248,7 +249,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesNoContext,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.llmDoesNotKnow).toBe(true);
     expect(tracingData.tags.includes("llm_does_not_know")).toBe(true);
@@ -273,7 +274,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesWithOrigin,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.origin).toBe("https://example.com/chat");
   });
@@ -289,7 +290,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesNoOrigin,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.origin).toBeUndefined();
   });
@@ -307,7 +308,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesInvalidOrigin,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.origin).toBeUndefined();
   });
@@ -325,10 +326,10 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesWithRejection,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.rejectionReason).toBe(
-      "Query contains inappropriate content"
+      "Query contains inappropriate content",
     );
   });
 
@@ -343,7 +344,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesNoRejection,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.rejectionReason).toBe("Unknown rejection reason");
   });
@@ -361,7 +362,7 @@ describe("extractTracingData", () => {
     const tracingData = extractTracingData(
       messagesInvalidRejection,
       msgId,
-      conversationId
+      conversationId,
     );
     expect(tracingData.rejectionReason).toBe("Unknown rejection reason");
   });

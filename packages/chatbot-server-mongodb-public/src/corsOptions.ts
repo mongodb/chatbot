@@ -2,7 +2,7 @@ import { CorsOptions } from "cors";
 
 export const makeCorsOptions = (
   isProduction: boolean,
-  allowedOrigins: string[]
+  allowedOrigins: string[],
 ) =>
   ({
     origin: !isProduction
@@ -23,4 +23,4 @@ export const makeCorsOptions = (
       : allowedOrigins,
     // Allow cookies from different origins to be sent to the server.
     credentials: true,
-  } satisfies CorsOptions);
+  }) satisfies CorsOptions;

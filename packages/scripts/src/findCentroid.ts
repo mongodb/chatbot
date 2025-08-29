@@ -7,7 +7,7 @@ export const findCentroid = (vectors: number[][]) => {
   assert(vectors.length > 0, "Cannot find centroid of 0 vectors!");
   assert(
     vectors.find((vector) => vectors[0].length !== vector.length) === undefined,
-    "Vector dimensionality mismatch!"
+    "Vector dimensionality mismatch!",
   );
   return (
     vectors

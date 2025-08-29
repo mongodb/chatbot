@@ -29,7 +29,7 @@ export const RateStandaloneMessageRequest = SomeExpressRequest.merge(
     body: z.object({
       rating: z.boolean(),
     }),
-  })
+  }),
 );
 
 export interface RateMessageRouteParams {
@@ -46,7 +46,7 @@ export function makeRateMessageRouteV2({
   return async (
     req: ExpressRequest,
     res: ExpressResponse<void>,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -85,7 +85,7 @@ export function makeRateMessageRouteV2({
 
       if (
         !conversationInDb.messages.find((message) =>
-          message.id.equals(messageId)
+          message.id.equals(messageId),
         )
       ) {
         return sendErrorResponse({
@@ -159,7 +159,7 @@ export const RateMessageRequest = SomeExpressRequest.merge(
     body: z.object({
       rating: z.boolean(),
     }),
-  })
+  }),
 );
 
 /**
@@ -173,7 +173,7 @@ export function makeRateMessageRoute({
   return async (
     req: ExpressRequest,
     res: ExpressResponse<void>,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -222,7 +222,7 @@ export function makeRateMessageRoute({
 
       if (
         !conversationInDb.messages.find((message) =>
-          message.id.equals(messageId)
+          message.id.equals(messageId),
         )
       ) {
         return sendErrorResponse({

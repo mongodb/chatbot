@@ -55,10 +55,9 @@ describe("canUseServerSentEvents", () => {
   test("detects if the user's system includes SSE support", () => {
     const originalEventSource = window.EventSource;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window.EventSource as any) = undefined;
       expect(canUseServerSentEvents()).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (window.EventSource as any) = vi.fn();
       expect(canUseServerSentEvents()).toBe(true);
     } finally {
@@ -73,7 +72,7 @@ describe("addQueryParams", () => {
       "https://example.com/path/to/resource?existingParam=1&anotherParam=true";
     const newUrl = addQueryParams(baseUrl, { newParam: "value" });
     expect(newUrl).toBe(
-      "https://example.com/path/to/resource?existingParam=1&anotherParam=true&newParam=value"
+      "https://example.com/path/to/resource?existingParam=1&anotherParam=true&newParam=value",
     );
   });
 });
@@ -93,7 +92,7 @@ describe("getCurrentPageUrl", () => {
       href: "https://example.com/path/to/resource",
     });
     expect(getCurrentPageUrl()?.href).toBe(
-      "https://example.com/path/to/resource"
+      "https://example.com/path/to/resource",
     );
   });
 });

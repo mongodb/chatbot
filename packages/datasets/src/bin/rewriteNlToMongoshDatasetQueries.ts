@@ -30,26 +30,26 @@ async function runRewriteNlQueryToMongoshDataset(config: {
   // rewriting the latest rewrite
   const datasetInPath = path.join(
     dataOutDir,
-    "atlas-sample-dataset-claude-rewritten.v1.json"
+    "atlas-sample-dataset-claude-rewritten.v1.json",
   );
 
   const intermediateDatasetOutPath = path.join(
     dataOutDir,
-    `atlas-sample-dataset-claude-rewritten.${config.generationId}.yaml`
+    `atlas-sample-dataset-claude-rewritten.${config.generationId}.yaml`,
   );
   const datasetOutPath = path.join(
     dataOutDir,
-    `atlas-sample-dataset-claude-rewritten.${config.generationId}.json`
+    `atlas-sample-dataset-claude-rewritten.${config.generationId}.json`,
   );
 
   let datasetEntries = config.shuffle
     ? shuffle(
         DatabaseNlQueryDatasetEntryBraintrustSchema.array().parse(
-          JSON.parse(fs.readFileSync(datasetInPath, "utf-8"))
-        )
+          JSON.parse(fs.readFileSync(datasetInPath, "utf-8")),
+        ),
       )
     : DatabaseNlQueryDatasetEntryBraintrustSchema.array().parse(
-        JSON.parse(fs.readFileSync(datasetInPath, "utf-8"))
+        JSON.parse(fs.readFileSync(datasetInPath, "utf-8")),
       );
   if (config.limit) {
     datasetEntries = datasetEntries.slice(0, config.limit);
@@ -70,7 +70,7 @@ Entry NL query: ${entry.input.nlQuery}`);
       const result = await rewriteNlQueryPrompt(entry);
       fs.appendFileSync(
         intermediateDatasetOutPath,
-        yaml.stringify([result.datasetEntry])
+        yaml.stringify([result.datasetEntry]),
       );
       return result;
     });
@@ -78,9 +78,9 @@ Entry NL query: ${entry.input.nlQuery}`);
   console.log(results.length, "total result(s)");
   console.log(
     results.filter(
-      (result) => result.classification.classification === "ambiguous"
+      (result) => result.classification.classification === "ambiguous",
     ).length,
-    "ambiguous result(s)"
+    "ambiguous result(s)",
   );
 
   console.log("Writing full dataset to", datasetOutPath);
@@ -89,8 +89,8 @@ Entry NL query: ${entry.input.nlQuery}`);
     JSON.stringify(
       results.map((r) => r.datasetEntry),
       null,
-      2
-    )
+      2,
+    ),
   );
 }
 

@@ -122,9 +122,9 @@ describe("updatePages", () => {
           (otherPair, j) =>
             i !== j &&
             pair.startTime < otherPair.endTime &&
-            otherPair.startTime < pair.endTime
-        )
-      )
+            otherPair.startTime < pair.endTime,
+        ),
+      ),
     ).toBe(true);
   });
 });

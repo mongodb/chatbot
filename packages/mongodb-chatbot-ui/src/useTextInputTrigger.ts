@@ -16,25 +16,25 @@ export type ChatbotTextInputTriggerProps = ChatbotTriggerProps &
   UseTextInputTriggerArgs;
 
 /**
- * A hook that provides the necessary props to create a Chatbot trigger component that allows the user to input text.
- * @param args - The arguments to configure the trigger.
- * @returns The props to create a Chatbot trigger component that allows the user to input text.
- * @example
- * ```tsx
- * const textInputTrigger = useTextInputTrigger({
- *   placeholder: "Type something...",
- *   fatalErrorMessage: "An error occurred. Please try again.",
- * });
- * return <MyInputBar
- *   value={textInputTrigger.inputText}
- *   placeholder={textInputTrigger.inputPlaceholder}
- *   error={textInputTrigger.inputTextError || undefined}
- *   onTextChange={newText => textInputTrigger.setInputText(newText)}
- *   onSubmit={() => {
- *     textInputTrigger.handleSubmit(textInputTrigger.inputText);
- *   }}
- * />;
- * ```
+ A hook that provides the necessary props to create a Chatbot trigger component that allows the user to input text.
+ @param args - The arguments to configure the trigger.
+ @returns The props to create a Chatbot trigger component that allows the user to input text.
+ @example
+ ```tsx
+ const textInputTrigger = useTextInputTrigger({
+ placeholder: "Type something...",
+ fatalErrorMessage: "An error occurred. Please try again.",
+ });
+ return <MyInputBar
+ value={textInputTrigger.inputText}
+ placeholder={textInputTrigger.inputPlaceholder}
+ error={textInputTrigger.inputTextError || undefined}
+ onTextChange={newText => textInputTrigger.setInputText(newText)}
+ onSubmit={() => {
+ textInputTrigger.handleSubmit(textInputTrigger.inputText);
+ }}
+ />;
+ ```
  */
 export function useTextInputTrigger({
   placeholder = MongoDbInputBarPlaceholder(),

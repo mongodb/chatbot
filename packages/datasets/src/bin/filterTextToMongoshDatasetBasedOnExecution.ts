@@ -49,7 +49,7 @@ async function main() {
   // load all files in dataOutDir /textToMongoshBenchmarkResults
   // filter these to only include .json files
   const files = fs.readdirSync(
-    path.join(dataOutDir, "textToMongoshBenchmarkResults")
+    path.join(dataOutDir, "textToMongoshBenchmarkResults"),
   );
   const jsonFiles = files.filter((file) => file.endsWith(".json"));
   const results: AggregateEvals = {};
@@ -57,11 +57,11 @@ async function main() {
     const filePath = path.join(
       dataOutDir,
       "textToMongoshBenchmarkResults",
-      file
+      file,
     );
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const evals = TextToMongoshEvalResult.array().parse(
-      JSON.parse(fileContent)
+      JSON.parse(fileContent),
     );
     for (const evaluation of evals) {
       const key = `${evaluation.input.databaseName}_${evaluation.input.nlQuery}`;
@@ -89,15 +89,15 @@ async function main() {
 
     // Count how many models got a score of 1 for each metric
     const correctOutputCount = Object.values(aggregateScores).filter(
-      (scores) => scores?.CorrectOutputFuzzy === 1
+      (scores) => scores?.CorrectOutputFuzzy === 1,
     ).length;
 
     const reasonableOutputCount = Object.values(aggregateScores).filter(
-      (scores) => scores?.ReasonableOutput === 1
+      (scores) => scores?.ReasonableOutput === 1,
     ).length;
 
     const successfulExecutionCount = Object.values(aggregateScores).filter(
-      (scores) => scores?.SuccessfulExecution === 1
+      (scores) => scores?.SuccessfulExecution === 1,
     ).length;
 
     // Only include results where at least 2 models got a score of 1 for each metric
@@ -113,7 +113,7 @@ async function main() {
   console.log(
     `Filtered from ${Object.keys(results).length} to ${
       Object.keys(filteredResults).length
-    } results`
+    } results`,
   );
 
   // Next count the distribution, i.e how many are 2 correct, 3 correct, 4 correct, etc
@@ -122,7 +122,7 @@ async function main() {
     const result = filteredResults[key];
     const aggregateScores = result.aggregateScores;
     const correctOutputCount = Object.values(aggregateScores).filter(
-      (scores) => scores?.CorrectOutputFuzzy === 1
+      (scores) => scores?.CorrectOutputFuzzy === 1,
     ).length;
     if (!distributionOfFuzzyCorrect[correctOutputCount]) {
       distributionOfFuzzyCorrect[correctOutputCount] = 0;
@@ -161,7 +161,7 @@ async function main() {
   // for the database sample guides, count how many of each complexity
   const distributionOfSampleGuides: Record<string, number> = {};
   for (const key of Object.keys(filteredResults).filter(
-    (key) => filteredResults[key].input.databaseName === "sample_guides"
+    (key) => filteredResults[key].input.databaseName === "sample_guides",
   )) {
     const result = filteredResults[key];
     const complexity = result.metadata?.complexity;
@@ -228,7 +228,7 @@ async function main() {
 
     console.log(
       "New Distribution after removing sample guides simple examples to 100:",
-      newDistribution
+      newDistribution,
     );
 
     const distributionOfFuzzyCorrect: Record<number, number> = {};
@@ -236,7 +236,7 @@ async function main() {
       const result = finalFilteredResults[key];
       const aggregateScores = result.aggregateScores;
       const correctOutputCount = Object.values(aggregateScores).filter(
-        (scores) => scores?.CorrectOutputFuzzy === 1
+        (scores) => scores?.CorrectOutputFuzzy === 1,
       ).length;
       if (!distributionOfFuzzyCorrect[correctOutputCount]) {
         distributionOfFuzzyCorrect[correctOutputCount] = 0;
@@ -245,27 +245,27 @@ async function main() {
     }
     console.log(
       "New Distribution of FuzzyCorrect:",
-      distributionOfFuzzyCorrect
+      distributionOfFuzzyCorrect,
     );
 
     return writeResultsAndCalculatePerformance(
       finalFilteredResults,
       jsonFiles,
-      dataOutDir
+      dataOutDir,
     );
   }
 
   return writeResultsAndCalculatePerformance(
     filteredResults,
     jsonFiles,
-    dataOutDir
+    dataOutDir,
   );
 }
 
 function writeResultsAndCalculatePerformance(
   results: AggregateEvals,
   jsonFiles: string[],
-  dataOutDir: string
+  dataOutDir: string,
 ) {
   // Of the fuzzy correct set, determine how many are correct for each fileName
   const correctCountByFile: Record<string, { correct: number; total: number }> =
@@ -320,14 +320,14 @@ function writeResultsAndCalculatePerformance(
           {}) as DatabaseNlQueryDatasetEntryBraintrust["metadata"],
       };
       return convertBraintrustDatabaseNlQueryDatasetEntryToFlat(
-        braintrustNlQuery
+        braintrustNlQuery,
       );
     });
   countAndLogUsage(filteredResults);
   // Write filtered results to a file
   fs.writeFileSync(
     path.join(dataOutDir, "filteredTextToMongoshBenchmarkResults.json"),
-    JSON.stringify(filteredResults, null, 2)
+    JSON.stringify(filteredResults, null, 2),
   );
 
   return results;

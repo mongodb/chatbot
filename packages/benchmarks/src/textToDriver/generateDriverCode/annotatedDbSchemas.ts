@@ -16,7 +16,7 @@ Description: ${c.description}
 Schema:
 ${c.schema}
 Indexes:
-${c.indexes?.map((i) => `${JSON.stringify(i)}`) ?? "No indexes"}`
+${c.indexes?.map((i) => `${JSON.stringify(i)}`) ?? "No indexes"}`,
   )
   .join("\n")}`;
 }

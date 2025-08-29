@@ -3,19 +3,19 @@ function stripLiteralQuotes(str?: string) {
 }
 
 /**
- * Get Segment IDs from the browser's local storage.
+ Get Segment IDs from the browser's local storage.
  */
 export function getSegmentIds() {
   const analytics =
     typeof window !== "undefined" && window.analytics ? window.analytics : null;
 
   const userId = stripLiteralQuotes(
-    analytics?.user().id() ?? localStorage.getItem("ajs_user_id") ?? undefined
+    analytics?.user().id() ?? localStorage.getItem("ajs_user_id") ?? undefined,
   );
   const anonymousId = stripLiteralQuotes(
     analytics?.user().anonymousId() ??
       localStorage.getItem("ajs_anonymous_id") ??
-      undefined
+      undefined,
   );
   return {
     userId,
@@ -24,7 +24,7 @@ export function getSegmentIds() {
 }
 
 /**
- * Set Segment ID headers based on values from the browser's local storage.
+ Set Segment ID headers based on values from the browser's local storage.
  */
 export function getSegmentIdHeaders() {
   const { userId, anonymousId } = getSegmentIds();

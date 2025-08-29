@@ -1,4 +1,4 @@
-import { initDataset } from "braintrust";
+import { initDataset } from "mongodb-rag-core/braintrust";
 import { z } from "zod";
 import { Document, BSON } from "mongodb-rag-core/mongodb";
 import {
@@ -23,7 +23,7 @@ const DatabaseMetadataDatasetEntrySchema = z.object({
       z.object({
         collectionName: z.string(),
         indexes: z.array(z.record(z.unknown())),
-      })
+      }),
     ),
   }),
 });
@@ -79,7 +79,7 @@ export async function loadBraintrustMetadata({
           collectionName: c.collectionName,
           indexes: c.indexes.map((idx) => EJSON.deserialize(idx)),
         })),
-      })
+      }),
     );
   return metadata;
 }

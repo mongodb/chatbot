@@ -28,9 +28,9 @@ describe("getEnv", () => {
     expect(() =>
       getEnv({
         required: ["TEST_ENV_VAR", "MISSING_ENV_VAR", "MISSING_ENV_VAR_2"],
-      })
+      }),
     ).toThrow(
-      "Missing required environment variables:\n - MISSING_ENV_VAR\n - MISSING_ENV_VAR_2"
+      "Missing required environment variables:\n - MISSING_ENV_VAR\n - MISSING_ENV_VAR_2",
     );
   });
 

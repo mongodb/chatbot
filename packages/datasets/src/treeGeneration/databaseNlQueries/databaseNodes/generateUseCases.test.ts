@@ -10,15 +10,15 @@ describe.skip("generateDatabaseUseCases", () => {
       const useCases = await generateDatabaseUseCases(
         userNode,
         makeSampleLlmOptions(),
-        1
+        1,
       );
       console.log("Use cases for user:", userNode.data.name);
       console.log(
         JSON.stringify(
           useCases.map((useCase) => useCase.data),
           null,
-          2
-        )
+          2,
+        ),
       );
     }
   });

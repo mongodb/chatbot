@@ -91,8 +91,8 @@ export async function makeMongoDbMcpAgent({
   // Filter tool set to only include available tools
   const mcpToolSet: ToolSet = Object.fromEntries(
     Object.entries(fullMcpToolSet).filter(([toolName]) =>
-      availableMongoDbMcpTools.includes(toolName as MongoDbMcpToolName)
-    )
+      availableMongoDbMcpTools.includes(toolName as MongoDbMcpToolName),
+    ),
   );
   for (const toolName in mcpToolSet) {
     const execute = mcpToolSet[toolName].execute;

@@ -9,11 +9,11 @@ async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-prompts-filtered-small-for-export-1716392856652.yaml"
+    "docs-chatbot.code-examples-with-prompts-filtered-small-for-export-1716392856652.yaml",
   );
 
   const filteredCodeExamples = yaml.parse(
-    fs.readFileSync(codeExamplesPath, "utf-8")
+    fs.readFileSync(codeExamplesPath, "utf-8"),
   ) as AugmentedAstExtractedCodeblock[];
 
   const flatMapCodeExamples = filteredCodeExamples.map((example) => {
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
 
     const pathOut = path.resolve(
       basePath,
-      `docs-chatbot.code-examples-with-prompts-filtered-for-export-${Date.now()}.csv`
+      `docs-chatbot.code-examples-with-prompts-filtered-for-export-${Date.now()}.csv`,
     );
 
     fs.appendFileSync(pathOut, output);

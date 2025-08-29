@@ -20,7 +20,7 @@ export type DevCenterChatbotProps = DarkModeProps & {
 };
 
 const ModalView = lazy(() =>
-  import("./ModalView").then((m) => ({ default: m.ModalView }))
+  import("./ModalView").then((m) => ({ default: m.ModalView })),
 );
 
 export function DevCenterChatbot(props: DevCenterChatbotProps) {

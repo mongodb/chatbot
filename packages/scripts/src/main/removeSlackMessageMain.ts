@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
  */
 export async function removeSlackMessage(
   channelId: string,
-  messageTs: string
+  messageTs: string,
 ): Promise<void> {
   // Check if SLACK_BOT_TOKEN is available in environment variables
   const slackToken = process.env.SLACK_BOT_TOKEN;
@@ -28,7 +28,7 @@ export async function removeSlackMessage(
     const client = new WebClient(slackToken);
 
     console.log(
-      `Attempting to delete message with timestamp ${messageTs} from channel ${channelId}`
+      `Attempting to delete message with timestamp ${messageTs} from channel ${channelId}`,
     );
 
     // Call the chat.delete method to remove the message
@@ -55,10 +55,10 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   if (args.length !== 2) {
     console.error(
-      "Usage: npm run removeSlackMessage -- <channel_id> <message_timestamp>"
+      "Usage: npm run removeSlackMessage -- <channel_id> <message_timestamp>",
     );
     console.error(
-      "Example: npm run removeSlackMessage -- C01234ABCDE 1623456789.123456"
+      "Example: npm run removeSlackMessage -- C01234ABCDE 1623456789.123456",
     );
     process.exit(1);
   }

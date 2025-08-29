@@ -18,7 +18,7 @@ export function binaryNdcgAtK<T extends Primitive>(
   relevantItems: T[],
   retrievedItems: T[],
   matchFunc: MatchFunc<T>,
-  k: number
+  k: number,
 ): number {
   assertKIsValid(k);
 
@@ -29,7 +29,7 @@ export function binaryNdcgAtK<T extends Primitive>(
   const relevanceScores = calculateRelevanceScores(
     deduplicatedRetrievedItems,
     relevantItems,
-    matchFunc
+    matchFunc,
   );
 
   // Use the ndcg function to calculate NDCG
@@ -38,7 +38,7 @@ export function binaryNdcgAtK<T extends Primitive>(
 
 function removeDuplicates<T extends Primitive>(
   items: T[],
-  limit: number
+  limit: number,
 ): (T | null)[] {
   const itemsInLimit = items.slice(0, limit);
   const seen = new Set<T>();
@@ -55,7 +55,7 @@ function removeDuplicates<T extends Primitive>(
 function calculateRelevanceScores<T extends Primitive>(
   retrievedItems: (T | null)[],
   relevantItems: T[],
-  matchFunc: MatchFunc<T>
+  matchFunc: MatchFunc<T>,
 ): number[] {
   return retrievedItems.map((item) => {
     // handle duplicate items

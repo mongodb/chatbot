@@ -1,5 +1,5 @@
 export const assertEnvVars = <T extends Record<string, string>>(
-  ENV_VARS: T
+  ENV_VARS: T,
 ): T => {
   const vars: Record<string, string | unknown> = { ...ENV_VARS };
   const anyVarMissing = Object.keys(vars).reduce(
@@ -10,7 +10,7 @@ export const assertEnvVars = <T extends Record<string, string>>(
       // Return true if any var was missing so far or if this var was not set
       return anyVarMissing || !vars[currentVar];
     },
-    false
+    false,
   );
   if (anyVarMissing) {
     throw new Error(`Missing env var(s):

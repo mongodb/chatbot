@@ -35,7 +35,7 @@ describe("ipAddressKeyGenerator", () => {
     } as Request;
 
     expect(() => ipAddressKeyGenerator(mockRequest)).toThrow(
-      "Request IP is not defined"
+      "Request IP is not defined",
     );
   });
 
@@ -45,7 +45,7 @@ describe("ipAddressKeyGenerator", () => {
     } as any as Request;
 
     expect(() => ipAddressKeyGenerator(mockRequest)).toThrow(
-      "Request IP is not defined"
+      "Request IP is not defined",
     );
   });
 
@@ -55,7 +55,7 @@ describe("ipAddressKeyGenerator", () => {
     } as Request;
 
     expect(() => ipAddressKeyGenerator(mockRequest)).toThrow(
-      "Request IP is not defined"
+      "Request IP is not defined",
     );
   });
 });

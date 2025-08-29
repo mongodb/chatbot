@@ -40,7 +40,7 @@ export function makeExecuteMongoshQuery({
           maxBuffer: 1024 * 1024 * 30, // 30 MB
           timeout: 30000,
           ...execOptions,
-        }
+        },
       );
       const endTime = Date.now();
       executionTimeMs = endTime - startTime;

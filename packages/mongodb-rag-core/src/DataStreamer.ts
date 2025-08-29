@@ -22,7 +22,7 @@ interface ServerSentEventDispatcher<Data extends object | string> {
 type ServerSentEventData = object | string;
 
 function makeServerSentEventDispatcher<
-  D extends ServerSentEventData = ServerSentEventData
+  D extends ServerSentEventData = ServerSentEventData,
 >(res: Response): ServerSentEventDispatcher<D> {
   return {
     connect() {
@@ -221,7 +221,7 @@ export function makeDataStreamer(): DataStreamer {
     disconnect() {
       if (!this.connected) {
         throw new Error(
-          "Tried to disconnect SSE, but it was already disconnected."
+          "Tried to disconnect SSE, but it was already disconnected.",
         );
       }
       sse?.disconnect();
@@ -235,7 +235,7 @@ export function makeDataStreamer(): DataStreamer {
     streamData(data) {
       if (!this.connected) {
         throw new Error(
-          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`,
         );
       }
       sse?.sendData(data);
@@ -247,7 +247,7 @@ export function makeDataStreamer(): DataStreamer {
     async stream({ stream }) {
       if (!this.connected) {
         throw new Error(
-          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`,
         );
       }
       let streamedData = "";
@@ -272,7 +272,7 @@ export function makeDataStreamer(): DataStreamer {
     async streamResponses(data) {
       if (!this.connected) {
         throw new Error(
-          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`,
         );
       }
       sse?.sendResponsesEvent({

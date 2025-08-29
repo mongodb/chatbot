@@ -33,7 +33,7 @@ export interface AppConfig {
     Configuration for the content router.
    */
   contentRouterConfig?: MakeContentRouterParams;
-  
+
   /**
     Configuration for the responses router.
    */
@@ -144,7 +144,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
-    stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>)
+    stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>),
   );
 
   const app = express();
@@ -160,7 +160,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   app.use(reqHandler);
   app.use(
     `${apiPrefix}/conversations`,
-    makeConversationsRouter(conversationsRouterConfig)
+    makeConversationsRouter(conversationsRouterConfig),
   );
   app.use(`${apiPrefix}/responses`, makeResponsesRouter(responsesRouterConfig));
 
@@ -210,7 +210,7 @@ function stringifyFunctions(obj: Record<string, unknown>, depth = 0) {
     for (const key in obj) {
       newObj[key] = stringifyFunctions(
         obj[key] as Record<string, unknown>,
-        depth + 1
+        depth + 1,
       );
     }
     return newObj;

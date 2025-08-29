@@ -12,7 +12,7 @@ export type ContentChunk = Omit<EmbeddedContent, "embeddings" | "updated">;
  */
 export type ChunkFunc = (
   page: Page,
-  options?: Partial<ChunkOptions>
+  options?: Partial<ChunkOptions>,
 ) => Promise<ContentChunk[]>;
 
 /**
@@ -90,7 +90,7 @@ export type SomeTokenizer = {
  */
 export const chunkPage: ChunkFunc = async (
   page: Page,
-  chunkOptions?: Partial<ChunkOptions>
+  chunkOptions?: Partial<ChunkOptions>,
 ): Promise<ContentChunk[]> => {
   // Handle code file formats
   if (isSupportedLanguage(page.format)) {

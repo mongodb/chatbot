@@ -109,7 +109,7 @@ const TopicsCorrect: Scorer<MessageAnalysis, unknown> = (args) => {
   // If expected topics is defined, check if all expected topics are included in output
   if (args.expected?.topics && args.output.topics) {
     const allTopicsIncluded = args.expected.topics.every((topic) =>
-      args.output.topics?.includes(topic)
+      args.output.topics?.includes(topic),
     );
     return {
       name: "TopicsCorrect",

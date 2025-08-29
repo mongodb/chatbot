@@ -38,7 +38,7 @@ export async function updateTraceIfExists({
           reqId,
           type: "error",
           message: `Failed to update trace with Error: ${JSON.stringify(
-            error
+            error,
           )}`,
         });
       });

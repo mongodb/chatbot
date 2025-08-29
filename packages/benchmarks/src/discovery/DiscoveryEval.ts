@@ -28,10 +28,10 @@ export interface DiscoveryEvalCase
 }
 
 export function getDiscoveryConversationEvalDataFromYamlFile(
-  filePath: string
+  filePath: string,
 ): DiscoveryEvalCase[] {
   const conversations = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(filePath, "utf8")
+    fs.readFileSync(filePath, "utf8"),
   );
   return conversations.map((evalCase) => {
     const latestMessageText =

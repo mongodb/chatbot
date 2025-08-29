@@ -156,7 +156,7 @@ describe("Data Conversion Functions", () => {
     });
     test("include conversationId in assistant message if provided", () => {
       const message = exampleConversationInDatabase.messages.find(
-        (m) => m.role === "assistant"
+        (m) => m.role === "assistant",
       );
       assert(message);
       const convoId = new ObjectId();
@@ -166,7 +166,7 @@ describe("Data Conversion Functions", () => {
     });
     test("don't include conversationId in non-assistant messages", () => {
       const message = exampleConversationInDatabase.messages.find(
-        (m) => m.role !== "assistant"
+        (m) => m.role !== "assistant",
       );
       assert(message);
       const convoId = new ObjectId();
@@ -179,7 +179,7 @@ describe("Data Conversion Functions", () => {
   describe("convertConversationFromDbToApi", () => {
     test("serializes values & removes system, assistant:functionCall, and function messages", () => {
       const apiConversation = convertConversationFromDbToApi(
-        exampleConversationInDatabase
+        exampleConversationInDatabase,
       );
       expect(apiConversation).toEqual({
         _id: "65ca743910cae16a93ff3548",

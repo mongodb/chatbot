@@ -4,7 +4,7 @@ import { FilterPreviousMessages } from "./FilterPreviousMessages";
   @param n - Number of previous messages to include.
  */
 export const makeFilterNPreviousMessages = (
-  n: number
+  n: number,
 ): FilterPreviousMessages => {
   return async (conversation) => {
     // Get the n latest messages.

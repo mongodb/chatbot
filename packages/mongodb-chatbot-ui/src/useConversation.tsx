@@ -32,9 +32,9 @@ export type UseConversationParams = {
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
   /**
-   * Optional fetch options for the ConversationService. Can be either a static
-   * `ConversationFetchOptions` object for all request or a function that
-   * dynamically returns a new `ConversationFetchOptions` object for each request.
+   Optional fetch options for the ConversationService. Can be either a static
+   `ConversationFetchOptions` object for all request or a function that
+   dynamically returns a new `ConversationFetchOptions` object for each request.
    */
   fetchOptions?: ConversationFetchOptions | (() => ConversationFetchOptions);
   getClientContext?: () => Record<string, unknown>;
@@ -72,8 +72,8 @@ export function useConversation(params: UseConversationParams) {
         typeof error === "string"
           ? error
           : error instanceof Error
-          ? error.message
-          : "Failed to create conversation.";
+            ? error.message
+            : "Failed to create conversation.";
       console.error(errorMessage);
       endConversationWithError(errorMessage);
     }
@@ -110,14 +110,14 @@ export function useConversation(params: UseConversationParams) {
         // code block and we need to escape from it.
         const numCodeFences = countRegexMatches(
           /```/g,
-          streamedTokens.join("")
+          streamedTokens.join(""),
         );
         if (numCodeFences % 2 !== 0) {
           state.api.appendStreamingResponse("\n```\n\n");
         }
 
         state.api.appendStreamingReferences(
-          references.sort(sortMessageReferences)
+          references.sort(sortMessageReferences),
         );
         references = null;
       }
@@ -158,7 +158,7 @@ export function useConversation(params: UseConversationParams) {
             }
             state.api.updateMessageMetadata(
               STREAMING_MESSAGE_ID,
-              (m) => ({ ...m, ...metadata } as AssistantMessageMetadata)
+              (m) => ({ ...m, ...metadata }) as AssistantMessageMetadata,
             );
           },
           onResponseFinished: async (messageId: string) => {
@@ -236,13 +236,12 @@ export function useConversation(params: UseConversationParams) {
   };
 
   /**
-   * Switch to a different, existing conversation.
+   Switch to a different, existing conversation.
    */
   const switchConversation = async (conversationId: string) => {
     try {
-      const conversation = await conversationService.getConversation(
-        conversationId
-      );
+      const conversation =
+        await conversationService.getConversation(conversationId);
       state.api.initialize({
         conversationId: conversation._id,
         messages: conversation.messages.map(createMessage),
@@ -252,8 +251,8 @@ export function useConversation(params: UseConversationParams) {
         typeof error === "string"
           ? error
           : error instanceof Error
-          ? error.message
-          : "Failed to switch conversation.";
+            ? error.message
+            : "Failed to switch conversation.";
       console.error(errorMessage);
       // Rethrow the error so that we can handle it in the UI
       throw error;

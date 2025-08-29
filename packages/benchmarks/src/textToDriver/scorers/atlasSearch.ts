@@ -29,7 +29,7 @@ export const NonEmptyArrayOutput = ({
         item !== null &&
         item !== undefined &&
         item !== "" &&
-        (typeof item === "object" ? Object.keys(item).length > 0 : true)
+        (typeof item === "object" ? Object.keys(item).length > 0 : true),
     );
   return {
     name: metricName,
@@ -66,7 +66,7 @@ interface MatchableDocument {
 }
 export const ndcgMatchFunc: MatchFunc<MatchableDocument> = (
   a: MatchableDocument,
-  b: MatchableDocument
+  b: MatchableDocument,
 ) => {
   if (a._id && b._id) {
     // Can't just use === for ObjectId because it's a class.

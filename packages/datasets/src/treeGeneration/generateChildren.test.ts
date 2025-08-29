@@ -173,18 +173,18 @@ describe("makeGenerateChildrenWithOpenAi", () => {
     });
 
     await expect(generateChildren(parent, llmOptions, 1)).rejects.toThrow(
-      "No children returned from function call."
+      "No children returned from function call.",
     );
   });
 
   it("should handle API errors", async () => {
     // Mock an API error
     mockOpenAIClient.chat.completions.create.mockRejectedValueOnce(
-      new Error("API Error")
+      new Error("API Error"),
     );
 
     await expect(generateChildren(parent, llmOptions, 1)).rejects.toThrow(
-      "API Error"
+      "API Error",
     );
   });
 });

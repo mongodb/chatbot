@@ -16,7 +16,7 @@ export const DatabaseUserSchema = z.object({
   description: z
     .string()
     .describe(
-      "Background of the user. Consider including years of experience and relevant areas of expertise/interest."
+      "Background of the user. Consider including years of experience and relevant areas of expertise/interest.",
     ),
 });
 
@@ -33,12 +33,12 @@ export const DatabaseUseCaseSchema = z.object({
   description: z
     .string()
     .describe(
-      "Detailed description of what information the user needs and why"
+      "Detailed description of what information the user needs and why",
     ),
   dataNeeded: z
     .array(z.string())
     .describe(
-      "Types of data or information required for this use case, based on the information available in the database schema."
+      "Types of data or information required for this use case, based on the information available in the database schema.",
     ),
 });
 
@@ -53,7 +53,7 @@ export const NaturalLanguageQuerySchema = z.object({
   intent: z
     .string()
     .describe(
-      "The underlying intent or purpose of the query. Include any additional context that might be useful for understanding the query and any relevant database entities."
+      "The underlying intent or purpose of the query. Include any additional context that might be useful for understanding the query and any relevant database entities.",
     ),
   collections: z
     .array(z.string())

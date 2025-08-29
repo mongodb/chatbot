@@ -24,7 +24,7 @@ export function makeOpenAiClientFactory({
           new OpenAI({
             apiKey: braintrust.apiKey,
             baseURL: braintrust.endpoint,
-          })
+          }),
         );
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);

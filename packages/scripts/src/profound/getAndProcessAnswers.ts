@@ -73,7 +73,7 @@ interface CaseByProfoundPromptId {
   };
 }
 const casesByPromptId = async (
-  collection: Collection
+  collection: Collection,
 ): Promise<CaseByProfoundPromptId> => {
   const documents = await collection.find().toArray();
   return documents.reduce((map, doc) => {
@@ -90,7 +90,7 @@ const casesByPromptId = async (
 const platformsByName = async (): Promise<Record<string, string>> => {
   const platforms = await profoundAPI.getModels();
   return Object.fromEntries(
-    platforms.map((record) => [record.name, record.id])
+    platforms.map((record) => [record.name, record.id]),
   );
 };
 
@@ -113,7 +113,7 @@ const datasetsByTag = async (collection: Collection): Promise<DatasetByTag> => {
 
 const getDataset = (
   tags: string[],
-  datasetsByTagMap: DatasetByTag
+  datasetsByTagMap: DatasetByTag,
 ): { name: string; slug: string } | null => {
   for (const tag of tags) {
     if (datasetsByTagMap[tag]) {
@@ -185,7 +185,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
     endDate: end,
   });
   console.log(
-    `Processing ${answers.length} answers generated between ${start} and ${end}`
+    `Processing ${answers.length} answers generated between ${start} and ${end}`,
   );
 
   // get reference alignment scores for answers
@@ -215,7 +215,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const currentCase = casesByPromptMap[currentPromptId];
       if (!currentCase) {
         promptsWithNoAssociatedCase.add(
-          `${currentPromptId} - ${currentPrompt}`
+          `${currentPromptId} - ${currentPrompt}`,
         );
       }
 
@@ -289,7 +289,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
               hostname: url.hostname,
               path: url.pathname,
             };
-          }
+          },
         ),
         tags: currentCase?.tags,
         expectedResponse: currentCase?.expected,
@@ -305,7 +305,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
     });
 
   console.log(
-    `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
+    `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`,
   );
   promptsWithNoAssociatedCase.forEach((promptInfo: any) => {
     console.log(` - ${promptInfo}`);
@@ -327,7 +327,7 @@ export const main = async (startDateArg?: string, endDateArg?: string) => {
       const inserted = result.upsertedCount || 0;
       const updated = result.modifiedCount || 0;
       console.log(
-        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start} and ${end}).`
+        `BulkWrite to llm_answers collection completed: ${inserted} inserted, ${updated} updated (out of ${answerRecords.length} records between ${start} and ${end}).`,
       );
     } catch (err) {
       console.error("BulkWrite to llm_answers collection failed:", err);

@@ -11,7 +11,7 @@ import { TextToDriverExpected, TextToDriverOutput } from "../TextToDriverEval";
 
 describe("atlasSearch scorers", () => {
   function makeOutput(
-    partial: Partial<DatabaseExecutionResult> & { generatedCode?: string }
+    partial: Partial<DatabaseExecutionResult> & { generatedCode?: string },
   ) {
     const execution: DatabaseExecutionResult = {
       result: null,
@@ -290,7 +290,7 @@ describe("atlasSearch scorers", () => {
   describe("NdcgAtK", () => {
     function makeScorerArgs(
       output: TextToDriverOutput,
-      expected: TextToDriverExpected
+      expected: TextToDriverExpected,
     ) {
       return {
         input: {
@@ -313,7 +313,7 @@ describe("atlasSearch scorers", () => {
         makeScorerArgs(makeOutput({ result: 1 }), {
           dbQuery: "db.c.find({})",
           result: [1, 2, 3],
-        })
+        }),
       ) as unknown as Score;
       expect(out1.name).toBe(`NDCG@${k}`);
       expect(out1.score).toBe(0);
@@ -325,7 +325,7 @@ describe("atlasSearch scorers", () => {
         makeScorerArgs(makeOutput({ result: [1, 2, 3] }), {
           dbQuery: "db.c.find({})",
           result: 1,
-        })
+        }),
       ) as unknown as Score;
       expect(out2.name).toBe(`NDCG@${k}`);
       expect(out2.score).toBe(0);
@@ -343,7 +343,7 @@ describe("atlasSearch scorers", () => {
         makeScorerArgs(makeOutput({ result }), {
           dbQuery: "db.c.find({})",
           result: expected,
-        })
+        }),
       ) as unknown as Score;
 
       expect(out.name).toBe(`NDCG@${k}`);

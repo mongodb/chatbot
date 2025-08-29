@@ -11,7 +11,7 @@ import {
 import { MongoClient } from "mongodb-rag-core/mongodb";
 
 export async function makeGenerateAtlasSearchCodeAgenticTask(
-  constructorArgs: MakeMongoDbMcpAgentParams
+  constructorArgs: MakeMongoDbMcpAgentParams,
 ): Promise<TextToDriverEvalTask> {
   const agent = await makeMongoDbMcpAgent(constructorArgs);
   return async function generateAtlasSearchCodeAgentic({
@@ -36,14 +36,14 @@ Natural language query: ${nlQuery}`,
 
 async function extractOutputFromMessages(
   agentResponse: GenerateTextResult<ToolSet, unknown>,
-  mongoClient: MongoClient
+  mongoClient: MongoClient,
 ): Promise<TextToDriverOutput> {
   // Get the result from the tool results in the steps
   const toolResults =
     agentResponse.steps?.flatMap((step) => step.toolCalls ?? []) ?? [];
 
   const finalSolution = toolResults.findLast(
-    (result) => result.toolName === submitFinalSolutionToolName
+    (result) => result.toolName === submitFinalSolutionToolName,
   )?.input as MongoDbAggregateOperation | undefined;
 
   if (!finalSolution) {

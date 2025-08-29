@@ -13,7 +13,10 @@ import {
 } from "./MongoDbEmbeddedContentStore";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
-import { MONGO_MEMORY_REPLICA_SET_URI, MONGO_MEMORY_SERVER_URI } from "../test/constants";
+import {
+  MONGO_MEMORY_REPLICA_SET_URI,
+  MONGO_MEMORY_SERVER_URI,
+} from "../test/constants";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -103,11 +106,11 @@ describe("MongoDbEmbeddedContentStore", () => {
         searchIndex: {
           embeddingName: "ada-02",
         },
-      }
+      },
     );
 
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-embedded_content"
+      "custom-embedded_content",
     );
   });
   describe("loadEmbeddedContent", () => {
@@ -125,12 +128,12 @@ describe("MongoDbEmbeddedContentStore", () => {
       expect(
         await store.loadEmbeddedContent({
           page: { ...page, sourceName: "source3" },
-        })
+        }),
       ).toStrictEqual([]);
       expect(
         await store.loadEmbeddedContent({
           page: { ...page, url: page.url + "/" },
-        })
+        }),
       ).toStrictEqual([]);
     });
   });
@@ -160,7 +163,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
       // Won't delete another page's embedded content
       expect(
-        (await store.loadEmbeddedContent({ page: anotherPage })).length
+        (await store.loadEmbeddedContent({ page: anotherPage })).length,
       ).toBe(1);
     });
     it("deletes embedded content for data sources specified", async () => {
@@ -175,7 +178,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       });
       expect(remainingEmbeddedContent.length).toBe(1);
       expect(remainingEmbeddedContent[0].sourceName).toBe(
-        anotherPage.sourceName
+        anotherPage.sourceName,
       );
     });
     it("deletes embedded content for all data sources NOT specified", async () => {
@@ -187,7 +190,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       });
 
       expect(
-        await store.loadEmbeddedContent({ page: anotherPage })
+        await store.loadEmbeddedContent({ page: anotherPage }),
       ).toStrictEqual([]);
       // Won't delete embedded content for provided data source
       const remainingEmbeddedContent = await store.loadEmbeddedContent({
@@ -242,7 +245,7 @@ describe("nearest neighbor search", () => {
 
     const matches = await store.findNearestNeighbors(
       embedding,
-      findNearestNeighborOptions
+      findNearestNeighborOptions,
     );
     expect(matches).toHaveLength(5);
   });
@@ -263,7 +266,7 @@ describe("nearest neighbor search", () => {
       filter,
     });
     expect(matches.filter((match) => match.sourceName !== "docs")).toHaveLength(
-      0
+      0,
     );
   });
 
@@ -285,7 +288,7 @@ describe("nearest neighbor search", () => {
     // Validate that search works on same query for all sources
     const matches = await store.findNearestNeighbors(
       embedding,
-      findNearestNeighborOptions
+      findNearestNeighborOptions,
     );
     expect(matches.length).toBeGreaterThan(0);
   });
@@ -306,10 +309,10 @@ describe("nearest neighbor search", () => {
     });
 
     expect(
-      matches.filter((match) => match.metadata?.version?.isCurrent !== true)
+      matches.filter((match) => match.metadata?.version?.isCurrent !== true),
     ).toHaveLength(0);
     expect(
-      matches.filter((match) => match.metadata?.version?.isCurrent === true)
+      matches.filter((match) => match.metadata?.version?.isCurrent === true),
     ).toHaveLength(5);
   });
 
@@ -329,10 +332,10 @@ describe("nearest neighbor search", () => {
       filter,
     });
     expect(
-      matches.filter((match) => match.metadata?.version?.label !== "7.0")
+      matches.filter((match) => match.metadata?.version?.label !== "7.0"),
     ).toHaveLength(0);
     expect(
-      matches.filter((match) => match.metadata?.version?.label === "7.0")
+      matches.filter((match) => match.metadata?.version?.label === "7.0"),
     ).toHaveLength(5);
   });
 
@@ -352,7 +355,7 @@ describe("nearest neighbor search", () => {
     });
 
     expect(
-      matches.filter((match) => match.metadata?.version === undefined)
+      matches.filter((match) => match.metadata?.version === undefined),
     ).toHaveLength(5);
   });
 
@@ -371,7 +374,7 @@ describe("nearest neighbor search", () => {
       filter,
     });
     expect(
-      matches.filter((match) => match.sourceType === "tech-docs")
+      matches.filter((match) => match.sourceType === "tech-docs"),
     ).toHaveLength(5);
   });
 
@@ -381,7 +384,7 @@ describe("nearest neighbor search", () => {
     const meaninglessEmbedding = new Array(1536).fill(0.0001);
     const matches = await store.findNearestNeighbors(
       meaninglessEmbedding,
-      findNearestNeighborOptions
+      findNearestNeighborOptions,
     );
     expect(matches).toHaveLength(0);
   });
@@ -435,10 +438,10 @@ describe("initialized DB", () => {
     expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
     expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
     expect(
-      indexes?.some((el) => el.name === "metadata.version.isCurrent_1")
+      indexes?.some((el) => el.name === "metadata.version.isCurrent_1"),
     ).toBe(true);
     expect(indexes?.some((el) => el.name === "metadata.version.label_1")).toBe(
-      true
+      true,
     );
     expect(indexes?.some((el) => el.name === "sourceType_1")).toBe(true);
 
@@ -447,12 +450,12 @@ describe("initialized DB", () => {
 
     expect(
       vectorIndexes?.some(
-        (vi) => (vi as VectorSearchIndex).type === "vectorSearch"
-      )
+        (vi) => (vi as VectorSearchIndex).type === "vectorSearch",
+      ),
     ).toBe(true);
 
     const vectorSearchIndex = vectorIndexes?.find(
-      (vi) => vi.name === VECTOR_SEARCH_INDEX_NAME
+      (vi) => vi.name === VECTOR_SEARCH_INDEX_NAME,
     ) as VectorSearchIndex;
 
     const filterPaths = vectorSearchIndex.latestDefinition.fields
@@ -563,7 +566,7 @@ describe("listDataSources", () => {
       expect.arrayContaining([
         { label: "v1.0", isCurrent: true },
         { label: "v2.0", isCurrent: false },
-      ])
+      ]),
     );
     // mongodb-university should have one version
     const sourceB = result.find((ds) => ds.id === "mongodb-university");
@@ -632,6 +635,12 @@ describe("listDataSources", () => {
 
     const result = await store.listDataSources();
     expect(result.length).toBeGreaterThan(0); // Real fetch happened
-    expect(result).toStrictEqual([{ id: "docs", versions: [{ label: "v12.0", isCurrent: true }], type: "docs" }])
+    expect(result).toStrictEqual([
+      {
+        id: "docs",
+        versions: [{ label: "v12.0", isCurrent: true }],
+        type: "docs",
+      },
+    ]);
   });
 });

@@ -63,7 +63,7 @@ export function makeGenerateMongoshCodeAgenticTask({
   const generateMongoshCodeAgentic: TextToDriverEvalTask =
     async function generateMongoshCodeAgentic(
       { databaseName, nlQuery },
-      hooks
+      hooks,
     ) {
       let latestExecution: DatabaseExecutionResult | null = null;
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;

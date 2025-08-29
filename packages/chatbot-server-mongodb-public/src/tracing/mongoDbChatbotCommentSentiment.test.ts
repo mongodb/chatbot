@@ -111,7 +111,7 @@ describe("mongoDbChatbotCommentSentiment", () => {
           judgeLlm: "gpt-4",
           messages,
           messageWithCommentId: new ObjectId(),
-        })
+        }),
     ).rejects.toThrow();
   });
 });

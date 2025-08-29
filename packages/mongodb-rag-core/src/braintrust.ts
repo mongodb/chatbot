@@ -12,7 +12,7 @@ import { LanguageModelMiddleware } from "./aiSdk";
 export * from "braintrust";
 
 export const makeBraintrustLogger = (
-  params: Parameters<typeof initLogger>[0]
+  params: Parameters<typeof initLogger>[0],
 ) => initLogger(params) as Logger<true>;
 
 export async function uploadDatasetToBraintrust({
@@ -56,13 +56,13 @@ export async function getDatasetFromBraintrust<SchemaReturnType>({
     dataset: datasetName,
   });
   const datasetRows = (await dataset.fetchedData()).map((d) =>
-    datasetRowSchema.parse(d)
+    datasetRowSchema.parse(d),
   );
   return datasetRows;
 }
 
 export function wrapNoTrace<T extends (...args: any[]) => any>(
-  fn: T
+  fn: T,
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
   return async function (...args: Parameters<T>): Promise<ReturnType<T>> {
     return withCurrent(new NoopSpan(), async () => {

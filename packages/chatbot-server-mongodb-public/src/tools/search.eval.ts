@@ -89,8 +89,8 @@ async function getConversationRetrievalEvalData() {
   const includedLinksConversations = getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "included_links_conversations.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
   return includedLinksConversations.map((evalCase) => {
     const latestMessageText = evalCase.messages.at(-1)?.content;
@@ -112,7 +112,7 @@ const BinaryNdcgAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    k
+    k,
   );
   return {
     name: `BinaryNDCG@${k}`,
@@ -125,7 +125,7 @@ const F1AtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    k
+    k,
   );
   return {
     name: `F1@${k}`,
@@ -138,7 +138,7 @@ const AveragePrecisionAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    k
+    k,
   );
   return {
     name: `AveragePrecision@${k}`,
@@ -151,7 +151,7 @@ const PrecisionAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    k
+    k,
   );
   return {
     name: `Precision@${k}`,
@@ -164,7 +164,7 @@ const RecallAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    k
+    k,
   );
   return {
     name: `Recall@${k}`,

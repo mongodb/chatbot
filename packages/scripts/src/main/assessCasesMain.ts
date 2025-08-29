@@ -82,7 +82,7 @@ const assessRelevanceMain = async () => {
   const client = await MongoClient.connect(MERCURY_CONNECTION_URI);
   try {
     console.log(
-      `Assessing Cases from ${MERCURY_DATABASE_NAME}.${MERCURY_CASES_COLLECTION_NAME}...`
+      `Assessing Cases from ${MERCURY_DATABASE_NAME}.${MERCURY_CASES_COLLECTION_NAME}...`,
     );
     const db = client.db(MERCURY_DATABASE_NAME);
     const collection = db.collection<Case>(MERCURY_CASES_COLLECTION_NAME);

@@ -24,7 +24,7 @@ export const makeDefaultFindVerifiedAnswer = ({
 
     const answers = await store.findNearestNeighbors(
       queryEmbedding,
-      findNearestNeighborsOptions
+      findNearestNeighborsOptions,
     );
 
     // Sort by score descending

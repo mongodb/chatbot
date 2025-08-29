@@ -63,7 +63,7 @@ if (require.main === module) {
   }
 
   console.info(
-    `NOTE: You can find a specific message ID (i.e. its \`ts\` value) by opening a channel in the Slack Web UI and inspecting the message in dev tools. For example, id="1741289525.588509".\n`
+    `NOTE: You can find a specific message ID (i.e. its \`ts\` value) by opening a channel in the Slack Web UI and inspecting the message in dev tools. For example, id="1741289525.588509".\n`,
   );
 
   const channelId = args[0];

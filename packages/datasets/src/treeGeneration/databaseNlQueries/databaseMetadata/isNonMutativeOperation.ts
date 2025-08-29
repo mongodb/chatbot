@@ -40,7 +40,7 @@ export const JS_MUTATIVE_METHODS = [
  */
 export function isNonMutativeOperation(
   methods: string[] | undefined,
-  mutativeMethods: string[] = JS_MUTATIVE_METHODS
+  mutativeMethods: string[] = JS_MUTATIVE_METHODS,
 ): boolean {
   // If methods is undefined or empty, consider it safe
   if (!methods || methods.length === 0) {

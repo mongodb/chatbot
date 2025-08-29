@@ -48,10 +48,10 @@ export type ModelWithLabel<T extends (typeof models)[number]["label"]> =
 
 // Generic function that returns models with specific labels with proper typing
 export function getModelsFromLabels<
-  T extends (typeof models)[number]["label"][]
+  T extends (typeof models)[number]["label"][],
 >(labels: [...T]) {
   const configs = models.filter((m): m is ModelWithLabel<T[number]> =>
-    labels.includes(m.label)
+    labels.includes(m.label),
   );
 
   return configs;

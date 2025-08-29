@@ -26,7 +26,7 @@ export const MongoDbSearchToolArgsSchema = z.object({
     .nullable()
     .optional()
     .describe(
-      "Most relevant programming language for query. Leave null if unknown"
+      "Most relevant programming language for query. Leave null if unknown",
     ),
   query: z.string().describe("Search query"),
 });
@@ -91,7 +91,7 @@ When you search, include metadata about the relevant MongoDB programming languag
     },
     execute: wrapTraced(
       async function (
-        args: MongoDbSearchToolArgs
+        args: MongoDbSearchToolArgs,
       ): Promise<SearchToolReturnValue> {
         const { query, productName, programmingLanguage } = args;
 
@@ -111,14 +111,14 @@ When you search, include metadata about the relevant MongoDB programming languag
           references: makeReferences(content.content),
         };
         logger.info(
-          `${SEARCH_TOOL_NAME} found ${content.content.length} search results for query "${queryWithMetadata}"`
+          `${SEARCH_TOOL_NAME} found ${content.content.length} search results for query "${queryWithMetadata}"`,
         );
 
         return result;
       },
       {
         name: "searchTool",
-      }
+      },
     ),
   });
 
@@ -126,7 +126,7 @@ When you search, include metadata about the relevant MongoDB programming languag
 }
 
 export function embeddedContentToSearchResult(
-  content: EmbeddedContent
+  content: EmbeddedContent,
 ): SearchResult {
   return {
     url: content.url,

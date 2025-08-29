@@ -1,7 +1,10 @@
 import { GenerateResponseParams } from "./GenerateResponse";
 
 export interface InputGuardrailResult<
-  Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
+  Metadata extends Record<string, unknown> | undefined = Record<
+    string,
+    unknown
+  >,
 > {
   rejected: boolean;
   reason?: string;
@@ -15,7 +18,10 @@ export const guardrailFailedResult: InputGuardrailResult = {
 };
 
 export type InputGuardrail<
-  Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
+  Metadata extends Record<string, unknown> | undefined = Record<
+    string,
+    unknown
+  >,
 > = (
-  generateResponseParams: GenerateResponseParams
+  generateResponseParams: GenerateResponseParams,
 ) => Promise<InputGuardrailResult<Metadata>>;

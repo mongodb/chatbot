@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ScrubbedMessage } from "./ScrubbedMessage";
 
 export interface ScrubbedMessageStore<
-  SmAnalysis extends Record<string, unknown> | undefined = undefined
+  SmAnalysis extends Record<string, unknown> | undefined = undefined,
 > {
   insertScrubbedMessage(args: {
     message: ScrubbedMessage<SmAnalysis>;

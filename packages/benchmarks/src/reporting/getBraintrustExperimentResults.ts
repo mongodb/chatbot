@@ -10,7 +10,7 @@ export interface GetBraintrustExperimentResults {
 export type ExperimentResult<
   EC extends EvalCase<unknown, unknown, unknown>,
   Output,
-  ScoreTypes extends string[]
+  ScoreTypes extends string[],
 > = EC & {
   scores?: Record<ScoreTypes[number], number | null>;
   output?: Output;
@@ -19,7 +19,7 @@ export type ExperimentResult<
 export async function getBraintrustExperimentResults<
   EC extends EvalCase<unknown, unknown, unknown>,
   Output,
-  ScoreTypes extends string[]
+  ScoreTypes extends string[],
 >({
   projectName,
   experimentName,

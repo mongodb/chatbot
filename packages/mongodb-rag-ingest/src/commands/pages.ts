@@ -64,7 +64,7 @@ type UpdatePagesCommandArgs = {
 
 export const doUpdatePagesCommand = async (
   { pageStore, dataSources, concurrencyOptions }: ResolvedConfig,
-  { source }: UpdatePagesCommandArgs
+  { source }: UpdatePagesCommandArgs,
 ) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
@@ -77,12 +77,12 @@ export const doUpdatePagesCommand = async (
     throw new Error(
       `Request at least one valid source. Available sources:\n${dataSources
         .map(({ name }) => `- ${name}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
 
   logger.info(
-    `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
+    `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`,
   );
   await updatePages({
     sources,
@@ -98,13 +98,13 @@ type DeletePagesCommandArgs = {
 
 export const doDeleteCommand = async (
   { pageStore, dataSources }: ResolvedConfig,
-  { source, permanent }: DeletePagesCommandArgs
+  { source, permanent }: DeletePagesCommandArgs,
 ) => {
   if (source === undefined) {
     logger.info(
       `All sources to be ${
         permanent ? "permanently deleted" : "marked for deletion"
-      }`
+      }`,
     );
     await pageStore.deletePages({ permanent: permanent });
     return;
@@ -114,23 +114,23 @@ export const doDeleteCommand = async (
     .filter(({ name }) => sourcesToDelete.has(name))
     .map(({ name }) => name);
   const invalidSources = Array.from(sourcesToDelete).filter(
-    (source) => !validSources.includes(source)
+    (source) => !validSources.includes(source),
   );
   if (invalidSources.length) {
     throw new Error(
       `Delete failed because the following invalid sources were requested to be deleted:\n${invalidSources
         .map((source) => `- ${source}`)
         .join(
-          "\n"
+          "\n",
         )}\nRemove invalid sources from the list and try again.\nAvailable sources:\n${dataSources
         .map(({ name }) => `- ${name}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
   logger.info(
     `Sources to be ${
       permanent ? "permanently deleted" : "marked for deletion"
-    }:\n${validSources.map((source) => `- ${source}`).join("\n")}`
+    }:\n${validSources.map((source) => `- ${source}`).join("\n")}`,
   );
   await pageStore.deletePages({
     dataSources: validSources,

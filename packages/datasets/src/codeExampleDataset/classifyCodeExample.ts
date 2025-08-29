@@ -139,7 +139,7 @@ atlas accesslogs list --output json --projectId 618d48e05277a606ed2496fe --clust
 ] as const;
 
 const makeSystemPrompt = (
-  contextStr: string
+  contextStr: string,
 ): string => `Your job is to classify a code example into one of the following categories.
 This information will be used to train an LLM, so precision is incredibly important.
 Only generate questions about the code snippet wrapped with ${START_SNIPPET}{snippet}${END_SNIPPET}. Use the rest of the information as context to assist generating questions.
@@ -154,7 +154,7 @@ ${classificationTypes
   .map(({ examples, type }) =>
     examples
       ?.map(({ text }) => `Code:\n${text}\nClassification: ${type}`)
-      .join("\n")
+      .join("\n"),
   )
   .join("\n")}
 
@@ -196,7 +196,7 @@ export function makeClassifyCodeExample({
       },
     });
     const { type: classificationType } = ClassificationTypeSchema.parse(
-      JSON.parse(result?.choices?.[0].message?.function_call?.arguments ?? "")
+      JSON.parse(result?.choices?.[0].message?.function_call?.arguments ?? ""),
     );
     return classificationType;
   };

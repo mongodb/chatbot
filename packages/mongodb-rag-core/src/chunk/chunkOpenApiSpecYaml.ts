@@ -1,5 +1,4 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import yaml from "yaml";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import {
@@ -11,7 +10,7 @@ import {
 import { logger } from "../logger";
 import { Page } from "../contentStore/Page";
 import { updateFrontMatter } from "../frontMatter/updateFrontMatter";
-
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
   maxChunkSize: 1250,
   chunkOverlap: 0,
@@ -21,7 +20,7 @@ export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
 
 export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   page: Page,
-  optionsIn?: Partial<ChunkOptions>
+  optionsIn?: Partial<ChunkOptions>,
 ): Promise<ContentChunk[]> {
   const options: ChunkOptions = {
     ...defaultOpenApiSpecYamlChunkOptions,
@@ -88,7 +87,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
               chunkIndex: chunkIndex++,
             };
             return chunk;
-          })
+          }),
         );
       }
     }
@@ -102,12 +101,12 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     components: spec.components,
   };
   let stringChunks = await splitter.splitText(
-    yaml.stringify(otherSpecInfoToKeep)
+    yaml.stringify(otherSpecInfoToKeep),
   );
   if (options.minChunkSize !== undefined) {
     const { minChunkSize } = options;
     stringChunks = stringChunks.filter(
-      (chunk) => tokenizer.encode(chunk).bpe.length > minChunkSize
+      (chunk) => tokenizer.encode(chunk).bpe.length > minChunkSize,
     );
   }
   chunks.push(
@@ -128,7 +127,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
         chunkIndex: chunkIndex++,
       };
       return chunk;
-    })
+    }),
   );
 
   return chunks;

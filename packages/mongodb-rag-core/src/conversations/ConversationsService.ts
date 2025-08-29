@@ -153,7 +153,7 @@ export type ConversationCustomData = Record<string, unknown> | undefined;
   Conversation between the user and the chatbot as stored in the database.
  */
 export interface Conversation<
-  CustomData extends ConversationCustomData = ConversationCustomData
+  CustomData extends ConversationCustomData = ConversationCustomData,
 > {
   _id: ObjectId;
   /** Messages in the conversation. */
@@ -272,13 +272,13 @@ export interface ConversationsService {
     Add a {@link Message} to a {@link Conversation}.
    */
   addConversationMessage: (
-    params: AddConversationMessageParams
+    params: AddConversationMessageParams,
   ) => Promise<Message>;
   /**
     Add multiple {@link Message} objects to a {@link Conversation}.
    */
   addManyConversationMessages: (
-    params: AddManyConversationMessagesParams
+    params: AddManyConversationMessagesParams,
   ) => Promise<Message[]>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
 

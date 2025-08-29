@@ -31,5 +31,5 @@ export interface GenerateResponseReturnValue {
 }
 
 export type GenerateResponse = (
-  params: GenerateResponseParams
+  params: GenerateResponseParams,
 ) => Promise<GenerateResponseReturnValue>;

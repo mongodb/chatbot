@@ -51,11 +51,11 @@ describe.skip("generateDatabaseExecutionResults", () => {
       nlQueries.map((nlQuery) => ({
         _id: new ObjectId(),
         parent: useCaseNodes.find(
-          (useCase) => useCase.data.title === useCaseTitle
+          (useCase) => useCase.data.title === useCaseTitle,
         )!,
         data: nlQuery,
         updated: new Date(),
-      }))
+      })),
   )[0];
   it("should generate database execution result node", async () => {
     const executionResult = {

@@ -119,11 +119,11 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     expect(mockAnalyzeMessage).toHaveBeenCalledTimes(2);
     expect(mockAnalyzeMessage).toHaveBeenCalledWith(
       "user message content",
-      mockAnalyzerModel
+      mockAnalyzerModel,
     );
     expect(mockAnalyzeMessage).toHaveBeenCalledWith(
       "assistant message content",
-      mockAnalyzerModel
+      mockAnalyzerModel,
     );
 
     // Verify the result includes analysis data

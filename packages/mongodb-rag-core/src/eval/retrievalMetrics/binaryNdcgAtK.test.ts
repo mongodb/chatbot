@@ -106,7 +106,7 @@ describe("binaryNdcgAtK", () => {
     const k = 0;
 
     expect(() =>
-      binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k)
+      binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k),
     ).toThrow();
   });
 

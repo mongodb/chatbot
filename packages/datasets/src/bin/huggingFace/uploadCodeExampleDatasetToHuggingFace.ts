@@ -51,13 +51,13 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   const transformPage = await makeTranformPageToAnnotatedCodeExamples(
     makeOpenAiClient(),
     model,
-    MAX_PAGE_TRANSFORM_CONCURRENCY
+    MAX_PAGE_TRANSFORM_CONCURRENCY,
   );
   try {
     const pages = await pageStore.loadPages({
       query: makeLoadPagesFilter(
         publicDatasetSourceTypes,
-        Array.from(forbiddenUrls)
+        Array.from(forbiddenUrls),
       ),
     });
     logger.info(`Loaded pages from MongoDB. Loaded ${pages.length} pages.`);
@@ -73,7 +73,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     // Get entire code example dataset
     const fullCodeExampleDataset = await transformedContentStore.loadContent();
     logger.info(
-      `Loaded code example dataset from MongoDB. Loaded ${fullCodeExampleDataset.length} code examples.`
+      `Loaded code example dataset from MongoDB. Loaded ${fullCodeExampleDataset.length} code examples.`,
     );
 
     const currentDate = new Date().toISOString();
@@ -83,7 +83,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     const fileBaseName = "public-code-examples";
 
     logger.info(
-      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`
+      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`,
     );
 
     const res = await uploadDatasetToHuggingFace({
@@ -106,7 +106,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
       ],
     });
     logger.info(
-      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`
+      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`,
     );
     logger.info(res);
   } finally {
@@ -121,7 +121,7 @@ uploadCodeExampleDatasetToHuggingFace();
 
 function makeLoadPagesFilter(
   publicDatasetSourceTypes: string[],
-  forbiddenUrls: string[]
+  forbiddenUrls: string[],
 ): Filter<PersistedPage> {
   return {
     sourceType: { $in: publicDatasetSourceTypes },

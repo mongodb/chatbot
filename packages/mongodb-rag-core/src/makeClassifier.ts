@@ -47,7 +47,7 @@ export const Classification = z.object({
     .string()
     .optional()
     .describe(
-      "The reason for the classification. Only available if `chainOfThought` was set to `true`."
+      "The reason for the classification. Only available if `chainOfThought` was set to `true`.",
     ),
 });
 
@@ -84,9 +84,9 @@ export function makeClassifier({
             <Example classification={"${type}"} reason={"${reason ?? "null"}"} >
               ${text}
             </Example>
-          `.trimEnd()
+          `.trimEnd(),
         )
-        .join("\n")
+        .join("\n"),
     )
     .join("\n");
   const makeSystemPrompt = (input: string): string => stripIndents`
@@ -164,8 +164,12 @@ export function makeClassifier({
     if (response.tool_calls === undefined || response.tool_calls === null) {
       throw new Error("No function call in response from OpenAI");
     }
+    const toolCall = response.tool_calls[0];
+    if (toolCall.type !== "function") {
+      throw new Error("Expected function tool call");
+    }
     const classification = Classification.parse(
-      JSON.parse(response.tool_calls[0].function.arguments)
+      JSON.parse(toolCall.function.arguments),
     );
 
     return { classification, inputMessages: messages };

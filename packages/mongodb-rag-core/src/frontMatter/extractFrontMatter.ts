@@ -10,7 +10,7 @@ import toml from "toml";
 export function extractFrontMatter<T extends Record<string, unknown>>(
   text: string,
   language?: string,
-  delimiter?: string
+  delimiter?: string,
 ): {
   metadata?: T;
   body: string;

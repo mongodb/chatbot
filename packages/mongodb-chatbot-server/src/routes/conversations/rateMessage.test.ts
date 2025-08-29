@@ -69,7 +69,7 @@ describe("POST /conversations/messages/:messageId/rating", () => {
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).rating
+      ).rating,
     ).toBe(true);
   });
 
@@ -87,7 +87,7 @@ describe("POST /conversations/messages/:messageId/rating", () => {
   test("Should return 400 for invalid conversation ID", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`
+        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -113,7 +113,7 @@ describe("POST /conversations/messages/:messageId/rating", () => {
   test("Should return 404 for message not in conversation", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/rating`
+        `${DEFAULT_API_PREFIX}/conversations/messages/${new ObjectId().toHexString()}/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -182,7 +182,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating (deprec
         updatedConversation.messages[
           updatedConversation.messages.length - 1
         ] as AssistantMessage
-      ).rating
+      ).rating,
     ).toBe(true);
   });
 
@@ -200,7 +200,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating (deprec
   test("Should return 400 for invalid conversation ID", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`
+        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -214,7 +214,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating (deprec
   test("Should return 400 for invalid message ID", async () => {
     const response = await request(app)
       .post(
-        `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/rating`
+        `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -230,7 +230,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating (deprec
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${new ObjectId().toHexString()}/messages/${
           testMsg.id
-        }/rating`
+        }/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
@@ -246,7 +246,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating (deprec
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${
           conversation._id
-        }/messages/${new ObjectId().toHexString()}/rating`
+        }/messages/${new ObjectId().toHexString()}/rating`,
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)

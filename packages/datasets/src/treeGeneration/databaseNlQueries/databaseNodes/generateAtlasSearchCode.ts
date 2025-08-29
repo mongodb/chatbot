@@ -165,5 +165,5 @@ ${makePromptDbInfo(databaseInfo)}
   }),
   {
     name: "generateAtlasSearchCode",
-  }
+  },
 );

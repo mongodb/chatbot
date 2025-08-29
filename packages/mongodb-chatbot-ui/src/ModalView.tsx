@@ -41,7 +41,7 @@ const styles = {
 };
 
 const ChatWindow = lazy(() =>
-  import("./ChatWindow").then((module) => ({ default: module.ChatWindow }))
+  import("./ChatWindow").then((module) => ({ default: module.ChatWindow })),
 );
 
 export type ModalViewProps = ChatbotViewProps & {

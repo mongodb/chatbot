@@ -39,12 +39,12 @@ export function addExplainToQuery(query: string): string {
         // getCollection pattern has different capture groups
         return query.replace(
           pattern,
-          '$1.find($3).limit(1).explain("executionStats")'
+          '$1.find($3).limit(1).explain("executionStats")',
         );
       } else {
         return query.replace(
           pattern,
-          '$1.find($2).limit(1).explain("executionStats")'
+          '$1.find($2).limit(1).explain("executionStats")',
         );
       }
     }
@@ -83,7 +83,7 @@ export function addExplainToQuery(query: string): string {
 export async function getMongoshCollectionDocumentCount(
   connectionUri: string,
   collectionName: string,
-  databaseName: string
+  databaseName: string,
 ): Promise<number> {
   const executeMongoshQuery = makeExecuteMongoshQuery({
     uri: connectionUri,
@@ -118,7 +118,7 @@ export async function getMongoshCollectionDocumentCount(
  */
 export function calculateQueryEfficiency(
   explainOutput: ExplainOutput,
-  totalDocs: number
+  totalDocs: number,
 ): number {
   const { nReturned, totalDocsExamined } = explainOutput.executionStats;
 
@@ -155,7 +155,7 @@ function extractCollectionName(explainOutput: ExplainOutput): string | null {
     return namespace.split(".").slice(1).join(".");
   } else {
     throw new Error(
-      "Could not extract collection name from explain output namespace"
+      "Could not extract collection name from explain output namespace",
     );
   }
 }
@@ -179,7 +179,7 @@ export type ProfileMongoshQueryReturnValue =
 export async function profileMongoshQuery(
   dbQuery: string,
   databaseName: string,
-  connectionUri: string
+  connectionUri: string,
 ): Promise<ProfileMongoshQueryReturnValue> {
   const executeMongoshQuery = makeExecuteMongoshQuery({
     uri: connectionUri,
@@ -224,7 +224,7 @@ export async function profileMongoshQuery(
     const collectionDocumentCount = await getMongoshCollectionDocumentCount(
       connectionUri,
       collectionName,
-      databaseName
+      databaseName,
     );
 
     return {

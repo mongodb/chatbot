@@ -96,7 +96,7 @@ describe("makeGenerateDriverCode", () => {
               create: mockCreateCompletion,
             },
           },
-        } as unknown as OpenAI)
+        }) as unknown as OpenAI,
     );
 
     // Define parameters

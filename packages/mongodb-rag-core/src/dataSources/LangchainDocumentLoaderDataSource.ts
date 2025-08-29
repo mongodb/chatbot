@@ -27,7 +27,7 @@ export interface MakeLangChainDocumentLoaderDataSourceParams {
     and transform it into the {@link Page} persisted in the {@link PageStore}.
    */
   transformLangchainDocumentToPage(
-    doc: LangchainDocument
+    doc: LangchainDocument,
   ): Promise<Omit<Page, "sourceName">>;
 }
 

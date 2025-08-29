@@ -3,14 +3,14 @@
  */
 export type VectorStore<
   T,
-  Filter extends Record<string, unknown> = Record<string, unknown>
+  Filter extends Record<string, unknown> = Record<string, unknown>,
 > = {
   /**
     Find nearest neighbors to the given vector.
    */
   findNearestNeighbors(
     vector: number[],
-    options?: Partial<FindNearestNeighborsOptions<Filter>>
+    options?: Partial<FindNearestNeighborsOptions<Filter>>,
   ): Promise<WithScore<T>[]>;
 
   close?(): Promise<void>;
@@ -22,7 +22,7 @@ export type WithScore<T> = T & { score: number };
   Options for performing a nearest-neighbor search.
  */
 export type FindNearestNeighborsOptions<
-  Filter extends Record<string, unknown> = Record<string, unknown>
+  Filter extends Record<string, unknown> = Record<string, unknown>,
 > = {
   /**
     The name of the index to use.

@@ -67,7 +67,7 @@ export const sendErrorResponse = ({
 export function retryAsyncOperation<T>(
   promise: Promise<T>,
   retries = 4,
-  delayMs = 3000
+  delayMs = 3000,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const operation = promise;
@@ -100,7 +100,7 @@ export function retryAsyncOperation<T>(
   and also being more readable in the Braintrust UI.
  */
 export function makeTraceConversation(
-  conversation: Conversation
+  conversation: Conversation,
 ): Conversation {
   return {
     ...conversation,

@@ -7,7 +7,7 @@ import { OpenAI } from "mongodb-rag-core/openai";
 export const makeReferenceAlignment: (
   openAiClient: OpenAI,
   llmOptions: LlmOptions,
-  name_postfix?: string
+  name_postfix?: string,
 ) => NlPromptResponseEvalScorer = (openAiClient, llmOptions, name_postfix) =>
   async function ({ input, output, expected }) {
     const { response } = output;
@@ -21,7 +21,7 @@ export const makeReferenceAlignment: (
       };
     }
     const userMessage = input.messages.findLast(
-      (m) => m.role === "user"
+      (m) => m.role === "user",
     )?.content;
     assert(userMessage, "No user message found");
     const factuality = await Factuality({
@@ -66,7 +66,7 @@ function inflateFactualityScore(score: number | null | undefined) {
 export const makeAnswerCorrectness: (
   openAiClient: OpenAI,
   llmOptions: LlmOptions,
-  name_postfix?: string
+  name_postfix?: string,
 ) => NlPromptResponseEvalScorer = (openAiClient, llmOptions, name_postfix) =>
   async function ({ input, output, expected }) {
     const { response } = output;
@@ -80,7 +80,7 @@ export const makeAnswerCorrectness: (
       };
     }
     const userMessage = input.messages.findLast(
-      (m) => m.role === "user"
+      (m) => m.role === "user",
     )?.content;
     assert(userMessage, "No user message found");
     const correctness = await AnswerCorrectness({
@@ -105,11 +105,11 @@ export const makeAnswerCorrectness: (
 
 export const makeReferenceAlignmentCouncil: (
   openAiClient: OpenAI,
-  llmOptions: LlmOptions[]
+  llmOptions: LlmOptions[],
 ) => NlPromptResponseEvalScorer = (openAiClient, llmOptions) => {
   assert(llmOptions.length > 0, "At least one LLM must be provided");
   const factualityMetrics = llmOptions.map((llmOption) =>
-    makeReferenceAlignment(openAiClient, llmOption)
+    makeReferenceAlignment(openAiClient, llmOption),
   );
   return async function ({ input, output, expected, metadata: _metadata }) {
     const name = "ReferenceAlignmentCouncil";
@@ -122,20 +122,20 @@ export const makeReferenceAlignmentCouncil: (
       };
     }
     const userMessage = input.messages.findLast(
-      (m) => m.role === "user"
+      (m) => m.role === "user",
     )?.content;
     assert(userMessage, "No user message found");
     const factualityResults = (await Promise.all(
       factualityMetrics.map((metric) =>
-        metric({ input, output, expected, metadata: _metadata })
-      )
+        metric({ input, output, expected, metadata: _metadata }),
+      ),
     )) as Score[];
 
     // Filter out null scores and calculate average
     const validScores = factualityResults
       .filter(
         (result): result is { score: number; name: string } =>
-          result?.score !== null && typeof result.score === "number"
+          result?.score !== null && typeof result.score === "number",
       )
       .map((result) => result.score);
 

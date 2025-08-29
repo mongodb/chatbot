@@ -44,11 +44,11 @@ describe("CodeExampleOnGithubDataSource", () => {
     const samplePage = pages.find(
       (page) =>
         page.url ===
-        "https://github.com/mongodb-developer/nodejs-quickstart/blob/master/usersCollection.js"
+        "https://github.com/mongodb-developer/nodejs-quickstart/blob/master/usersCollection.js",
     );
     expect(samplePage).toBeDefined();
     expect(samplePage?.body).toContain(
-      "const { MongoClient } = require('mongodb');"
+      "const { MongoClient } = require('mongodb');",
     );
     expect(samplePage?.body).toContain("/**\n * This script");
   });
@@ -74,7 +74,7 @@ describe("CodeExampleOnGithubDataSource", () => {
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
     const ignoredFile = pages.find((page) =>
-      page.url.includes("usersCollection.js")
+      page.url.includes("usersCollection.js"),
     );
     expect(ignoredFile).toBeUndefined();
   });
@@ -89,7 +89,7 @@ describe("pageBlobUrl", () => {
         repoUrl: exampleRepoUrl,
         branch: "main",
         filePath: "src/index.js",
-      })
+      }),
     ).toBe("https://github.com/mycorp/myrepo/blob/main/src/index.js");
 
     expect(
@@ -97,9 +97,9 @@ describe("pageBlobUrl", () => {
         repoUrl: exampleRepoUrl + "/",
         branch: "fix/bug",
         filePath: "/src/deeply/nested/index.js",
-      })
+      }),
     ).toBe(
-      "https://github.com/mycorp/myrepo/blob/fix/bug/src/deeply/nested/index.js"
+      "https://github.com/mycorp/myrepo/blob/fix/bug/src/deeply/nested/index.js",
     );
   });
 });

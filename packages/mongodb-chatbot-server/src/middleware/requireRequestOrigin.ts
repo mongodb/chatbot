@@ -6,7 +6,7 @@ import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
 export function requireRequestOrigin<
-  Locals extends Record<string, any>
+  Locals extends Record<string, any>,
 >(): RequestHandler<ParamsDictionary, unknown, unknown, ParsedQs, Locals> {
   return (req, res, next) => {
     const reqId = getRequestId(req);

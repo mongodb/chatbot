@@ -220,7 +220,7 @@ describe("truncateDbOperationOutputForLlm", () => {
       const options: TruncationOptions = { maxArrayLength: 3 };
       const result = truncateDbOperationOutputForLlm(
         docs,
-        options
+        options,
       ) as Document[];
 
       // Should truncate the outer array of documents

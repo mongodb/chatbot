@@ -25,10 +25,10 @@ export const initialConversationState: ConversationState = {
 function updateMessage(
   messages: MessageData[],
   messageId: string,
-  update: (message: MessageData) => MessageData
+  update: (message: MessageData) => MessageData,
 ) {
   return messages.map((message) =>
-    message.id === messageId ? update(message) : message
+    message.id === messageId ? update(message) : message,
   );
 }
 
@@ -36,7 +36,7 @@ export const STREAMING_MESSAGE_ID = "streaming-response";
 
 function getStreamingMessage(messages: MessageData[]) {
   const index = messages.findIndex(
-    (message) => message.id === STREAMING_MESSAGE_ID
+    (message) => message.id === STREAMING_MESSAGE_ID,
   );
   const data = index === -1 ? null : messages[index];
   return {
@@ -65,7 +65,7 @@ export const makeConversationStore = (name = "default") => {
           if (get().conversationId) {
             nonProd(() => {
               console.warn(
-                "Attempted to set a conversation ID when one is already set"
+                "Attempted to set a conversation ID when one is already set",
               );
             });
             return;
@@ -96,15 +96,15 @@ export const makeConversationStore = (name = "default") => {
               (message) => ({
                 ...message,
                 content,
-              })
+              }),
             ),
           }));
         },
         updateMessageMetadata: (
           messageId: string,
           update: (
-            metadata: AssistantMessageMetadata
-          ) => AssistantMessageMetadata
+            metadata: AssistantMessageMetadata,
+          ) => AssistantMessageMetadata,
         ) => {
           set((prevState) => ({
             ...prevState,
@@ -114,14 +114,14 @@ export const makeConversationStore = (name = "default") => {
               (message) => ({
                 ...message,
                 metadata: update(message.metadata ?? {}),
-              })
+              }),
             ),
           }));
         },
         deleteMessage: (messageId: string) => {
           set((prevState) => {
             const updatedMessages = prevState.messages.filter(
-              (message) => message.id !== messageId
+              (message) => message.id !== messageId,
             );
             if (updatedMessages.length === prevState.messages.length) {
               console.warn(`Message with id ${messageId} was not found`);
@@ -141,18 +141,18 @@ export const makeConversationStore = (name = "default") => {
               (message) => ({
                 ...message,
                 rating,
-              })
+              }),
             ),
           }));
         },
         createStreamingResponse: () => {
           set((prevState) => {
             const { index: streamingMessageIndex } = getStreamingMessage(
-              prevState.messages
+              prevState.messages,
             );
             if (streamingMessageIndex !== -1) {
               console.warn(
-                "Cannot create a new streaming response while one is already active"
+                "Cannot create a new streaming response while one is already active",
               );
               return prevState;
             }
@@ -174,11 +174,11 @@ export const makeConversationStore = (name = "default") => {
         appendStreamingResponse: (newContent: string) => {
           set((prevState) => {
             const { index: streamingMessageIndex } = getStreamingMessage(
-              prevState.messages
+              prevState.messages,
             );
             if (streamingMessageIndex === -1) {
               console.warn(
-                "Attempted to append to a streaming response that does not exist"
+                "Attempted to append to a streaming response that does not exist",
               );
               return prevState;
             }
@@ -191,7 +191,7 @@ export const makeConversationStore = (name = "default") => {
                 (message) => ({
                   ...message,
                   content: message.content + newContent,
-                })
+                }),
               ),
             };
           });
@@ -199,11 +199,11 @@ export const makeConversationStore = (name = "default") => {
         appendStreamingReferences: (references: References) => {
           set((prevState) => {
             const { index: streamingMessageIndex } = getStreamingMessage(
-              prevState.messages
+              prevState.messages,
             );
             if (streamingMessageIndex === -1) {
               console.warn(
-                "Attempted to append references to a streaming response that does not exist"
+                "Attempted to append references to a streaming response that does not exist",
               );
               return prevState;
             }
@@ -216,7 +216,7 @@ export const makeConversationStore = (name = "default") => {
                 (message) => ({
                   ...message,
                   references,
-                })
+                }),
               ),
             };
           });
@@ -226,7 +226,7 @@ export const makeConversationStore = (name = "default") => {
             const streamingMessage = getStreamingMessage(prevState.messages);
             if (streamingMessage.index === -1) {
               console.warn(
-                "Cannot finish a streaming response that does not exist"
+                "Cannot finish a streaming response that does not exist",
               );
               return prevState;
             }
@@ -238,7 +238,7 @@ export const makeConversationStore = (name = "default") => {
                 (message) => ({
                   ...message,
                   id: messageId,
-                })
+                }),
               ),
               streamingMessageId: undefined,
             };
@@ -249,7 +249,7 @@ export const makeConversationStore = (name = "default") => {
             const streamingMessage = getStreamingMessage(prevState.messages);
             if (streamingMessage.index === -1) {
               console.warn(
-                "Cannot cancel a streaming response that does not exist"
+                "Cannot cancel a streaming response that does not exist",
               );
               return prevState;
             }
@@ -257,13 +257,13 @@ export const makeConversationStore = (name = "default") => {
               ...prevState,
               messages: removeArrayElementAt(
                 prevState.messages,
-                streamingMessage.index
+                streamingMessage.index,
               ),
               streamingMessageId: undefined,
             };
           });
         },
       },
-    }))
+    })),
   );
 };

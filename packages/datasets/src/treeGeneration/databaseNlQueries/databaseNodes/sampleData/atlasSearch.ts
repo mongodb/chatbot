@@ -27,9 +27,9 @@ const atlasSearchIndexDefinition = fs.readFileSync(
     "..",
     "..",
     "mongodb_datasets",
-    "atlas_search_dataset_index.jsonc"
+    "atlas_search_dataset_index.jsonc",
   ),
-  "utf8"
+  "utf8",
 );
 
 export const sampleWikipediaDbInfo: DatabaseInfo = {
@@ -633,7 +633,7 @@ export const userNodes: DatabaseUserNode[] = sampleDatabaseUsers.map(
     data: user,
     type: "database_user",
     updated: new Date(),
-  })
+  }),
 );
 
 // Get a sample user and their use cases

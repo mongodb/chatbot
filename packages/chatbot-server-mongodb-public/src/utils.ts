@@ -59,7 +59,7 @@ export const sendErrorResponse = ({
 export function retryAsyncOperation<T>(
   promise: Promise<T>,
   retries = 4,
-  delayMs = 3000
+  delayMs = 3000,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const operation = promise;

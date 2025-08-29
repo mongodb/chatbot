@@ -40,7 +40,7 @@ export const doAllCommand = async (
   }: LoadConfigArgs & {
     doUpdatePagesCommand: typeof standarddoUpdatePagesCommand;
     permanentlyDeletePages?: boolean;
-  }
+  },
 ) => {
   const { ingestMetaStore } = config;
 

@@ -62,7 +62,7 @@ async function main() {
   const outputDirPath = outputDir || inputDir;
   const outputPath = path.join(
     outputDirPath,
-    `${inputBaseName}-braintrust.json`
+    `${inputBaseName}-braintrust.json`,
   );
 
   if (!fs.existsSync(outputDirPath)) {

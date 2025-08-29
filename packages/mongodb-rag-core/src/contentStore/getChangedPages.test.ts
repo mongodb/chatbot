@@ -23,7 +23,7 @@ describe("getChangedPages", () => {
     expect(
       page0.url !== page1.url &&
         page1.url !== page2.url &&
-        page2.url !== page3.url
+        page2.url !== page3.url,
     ).toBeTruthy();
     const { created, updated, deleted } = await getChangedPages({
       oldPages: [page0, page1, page2],

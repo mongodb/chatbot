@@ -216,7 +216,7 @@ describe("checkOperatorFrequency", () => {
     const res = checkOperatorFrequency(
       operatorPercentages,
       mockOperators,
-      mockRepresentation
+      mockRepresentation,
     );
 
     expect(res).toEqual({
@@ -257,7 +257,7 @@ describe("checkOperatorFrequency", () => {
     const res = checkOperatorFrequency(
       operatorPercentages,
       mockOperators,
-      mockRepresentation
+      mockRepresentation,
     );
 
     expect(res).toEqual({
@@ -284,7 +284,7 @@ describe("countAndLogUsage", () => {
     // Check for total entries count
     expect(console.log).toHaveBeenCalledWith(
       "Total number of entries in dataset:",
-      2
+      2,
     );
 
     // Check for database name counts
@@ -292,7 +292,7 @@ describe("countAndLogUsage", () => {
       "DB entry count:",
       expect.objectContaining({
         foo: 2,
-      })
+      }),
     );
 
     // Check for method counts
@@ -301,7 +301,7 @@ describe("countAndLogUsage", () => {
       expect.objectContaining({
         find: 1,
         aggregate: 1,
-      })
+      }),
     );
 
     // Check for operator counts
@@ -311,7 +311,7 @@ describe("countAndLogUsage", () => {
         $eq: 1,
         $and: 1,
         $group: 1,
-      })
+      }),
     );
   });
 });

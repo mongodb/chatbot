@@ -14,7 +14,7 @@ import { type References } from "../references";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 // @ts-ignore
 global.fetch = vi.fn();
 
@@ -36,7 +36,7 @@ function mockFetchResponse<T = unknown>({
         json: () => Promise.resolve(data),
         // You can add other properties of the Response object if necessary
       };
-    }
+    },
   );
   return () => lastRequestOptions;
 }
@@ -62,10 +62,10 @@ function mockFetchEventSourceResponse<Data = unknown>(
 }
 
 function filterMockedConversationEventsData<
-  StreamEvent extends ConversationStreamEvent
+  StreamEvent extends ConversationStreamEvent,
 >(
   events: FetchEventSource.MockEvent<ConversationStreamEvent>[],
-  type: StreamEvent["type"]
+  type: StreamEvent["type"],
 ): StreamEvent["data"][] {
   return events
     .filter((event) => event.data.type === type)
@@ -88,7 +88,7 @@ describe("ConversationService", () => {
       () =>
         new ConversationService({
           serverUrl: undefined as unknown as string,
-        })
+        }),
     ).toThrow("You must define a serverUrl for the ConversationService");
   });
 
@@ -134,9 +134,8 @@ describe("ConversationService", () => {
         createdAt: new Date().getTime(),
       },
     });
-    const conversation = await conversationService.getConversation(
-      conversationId
-    );
+    const conversation =
+      await conversationService.getConversation(conversationId);
     expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
     expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");
@@ -230,7 +229,7 @@ describe("ConversationService", () => {
 
       const options = getLastRequestOptions();
       const requestBody = JSON.parse(
-        (options as unknown as { body: string }).body
+        (options as unknown as { body: string }).body,
       );
       expect(requestBody.clientContext).toEqual(clientContext);
     });
@@ -288,7 +287,7 @@ describe("ConversationService", () => {
             id: undefined,
             type: undefined,
             data: { type: "finished", data: mockStreamedMessageId },
-          }
+          },
         );
 
       const streamedMetadata: AssistantMessageMetadata[] = [];
@@ -318,20 +317,20 @@ describe("ConversationService", () => {
       expect(streamedTokens).toEqual(
         filterMockedConversationEventsData<DeltaStreamEvent>(
           mockedEvents,
-          "delta"
-        )
+          "delta",
+        ),
       );
       expect(streamedReferences).toEqual(
         filterMockedConversationEventsData<ReferencesStreamEvent>(
           mockedEvents,
-          "references"
-        )
+          "references",
+        ),
       );
       expect(streamedMetadata).toEqual(
         filterMockedConversationEventsData<MetadataStreamEvent>(
           mockedEvents,
-          "metadata"
-        )
+          "metadata",
+        ),
       );
       expect(finishedStreaming).toEqual(true);
     });
@@ -396,7 +395,7 @@ describe("ConversationService", () => {
             id: undefined,
             type: undefined,
             data: { type: "finished", data: mockStreamedMessageId },
-          }
+          },
         );
 
       const streamedMetadata: AssistantMessageMetadata[] = [];
@@ -430,20 +429,20 @@ describe("ConversationService", () => {
       expect(streamedTokens).toEqual(
         filterMockedConversationEventsData<DeltaStreamEvent>(
           mockedEvents,
-          "delta"
-        )
+          "delta",
+        ),
       );
       expect(streamedReferences).toEqual(
         filterMockedConversationEventsData<ReferencesStreamEvent>(
           mockedEvents,
-          "references"
-        )
+          "references",
+        ),
       );
       expect(streamedMetadata).toEqual(
         filterMockedConversationEventsData<MetadataStreamEvent>(
           mockedEvents,
-          "metadata"
-        )
+          "metadata",
+        ),
       );
       expect(streamedConversationId).toBeDefined();
       expect(finishedStreaming).toEqual(true);
@@ -464,7 +463,7 @@ describe("ConversationService", () => {
           id: undefined,
           type: undefined,
           data: { type: "finished", data: mockStreamedMessageId },
-        }
+        },
       );
 
       let lastRequestOptions: { body: string } = { body: "" };
@@ -476,7 +475,7 @@ describe("ConversationService", () => {
             status: 200,
             headers: new Headers({ "content-type": "text/event-stream" }),
           };
-        }
+        },
       );
 
       await conversationService.addMessageStreaming({
@@ -539,7 +538,7 @@ describe("ConversationService", () => {
             id: undefined,
             type: undefined,
             data: { type: "finished", data: "650b4be0d5a57dd66be2ccb9" },
-          }
+          },
         );
 
       const deltas: string[] = [];
@@ -561,7 +560,7 @@ describe("ConversationService", () => {
             status: 200,
             headers: new Headers({ "content-type": "text/event-stream" }),
           };
-        }
+        },
       );
 
       await conversationService.addMessageStreaming({
@@ -593,28 +592,28 @@ describe("ConversationService", () => {
           event.data.type === "delta" ||
           event.data.type === "references" ||
           event.data.type === "metadata" ||
-          event.data.type === "finished"
+          event.data.type === "finished",
       );
 
       expect(deltas).toEqual(
         filterMockedConversationEventsData<DeltaStreamEvent>(
           validEvents,
-          "delta"
-        )
+          "delta",
+        ),
       );
 
       expect(references).toEqual(
         filterMockedConversationEventsData<ReferencesStreamEvent>(
           validEvents,
-          "references"
-        )
+          "references",
+        ),
       );
 
       expect(metadatas).toEqual(
         filterMockedConversationEventsData<MetadataStreamEvent>(
           validEvents,
-          "metadata"
-        )
+          "metadata",
+        ),
       );
 
       expect(streamedMessageId).toEqual("650b4be0d5a57dd66be2ccb9");
@@ -763,11 +762,11 @@ describe("ConversationService", () => {
       });
       const addStreamingOptions = getOptions();
       const addStreamingOptionsHeaders = new Headers(
-        addStreamingOptions.headers
+        addStreamingOptions.headers,
       );
       expect(addStreamingOptionsHeaders.get("foo")).toBe("bar");
       expect(addStreamingOptionsHeaders.get("content-type")).toBe(
-        "application/json"
+        "application/json",
       );
       expect(addStreamingOptions.credentials).toBe("include");
 
@@ -793,7 +792,7 @@ describe("ConversationService", () => {
       const commentOptionsHeaders = new Headers(commentOptions.headers);
       expect(commentOptionsHeaders.get("foo")).toBe("bar");
       expect(commentOptionsHeaders.get("content-type")).toBe(
-        "application/json"
+        "application/json",
       );
       expect(commentOptions.credentials).toBe("include");
     });
@@ -841,7 +840,7 @@ describe("ConversationService", () => {
             status: 200,
             headers: new Headers({ "content-type": "text/event-stream" }),
           };
-        }
+        },
       );
 
       await conversationService.addMessageStreaming({
@@ -880,7 +879,7 @@ describe("ConversationService", () => {
       const commentOptionsHeaders = new Headers(commentOptions.headers);
       expect(commentOptionsHeaders.get("foo")).toBe("dynamic-5");
       expect(commentOptionsHeaders.get("content-type")).toBe(
-        "application/json"
+        "application/json",
       );
       expect(commentOptions.credentials).toBe("include");
     });
@@ -890,7 +889,7 @@ describe("ConversationService", () => {
 describe("getCustomRequestOrigin", () => {
   it("returns the current window location if it exists", () => {
     const mockWindowLocation = "https://example.com/foo/bar";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (global as any).window = {
       ...global.window,
       location: {
@@ -902,7 +901,6 @@ describe("getCustomRequestOrigin", () => {
   });
 
   it("returns null if the current window location does not exist", () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).window = undefined;
     expect(getCustomRequestOrigin()).toEqual(undefined);
   });

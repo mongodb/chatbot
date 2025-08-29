@@ -29,7 +29,7 @@ export const CommentStandaloneMessageRequest = SomeExpressRequest.merge(
     body: z.object({
       comment: z.string().min(1, { message: "Comment cannot be empty" }),
     }),
-  })
+  }),
 );
 
 export interface CommentMessageRouteParams {
@@ -48,7 +48,7 @@ export function makeCommentMessageRouteV2({
   return async (
     req: ExpressRequest,
     res: ExpressResponse<void>,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -90,7 +90,7 @@ export function makeCommentMessageRouteV2({
       }
 
       const existingMessage = conversationInDb.messages.findLast((message) =>
-        message.id.equals(messageId)
+        message.id.equals(messageId),
       );
 
       if (existingMessage === undefined) {
@@ -195,7 +195,7 @@ export const CommentMessageRequest = SomeExpressRequest.merge(
     body: z.object({
       comment: z.string().min(1, { message: "Comment cannot be empty" }),
     }),
-  })
+  }),
 );
 
 /**
@@ -210,7 +210,7 @@ export function makeCommentMessageRoute({
   return async (
     req: ExpressRequest,
     res: ExpressResponse<void>,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -262,7 +262,7 @@ export function makeCommentMessageRoute({
       }
 
       const existingMessage = conversationInDb.messages.findLast((message) =>
-        message.id.equals(messageId)
+        message.id.equals(messageId),
       );
 
       if (existingMessage === undefined) {

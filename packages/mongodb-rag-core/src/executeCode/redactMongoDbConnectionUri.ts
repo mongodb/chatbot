@@ -5,6 +5,6 @@
 export function redactMongoDbConnectionUri(uri: string) {
   return uri.replace(
     /mongodb(\+srv)?:\/\/([^:]+):([^@]+)@/g,
-    "mongodb$1://<USERNAME>:<PASSWORD>@"
+    "mongodb$1://<USERNAME>:<PASSWORD>@",
   );
 }

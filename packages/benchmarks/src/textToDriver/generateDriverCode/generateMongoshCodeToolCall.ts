@@ -131,7 +131,9 @@ ${
     ? "\n" +
       makeFewShotExamplesPrompt(
         genericFewShotExamples,
-        systemPromptStrategy === "chainOfThought" ? "chainOfThought" : undefined
+        systemPromptStrategy === "chainOfThought"
+          ? "chainOfThought"
+          : undefined,
       ) +
       "\n"
     : ""
@@ -222,7 +224,7 @@ function makeDbCodeTool({
 
 function makeFewShotExamplesPrompt(
   examples: FewShotExample[],
-  fewShotType: FewShotPromptType = "default"
+  fewShotType: FewShotPromptType = "default",
 ): string {
   if (fewShotType === "chainOfThought") {
     return `
@@ -236,7 +238,7 @@ Output:
 {
   ${QUERY_PLAN_FIELD}: "${ex.output.chainOfThought}",
   ${CODE_FIELD}: "${ex.output.content}"
-}`
+}`,
     )
     .join("\n\n")}`;
   } else {
@@ -248,7 +250,7 @@ Output:
 Output:
 {
   ${CODE_FIELD}: "${ex.output.content}"
-}`
+}`,
     )
     .join("\n\n")}`;
   }

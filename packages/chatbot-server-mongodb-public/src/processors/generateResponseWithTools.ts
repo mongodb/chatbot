@@ -163,6 +163,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -170,6 +171,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -209,6 +211,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -216,6 +219,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -267,6 +271,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
   },
   onTextDone({ dataStreamer, text, references, textPartId, chunkId }) {
@@ -276,6 +281,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -386,7 +392,7 @@ export function makeGenerateResponseWithTools({
       // Get preceding messages to include in the LLM prompt
       const filteredPreviousMessages = filterPreviousMessages
         ? (await filterPreviousMessages(conversation)).map(
-            formatMessageForAiSdk
+            formatMessageForAiSdk,
           )
         : [];
 
@@ -458,7 +464,7 @@ export function makeGenerateResponseWithTools({
             stopWhen: [
               stepCountIs(maxSteps),
               ...(toolDefinitions?.map((toolDef) =>
-                hasToolCall(toolDef.name)
+                hasToolCall(toolDef.name),
               ) ?? []),
             ],
 
@@ -592,7 +598,7 @@ export function makeGenerateResponseWithTools({
                 throw new Error(
                   typeof chunk.error === "string"
                     ? chunk.error
-                    : String(chunk.error)
+                    : String(chunk.error),
                 );
               default:
                 break;
@@ -746,7 +752,7 @@ function handleReturnGeneration({
   const formattedMessages = formatMessageForReturnGeneration(
     messages,
     reqId,
-    references ?? []
+    references ?? [],
   );
 
   return {
@@ -756,7 +762,7 @@ function handleReturnGeneration({
 
 function makeAssitantMessage(
   reqId: string,
-  m: AssistantModelMessage
+  m: AssistantModelMessage,
 ): AssistantMessage[] {
   const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
     role: "assistant",
@@ -830,7 +836,7 @@ function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   reqId: string,
-  references: References
+  references: References,
 ): [...SomeMessage[], AssistantMessage] {
   const messagesOut: Array<SomeMessage | AssistantMessage> = [];
   messages.forEach((m) => {
@@ -856,8 +862,9 @@ function formatMessageForReturnGeneration(
 function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
   if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
-    if (message.toolCall) {
+    if (message.toolCall && message.toolCall.type === "function") {
       // This is a tool call message
+
       return {
         role: "assistant",
         content: [
@@ -899,23 +906,26 @@ function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
 }
 
 function formatToolDefinitionsForAiSdk(
-  toolDefinitions: GenerateResponseParams["toolDefinitions"]
+  toolDefinitions: GenerateResponseParams["toolDefinitions"],
 ): Record<string, Tool> {
   return (
-    toolDefinitions?.reduce((acc, toolDef) => {
-      acc[toolDef.name] = tool({
-        name: toolDef.name,
-        description: toolDef.description,
-        inputSchema: jsonSchema(toolDef.parameters as JSONSchema7),
-      });
-      return acc;
-    }, {} as Record<string, Tool>) ?? {}
+    toolDefinitions?.reduce(
+      (acc, toolDef) => {
+        acc[toolDef.name] = tool({
+          name: toolDef.name,
+          description: toolDef.description,
+          inputSchema: jsonSchema(toolDef.parameters as JSONSchema7),
+        });
+        return acc;
+      },
+      {} as Record<string, Tool>,
+    ) ?? {}
   );
 }
 
 function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
   toolChoice: GenerateResponseParams["toolChoice"],
-  tools: T
+  tools: T,
 ): ToolChoice<T> | undefined {
   if (!toolChoice) {
     return undefined;
@@ -936,7 +946,7 @@ function formatToolChoiceForAiSdk<T extends Record<string, Tool>>(
 }
 
 function convertReferencesToAnnotations(
-  references: References
+  references: References,
 ): ResponseStreamOutputTextAnnotationAdded["annotation"][] {
   return references.map((reference) => ({
     type: "url_citation",

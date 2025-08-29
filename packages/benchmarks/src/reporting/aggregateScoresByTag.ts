@@ -31,10 +31,10 @@ export type TagStats = Map<string, Record<string, ScoreStats>>;
 
 export function aggregateScoresByTag<
   EC extends EvalCase<unknown, unknown, unknown>,
-  ScoreTypes extends string[]
+  ScoreTypes extends string[],
 >(
   experimentResults: ExperimentResult<EC, unknown, ScoreTypes>[],
-  aggregateScoreNames: string[]
+  aggregateScoreNames: string[],
 ): TagStats {
   // First, collect all score values by tag and score name
   const scoresByTag = new Map<string, Record<string, number[]>>();

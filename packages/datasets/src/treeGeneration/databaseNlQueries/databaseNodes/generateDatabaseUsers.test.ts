@@ -24,7 +24,7 @@ describe.skip("generateDatabaseUsers", () => {
     const users = await generateDatabaseUsers(
       parentNode,
       makeSampleLlmOptions(),
-      20
+      20,
     );
 
     console.log(users.map((user) => user.data));

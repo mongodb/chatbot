@@ -9,7 +9,7 @@ import {
 } from "./testConfig";
 
 export async function makeTestAppConfig(
-  defaultConfigOverrides?: PartialAppConfig
+  defaultConfigOverrides?: PartialAppConfig,
 ) {
   const config = await makeDefaultConfig();
   const appConfig: AppConfig = {
@@ -56,7 +56,7 @@ export async function makeTestApp(defaultConfigOverrides?: PartialAppConfig) {
   const origin = TEST_ORIGIN + (defaultConfigOverrides?.port ?? TEST_PORT);
 
   const { appConfig, systemPrompt, mongodb } = await makeTestAppConfig(
-    defaultConfigOverrides
+    defaultConfigOverrides,
   );
   const app = await makeApp(appConfig);
 
@@ -80,7 +80,7 @@ export const TEST_OPENAI_API_KEY = "test-api-key";
  */
 export const makeTestLocalServer = async (
   defaultConfigOverrides?: PartialAppConfig,
-  port?: number
+  port?: number,
 ) => {
   const testAppResult = await makeTestApp({
     ...defaultConfigOverrides,
@@ -109,7 +109,7 @@ export type Stream = Awaited<
 
 export const makeCreateResponseRequestStream = async (
   openAiClient: OpenAI,
-  body?: Parameters<typeof openAiClient.responses.create>[0]
+  body?: Parameters<typeof openAiClient.responses.create>[0],
 ) => {
   return await openAiClient.responses.create({
     ...basicResponsesRequestBody,

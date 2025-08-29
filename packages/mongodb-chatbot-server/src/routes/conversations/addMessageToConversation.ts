@@ -61,7 +61,7 @@ export const AddMessageRequest = SomeExpressRequest.merge(
       stream: z.string().optional(),
     }),
     body: AddMessageRequestBody,
-  })
+  }),
 );
 
 export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
@@ -155,7 +155,7 @@ export function makeAddMessageToConversationRoute({
             conversationId: conversation._id.toHexString(),
           },
         },
-      }
+      },
     );
     return tracedFunc({
       latestMessageText,
@@ -169,7 +169,7 @@ export function makeAddMessageToConversationRoute({
   };
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
-    res: ExpressResponse<ApiMessage, ConversationsRouterLocals>
+    res: ExpressResponse<ApiMessage, ConversationsRouterLocals>,
   ) => {
     const dataStreamer = makeDataStreamer();
     const reqId = getRequestId(req);
@@ -218,7 +218,7 @@ export function makeAddMessageToConversationRoute({
       if (
         hasTooManyUserMessagesInConversation(
           conversation,
-          maxUserMessagesInConversation
+          maxUserMessagesInConversation,
         )
       ) {
         // Omit the system prompt and assume the user always received one response per message
@@ -264,7 +264,7 @@ export function makeAddMessageToConversationRoute({
       assert(dbAssistantMessage !== undefined, "No assistant message found");
       const apiRes = convertMessageFromDbToApi(
         dbAssistantMessage,
-        conversation._id
+        conversation._id,
       );
 
       if (!shouldStream) {

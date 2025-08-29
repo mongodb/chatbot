@@ -3,6 +3,7 @@ import { extractZodSchemaDescriptions } from "./utils";
 import z from "zod";
 import { stripIndent } from "common-tags";
 import YAML from "yaml";
+import { ZodType } from "zod/v4";
 
 const ratingSchema = z
   .int()
@@ -159,7 +160,11 @@ export function makeGenerateRating({
       ],
       temperature: 0,
       model,
-      schema: promptResponseRatingSchema,
+      schema: promptResponseRatingSchema as ZodType<
+        any,
+        PromptResponseRating,
+        any
+      >,
       schemaName,
       schemaDescription:
         "Ratings, rationale, and guidance for a given prompt response pair.",

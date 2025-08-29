@@ -54,7 +54,7 @@ describe("MongoDbSearchResultsStore", () => {
     });
 
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-search_results"
+      "custom-search_results",
     );
   });
 

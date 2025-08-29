@@ -40,7 +40,7 @@ const defaultDbscanOptions: DbscanOptions = {
 export const clusterize = <T>(
   dataset: T[],
   getVector: (x: T) => number[],
-  optionsIn?: Partial<DbscanOptions>
+  optionsIn?: Partial<DbscanOptions>,
 ): {
   /**
     Each cluster is represented as an array of the instances that fell into that
@@ -72,7 +72,7 @@ export const clusterize = <T>(
 
   return {
     clusters: clusterIndexesArray.map((indexes) =>
-      indexes.map((index) => dataset[index])
+      indexes.map((index) => dataset[index]),
     ),
     noise: noiseIndexes.map((index) => dataset[index]),
   };
@@ -81,7 +81,7 @@ export const clusterize = <T>(
 export const distanceSquared = (a: number[], b: number[]) => {
   assert(
     a.length === b.length,
-    "Unexpected inconsistent dimensionality in distanceFunction"
+    "Unexpected inconsistent dimensionality in distanceFunction",
   );
   // Pythagorean theorem: the square of the hypotenuse is equal to the sum of
   // the squares of the other sides

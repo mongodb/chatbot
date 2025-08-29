@@ -9,13 +9,51 @@ import { logger } from "../logger";
 import { Page, PageMetadata } from "../contentStore";
 
 /**
+ An interface that represents the parameters for the GithubRepoLoader
+ class. It extends the AsyncCallerParams interface and adds additional
+ properties specific to the GitHub repository loader.
+ */
+export interface GithubRepoLoaderParams {
+  /**
+   The base URL of the GitHub instance.
+   To be used when you are not targeting github.com, e.g. a GitHub Enterprise instance.
+   */
+  baseUrl?: string;
+  /**
+   The API endpoint URL of the GitHub instance.
+   To be used when you are not targeting github.com, e.g. a GitHub Enterprise instance.
+   */
+  apiUrl?: string;
+  branch?: string;
+  recursive?: boolean;
+  /**
+   Set to true to recursively process submodules. Is only effective, when recursive=true.
+   */
+  processSubmodules?: boolean;
+  unknown?: unknown;
+  accessToken?: string;
+  ignoreFiles?: (string | RegExp)[];
+  ignorePaths?: string[];
+  verbose?: boolean;
+  /**
+   The maximum number of concurrent calls that can be made. Defaults to 2.
+   */
+  maxConcurrency?: number;
+  /**
+   The maximum number of retries that can be made for a single call,
+   with an exponential backoff between each attempt. Defaults to 2.
+   */
+  maxRetries?: number;
+}
+
+/**
   Function to convert a file in the repo into a `Page` or `Page[]`.
   @param path - Path to file in repo
   @param content - Contents of file in repo
   */
 export type HandlePageFunc<SourceType extends string = string> = (
   path: string,
-  content: string
+  content: string,
 ) => Promise<
   | undefined
   | Omit<Page<SourceType>, "sourceName">
@@ -97,13 +135,13 @@ export function makeGitDataSource<SourceType extends string = string>({
         });
 
         const pagesPromises = Object.entries(pathsAndContents).map(
-          async ([path, content]) => handlePage(path, content)
+          async ([path, content]) => handlePage(path, content),
         );
 
         return filterDefined(
           filterFulfilled(await Promise.allSettled(pagesPromises)).map(
-            ({ value }) => value
-          )
+            ({ value }) => value,
+          ),
         )
           .flat(1)
           .map(
@@ -115,7 +153,7 @@ export function makeGitDataSource<SourceType extends string = string>({
                 metadata || page.metadata
                   ? { ...(metadata ?? {}), ...(page.metadata ?? {}) }
                   : undefined,
-            })
+            }),
           );
       } finally {
         rimrafSync(randomTmpDir);
@@ -153,14 +191,14 @@ export async function getRepoLocally({
   const git = simpleGit();
   logger.info(
     `Started cloning ${repoPath} to ${localPath} with options ${JSON.stringify(
-      options
-    )}`
+      options,
+    )}`,
   );
   await git.clone(repoPath, localPath, options);
   logger.info(
     `Successfully cloned ${repoPath} to ${localPath} with options ${JSON.stringify(
-      options
-    )}`
+      options,
+    )}`,
   );
 }
 
@@ -169,7 +207,7 @@ export type FilterFunc = (path: string) => boolean;
 export function getRelevantFilePathsInDir(
   directoryPath: string,
   filter: FilterFunc,
-  fileList: string[] = []
+  fileList: string[] = [],
 ) {
   const items = fs.readdirSync(directoryPath);
 

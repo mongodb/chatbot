@@ -3,7 +3,7 @@ export type FuzzyMatch<T> = (a: T, b: T) => boolean | null;
 
 export function fuzzyClusterItems<T>(
   items: T[],
-  fuzzyMatch: FuzzyMatch<T>
+  fuzzyMatch: FuzzyMatch<T>,
 ): number[][] {
   const clusters: number[][] = [];
   const used: boolean[] = new Array(items.length).fill(false);
@@ -31,11 +31,11 @@ export function findLargestCluster(clusters: number[][]): number[] {
 
 export function getClusterElementsFromIndexes<T>(
   items: T[],
-  indexes: number[]
+  indexes: number[],
 ): T[] {
   assert(
     indexes.every((index) => index < items.length),
-    `Index out of bounds. Indexes: ${indexes}. Max index: ${items.length - 1}`
+    `Index out of bounds. Indexes: ${indexes}. Max index: ${items.length - 1}`,
   );
   return indexes.map((index) => items[index]);
 }

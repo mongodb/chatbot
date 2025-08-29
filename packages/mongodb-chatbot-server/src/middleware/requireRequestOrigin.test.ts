@@ -15,10 +15,13 @@ const baseReq = {
 function caseInsensitiveHeaders(headers: Record<string, string>) {
   // Express automatically converts all headers to lowercase but
   // node-mocks-http does not. This function is a workaround for that.
-  return Object.entries(headers).reduce((acc, [key, value]) => {
-    acc[key.toLowerCase()] = value;
-    return acc;
-  }, {} as Record<string, string>);
+  return Object.entries(headers).reduce(
+    (acc, [key, value]) => {
+      acc[key.toLowerCase()] = value;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 }
 
 describe("requireRequestOrigin", () => {
@@ -81,7 +84,7 @@ describe("requireRequestOrigin", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(res.locals.customData.origin).toEqual(
-      "http://localhost:5173/foo/bar"
+      "http://localhost:5173/foo/bar",
     );
   });
   it(`prefers X-Request-Origin over Origin when both are set`, async () => {
@@ -104,7 +107,7 @@ describe("requireRequestOrigin", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(res.locals.customData.origin).toEqual(
-      "http://localhost:5173/foo/bar"
+      "http://localhost:5173/foo/bar",
     );
   });
 });

@@ -13,7 +13,7 @@ import { Page, TransformPage } from "mongodb-rag-core";
 export async function makeTranformPageToAnnotatedCodeExamples(
   openAiClient: OpenAI,
   model: string,
-  codeBlockProcessingConcurrency: number
+  codeBlockProcessingConcurrency: number,
 ): Promise<TransformPage<CodeExampleDatasetEntry>> {
   // Construct data processors
   const pageParser = await makePageParser();
@@ -23,7 +23,7 @@ export async function makeTranformPageToAnnotatedCodeExamples(
     {
       openAiClient,
       model,
-    }
+    },
   );
 
   return async function transformPageToAnnotatedCodeExamples(page: Page) {

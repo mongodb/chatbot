@@ -18,7 +18,7 @@ describe("MongoDbScrubbedMessageStore", () => {
       conversationId?: ObjectId;
       index?: number;
       role?: "user" | "assistant" | "system" | "tool";
-    } = {}
+    } = {},
   ): ScrubbedMessage => {
     return {
       _id: options.id || new ObjectId(),
@@ -75,7 +75,7 @@ describe("MongoDbScrubbedMessageStore", () => {
     expect(insertedMessage).toBeDefined();
     expect(insertedMessage?._id.toString()).toBe(messageId.toString());
     expect(insertedMessage?.conversationId.toString()).toBe(
-      conversationId.toString()
+      conversationId.toString(),
     );
   });
 
@@ -113,7 +113,7 @@ describe("MongoDbScrubbedMessageStore", () => {
 
     // Check first message
     const firstMessage = insertedMessages.find(
-      (msg) => msg._id.toString() === messageId1.toString()
+      (msg) => msg._id.toString() === messageId1.toString(),
     );
     expect(firstMessage).toBeDefined();
     expect(firstMessage?.role).toBe("user");
@@ -121,7 +121,7 @@ describe("MongoDbScrubbedMessageStore", () => {
 
     // Check second message
     const secondMessage = insertedMessages.find(
-      (msg) => msg._id.toString() === messageId2.toString()
+      (msg) => msg._id.toString() === messageId2.toString(),
     );
     expect(secondMessage).toBeDefined();
     expect(secondMessage?.role).toBe("assistant");
@@ -228,10 +228,10 @@ describe("MongoDbScrubbedMessageStore", () => {
     // Assert
     expect(foundMessages).toHaveLength(2);
     expect(foundMessages.map((msg) => msg._id.toString())).toContain(
-      messageId1.toString()
+      messageId1.toString(),
     );
     expect(foundMessages.map((msg) => msg._id.toString())).toContain(
-      messageId2.toString()
+      messageId2.toString(),
     );
   });
 
@@ -261,9 +261,9 @@ describe("MongoDbScrubbedMessageStore", () => {
 
     // Assert
     const insertedMessage = await db
-      .collection<ScrubbedMessage<TestAnalysis>>(
-        DEFAULT_SCRUBBED_MESSAGES_COLLECTION_NAME
-      )
+      .collection<
+        ScrubbedMessage<TestAnalysis>
+      >(DEFAULT_SCRUBBED_MESSAGES_COLLECTION_NAME)
       .findOne({ _id: messageId });
 
     expect(insertedMessage).toBeDefined();

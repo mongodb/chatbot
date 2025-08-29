@@ -29,7 +29,7 @@ export type ResultsByExperiment<
     EvalCase<unknown, unknown, unknown>,
     unknown,
     string[]
-  >
+  >,
 > = Record<
   string,
   {
@@ -44,7 +44,7 @@ export async function reportBenchmarkResults<
     unknown,
     string[]
   >,
-  Case extends BaseCase
+  Case extends BaseCase,
 >({
   apiKey,
   projectName,
@@ -76,6 +76,6 @@ export async function reportBenchmarkResults<
   }
   return materializeExperimentResultsByCase<ER, Case>(
     allExperimentResults,
-    experimentType
+    experimentType,
   );
 }

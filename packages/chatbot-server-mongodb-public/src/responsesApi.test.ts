@@ -251,7 +251,7 @@ describe("Responses API with OpenAI Client", () => {
       const functionCallEvents = responses.filter(
         (r) =>
           r.type === "response.function_call_arguments.delta" ||
-          r.type === "response.function_call_arguments.done"
+          r.type === "response.function_call_arguments.done",
       );
 
       // Verify that the specific tool was called
@@ -259,7 +259,7 @@ describe("Responses API with OpenAI Client", () => {
 
       // Check that the function call arguments done event contains the correct tool name
       const functionCallDoneEvent = responses.find(
-        (r) => r.type === "response.function_call_arguments.done"
+        (r) => r.type === "response.function_call_arguments.done",
       );
       expect(functionCallDoneEvent).toBeDefined();
 
@@ -267,7 +267,7 @@ describe("Responses API with OpenAI Client", () => {
       const outputItemEvents = responses.filter(
         (r) =>
           r.type === "response.output_item.added" &&
-          r.item?.type === "function_call"
+          r.item?.type === "function_call",
       );
       expect(outputItemEvents.length).toBeGreaterThan(0);
       expect(outputItemEvents[0].item.name).toBe(sampleTool.name);
@@ -319,7 +319,7 @@ describe("Responses API with OpenAI Client", () => {
         stream,
         errorMessage: CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
           max_output_tokens,
-          4000
+          4000,
         ),
       });
     });
@@ -343,7 +343,7 @@ describe("Responses API with OpenAI Client", () => {
           input: "What is MongoDB?",
           stream: false,
           temperature: 0,
-        })
+        }),
       ).rejects.toThrow(/Path: body.stream - 'stream' must be true/);
     });
   });
@@ -597,7 +597,7 @@ const expectValidResponses = async ({
     expect(responseTypes).toContain(type);
   }
   const genericResponses = responses.filter((r) =>
-    genericTypes.includes(r.type)
+    genericTypes.includes(r.type),
   );
   expect(genericResponses).toHaveLength(3);
 

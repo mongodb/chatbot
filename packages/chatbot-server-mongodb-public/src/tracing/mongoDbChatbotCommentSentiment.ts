@@ -21,7 +21,7 @@ const Sentiment = z.object({
 
 export type Sentiment = z.infer<typeof Sentiment>;
 
-const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
+const commentSentimentToolDefinition = {
   type: "function",
   function: {
     name: "comment_sentiment",
@@ -30,7 +30,7 @@ const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
       $refStrategy: "none",
     }),
   },
-};
+} satisfies OpenAI.ChatCompletionTool;
 
 const systemMessage = {
   role: "system",
@@ -53,7 +53,7 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
       const { sentiment, reasoning } = await getSentiment(
         openAiClient,
         judgeLlm,
-        messagesForLlm
+        messagesForLlm,
       );
 
       const SENTIMENT_SCORES = {
@@ -75,13 +75,13 @@ export const makeJudgeMongoDbChatbotCommentSentiment = (openAiClient: OpenAI) =>
     },
     {
       name: "JudgeMongoDbChatbotCommentSentiment",
-    }
+    },
   );
 
 async function getSentiment(
   openAiClient: OpenAI,
   judgeLlm: string,
-  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
 ) {
   const modelRes = await openAiClient.chat.completions.create({
     messages: messages,
@@ -93,16 +93,16 @@ async function getSentiment(
       type: "function",
     },
   });
-  return Sentiment.parse(
-    JSON.parse(
-      modelRes.choices?.[0].message.tool_calls?.[0].function.arguments ?? "{}"
-    )
-  );
+  const toolCall = modelRes.choices?.[0].message.tool_calls?.[0];
+  if (!toolCall || toolCall.type !== "function") {
+    throw new Error("Expected function tool call");
+  }
+  return Sentiment.parse(JSON.parse(toolCall.function.arguments ?? "{}"));
 }
 
 function makeUserMessage(
   messages: Message[],
-  messageWithCommentId: ObjectId
+  messageWithCommentId: ObjectId,
 ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
   const { sampleMessages, targetMessageIndex } = extractSampleMessages({
     messages,

@@ -1,4 +1,4 @@
-import { Eval, EvalCase, EvalScorer } from "braintrust";
+import { Eval, EvalCase, EvalScorer } from "mongodb-rag-core/braintrust";
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 import { z } from "zod";
 
@@ -56,14 +56,14 @@ const TextToDriverMetadataSchema = z.object({
       query: z
         .string()
         .describe(
-          "SQL query for SQL database that is similar to the MongoDB query."
+          "SQL query for SQL database that is similar to the MongoDB query.",
         ),
     })
     .describe(
       `SQL query for SQL database that is similar to the MongoDB query.
 Taken from Spider SQL dataset.
 
-@example "SELECT COUNT(*) FROM books WHERE author = 'Jane Austen';"`
+@example "SELECT COUNT(*) FROM books WHERE author = 'Jane Austen';"`,
     )
     .optional(),
   app_mod_case_id: z.number().optional()

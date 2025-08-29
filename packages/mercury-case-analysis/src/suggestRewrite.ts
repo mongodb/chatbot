@@ -1,5 +1,5 @@
 import { LanguageModel, generateObject } from "mongodb-rag-core/aiSdk";
-import { z } from "zod";
+import { z, ZodType } from "zod";
 import { stripIndent } from "common-tags";
 
 export const rewriteSchema = z.object({
@@ -29,7 +29,7 @@ export const suggestRewrite = async ({
   }
   const { object: rewrite } = await generateObject({
     model: generatorModel,
-    schema: rewriteSchema,
+    schema: rewriteSchema as ZodType<any, Rewrite, any>,
     schemaName: "Rewrite",
     schemaDescription: "A rewrite of the prompt and/or the expected response.",
     prompt: [

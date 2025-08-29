@@ -64,7 +64,7 @@ describe("MdOnGithubDataSource", () => {
     const samplePage = getSamplePage("mongodb-corp/chatbot/overview.md");
     assert(samplePage);
     expect(samplePage?.body).toContain(
-      "The MongoDB AI is an advanced LLM-based chatbot"
+      "The MongoDB AI is an advanced LLM-based chatbot",
     );
   });
   it("processes metadata", () => {
@@ -85,7 +85,7 @@ describe("MdOnGithubDataSource", () => {
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThanOrEqual(1);
     expect(
-      pages.find((page) => page.url.includes("sampleMdxFile"))
+      pages.find((page) => page.url.includes("sampleMdxFile")),
     ).toBeTruthy();
   });
 });

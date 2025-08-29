@@ -20,8 +20,8 @@ async function conversationEval() {
   const conversationEvalCases = getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml"),
-      "utf8"
-    )
+      "utf8",
+    ),
   );
 
   // Run the conversation eval

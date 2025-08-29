@@ -51,7 +51,7 @@ async function main() {
           }
         }
         return modelExperiments;
-      }
+      },
     );
     // Process models in parallel
     await PromisePool.for(modelExperiments)
@@ -102,7 +102,7 @@ async function main() {
                 console.error("Error running Braintrust");
                 console.error(err);
               }
-            }
+            },
           );
       });
   } finally {

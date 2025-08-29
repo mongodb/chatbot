@@ -31,7 +31,7 @@ export type HandleHtmlPageFuncOptions = {
 export async function handleHtmlDocument<SourceType extends string = string>(
   path: string,
   content: string,
-  options: HandleHtmlPageFuncOptions
+  options: HandleHtmlPageFuncOptions,
 ): Promise<Omit<Page<SourceType>, "sourceName">> {
   const {
     extractTitle = extractHtmlH1,

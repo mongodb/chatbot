@@ -59,7 +59,7 @@ export const MAX_CONCURRENT_EXPERIMENTS = 4;
 export const MAX_CONCURRENT_MODELS = 2;
 
 export function makeLlmOptions(
-  model: Pick<ModelConfig, "deployment">
+  model: Pick<ModelConfig, "deployment">,
 ): Omit<LlmOptions, "openAiClient"> {
   // Different because o3-mini has slightly different options
   if (model.deployment.includes("o3-mini")) {
@@ -76,5 +76,5 @@ export function makeLlmOptions(
 }
 
 export const mongoshScores = makeMongoshBenchmarkMetrics(
-  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI
+  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
 );

@@ -6,7 +6,7 @@ export type FindVerifiedAnswerFuncArgs = {
 };
 
 export type FindVerifiedAnswerFunc = (
-  args: FindVerifiedAnswerFuncArgs
+  args: FindVerifiedAnswerFuncArgs,
 ) => Promise<FindVerifiedAnswerResult>;
 
 export type FindVerifiedAnswerResult = {

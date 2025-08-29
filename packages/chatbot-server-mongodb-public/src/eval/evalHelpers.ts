@@ -30,7 +30,7 @@ export const openAiClient = wrapOpenAI(
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,
-  })
+  }),
 );
 
 export const openAiProvider = createOpenAI({

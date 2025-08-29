@@ -37,12 +37,12 @@ export async function makeScrubbedMessagesFromTracingData({
           logRequest({
             reqId,
             message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
-              error
+              error,
             )}`,
             type: "error",
           });
           return undefined;
-        }
+        },
       )
     : undefined;
 
@@ -80,12 +80,12 @@ export async function makeScrubbedMessagesFromTracingData({
             logRequest({
               reqId,
               message: `Error analyzing scrubbed assistant message in tracing: ${JSON.stringify(
-                error
+                error,
               )}`,
               type: "error",
             });
             return undefined;
-          }
+          },
         )
       : undefined;
 

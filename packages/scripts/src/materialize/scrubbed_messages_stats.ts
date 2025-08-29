@@ -69,7 +69,7 @@ function makeCreateStatsMaterializedView({
         ],
       });
       console.log(
-        `Materializing ${granularity} stats for ${databaseName}.${messagesCollectionName} since ${since?.toISOString()}`
+        `Materializing ${granularity} stats for ${databaseName}.${messagesCollectionName} since ${since?.toISOString()}`,
       );
       return await client
         .db(databaseName)
@@ -226,16 +226,16 @@ export async function createScrubbedMessageStatsViews({
   }
   if (granularity.length === 0) {
     throw new Error(
-      `No granularity was specified. Either omit the argument or specify at least one granularity.`
+      `No granularity was specified. Either omit the argument or specify at least one granularity.`,
     );
   }
   console.log(
     `Materializing stats for scrubbed messages since ${
       since ?? "the start of time"
-    } at the folowing granularities: ${granularity.join(", ")}`
+    } at the folowing granularities: ${granularity.join(", ")}`,
   );
   const client = await MongoClient.connect(
-    mongodbConnection ?? MONGODB_CONNECTION_URI
+    mongodbConnection ?? MONGODB_CONNECTION_URI,
   );
   try {
     const createStatsMaterializedView = makeCreateStatsMaterializedView({

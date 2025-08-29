@@ -43,10 +43,10 @@ async function main() {
     try {
       const fromDb = fromClient.db(FROM_DATABASE_NAME);
       const fromCollection = fromDb.collection<FaqEntryV0>(
-        FROM_FAQ_COLLECTION_NAME
+        FROM_FAQ_COLLECTION_NAME,
       );
       const scrubbedCollection = fromDb.collection<ScrubbedMessage>(
-        FROM_SCRUBBED_COLLECTION_NAME
+        FROM_SCRUBBED_COLLECTION_NAME,
       );
 
       const toDb = toClient.db(TO_DATABASE_NAME);
@@ -55,12 +55,12 @@ async function main() {
       console.log(`Finding resume point...`);
       const latestUpgradedEntry = await toCollection.findOne(
         {},
-        { sort: { created: -1 } }
+        { sort: { created: -1 } },
       );
       console.log(
         latestUpgradedEntry == null
           ? "No resume point found."
-          : `Resuming from ${latestUpgradedEntry.created}.`
+          : `Resuming from ${latestUpgradedEntry.created}.`,
       );
 
       console.log(`Loading entries...`);
@@ -68,14 +68,14 @@ async function main() {
         latestUpgradedEntry == null
           ? {}
           : { created: { $gte: latestUpgradedEntry.created } },
-        { sort: { created: 1 } }
+        { sort: { created: 1 } },
       );
       let bulk: AnyBulkWriteOperation<FaqEntry>[] = [];
 
       const write = async () => {
         const bulkWriteResult = await toCollection.bulkWrite(bulk);
         console.log(
-          `Modified ${bulkWriteResult.modifiedCount}, upserted ${bulkWriteResult.upsertedCount}.`
+          `Modified ${bulkWriteResult.modifiedCount}, upserted ${bulkWriteResult.upsertedCount}.`,
         );
       };
       for await (const entry of entries) {
@@ -106,7 +106,7 @@ async function main() {
               .map(({ questions }) =>
                 questions.map((question) => ({
                   createdAt: question.createdAt.toUTCString(),
-                }))
+                })),
               )
               .flat(1);
             snapshotCache.questionsFromFaq[utcString] = questions;

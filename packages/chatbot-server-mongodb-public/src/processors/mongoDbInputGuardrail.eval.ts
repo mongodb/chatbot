@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { makeMongoDbInputGuardrail } from "./mongoDbInputGuardrail";
-import { Eval, BraintrustMiddleware } from "braintrust";
+import { Eval, BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {

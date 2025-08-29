@@ -59,7 +59,7 @@ describe("precisionAtK", () => {
     const k = 0;
 
     expect(() =>
-      precisionAtK(relevantItems, retrievedItems, matchFunc, k)
+      precisionAtK(relevantItems, retrievedItems, matchFunc, k),
     ).toThrow();
   });
 

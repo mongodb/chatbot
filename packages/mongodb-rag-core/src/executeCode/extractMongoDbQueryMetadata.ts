@@ -60,7 +60,7 @@ export const commonMongoDbNodeJsMethods = new Set([
  */
 export function extractMongoDbMethods(
   code: string,
-  methods: Set<string> = commonMongoDbNodeJsMethods
+  methods: Set<string> = commonMongoDbNodeJsMethods,
 ): string[] {
   // Regular expression to match method calls on MongoDB collections
   // This pattern looks for method calls in the format collection.method() or chain.method()
@@ -91,8 +91,8 @@ export function extractMongoDbQueryOperators(code: string): string[] {
   // Extract the operator names from the matches and remove duplicates
   const operatorsFound = Array.from(
     new Set(
-      Array.from(code.matchAll(operatorAsKeyRegex)).map((match) => match[1])
-    )
+      Array.from(code.matchAll(operatorAsKeyRegex)).map((match) => match[1]),
+    ),
   );
 
   return operatorsFound;

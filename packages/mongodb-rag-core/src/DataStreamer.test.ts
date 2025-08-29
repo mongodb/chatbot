@@ -57,7 +57,7 @@ describe("Data Streaming", () => {
     });
     const data = res._getData();
     expect(data).toBe(
-      `data: {"type":"delta","data":"test"}\n\ndata: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
+      `data: {"type":"delta","data":"test"}\n\ndata: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`,
     );
   });
 
@@ -83,7 +83,7 @@ describe("Data Streaming", () => {
     expect(streamedText).toBe("Once upon a time there was a very long string.");
     const data = res._getData();
     expect(data).toBe(
-      `data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
+      `data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`,
     );
   });
 
@@ -107,14 +107,14 @@ describe("Data Streaming", () => {
 
     const data = res._getData();
     expect(data).toBe(
-      `event: response.created\ndata: {"type":"response.created","id":"test1","sequence_number":0}\n\nevent: response.in_progress\ndata: {"type":"response.in_progress","id":"test2","sequence_number":1}\n\nevent: response.output_text.delta\ndata: {"type":"response.output_text.delta","id":"test3","sequence_number":2}\n\nevent: response.completed\ndata: {"type":"response.completed","id":"test4","sequence_number":3}\n\n`
+      `event: response.created\ndata: {"type":"response.created","id":"test1","sequence_number":0}\n\nevent: response.in_progress\ndata: {"type":"response.in_progress","id":"test2","sequence_number":1}\n\nevent: response.output_text.delta\ndata: {"type":"response.output_text.delta","id":"test3","sequence_number":2}\n\nevent: response.completed\ndata: {"type":"response.completed","id":"test4","sequence_number":3}\n\n`,
     );
   });
 });
 
 function createChatCompletionWithDelta(
   deltaText: string,
-  i: number
+  i: number,
 ): Omit<OpenAI.ChatCompletionChunk, "object" | "model"> {
   return {
     id: "test",

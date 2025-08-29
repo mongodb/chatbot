@@ -6,7 +6,7 @@ import "dotenv/config";
 function commandDir<T>(
   argv: yargs.Argv<T>,
   directory: string,
-  options?: yargs.RequireDirectoryOptions
+  options?: yargs.RequireDirectoryOptions,
 ): yargs.Argv<T> {
   return argv.commandDir(directory, {
     extensions: ["js"],

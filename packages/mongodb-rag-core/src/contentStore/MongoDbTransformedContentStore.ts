@@ -30,7 +30,7 @@ export type MongoDbTransformedContentStore<TC extends TransformedContent> =
     };
 
 export function makeMongoDbTransformedContentStore<
-  TC extends TransformedContent
+  TC extends TransformedContent,
 >({
   connectionUri,
   databaseName,
@@ -79,7 +79,7 @@ export function makeMongoDbTransformedContentStore<
         assert(
           transformedContent.sourceName === page.sourceName &&
             transformedContent.url === page.url,
-          `TransformedContent source/url (${transformedContent.sourceName} / ${transformedContent.url}) must match given page source/url (${page.sourceName} / ${page.url})!`
+          `TransformedContent source/url (${transformedContent.sourceName} / ${transformedContent.url}) must match given page source/url (${page.sourceName} / ${page.url})!`,
         );
       });
       await mongoClient.withSession(async (session) => {
@@ -87,7 +87,7 @@ export function makeMongoDbTransformedContentStore<
           // First delete all transformed content for the given page
           const deleteResult = await transformedContentCollection.deleteMany(
             pageIdentity(page) as Filter<TC>,
-            { session }
+            { session },
           );
           if (!deleteResult.acknowledged) {
             throw new Error("Deletion not acknowledged!");
@@ -98,7 +98,7 @@ export function makeMongoDbTransformedContentStore<
             [...transformedContent] as OptionalUnlessRequiredId<TC>[],
             {
               session,
-            }
+            },
           );
 
           if (!insertResult.acknowledged) {
@@ -107,7 +107,7 @@ export function makeMongoDbTransformedContentStore<
           const { insertedCount } = insertResult;
           if (insertedCount !== transformedContent.length) {
             throw new Error(
-              `Expected ${transformedContent.length} inserted, got ${insertedCount}`
+              `Expected ${transformedContent.length} inserted, got ${insertedCount}`,
             );
           }
         });

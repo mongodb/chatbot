@@ -9,7 +9,7 @@ export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
     .string()
     .describe(
-      "Reason for whether to reject the user query. Be concise. Think step by step."
+      "Reason for whether to reject the user query. Be concise. Think step by step.",
     ),
   type: z.enum(["irrelevant", "inappropriate", "valid", "unknown"]),
 });
@@ -299,7 +299,7 @@ Sample few-shot input/output pairs demonstrating how to label user queries.
 ${formatFewShotExamplePrompt(
   hasCustomFeatures
     ? fewShotExamplesCustomFeatures.concat(fewShotBaseExamples)
-    : fewShotBaseExamples
+    : fewShotBaseExamples,
 )}
 
 </few-shot-examples>`;
@@ -317,7 +317,7 @@ export const makeMongoDbInputGuardrail = ({
     toolDefinitions,
   }) => {
     const systemPrompt = makeGuardrailSystemPrompt(
-      customSystemPrompt !== undefined || toolDefinitions !== undefined
+      customSystemPrompt !== undefined || toolDefinitions !== undefined,
     );
     const userMessage = makeInputGuardrailUserMessage({
       latestMessageText,

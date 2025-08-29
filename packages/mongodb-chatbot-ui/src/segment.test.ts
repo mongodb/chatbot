@@ -45,7 +45,7 @@ describe("getSegmentIdHeaders", () => {
     const headers = getSegmentIdHeaders();
     expect(headers.get("X-Segment-User-Id")).toBe("test-segment-user-id");
     expect(headers.get("X-Segment-Anonymous-Id")).toBe(
-      "test-segment-anonymous-id"
+      "test-segment-anonymous-id",
     );
   });
 
@@ -61,7 +61,7 @@ describe("getSegmentIdHeaders", () => {
     const headers = getSegmentIdHeaders();
     expect(headers.get("X-Segment-User-Id")).toBeNull();
     expect(headers.get("X-Segment-Anonymous-Id")).toBe(
-      "test-segment-anonymous-id"
+      "test-segment-anonymous-id",
     );
   });
 

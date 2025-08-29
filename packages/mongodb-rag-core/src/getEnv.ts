@@ -1,6 +1,6 @@
 interface GetEnvArgs<
   R extends string,
-  O extends Record<string, string | undefined>
+  O extends Record<string, string | undefined>,
 > {
   /**
    A list of environment variables that are required.
@@ -21,7 +21,7 @@ type OptionalEnvType<T extends string | undefined> = T extends undefined
 
 type EnvFromArgs<
   R extends string,
-  O extends Record<string, string | undefined>
+  O extends Record<string, string | undefined>,
 > = {
   [K in R]: string;
 } & {
@@ -30,7 +30,7 @@ type EnvFromArgs<
 
 export function getEnv<
   R extends string = never,
-  O extends Record<string, string | undefined> = Record<never, never>
+  O extends Record<string, string | undefined> = Record<never, never>,
 >({ required, optional }: GetEnvArgs<R, O>): EnvFromArgs<R, O> {
   const env = { ...optional };
   const missingRequired: string[] = [];
@@ -46,7 +46,7 @@ export function getEnv<
     throw new Error(
       `Missing required environment variables:\n${missingRequired
         .map((r) => ` - ${r}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
   for (const key in optional) {

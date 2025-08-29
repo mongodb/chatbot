@@ -4,7 +4,7 @@ import "dotenv/config";
 
 async function main() {
   const client = await MongoClient.connect(
-    process.env.MONGODB_CONNECTION_URI as string
+    process.env.MONGODB_CONNECTION_URI as string,
   );
   try {
     await client.connect();
@@ -18,7 +18,7 @@ async function main() {
     ];
 
     const testDatabaseNames = allDatabaseNames.filter((name) =>
-      testDatabaseRegexes.some((regex) => regex.test(name))
+      testDatabaseRegexes.some((regex) => regex.test(name)),
     );
 
     if (testDatabaseNames.length === 0) {

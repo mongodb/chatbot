@@ -3,7 +3,7 @@ import { strict as assert } from "assert";
 import { Eval, BraintrustMiddleware } from "../braintrust";
 import { Scorer } from "autoevals";
 import { classifyMongoDbMetadata, MongoDbTag } from "./";
-import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "../aiSdk";
 import { getOpenAiEndpointAndApiKey, models } from "../models";
 
 async function main() {

@@ -6,7 +6,7 @@ import { makeCorsOptions } from "./corsOptions";
 describe("makeCorsOptions", () => {
   const createTestApp = (
     isProduction: boolean,
-    allowedOrigins: string[] = []
+    allowedOrigins: string[] = [],
   ) => {
     const app = express();
     const corsOptions = makeCorsOptions(isProduction, allowedOrigins);
@@ -35,7 +35,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://localhost:3000"
+        "http://localhost:3000",
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
       expect(response.status).toBe(200);
@@ -48,7 +48,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://localhost:8080"
+        "http://localhost:8080",
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
     });
@@ -60,7 +60,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
     });
@@ -78,7 +78,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "https://trusted-site.com"
+        "https://trusted-site.com",
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
     });
@@ -131,7 +131,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "https://production-site.com"
+        "https://production-site.com",
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
       expect(response.status).toBe(200);
@@ -163,11 +163,11 @@ describe("makeCorsOptions", () => {
         .set("Access-Control-Request-Headers", "Content-Type");
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://localhost:3000"
+        "http://localhost:3000",
       );
       expect(response.headers["access-control-allow-methods"]).toMatch(/POST/);
       expect(response.headers["access-control-allow-headers"]).toMatch(
-        /Content-Type/
+        /Content-Type/,
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
       expect(response.status).toBe(204);
@@ -180,15 +180,15 @@ describe("makeCorsOptions", () => {
         .set("Access-Control-Request-Method", "POST")
         .set(
           "Access-Control-Request-Headers",
-          "Content-Type, Authorization, X-Custom-Header"
+          "Content-Type, Authorization, X-Custom-Header",
         );
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://localhost:8080"
+        "http://localhost:8080",
       );
       expect(response.headers["access-control-allow-methods"]).toMatch(/POST/);
       expect(response.headers["access-control-allow-headers"]).toMatch(
-        /Content-Type/
+        /Content-Type/,
       );
       expect(response.headers["access-control-allow-credentials"]).toBe("true");
       expect(response.status).toBe(204);
@@ -214,7 +214,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response.headers["access-control-allow-origin"]).toBe(
-        "http://localhost:3000"
+        "http://localhost:3000",
       );
       expect(response.status).toBe(200);
     });
@@ -232,7 +232,7 @@ describe("makeCorsOptions", () => {
         .send({ data: "test" });
 
       expect(response1.headers["access-control-allow-origin"]).toBe(
-        "https://site2.com"
+        "https://site2.com",
       );
       expect(response1.status).toBe(200);
     });

@@ -103,7 +103,7 @@ A few example input and outputs:
 ${genericFewShotExamples
   .map(
     (ex) => `Input: ${ex.input}
-Output: ${ex.output.content}`
+Output: ${ex.output.content}`,
   )
   .join("\n\n")}`,
     genericFewShotChainOfThought: `${promptUtils.basePrompt}
@@ -119,7 +119,7 @@ ${genericFewShotExamples
     (ex) => `Input: ${ex.input}
 Output:
 // ${ex.output.chainOfThought}
-${ex.output.content}`
+${ex.output.content}`,
   )
   .join("\n\n")}`,
   },

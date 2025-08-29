@@ -11,5 +11,5 @@ export type ReferenceableContent =
   Function that generates the references in the response to user.
  */
 export type MakeReferenceLinksFunc = (
-  searchResults: ReferenceableContent[]
+  searchResults: ReferenceableContent[],
 ) => References;

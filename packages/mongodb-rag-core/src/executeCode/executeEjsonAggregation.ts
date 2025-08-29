@@ -21,7 +21,7 @@ export function makeExecuteEjsonAggregationQuery({
       const db = mongoClient.db(databaseName);
 
       const documentQuery = JSON.parse(query).map((q: any) =>
-        BSON.EJSON.deserialize(q)
+        BSON.EJSON.deserialize(q),
       );
       const result = await db
         .collection(collectionName)

@@ -70,7 +70,7 @@ describe("Responses Router", () => {
         makeBadRequestError({
           error: new Error(errorMessage),
           headers: {},
-        })
+        }),
       );
 
     ({ server, ipAddress, origin } = await makeTestLocalServer(appConfig));

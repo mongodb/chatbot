@@ -42,7 +42,7 @@ export async function appendLlmMetadata({
     console.log(
       `Processing codeblocks indexes ${i} to ${i + batchSize - 1} of ${
         codeExamples.length
-      } total...`
+      } total...`,
     );
     const batchPromises = codeExamples
       .slice(i, i + batchSize)

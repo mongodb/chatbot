@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./build",
     "module": "ESNext",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

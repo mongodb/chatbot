@@ -30,7 +30,7 @@ export const streetAddress = new RegExp(
     ")?)|(" +
     poBoxRegex.source +
     ")",
-  "gi"
+  "gi",
 );
 
 export const zipcode = /\b\d{5}\b(-\d{4})?\b/g;
@@ -124,7 +124,7 @@ export function redactPii(text: string): {
 
   for (const [piiType, redactor] of Object.entries(redactors) as [
     Pii,
-    RedactorFn
+    RedactorFn,
   ][]) {
     const redactedResult = redactor(redactedText);
     if (redactedResult !== redactedText) {

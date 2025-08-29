@@ -26,7 +26,7 @@ export const defaultTruncationOptions: TruncationOptions = {
 function truncateValue(
   value: any,
   options: TruncationOptions = defaultTruncationOptions,
-  currentDepth = 0
+  currentDepth = 0,
 ): any {
   if (value === null || value === undefined) {
     return value;
@@ -52,7 +52,7 @@ function truncateValue(
     if (value.length <= options.maxArrayLength) {
       // If array is already shorter than max length, just process each item
       return value.map((item) =>
-        truncateValue(item, options, currentDepth + 1)
+        truncateValue(item, options, currentDepth + 1),
       );
     } else {
       // Calculate how many items to show at the beginning and end
@@ -120,7 +120,7 @@ function truncateValue(
   @returns A new document with truncated values
  */
 export function truncateDbOperationOutputForLlm<
-  T extends Document | Document[] | null | number
+  T extends Document | Document[] | null | number,
 >(input: T, options: TruncationOptions = defaultTruncationOptions) {
   return truncateValue(input, options) as T;
 }

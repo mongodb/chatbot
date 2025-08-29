@@ -16,7 +16,7 @@ export async function insertCollectionDocuments({
   const collection = client.db(databaseName).collection(collectionName);
   if (reset) {
     console.log(
-      `Deleting all existing documents from ${databaseName}.${collectionName} before insert...`
+      `Deleting all existing documents from ${databaseName}.${collectionName} before insert...`,
     );
     await collection.deleteMany({});
   }

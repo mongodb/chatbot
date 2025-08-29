@@ -10,25 +10,25 @@ async function main() {
   const withPromptsBasePathsYaml: string[] = [
     path.resolve(
       basePath,
-      "docs-chatbot.code-examples-with-prompts-all-drivers-2.yaml"
+      "docs-chatbot.code-examples-with-prompts-all-drivers-2.yaml",
     ),
     path.resolve(
       basePath,
-      "docs-chatbot.code-examples-with-prompts-atlas-search.yaml"
+      "docs-chatbot.code-examples-with-prompts-atlas-search.yaml",
     ),
   ];
   const properTitlesExamplesPathJson = path.resolve(
     basePath,
-    "docs-chatbot.code-examples-with-headings.json"
+    "docs-chatbot.code-examples-with-headings.json",
   );
   const withPrompts = withPromptsBasePathsYaml.map(
     (path) =>
       yaml.parse(
-        fs.readFileSync(path, "utf-8")
-      ) as AugmentedAstExtractedCodeblock[]
+        fs.readFileSync(path, "utf-8"),
+      ) as AugmentedAstExtractedCodeblock[],
   );
   const codeExamples = JSON.parse(
-    fs.readFileSync(properTitlesExamplesPathJson, "utf-8")
+    fs.readFileSync(properTitlesExamplesPathJson, "utf-8"),
   ) as AstExtractedCodeblock[];
   for (let i = 0; i < withPrompts.length; i++) {
     const promptFile = withPrompts[i];
@@ -36,7 +36,7 @@ async function main() {
       const codeExample = codeExamples.find(
         (example) =>
           example?.metadata?.mdastNode?.position?.start.offset ===
-          prompt?.metadata?.mdastNode?.position?.start.offset
+          prompt?.metadata?.mdastNode?.position?.start.offset,
       );
       if (codeExample) {
         prompt.metadata.parentHeadings = codeExample.metadata.parentHeadings;
@@ -47,9 +47,9 @@ async function main() {
         basePath,
         path
           .basename(withPromptsBasePathsYaml[i])
-          .replace(".yaml", "-FIXED.yaml")
+          .replace(".yaml", "-FIXED.yaml"),
       ),
-      yaml.stringify(promptFile)
+      yaml.stringify(promptFile),
     );
   }
 }

@@ -6,7 +6,7 @@ describe("findCentroid", () => {
       findCentroid([
         [0, 0],
         [1, 1],
-      ])
+      ]),
     ).toStrictEqual([0.5, 0.5]);
 
     expect(
@@ -15,7 +15,7 @@ describe("findCentroid", () => {
         [0, 4, 4],
         [4, 0, 4],
         [0, 0, 4],
-      ])
+      ]),
     ).toStrictEqual([2, 1, 3]);
 
     expect(
@@ -23,7 +23,7 @@ describe("findCentroid", () => {
         [1, 1, 1],
         [1, 1, 1],
         [1, 1, 1],
-      ])
+      ]),
     ).toStrictEqual([1, 1, 1]);
   });
 

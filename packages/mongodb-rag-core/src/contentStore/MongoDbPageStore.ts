@@ -18,13 +18,13 @@ export type MongoDbPageStore = DatabaseConnection &
   Omit<PageStore, "loadPages"> & {
     queryType: "mongodb";
     loadPage(
-      args?: LoadPagesArgs<Filter<PersistedPage>>
+      args?: LoadPagesArgs<Filter<PersistedPage>>,
     ): Promise<PersistedPage | null>;
     loadPages(
-      args?: LoadPagesArgs<Filter<PersistedPage>>
+      args?: LoadPagesArgs<Filter<PersistedPage>>,
     ): Promise<PersistedPage[]>;
     aggregatePages<T extends Document = Document>(
-      pipeline: Document[]
+      pipeline: Document[],
     ): Promise<T[]>;
     getMissingPagesByUrl(args: {
       expectedUrls: string[];
@@ -82,7 +82,7 @@ export function makeMongoDbPageStore({
       return pagesCollection.find(filter).toArray();
     },
     async aggregatePages<T extends Document = Document>(
-      pipeline: Document[]
+      pipeline: Document[],
     ): Promise<T[]> {
       return pagesCollection.aggregate<T>(pipeline).toArray();
     },
@@ -92,17 +92,17 @@ export function makeMongoDbPageStore({
           const result = await pagesCollection.updateOne(
             pageIdentity(page),
             { $set: page },
-            { upsert: true }
+            { upsert: true },
           );
           if (!result.acknowledged) {
             throw new Error(`update pages not acknowledged!`);
           }
           if (!result.modifiedCount && !result.upsertedCount) {
             throw new Error(
-              `Page ${JSON.stringify(pageIdentity(page))} not updated!`
+              `Page ${JSON.stringify(pageIdentity(page))} not updated!`,
             );
           }
-        })
+        }),
       );
     },
     async deletePages({
@@ -139,13 +139,13 @@ export function makeMongoDbPageStore({
             query: {
               url: {
                 $regex: new RegExp(
-                  args.urlTransformer ? args.urlTransformer(url) : url
+                  args.urlTransformer ? args.urlTransformer(url) : url,
                 ),
               },
             },
           });
           return !page ? url : null;
-        })
+        }),
       );
       return results.filter((url) => url !== null) as string[];
     },
@@ -235,7 +235,7 @@ function createQueryFilterFromLoadPagesArgs(args: LoadPagesArgs) {
       filter["$and"].push(query);
     } else {
       throw new Error(
-        `Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: ${query}`
+        `Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: ${query}`,
       );
     }
   }

@@ -28,7 +28,7 @@ interface ScorerArgs {
 }
 
 const makeEvaluateWithLlmAsAJudge = (
-  openAiConfig: LlmAsAJudge["openAiConfig"]
+  openAiConfig: LlmAsAJudge["openAiConfig"],
 ) =>
   wrapTraced(
     async function ({ input, output, context, judgeModel }: ScorerArgs) {
@@ -44,7 +44,7 @@ const makeEvaluateWithLlmAsAJudge = (
             }),
           {
             name: "Faithfulness",
-          }
+          },
         ),
         traced(
           async () =>
@@ -57,13 +57,13 @@ const makeEvaluateWithLlmAsAJudge = (
             }),
           {
             name: "ContextRelevancy",
-          }
+          },
         ),
       ]);
     },
     {
       name: "LlmAsAJudge",
-    }
+    },
   );
 
 export async function getLlmAsAJudgeScores(
@@ -72,7 +72,7 @@ export async function getLlmAsAJudgeScores(
     openAiConfig,
     judgeEmbeddingModel,
   }: Omit<LlmAsAJudge, "percentToJudge">,
-  tracingData: ReturnType<typeof extractTracingData>
+  tracingData: ReturnType<typeof extractTracingData>,
 ) {
   // Return if we don't have the necessary data to judge
   if (

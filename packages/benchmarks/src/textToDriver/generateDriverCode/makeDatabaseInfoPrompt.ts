@@ -16,7 +16,7 @@ Latest Date: ${databaseInfo.latestDate} (use this to inform dates in queries)`;
 
 async function makeCollectionPrompt(
   collections: DatabaseInfo["collections"],
-  schemaStrategy: SchemaStrategy
+  schemaStrategy: SchemaStrategy,
 ) {
   const collectionsData =
     schemaStrategy === "annotated"
@@ -24,11 +24,11 @@ async function makeCollectionPrompt(
       : await Promise.all(
           collections.map(async (c) => {
             const verySimplifiedSchema = await getVerySimplifiedSchema(
-              c.examples
+              c.examples,
             );
             // Remove descriptions
             const simplifiedIndexes = c.indexes?.map(
-              ({ description, ...index }) => index
+              ({ description, ...index }) => index,
             );
 
             const simplifiedCollection: DatabaseInfo["collections"][number] = {
@@ -43,7 +43,7 @@ async function makeCollectionPrompt(
                   : prettyStringify(verySimplifiedSchema),
             };
             return simplifiedCollection;
-          })
+          }),
         );
   return `### Collections
 
@@ -63,7 +63,7 @@ ${c.examples.map((d) => prettyStringify(truncateDbOperationOutputForLlm(d)))}
 
 Indexes:
 \`\`\`
-${c.indexes?.map((i) => `${prettyStringify(i)}`) ?? "No indexes"}`
+${c.indexes?.map((i) => `${prettyStringify(i)}`) ?? "No indexes"}`,
   )
   .join("\n\n")}
 \`\`\``;
@@ -71,7 +71,7 @@ ${c.indexes?.map((i) => `${prettyStringify(i)}`) ?? "No indexes"}`
 
 export async function makeDatabaseInfoPrompt(
   databaseInfo: DatabaseInfo,
-  schemaStrategy: SchemaStrategy = "annotated"
+  schemaStrategy: SchemaStrategy = "annotated",
 ) {
   if (schemaStrategy === "none") {
     return `## Database Information
@@ -88,7 +88,7 @@ ${databaseInfo.collections
 Example documents:
 \`\`\`
 ${c.examples.map((d) => prettyStringify(truncateDbOperationOutputForLlm(d)))}
-\`\`\``
+\`\`\``,
   )
   .join("\n\n")}`;
   }

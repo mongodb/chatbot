@@ -48,7 +48,7 @@ const parseCSV = async (filePath: string): Promise<QuizQuestionData[]> => {
     fs.writeFileSync(
       jsonFileOutPath,
       JSON.stringify(quizQuestions, null, 2),
-      "utf-8"
+      "utf-8",
     );
     console.log("Quiz questions written to ", jsonFileOutPath);
   } catch (error) {

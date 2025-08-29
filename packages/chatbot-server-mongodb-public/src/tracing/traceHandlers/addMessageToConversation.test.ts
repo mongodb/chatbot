@@ -6,17 +6,19 @@ import { generateObject } from "mongodb-rag-core/aiSdk";
 // Mock the AI SDK generateObject function
 jest.mock("mongodb-rag-core/aiSdk", () => ({
   ...jest.requireActual("mongodb-rag-core/aiSdk"),
-  generateObject: jest.fn().mockResolvedValue({ 
+  generateObject: jest.fn().mockResolvedValue({
     object: {
       topics: [],
       keywords: [],
       sentiment: "test",
-      relevance: 0.5
-    }
+      relevance: 0.5,
+    },
   }),
 }));
 
-const mockGenerateObject = generateObject as jest.MockedFunction<typeof generateObject>;
+const mockGenerateObject = generateObject as jest.MockedFunction<
+  typeof generateObject
+>;
 
 describe("makeAddMessageToConversationUpdateTrace", () => {
   const baseConversation: Conversation = {

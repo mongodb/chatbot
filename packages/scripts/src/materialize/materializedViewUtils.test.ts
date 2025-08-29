@@ -148,10 +148,10 @@ describe("Date utils", () => {
     it("allows you choose if the week starts on Sunday or Monday", () => {
       const date = new Date("2021-01-15T00:00:00Z");
       expect(startOfWeek(date, "sunday")).toEqual(
-        new Date("2021-01-10T00:00:00Z")
+        new Date("2021-01-10T00:00:00Z"),
       );
       expect(startOfWeek(date, "monday")).toEqual(
-        new Date("2021-01-11T00:00:00Z")
+        new Date("2021-01-11T00:00:00Z"),
       );
     });
   });

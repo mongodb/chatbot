@@ -200,7 +200,7 @@ describe("MongoDbPageStore", () => {
     });
 
     expect(sqlQueryPromise).rejects.toThrow(
-      "Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: SELECT * FROM pages WHERE url = 'matrix1'"
+      "Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: SELECT * FROM pages WHERE url = 'matrix1'",
     );
   });
 
@@ -216,7 +216,7 @@ describe("MongoDbPageStore", () => {
     });
 
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-pages"
+      "custom-pages",
     );
   });
 
@@ -256,7 +256,7 @@ describe("MongoDbPageStore", () => {
 
       const pages = await store.loadPages();
       const pagesMarkedDeleted = pages.filter(
-        ({ action }) => action === "deleted"
+        ({ action }) => action === "deleted",
       );
       expect(pagesMarkedDeleted.length).toBe(5);
     });
@@ -379,7 +379,7 @@ describe("MongoDbPageStore", () => {
         (page) => ({
           ...page,
           sourceName: `another-movie-source`,
-        })
+        }),
       );
       await store.updatePages(anotherMoviePagesWithVersion);
 

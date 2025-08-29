@@ -96,7 +96,7 @@ const UserMessageSchema = z.object({
         z.object({
           type: z.literal("input_text"),
           text: z.string(),
-        })
+        }),
       )
       .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_TEXT_ARRAY),
   ]),
@@ -112,7 +112,7 @@ const AssistantMessageSchema = z.object({
         z.object({
           type: z.literal("output_text"),
           text: z.string(),
-        })
+        }),
       )
       .length(1, CREATE_RESPONSE_ERR_MSG.INPUT_ASSISTANT_CONTENT_ARRAY),
   ]),
@@ -168,13 +168,13 @@ const CreateResponseRequestBodySchema = z.object({
           InputMessageSchema,
           FunctionCallSchema,
           FunctionCallOutputSchema,
-        ])
+        ]),
       )
       .nonempty(CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY)
       .max(MAX_INPUT_ARRAY_LENGTH, CREATE_RESPONSE_ERR_MSG.INPUT_ARRAY_LENGTH)
       .refine(
         (input) => JSON.stringify(input).length <= MAX_INPUT_LENGTH,
-        CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH
+        CREATE_RESPONSE_ERR_MSG.INPUT_LENGTH,
       ),
   ]),
   max_output_tokens: z.number().min(0).default(1000),
@@ -183,11 +183,11 @@ const CreateResponseRequestBodySchema = z.object({
     .optional()
     .refine(
       (metadata) => Object.keys(metadata ?? {}).length <= 16,
-      CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH
+      CREATE_RESPONSE_ERR_MSG.METADATA_LENGTH,
     )
     .refine(
       (metadata) => !metadata || !("conversation_id" in metadata),
-      CREATE_RESPONSE_ERR_MSG.METADATA_CONVERSATION_ID_NOT_ALLOWED
+      CREATE_RESPONSE_ERR_MSG.METADATA_CONVERSATION_ID_NOT_ALLOWED,
     ),
   previous_response_id: z
     .string()
@@ -231,14 +231,14 @@ const CreateResponseRequestBodySchema = z.object({
         parameters: z
           .record(z.string(), z.unknown())
           .describe(
-            "A JSON schema object describing the parameters of the function."
+            "A JSON schema object describing the parameters of the function.",
           ),
-      })
+      }),
     )
     .max(MAX_TOOLS, CREATE_RESPONSE_ERR_MSG.TOOLS_LENGTH)
     .refine(
       (tools) => JSON.stringify(tools).length <= MAX_TOOLS_CONTENT_LENGTH,
-      CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH
+      CREATE_RESPONSE_ERR_MSG.TOOLS_CONTENT_LENGTH,
     )
     .optional()
     .describe("Tools for the model to use."),
@@ -252,7 +252,7 @@ const CreateResponseRequestSchema = SomeExpressRequest.merge(
       "req-id": z.string(),
     }),
     body: CreateResponseRequestBodySchema,
-  })
+  }),
 );
 
 export type CreateResponseRequest = z.infer<typeof CreateResponseRequestSchema>;
@@ -325,8 +325,8 @@ export function makeCreateResponseRoute({
           error: new Error(
             CREATE_RESPONSE_ERR_MSG.MAX_OUTPUT_TOKENS(
               max_output_tokens,
-              maxOutputTokens
-            )
+              maxOutputTokens,
+            ),
           ),
           headers,
         });
@@ -358,20 +358,20 @@ export function makeCreateResponseRoute({
           input,
           store,
           alwaysAllowedMetadataKeys,
-          metadata
+          metadata,
         ).map(
           (msg) =>
             ({
               ...msg,
               id: new ObjectId(),
               createdAt: new Date(),
-            } satisfies Message)
+            }) satisfies Message,
         );
         // Exclude the last user message. It'll be used later as latestMessageText.
         const lastUserMessageIndex: number =
           tempMessages.findLastIndex(isUserMessage);
         const conversationMessages: Message[] = tempMessages.filter(
-          (_, index) => index !== lastUserMessageIndex
+          (_, index) => index !== lastUserMessageIndex,
         );
         conversation.messages.push(...conversationMessages);
       }
@@ -380,7 +380,7 @@ export function makeCreateResponseRoute({
       if (hasConversationUserIdChanged(conversation, user)) {
         throw makeBadRequestError({
           error: new Error(
-            CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED
+            CREATE_RESPONSE_ERR_MSG.CONVERSATION_USER_ID_CHANGED,
           ),
           headers,
         });
@@ -390,14 +390,14 @@ export function makeCreateResponseRoute({
       if (
         hasTooManyUserMessagesInConversation(
           conversation,
-          maxUserMessagesInConversation
+          maxUserMessagesInConversation,
         )
       ) {
         throw makeBadRequestError({
           error: new Error(
             CREATE_RESPONSE_ERR_MSG.TOO_MANY_MESSAGES(
-              maxUserMessagesInConversation
-            )
+              maxUserMessagesInConversation,
+            ),
           ),
           headers,
         });
@@ -590,7 +590,7 @@ const loadConversationByMessageId = async ({
 
 const convertToObjectId = (
   inputString: string,
-  headers: Record<string, string>
+  headers: Record<string, string>,
 ): ObjectId => {
   try {
     return new ObjectId(inputString);
@@ -605,18 +605,18 @@ const convertToObjectId = (
 // ideally this doesn't need to be exported once nothing else relies on it (addMessageToConversation for now)
 export const hasTooManyUserMessagesInConversation = (
   conversation: Conversation,
-  maxUserMessagesInConversation: number
+  maxUserMessagesInConversation: number,
 ): boolean => {
   const numUserMessages = conversation.messages.reduce(
     (acc, message) => (message.role === "user" ? acc + 1 : acc),
-    0
+    0,
   );
   return numUserMessages >= maxUserMessagesInConversation;
 };
 
 const hasConversationUserIdChanged = (
   conversation: Conversation,
-  userId?: string
+  userId?: string,
 ): boolean => {
   return conversation.userId !== userId;
 };
@@ -651,10 +651,10 @@ const saveMessagesToConversation = async ({
       input,
       store,
       alwaysAllowedMetadataKeys,
-      metadata
+      metadata,
     ),
     ...messages.map((message) =>
-      formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
+      formatMessage(message, store, alwaysAllowedMetadataKeys, metadata),
     ),
   ];
   // handle setting the response id for the last message
@@ -673,7 +673,7 @@ const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
   alwaysAllowedMetadataKeys: string[],
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
 ): MessagesParam => {
   if (typeof input === "string") {
     return [
@@ -681,7 +681,7 @@ const convertInputToDBMessages = (
         { role: "user", content: input },
         store,
         alwaysAllowedMetadataKeys,
-        metadata
+        metadata,
       ),
     ];
   }
@@ -694,7 +694,7 @@ const convertInputToDBMessages = (
         { role, content },
         store,
         alwaysAllowedMetadataKeys,
-        metadata
+        metadata,
       );
     }
     // handle function tool calls and outputs
@@ -706,7 +706,7 @@ const convertInputToDBMessages = (
       { role, name, content },
       store,
       alwaysAllowedMetadataKeys,
-      metadata
+      metadata,
     );
   });
 };
@@ -715,7 +715,7 @@ const formatMessage = (
   message: MessagesParam[number],
   store: boolean,
   alwaysAllowedMetadataKeys: string[],
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
 ): MessagesParam[number] => {
   // store a placeholder string if we're not storing message data
   const formattedContent = store ? message.content : "";
@@ -756,7 +756,7 @@ const formatMetadata = ({
     Object.entries(metadata).map(([key, value]) => [
       key,
       alwaysAllowedMetadataKeys.includes(key) ? value : "",
-    ])
+    ]),
   );
 };
 
@@ -801,7 +801,7 @@ const makeBaseResponseData = ({
 
 const convertInputToLatestMessageText = (
   input: CreateResponseRequest["body"]["input"],
-  headers: Record<string, string>
+  headers: Record<string, string>,
 ): string => {
   if (typeof input === "string") {
     return input;

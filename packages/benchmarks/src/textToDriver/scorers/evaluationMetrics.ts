@@ -97,7 +97,7 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
           ? computeNormalizedLogisticalExecutionTime(
               // casting b/c check above
               output.execution.executionTimeMs as number,
-              expected.executionTimeMs as number
+              expected.executionTimeMs as number,
             )
           : null,
     },
@@ -113,13 +113,13 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
 };
 
 export function makeQueryPerformanceMongosh(
-  connectionUri: string
+  connectionUri: string,
 ): TextToDriverEvalScorer {
   return async function QueryPerformance({ output, input }) {
     const { profile, error: profileError } = await profileMongoshQuery(
       output.generatedCode,
       input.databaseName,
-      connectionUri
+      connectionUri,
     );
 
     // Do not return scores if the query profiling failed
@@ -145,11 +145,11 @@ export function makeQueryPerformanceMongosh(
 }
 
 export const makeMongoshBenchmarkMetrics = (
-  connectionUri: string
+  connectionUri: string,
 ): TextToDriverEvalScorer => {
   const compoundScorer: TextToDriverEvalScorer = async (args) => {
     const successfulExecution = (await SuccessfulExecutionAndCorrectOutput(
-      args
+      args,
     )) as Score[];
     const reasonableOutput = (await ReasonableOutput(args)) as Score[];
 
@@ -163,7 +163,7 @@ export const makeMongoshBenchmarkMetrics = (
       })
     ) {
       const queryPerformance = (await makeQueryPerformanceMongosh(
-        connectionUri
+        connectionUri,
       )(args)) as Score;
       console.log(queryPerformance);
       allScores.push(queryPerformance);

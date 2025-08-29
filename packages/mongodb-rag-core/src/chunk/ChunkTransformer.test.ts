@@ -36,7 +36,7 @@ const page: Page = {
 
 describe("makeChunkFrontMatterUpdater", () => {
   const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
-    standardMetadataGetter
+    standardMetadataGetter,
   );
   it("should update front matter with new metadata", async () => {
     const updatedChunk = await standardChunkFrontMatterUpdater(chunk, { page });
@@ -46,7 +46,7 @@ describe("makeChunkFrontMatterUpdater", () => {
 
   it("should retain existing front matter if not overwritten", async () => {
     const chunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
-      standardMetadataGetter
+      standardMetadataGetter,
     );
     const updatedChunk = await chunkFrontMatterUpdater(chunk, { page });
 

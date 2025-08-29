@@ -7,5 +7,5 @@ import { Conversation, Message } from "mongodb-rag-core";
   with the user message or the system prompt and X prior messages.
  */
 export type FilterPreviousMessages = (
-  conversation: Conversation
+  conversation: Conversation,
 ) => Promise<Message[]>;

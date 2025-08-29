@@ -5,7 +5,7 @@ import { ScrubbedMessage } from "./ScrubbedMessage";
 export const DEFAULT_SCRUBBED_MESSAGES_COLLECTION_NAME = "scrubbed_messages";
 
 export function makeMongoDbScrubbedMessageStore<
-  SmAnalysis extends Record<string, unknown> | undefined = undefined
+  SmAnalysis extends Record<string, unknown> | undefined = undefined,
 >({
   db,
   collectionName = DEFAULT_SCRUBBED_MESSAGES_COLLECTION_NAME,

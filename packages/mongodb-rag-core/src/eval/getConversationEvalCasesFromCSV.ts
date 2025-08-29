@@ -4,7 +4,7 @@ import { ConversationEvalCase } from "./getConversationEvalCasesFromYaml";
 
 export const getConversationEvalCasesFromCSV = async (
   csvFilePath: string,
-  transform?: (records: ConversationEvalCase[]) => ConversationEvalCase[]
+  transform?: (records: ConversationEvalCase[]) => ConversationEvalCase[],
 ): Promise<ConversationEvalCase[]> => {
   const records = [];
   const parser = fs.createReadStream(csvFilePath).pipe(
@@ -12,7 +12,7 @@ export const getConversationEvalCasesFromCSV = async (
       columns: true, // Treat first line as header row
       skip_empty_lines: true, // Skip empty lines
       trim: true, // Trim whitespace from fields
-    })
+    }),
   );
   for await (const record of parser) {
     const {

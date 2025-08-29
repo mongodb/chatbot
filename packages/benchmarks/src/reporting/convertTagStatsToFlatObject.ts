@@ -5,7 +5,7 @@ import { TagStats } from "./aggregateScoresByTag";
   This makes it easier to export the data to formats like CSV.flat object where keys are formatted as "<tag>.<score>.<stat>"
  */
 export function convertTagStatsToFlatObject(
-  tagStats: TagStats
+  tagStats: TagStats,
 ): Record<string, Record<string, number | null>> {
   const result: Record<string, Record<string, number | null>> = {};
 

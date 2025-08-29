@@ -42,10 +42,10 @@ describe("makeGitHubDataSource", () => {
     expect(pages[0].format).toBe("txt");
     expect(pages[0].sourceName).toBe("python-TEST");
     expect(pages[0].body).toContain(
-      "# Minimal makefile for Sphinx documentation"
+      "# Minimal makefile for Sphinx documentation",
     );
     expect(pages[1].body).toContain(
-      "# Minimal makefile for Sphinx documentation"
+      "# Minimal makefile for Sphinx documentation",
     );
   });
   it("should use the `filter` option to filter out files", async () => {

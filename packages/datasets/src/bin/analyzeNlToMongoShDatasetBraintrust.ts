@@ -12,14 +12,14 @@ async function main() {
 
   const dataset = fs.readFileSync(
     path.resolve(dataOutDir, "atlas_sample_dataset_manual_review.json"),
-    "utf-8"
+    "utf-8",
   );
   const datasetObjs: DatabaseNlQueryDatasetEntryBraintrust[] =
     DatabaseNlQueryDatasetEntryBraintrustSchema.array().parse(
-      JSON.parse(dataset)
+      JSON.parse(dataset),
     );
   countAndLogUsage(
-    datasetObjs.map(convertBraintrustDatabaseNlQueryDatasetEntryToFlat)
+    datasetObjs.map(convertBraintrustDatabaseNlQueryDatasetEntryToFlat),
   );
 }
 main();

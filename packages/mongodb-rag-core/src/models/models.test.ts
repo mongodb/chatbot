@@ -2,7 +2,7 @@
   @description Quick test to make sure all the models are functional.
   Useful to test before executing benchmark runs to ensure all models are working.
  */
-import { assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "../assertEnvVars";
 import { BRAINTRUST_ENV_VARS } from "../CoreEnvVars";
 import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";

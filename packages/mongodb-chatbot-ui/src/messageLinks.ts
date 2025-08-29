@@ -16,7 +16,7 @@ export type FormatReferencesOptions = {
 
 export function formatReferences(
   references: References,
-  { tck, onReferenceClick }: FormatReferencesOptions = {}
+  { tck, onReferenceClick }: FormatReferencesOptions = {},
 ): RichLinkProps[] {
   return references.map((reference) => {
     const richLinkProps = {
@@ -42,7 +42,7 @@ export function getMessageLinks(
   options: {
     tck?: string;
     onReferenceClick?: (reference: Reference) => void;
-  } = {}
+  } = {},
 ): RichLinkProps[] | undefined {
   return messageData.references && messageData.references.length > 0
     ? formatReferences(messageData.references, {
@@ -68,7 +68,7 @@ export function makePrioritizeCurrentMongoDbReferenceDomain(): SortReferences {
     new URL("https://www.mongodb.com"),
   ];
   const applicableDomains = prioritizableDomains.filter((prioritizableDomain) =>
-    isReferenceToDomain(currentDomain, prioritizableDomain)
+    isReferenceToDomain(currentDomain, prioritizableDomain),
   );
   return makePrioritizeReferenceDomain(applicableDomains);
 }

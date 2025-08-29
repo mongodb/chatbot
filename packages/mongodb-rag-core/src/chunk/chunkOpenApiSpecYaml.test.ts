@@ -13,8 +13,8 @@ describe("chunkRedocOpenApiSpecYaml()", () => {
     const apiSpec = JSON.parse(
       fs.readFileSync(
         Path.resolve(SRC_ROOT, "../testData/openApiSpec.json"),
-        "utf-8"
-      )
+        "utf-8",
+      ),
     );
     const page: Page = {
       sourceName: "sample-source",

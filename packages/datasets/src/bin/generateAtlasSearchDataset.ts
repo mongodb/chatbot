@@ -97,7 +97,7 @@ async function generateAtlasSearchDataset({
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
 }: GenerateAtlasSearchDatasetParams) {
   console.log(
-    `Generating Atlas Search dataset for database ${dataset.databaseName}`
+    `Generating Atlas Search dataset for database ${dataset.databaseName}`,
   );
   const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
   if (!fs.existsSync(datasetOutDir)) {
@@ -106,7 +106,7 @@ async function generateAtlasSearchDataset({
   }
   const referenceAnswersOutputPath = path.resolve(
     datasetOutDir,
-    `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`
+    `referenceAnswers.atlas_search_dataset_${datasetUuid}.jsonl`,
   );
 
   const executeAtlasSearchQuery = makeExecuteEjsonAggregationQuery({
@@ -114,7 +114,7 @@ async function generateAtlasSearchDataset({
   });
 
   console.log(
-    `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`
+    `Writing data out to DB ${persistence.databaseName}.${persistence.collectionName}`,
   );
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
@@ -127,7 +127,7 @@ async function generateAtlasSearchDataset({
   });
   fs.writeFileSync(
     path.resolve(datasetOutDir, "databaseInfo.json"),
-    JSON.stringify(databaseInfoNode.data, null, 2)
+    JSON.stringify(databaseInfoNode.data, null, 2),
   );
 
   // Generate database users
@@ -135,15 +135,15 @@ async function generateAtlasSearchDataset({
   const userNodes = await generateDatabaseUsers(
     databaseInfoNode,
     llmConfigs.users.llmConfig,
-    llmConfigs.users.numGenerations
+    llmConfigs.users.numGenerations,
   );
   fs.writeFileSync(
     path.resolve(datasetOutDir, "userNodes.json"),
     JSON.stringify(
       userNodes.map((node) => node.data),
       null,
-      2
-    )
+      2,
+    ),
   );
 
   console.log(`Generated ${userNodes.length} database users`);
@@ -156,10 +156,10 @@ async function generateAtlasSearchDataset({
       const useCases = await generateDatabaseUseCases(
         userNode,
         llmConfigs.useCases.llmConfig,
-        llmConfigs.useCases.numGenerations
+        llmConfigs.useCases.numGenerations,
       );
       console.log(
-        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`
+        `Generated ${useCases.length} use cases for ${userNode.data.name}, ${userNode.data.role}`,
       );
       return useCases;
     });
@@ -167,7 +167,7 @@ async function generateAtlasSearchDataset({
   const sampleUseCases: Record<string, DatabaseUseCase[]> = {};
   for (const userUseCaseNodes of useCaseNodesByUser) {
     sampleUseCases[userUseCaseNodes[0].parent.data.name] = userUseCaseNodes.map(
-      (node) => node.data
+      (node) => node.data,
     );
   }
   const useCaseNodes = useCaseNodesByUser.flat();
@@ -175,16 +175,16 @@ async function generateAtlasSearchDataset({
 
   fs.writeFileSync(
     path.resolve(datasetOutDir, "useCaseNodes.json"),
-    JSON.stringify(sampleUseCases, null, 2)
+    JSON.stringify(sampleUseCases, null, 2),
   );
 
   console.log(
-    "Generating natural language queries for each use case (Atlas Search specific)..."
+    "Generating natural language queries for each use case (Atlas Search specific)...",
   );
 
   // Process use cases in parallel with limited concurrency - using Atlas Search specific generation
   const { results: nlQueryNodesByUseCase } = await PromisePool.withConcurrency(
-    llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY
+    llmConfigs.nlQueries.concurrency ?? DEFAULT_CONCURRENCY,
   )
     .for(useCaseNodes)
     .handleError((err) => {
@@ -194,11 +194,11 @@ async function generateAtlasSearchDataset({
       const nlQueries = await generateNaturalLanguageAtlasSearchQueries(
         useCaseNode,
         llmConfigs.nlQueries.llmConfig,
-        llmConfigs.nlQueries.numGenerations
+        llmConfigs.nlQueries.numGenerations,
       );
 
       console.log(
-        `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`
+        `Generated ${nlQueries.length} Atlas Search NL queries for use case: ${useCaseNode.data.title}`,
       );
 
       return nlQueries;
@@ -222,12 +222,12 @@ async function generateAtlasSearchDataset({
 
   fs.writeFileSync(
     path.resolve(datasetOutDir, "nlQueries.json"),
-    JSON.stringify(nlQueriesOut, null, 2)
+    JSON.stringify(nlQueriesOut, null, 2),
   );
 
   // Generate Atlas Search aggregation pipelines for the NL queries
   console.log(
-    "Generating Atlas Search aggregation pipelines for the NL queries..."
+    "Generating Atlas Search aggregation pipelines for the NL queries...",
   );
   const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(nlQueryNodes)
     .withConcurrency(llmConfigs.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
@@ -235,11 +235,11 @@ async function generateAtlasSearchDataset({
       const dbCodeNodes = await generateAtlasSearchCode(
         nlQueryNode,
         llmConfigs.dbQueries.llmConfig,
-        llmConfigs.dbQueries.numGenerations
+        llmConfigs.dbQueries.numGenerations,
       );
 
       console.log(
-        `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`
+        `Generated ${dbCodeNodes.length} Atlas Search queries for NL query: ${nlQueryNode.data.query}`,
       );
       return dbCodeNodes;
     });
@@ -249,12 +249,12 @@ async function generateAtlasSearchDataset({
   for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
     const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
       .withConcurrency(
-        llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY
+        llmConfigs.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY,
       )
       .process(async (dbCodeNode) => {
         console.log(`and NL query: ${dbCodeNode.parent?.data.query}`);
         console.log(
-          `Generating Atlas Search DB execution for ${dbCodeNode.data.code}`
+          `Generating Atlas Search DB execution for ${dbCodeNode.data.code}`,
         );
         const dbExecution = await generateDatabaseExecutionResult({
           database: {
@@ -274,19 +274,19 @@ async function generateAtlasSearchDataset({
           dbExecution.data.result.length > maxResultsArraySize
         ) {
           throw new Error(
-            `Result array is too large to process. Result array length: ${dbExecution.data.result.length}, maxResultsArraySize: ${maxResultsArraySize}`
+            `Result array is too large to process. Result array length: ${dbExecution.data.result.length}, maxResultsArraySize: ${maxResultsArraySize}`,
           );
         }
         if (dbExecution.data.error) {
           console.error(
-            `Error generating Atlas Search DB execution: ${dbExecution.data.error.message}`
+            `Error generating Atlas Search DB execution: ${dbExecution.data.error.message}`,
           );
         }
 
         console.log(
           `Generated Atlas Search DB execution: ${dbExecution.data.result
             ?.toString()
-            .slice(0, 20)} ...`
+            .slice(0, 20)} ...`,
         );
         const { success, reason } = isReasonableResult(dbExecution.data.result);
         if (!success) {
@@ -300,7 +300,7 @@ async function generateAtlasSearchDataset({
       // Find the most frequent and performant database execution result
       const { fastestMostFrequentIndex } =
         findMostFrequentAndPerformantDatabaseExecutionResult(
-          dbExecutions.map((node) => node.data)
+          dbExecutions.map((node) => node.data),
         );
       if (fastestMostFrequentIndex !== null) {
         const execution = dbExecutions[fastestMostFrequentIndex];
@@ -321,11 +321,11 @@ async function generateAtlasSearchDataset({
 
         if (dbExecution.data.isReferenceAnswer) {
           console.log(
-            `Writing entry for NL query: ${textToAtlasSearchDatasetEntry.nlQuery}`
+            `Writing entry for NL query: ${textToAtlasSearchDatasetEntry.nlQuery}`,
           );
           fs.appendFileSync(
             referenceAnswersOutputPath,
-            JSON.stringify(textToAtlasSearchDatasetEntry) + "\n"
+            JSON.stringify(textToAtlasSearchDatasetEntry) + "\n",
           );
         }
       }
@@ -335,16 +335,16 @@ async function generateAtlasSearchDataset({
   }
 
   const referenceAnswers = datasetEntries.filter(
-    (entry) => entry.isReferenceAnswer
+    (entry) => entry.isReferenceAnswer,
   );
 
   console.log(
-    `Found ${referenceAnswers} reference answers out of ${datasetEntries.length} entries.`
+    `Found ${referenceAnswers} reference answers out of ${datasetEntries.length} entries.`,
   );
 
   console.log("\n--------------------------------\n");
   console.log(
-    `Successfully completed Atlas Search dataset generation with ${referenceAnswers.length} entries!`
+    `Successfully completed Atlas Search dataset generation with ${referenceAnswers.length} entries!`,
   );
   console.log("Output file:");
   console.log(referenceAnswersOutputPath);
@@ -412,16 +412,16 @@ async function main() {
     "..",
     "..",
     "mongodb_datasets",
-    "atlas_search_dataset_index.jsonc"
+    "atlas_search_dataset_index.jsonc",
   );
   const atlasSearchIndexDefinition = fs.readFileSync(
     atlasSearchIndexDefinitionPath,
-    "utf8"
+    "utf8",
   );
   console.log(
     "Atlas Search Index Definition loaded:",
     atlasSearchIndexDefinition.slice(0, 50),
-    "..."
+    "...",
   );
   const collectionName = "articles";
 

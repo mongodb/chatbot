@@ -33,14 +33,14 @@ export function materializeExperimentResultsByCase<
     unknown,
     string[]
   >,
-  Case extends BaseCase
+  Case extends BaseCase,
 >(resultsByExperiment: ResultsByExperiment<ER>, type: ExperimentType): Case[] {
   // Create a map to group results by case ID
   const caseMap = new Map<string, Case>();
 
   // Process each experiment result
   for (const [experimentName, { results }] of Object.entries(
-    resultsByExperiment
+    resultsByExperiment,
   )) {
     // Process each case in the experiment
     switch (type) {
@@ -124,7 +124,7 @@ function createCases<
     EvalCase<unknown, unknown, unknown>,
     unknown,
     string[]
-  >
+  >,
 >(args: {
   caseMap: Map<string, Case>;
   results: ER[];
@@ -165,7 +165,7 @@ function createCases<
 function addScoresToCase<C extends BaseCase>(
   scores: NonNullable<Record<string, number | null>>,
   baseCase: C,
-  model: string
+  model: string,
 ) {
   // Store the scores for this model
   const metrics: Record<string, number> = {};

@@ -19,7 +19,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
     try {
       const seedDataFilePath = path.join(
         __dirname,
-        "testData/scrubbed_messages.json"
+        "testData/scrubbed_messages.json",
       );
       const rawSeedData = await fs.readFile(seedDataFilePath, "utf8");
       const seedData = BSON.EJSON.parse(rawSeedData);
@@ -141,7 +141,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           week: 32,
           dayOfWeek: 2,
         },
-      ])
+      ]),
     );
 
     const weeklyStats = await statsCollection
@@ -187,7 +187,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           year: 2024,
           week: 33,
         },
-      ])
+      ]),
     );
 
     const monthlyStats = await statsCollection
@@ -214,7 +214,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           year: 2024,
           month: 8,
         },
-      ])
+      ]),
     );
   }, 20000);
 
@@ -265,7 +265,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           year: 2024,
           month: 8,
         },
-      ])
+      ]),
     );
   }, 20000);
 
@@ -333,7 +333,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           week: 32,
           dayOfWeek: 2,
         },
-      ])
+      ]),
     );
 
     const weeklyStats = await statsCollection
@@ -379,7 +379,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           year: 2024,
           week: 33,
         },
-      ])
+      ]),
     );
 
     const monthlyStats = await statsCollection
@@ -406,7 +406,7 @@ describe("Create a materialized view of scrubbed message stats", () => {
           year: 2024,
           month: 8,
         },
-      ])
+      ]),
     );
   });
 });

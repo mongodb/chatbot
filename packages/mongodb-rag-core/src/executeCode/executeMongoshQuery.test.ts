@@ -84,7 +84,7 @@ describe.skip("executeMqlQuery", () => {
     });
 
     expect(
-      (res.result as { name: string }[]).find((u) => u.name === "John")
+      (res.result as { name: string }[]).find((u) => u.name === "John"),
     ).toBeTruthy();
     expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
     expect(res.error).toBeUndefined();

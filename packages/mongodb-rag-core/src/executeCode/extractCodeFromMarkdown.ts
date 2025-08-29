@@ -7,7 +7,7 @@ export function extractCodeFromMarkdown(maybeMarkdown: string) {
     const codeBlocks = maybeMarkdown.match(/```[\w]*\n([\s\S]*?)```/g) || [];
     return codeBlocks
       .map((block) =>
-        block.replaceAll(/```[\w]*\n([\s\S]*?)```/gs, "$1").trim()
+        block.replaceAll(/```[\w]*\n([\s\S]*?)```/gs, "$1").trim(),
       )
       .join("\n\n");
   }

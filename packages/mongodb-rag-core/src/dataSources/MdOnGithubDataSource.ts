@@ -14,7 +14,7 @@ export type MakeMdOnGithubDataSourceParams<SourceType extends string = string> =
     */
     pathToPageUrl: (
       pathInRepo: string,
-      frontMatter?: Record<string, unknown>
+      frontMatter?: Record<string, unknown>,
     ) => string;
 
     filter?: MakeGitHubDataSourceArgs["filter"];
@@ -58,7 +58,7 @@ export type MakeMdOnGithubDataSourceParams<SourceType extends string = string> =
     */
     extractMetadata?: (
       pageContent: string,
-      frontMatter?: Record<string, unknown>
+      frontMatter?: Record<string, unknown>,
     ) => PageMetadata;
 
     /**
@@ -67,7 +67,7 @@ export type MakeMdOnGithubDataSourceParams<SourceType extends string = string> =
     */
     extractTitle?: (
       pageContent: string,
-      frontMatter?: Record<string, unknown>
+      frontMatter?: Record<string, unknown>,
     ) => string | undefined;
   };
 
@@ -75,7 +75,7 @@ export type MakeMdOnGithubDataSourceParams<SourceType extends string = string> =
   Loads an .md/.mdx docs site from a GitHub repo.
  */
 export const makeMdOnGithubDataSource = async <
-  SourceType extends string = string
+  SourceType extends string = string,
 >({
   name,
   repoUrl,
@@ -108,7 +108,7 @@ export const makeMdOnGithubDataSource = async <
         const extracted = extractFrontMatter(
           document.pageContent,
           frontMatter.format,
-          frontMatter.separator
+          frontMatter.separator,
         );
         frontMatterMetadata = extracted.metadata;
         body = extracted.body;
@@ -123,8 +123,8 @@ export const makeMdOnGithubDataSource = async <
       } catch (err) {
         console.error(
           `The following error occurred when extracting  metadata from the page '${source}: ${JSON.stringify(
-            err
-          )}'`
+            err,
+          )}'`,
         );
       }
 

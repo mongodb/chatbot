@@ -10,7 +10,7 @@ export interface ExecuteMongoDbQueryParams {
 }
 
 export type ExecuteMongoDbQuery = (
-  params: ExecuteMongoDbQueryParams
+  params: ExecuteMongoDbQueryParams,
 ) => Promise<DatabaseExecutionResult>;
 
 export interface DatabaseExecutionResult {

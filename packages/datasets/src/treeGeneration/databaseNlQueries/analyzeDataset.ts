@@ -13,7 +13,7 @@ export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   console.log("DB entry count:", dbEntryCount);
   console.log(
     "DB entry percentages:",
-    calculatePercentages(dbEntryCount, entries.length)
+    calculatePercentages(dbEntryCount, entries.length),
   );
 
   console.log("Queries by complexities:");
@@ -21,14 +21,14 @@ export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   console.log("Complexity count:", complexityCount);
   console.log(
     "Complexity percentages:",
-    calculatePercentages(complexityCount, entries.length)
+    calculatePercentages(complexityCount, entries.length),
   );
 
   const methodCounts = countUsage(entries, "methods");
   console.log("Method counts:", methodCounts);
   console.log(
     "Method percentages:",
-    calculatePercentages(methodCounts, entries.length)
+    calculatePercentages(methodCounts, entries.length),
   );
 
   // Count and log query operators usage
@@ -37,36 +37,36 @@ export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   console.log("Query operator counts:", operatorCounts);
   const operatorPercentages = calculatePercentages(
     operatorCounts,
-    entries.length
+    entries.length,
   );
   console.log("Query operator percentages:", operatorPercentages);
 
   // Check if the operator frequencies are within bounds
   const operatorFrequency = checkOperatorFrequency(operatorPercentages);
   const operatorFrequencyEntries = Object.entries(operatorFrequency).map(
-    ([operator, freq]) => ({ operator, ...freq })
+    ([operator, freq]) => ({ operator, ...freq }),
   );
   console.log("Operators below minimum:");
   console.table(
-    operatorFrequencyEntries.filter((v) => v.label === "below_minimum")
+    operatorFrequencyEntries.filter((v) => v.label === "below_minimum"),
   );
   console.log("Operators above maximum:");
   console.table(
-    operatorFrequencyEntries.filter((v) => v.label === "above_maximum")
+    operatorFrequencyEntries.filter((v) => v.label === "above_maximum"),
   );
   console.log("Operators within bounds:");
   console.table(
-    operatorFrequencyEntries.filter((v) => v.label === "within_bounds")
+    operatorFrequencyEntries.filter((v) => v.label === "within_bounds"),
   );
   console.log("Operators not specified:");
   console.table(
-    operatorFrequencyEntries.filter((v) => v.label === "not_specified")
+    operatorFrequencyEntries.filter((v) => v.label === "not_specified"),
   );
 }
 
 export function countStringProperty<
   T extends Record<K, string>,
-  K extends string
+  K extends string,
 >(entries: T[], property: K): Record<string, number> {
   const counts: Record<string, number> = {};
 
@@ -83,7 +83,7 @@ export function countStringProperty<
 
 export function countUsage(
   entries: DatabaseNlQueryDatasetEntry[],
-  property: "methods" | "queryOperators"
+  property: "methods" | "queryOperators",
 ): Record<string, number> {
   const counts: Record<string, number> = {};
 
@@ -103,7 +103,7 @@ export function countUsage(
 export function checkOperatorFrequency(
   operatorPercentages: Record<string, number>,
   operatorsByFrequency = operators,
-  representationInDataset = representationInDatasetByCommonality
+  representationInDataset = representationInDatasetByCommonality,
 ) {
   const operatorsBoundCheck: Record<
     string,
@@ -172,7 +172,7 @@ export function checkOperatorFrequency(
 
 export function calculatePercentages(
   counts: Record<string, number>,
-  totalQueries: number
+  totalQueries: number,
 ): Record<string, number> {
   const percentages: Record<string, number> = {};
 

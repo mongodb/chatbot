@@ -2,11 +2,25 @@ import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 import { QuizQuestionData, QuizQuestionDataSchema } from "../QuizQuestionData";
-import { makeTags } from "./makeTags";
 
 const testDataPath = path.resolve(__dirname, "..", "..", "..", "testData");
 const csvFileInPath = path.resolve(testDataPath, "badge-questions.csv");
 const jsonFileOutPath = path.resolve(testDataPath, "badge-questions.json");
+
+const handleAnswers = (row: any) => {
+  const correctAnswers = row.Answer.trim()?.split("") || [];
+  const answers = ["A", "B", "C", "D", "E", "F"]
+    .map((label) => {
+      const isCorrect = correctAnswers.includes(label);
+      return {
+        answer: row[label],
+        isCorrect,
+        label,
+      };
+    })
+    .filter((answer) => answer.answer && answer.answer.trim() !== ""); // Remove empty answers
+  return answers;
+};
 
 const parseCSV = async (filePath: string): Promise<QuizQuestionData[]> => {
   return new Promise((resolve, reject) => {
@@ -15,22 +29,16 @@ const parseCSV = async (filePath: string): Promise<QuizQuestionData[]> => {
       .pipe(csv())
       .on("data", (row) => {
         try {
-          const answers = ["A", "B", "C", "D"].map((label, index) => ({
-            answer: row[label],
-            isCorrect: row.Answer === (index + 1).toString(),
-            label,
-          }));
-
+          const answers = handleAnswers(row);
           const questionData: QuizQuestionData = QuizQuestionDataSchema.parse({
             questionText: row["Question Text"],
             title: row["Assessment"],
             topicType: "badge", // Defaulting topic type
-            questionType: "singleCorrect", // Assuming single correct answer
+            questionType:
+              row["Answer"].length > 1 ? "multipleCorrect" : "singleCorrect",
             answers,
-            explanation: row["Reference"],
             tags: row["tags"] ? row["tags"].split(",") : [],
           });
-          questionData.tags = makeTags(questionData);
           results.push(questionData);
         } catch (error) {
           console.error("Validation error:", error);

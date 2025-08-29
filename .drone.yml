@@ -24,7 +24,7 @@ trigger:
 
 steps:
   - name: test
-    image: node:18
+    image: node:22
     commands:
       - npm ci
       - npm run build

@@ -31,6 +31,7 @@
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
     "mercury:createFuzzyPrompts": "npm run build && node ./build/mercury/createFuzzyPrompts.js",
     "mercury:evaluateLlms": "npm run build && node ./build/mercury/evaluateLlms.js",
+    "mercury:mapProfoundPromptIds": "npm run build && node ./build/mercury/mapProfoundPromptIds.js",
     "mercury:getLLMAnswers": "npm run getLLMAnswers",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",

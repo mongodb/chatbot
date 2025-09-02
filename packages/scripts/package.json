@@ -31,7 +31,7 @@
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
     "mercury:createFuzzyPrompts": "npm run build && node ./build/mercury/createFuzzyPrompts.js",
     "mercury:evaluateLlms": "npm run build && node ./build/mercury/evaluateLlms.js",
-    "mercury:mapProfoundPromptIds": "npm run build && node ./build/mercury/mapProfoundPromptIds.js",
+    "mercury:mapProfoundPromptIds": "npm run build && node ./build/profound/mapProfoundPromptIds.js",
     "mercury:getLLMAnswers": "npm run getLLMAnswers",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
@@ -56,11 +56,8 @@
     "csv": "^6.4.1",
     "dotenv": "^16.3.1",
     "mercury-case-analysis": "*",
-<<<<<<< HEAD
     "googleapis": "^150.0.1",
-=======
     "mingo": "^6.6.1",
->>>>>>> e2d4d78a (Mercury pipeline updates)
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "yaml": "^2.3.4",

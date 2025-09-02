@@ -312,8 +312,10 @@ const makeGenerateResponseWithToolsArgs = () =>
     languageModel: makeMockLanguageModel(),
     llmNotWorkingMessage: mockLlmNotWorkingMessage,
     llmRefusalMessage: mockLlmRefusalMessage,
-    searchTool: mockSearchTool,
-    fetchPageTool: mockFetchPageTool,
+    internalTools: {
+      [SEARCH_TOOL_NAME]: mockSearchTool,
+      [FETCH_PAGE_TOOL_NAME]: mockFetchPageTool,
+    },
     maxSteps: 5,
     stream: mockStreamConfig,
     makeSystemPrompt: () => {
@@ -394,7 +396,10 @@ describe("generateResponseWithTools", () => {
       const userMessage = result.messages.find(
         (message) => message.role === "user"
       ) as UserMessage;
-      expect(userMessage.customData).toMatchObject(searchToolMockArgs);
+      expect(userMessage.customData).toMatchObject({
+        search_content: searchToolMockArgs,
+        fetch_page: fetchPageToolMockArgs,
+      });
     });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
@@ -743,7 +748,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect(result.messages[0]).toMatchObject({
     role: "user",
     content: latestMessageText,
-    customData: expect.objectContaining(searchToolMockArgs),
+    customData: expect.objectContaining({ search_content: searchToolMockArgs }),
   });
 
   expect(result.messages[1]).toMatchObject({

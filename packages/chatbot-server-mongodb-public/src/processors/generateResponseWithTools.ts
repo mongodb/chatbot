@@ -39,11 +39,8 @@ import {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
-import { MongoDbSearchToolArgs, SEARCH_TOOL_NAME } from "../tools/search";
-import {
-  FETCH_PAGE_TOOL_NAME,
-  MongoDbFetchPageToolArgs,
-} from "../tools/fetchPage";
+import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
+import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
@@ -67,6 +64,8 @@ export interface GenerateResponseWithToolsParams {
   additionalTools?: ToolSet;
   maxSteps: number;
   internalTools: {
+    [SEARCH_TOOL_NAME]: SearchTool;
+    [FETCH_PAGE_TOOL_NAME]: FetchPageTool;
     [name: string]: Tool;
   };
   // searchTool: SearchTool;
@@ -418,12 +417,6 @@ export function makeGenerateResponseWithTools({
         : undefined;
 
       const references: References = [];
-      // TODO remove userMessageCustomData
-      // Both search_content and fetch_page tools have an input search query
-      const userMessageCustomData: {
-        [SEARCH_TOOL_NAME]?: Partial<MongoDbSearchToolArgs>;
-        [FETCH_PAGE_TOOL_NAME]?: Partial<MongoDbFetchPageToolArgs>;
-      } = {};
 
       // Create an AbortController for the generation
       const generationController = new AbortController();
@@ -636,7 +629,6 @@ export function makeGenerateResponseWithTools({
             },
           ],
           reqId,
-          userMessageCustomData,
         });
       }
 
@@ -653,7 +645,6 @@ export function makeGenerateResponseWithTools({
           messages,
           references,
           reqId,
-          userMessageCustomData,
         });
       } else {
         // Fallback in case no messages were returned
@@ -668,7 +659,6 @@ export function makeGenerateResponseWithTools({
           ],
           reqId,
           references,
-          userMessageCustomData,
         });
       }
     } catch (error: unknown) {
@@ -703,14 +693,12 @@ function handleReturnGeneration({
   messages,
   references,
   reqId,
-  userMessageCustomData,
 }: {
   userMessage: UserMessage;
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
   reqId: string;
-  userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
   userMessage.metadata = userMessage.metadata ?? {};
@@ -721,7 +709,6 @@ function handleReturnGeneration({
   userMessage.customData = {
     ...userMessage.customData,
     ...toolCallCustomData,
-    ...userMessageCustomData,
     ...guardrailResult,
   };
 

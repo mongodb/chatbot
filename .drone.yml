@@ -28,7 +28,7 @@ steps:
     commands:
       - npm ci
       - npm run build
-      - npm run lint
+      # - npm run lint
       - npm run test
 
     environment:

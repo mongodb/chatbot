@@ -68,8 +68,6 @@ export interface GenerateResponseWithToolsParams {
     [FETCH_PAGE_TOOL_NAME]: FetchPageTool;
     [name: string]: Tool;
   };
-  // searchTool: SearchTool;
-  // fetchPageTool: FetchPageTool;
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
@@ -792,6 +790,27 @@ function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
   });
 }
 
+function collectToolCallData({
+  toolName,
+  toolArgs,
+  customData,
+}: {
+  toolName: string;
+  toolArgs: unknown;
+  customData: Record<string, unknown>;
+}) {
+  if (toolName === FETCH_PAGE_TOOL_NAME) {
+    // Store fetch_page tool calls as an array
+    if (!(toolName in customData)) {
+      customData[toolName] = [];
+    }
+    (customData[toolName] as unknown[]).push(toolArgs);
+  } else if (toolName === SEARCH_TOOL_NAME) {
+    // search_content stored as single object (last call wins if multiple)
+    customData[toolName] = toolArgs;
+  }
+}
+
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   reqId: string,
@@ -805,14 +824,17 @@ function formatMessageForReturnGeneration(
   messages.forEach((m) => {
     if (m.role === "assistant") {
       const newAssistantMessages = makeAssitantMessage(reqId, m);
-      messagesOut.push(...newAssistantMessages);
+      newAssistantMessages.forEach((assistantMsg) => {
+        messagesOut.push(assistantMsg);
 
-      // For now, only capture custom data from the first message if it has a tool call
-      if (newAssistantMessages[0].toolCall) {
-        toolCallCustomData[newAssistantMessages[0].toolCall.function.name] = {
-          ...JSON.parse(newAssistantMessages[0].toolCall.function.arguments),
-        };
-      }
+        if (assistantMsg.toolCall) {
+          collectToolCallData({
+            toolName: assistantMsg.toolCall.function.name,
+            toolArgs: JSON.parse(assistantMsg.toolCall.function.arguments),
+            customData: toolCallCustomData,
+          });
+        }
+      });
     } else if (m.role === "tool") {
       messagesOut.push(...makeToolMessage(m));
     }

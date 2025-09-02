@@ -398,7 +398,7 @@ describe("generateResponseWithTools", () => {
       ) as UserMessage;
       expect(userMessage.customData).toMatchObject({
         search_content: searchToolMockArgs,
-        fetch_page: fetchPageToolMockArgs,
+        fetch_page: [fetchPageToolMockArgs],
       });
     });
     describe("non-streaming", () => {
@@ -850,6 +850,10 @@ function expectSuccessfulParallelToolCallResult(
     role: "user",
     content: latestMessageText,
   });
+  expect(result.messages[0].customData?.fetch_page).toEqual([
+    fetchPageToolMockArgs,
+    { query: fetchPageToolMockArgs.query, pageUrl: "https://example2.com/" },
+  ]);
 
   expect(result.messages[1]).toMatchObject({
     role: "assistant",

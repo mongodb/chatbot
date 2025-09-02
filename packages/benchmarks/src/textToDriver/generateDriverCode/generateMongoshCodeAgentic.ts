@@ -8,7 +8,7 @@ import { z } from "zod";
 import {
   DatabaseExecutionResult,
   DatabaseInfo,
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   isReasonableResult,
   LlmOptions,
   truncateDbOperationOutputForLlm,
@@ -67,6 +67,11 @@ export function makeGenerateMongoshCodeAgenticTask({
     ) {
       let latestExecution: DatabaseExecutionResult | null = null;
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
+
+      const executeMongoshQuery = makeExecuteMongoshQuery({
+        uri,
+        execOptions: {},
+      });
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
@@ -98,7 +103,6 @@ export function makeGenerateMongoshCodeAgenticTask({
               const execution = await executeMongoshQuery({
                 databaseName: databaseName,
                 query: args.code,
-                uri,
               });
               latestExecution = execution;
               latestCode = args.code;

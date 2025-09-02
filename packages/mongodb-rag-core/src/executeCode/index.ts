@@ -2,6 +2,7 @@ export * from "./computeNormalizedLogisticalExecutionTime";
 export * from "./computeNormalizedLogarithmicQueryEfficiency";
 export * from "./DatabaseExecutionResult";
 export * from "./databaseMetadata";
+export * from "./executeEjsonAggregation";
 export * from "./executeNodeJsDriverCode";
 export * from "./executeMongoshQuery";
 export * from "./extractCodeFromMarkdown";

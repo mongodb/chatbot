@@ -32,8 +32,8 @@ describe("validateRequestSchema", () => {
     req.body = { message: "Hello, world!" };
     req.params = { conversationId: "conversation-1234" };
     req.query = { stream: "true" };
-    req.headers = { "req-id": "request-1234" };
-    req.ip = "127.0.0.1";
+    (req.headers as any) = { "req-id": "request-1234" };
+    (req.ip as any) = "127.0.0.1";
 
     await middleware(req, res, next);
     expect(next).toHaveBeenCalledTimes(1);

@@ -6,7 +6,7 @@ import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
 import { getOpenAiFunctionResponse } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { useCaseNodes } from "./sampleData";
+import { useCaseNodes } from "./sampleData/mql";
 import { z } from "zod";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =

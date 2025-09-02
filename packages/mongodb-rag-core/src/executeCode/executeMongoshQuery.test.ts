@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
-import { executeMongoshQuery } from "./executeMongoshQuery";
+import { makeExecuteMongoshQuery } from "./executeMongoshQuery";
 
 jest.setTimeout(1000 * 60);
 
@@ -31,11 +31,14 @@ describe.skip("executeMqlQuery", () => {
     await collection.drop();
   });
 
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: MONGO_MEMORY_SERVER_URI,
+    execOptions: {},
+  });
   it("should execute a mongosh .find() query and return results", async () => {
     // Execute the function
     const res = await executeMongoshQuery({
       query: "db.users.find({ age: { $gt: 25 } })",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -47,9 +50,9 @@ describe.skip("executeMqlQuery", () => {
 
   it("should execute a mongosh .aggregate() query and return results", async () => {
     // Execute the function with a simple aggregation pipeline
+
     const res = await executeMongoshQuery({
       query: "db.users.aggregate([{ $match: { age: { $gt: 25 } } }])",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -65,7 +68,6 @@ describe.skip("executeMqlQuery", () => {
     // Execute the function with a count query
     const res = await executeMongoshQuery({
       query: "db.users.countDocuments({ age: { $gt: 25 } })",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -78,7 +80,6 @@ describe.skip("executeMqlQuery", () => {
     const singleQuoteInQuery = "db.users.find({ name: 'John' })";
     const res = await executeMongoshQuery({
       query: singleQuoteInQuery,
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -92,10 +93,9 @@ describe.skip("executeMqlQuery", () => {
   it("should not postfix .toArray() if already present", async () => {
     // Test the appendToArrayIfNeeded function directly
     const queryWithToArray = "db.users.find().toArray()";
-
     const res = await executeMongoshQuery({
       query: queryWithToArray,
-      uri: MONGO_MEMORY_SERVER_URI,
+
       databaseName: databaseName,
     });
 
@@ -108,7 +108,6 @@ describe.skip("executeMqlQuery", () => {
     const res = await executeMongoshQuery({
       query: `db.${collectionName}.find({ age: { $gt: 25 } }).explain('executionStats')`,
       databaseName,
-      uri: MONGO_MEMORY_SERVER_URI,
     });
 
     // Verify the result is an explain output object, not an array
@@ -124,7 +123,6 @@ describe.skip("executeMqlQuery", () => {
     // Execute the function with a query that has a semicolon
     const res = await executeMongoshQuery({
       query: "db.users.findOne({ age: 30 });",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -139,7 +137,6 @@ describe.skip("executeMqlQuery", () => {
     // Execute the function with an invalid query
     const res = await executeMongoshQuery({
       query: "db.nonexistentCollection.notAMongoMethod()",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: "nonexistent_db",
     });
 
@@ -153,7 +150,6 @@ describe.skip("executeMqlQuery", () => {
     // Execute the function with a query that returns a non-JSON result
     const res = await executeMongoshQuery({
       query: "print('Line 1'); print('Line 2')",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 
@@ -167,7 +163,6 @@ describe.skip("executeMqlQuery", () => {
     // Execute the function with a query that produces stderr output
     const res = await executeMongoshQuery({
       query: "console.error('Error message'); db.users.findOne();",
-      uri: MONGO_MEMORY_SERVER_URI,
       databaseName: databaseName,
     });
 

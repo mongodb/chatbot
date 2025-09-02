@@ -11,7 +11,8 @@ export const loadConfig = async ({
   config: configPathIn,
 }: LoadConfigArgs): Promise<Config> => {
   const path = Path.resolve(
-    configPathIn === undefined ? "build/standardConfig.js" : configPathIn
+    configPathIn ?? Path.join(__dirname, "../build/standardConfig.js")
+    // configPathIn ?? "build/standardConfig.js"
   );
 
   const maybePartialConfig = (await import(path)).default;
@@ -131,7 +132,7 @@ const resolveConfig = async (
 };
 
 const resolve = async <T>(v: T): Promise<Constructed<T>> =>
-  typeof v === "function" ? v() : v;
+  typeof v === "function" ? v() : (v as Constructed<T>);
 
 /**
   Asserts that the given property is defined in the given object and returns

@@ -6,43 +6,38 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
-import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import {
+  BraintrustMiddleware,
+  SupportGeminiThroughBraintrustProxy,
+} from "mongodb-rag-core/braintrust";
+import {
+  createOpenAI,
+  experimental_createMCPClient,
+  wrapLanguageModel,
+} from "mongodb-rag-core/aiSdk";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
-import { atlasSearchPrompt } from "./generateDriverCode/languagePrompts/atlasSearch";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import {
+  ATLAS_SEARCH_AGENT_MAX_STEPS,
+  atlasSearchAgentPrompt,
+} from "./generateDriverCode/languagePrompts/atlasSearch";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";
 import {
   makeNdcgAtK,
   NonEmptyArrayOutput,
   SearchOperatorUsed,
 } from "./scorers/atlasSearch";
-import { MatchFunc } from "mongodb-rag-core/eval";
+import { BRAINTRUST_ENV_VARS } from "./TextToDriverEnvVars";
+import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-export const NL_TO_MONGOSH_PROJECT_NAME = "natural-language-to-atlas-search";
+export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
+  "natural-language-to-atlas-search";
 
-const NL_TO_MONGOSH_DATASET_NAME = "TODO: add";
+const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-gpt-5";
 
 let mongoClient: MongoClient;
-let httpMcpServerConnectionUrl: URL;
-
-interface MatchableDocument {
-  _id: string | ObjectId | number;
-}
-const ndcgMatchFunc: MatchFunc<MatchableDocument> = (
-  a: MatchableDocument,
-  b: MatchableDocument
-) => {
-  // Can't just use === for ObjectId because it's a class
-  if (ObjectId.isValid(a._id) && ObjectId.isValid(b._id)) {
-    return a._id.toString() === b._id.toString();
-  }
-  // Otherwise, it's a number or string, and we can use ===
-  if (a._id === b._id) {
-    return true;
-  }
-  return false;
-};
+let mcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -50,61 +45,46 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverExpected,
   TextToDriverMetadata
 > = {
-  projectName: NL_TO_MONGOSH_PROJECT_NAME,
+  projectName: NL_TO_ATLAS_SEARCH_PROJECT_NAME,
   datasets: {
     simple_english_wikipedia: {
       description:
         "Synthetically generated NL2AtlasSearch queries over the Simple English Wikpedia dataset",
       async getDataset() {
-        // TODO: bring back once the dataset is ready
-        // const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);
-        // return await loadTextToDriverBraintrustEvalCases({
-        //   apiKey: BRAINTRUST_API_KEY,
-        //   projectName: NL_TO_MONGOSH_PROJECT_NAME,
-        //   datasetName: NL_TO_MONGOSH_DATASET_NAME,
-        // });
-        return [
-          {
-            input: {
-              databaseName: "wikipedia_dataset",
-              // NOTE: This was the cursor autocomplete, which i find funny
-              nlQuery: "Retrieve the page titles of articles about Cheryl Cole",
-            },
-            expected: {
-              dbQuery: "",
-              result: [],
-            },
-            metadata: {
-              language: "mongodb-mcp",
-            },
-            tags: ["atlas_search"],
-          },
-        ];
+        const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);
+        return await loadTextToDriverBraintrustEvalCases({
+          apiKey: BRAINTRUST_API_KEY,
+          projectName: NL_TO_ATLAS_SEARCH_PROJECT_NAME,
+          datasetName: NL_TO_ATLAS_SEARCH_DATASET_NAME,
+        });
       },
     },
   },
   environment: {
     beforeAll: async () => {
-      /*
-      TODO: setup MCP server in before/afterAll
-      when the npm package supports this pattern
-      In the meantime, we'll have to set it up manually with the command:
-      ```
-      npx -y mongodb-mcp-server@latest \
-      --transport http --httpHost=0.0.0.0 --httpPort=8080
-      \ --connectionString <path-to-mongodb-connection-uri>
-      ```
-      */
-      httpMcpServerConnectionUrl = new URL("http://localhost:8080");
-      // TODO: add the MCP server connection URL to the env vars
       const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
         MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
+      });
+      mcpClient = await experimental_createMCPClient({
+        transport: new StdioClientTransport({
+          command: "npx",
+          args: [
+            "-y",
+            "mongodb-mcp-server@latest",
+            "--connectionString",
+            MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
+          ],
+        }),
+        name: "mongodb-mcp-server",
       });
       mongoClient = new MongoClient(MONGODB_TEXT_TO_DRIVER_CONNECTION_URI);
       await mongoClient.connect();
     },
     afterAll: async () => {
       await mongoClient.close();
+      console.log("Closed MongoDB client");
+      await mcpClient.close();
+      console.log("Closed MCP client");
     },
   },
   tasks: {
@@ -116,12 +96,17 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
             model: createOpenAI({
               apiKey: provider.apiKey,
               baseURL: provider.baseUrl,
-            }).languageModel(modelConfig.deployment),
-            middleware: [BraintrustMiddleware({ debug: true })],
+            }).chat(modelConfig.deployment),
+
+            middleware: [
+              BraintrustMiddleware({ debug: true }),
+              SupportGeminiThroughBraintrustProxy,
+            ],
           }),
-          systemPrompt: atlasSearchPrompt,
+          systemPrompt: atlasSearchAgentPrompt,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
-          httpMcpServerConnectionUrl,
+          mongoDbMcpClient: mcpClient,
         });
       },
     },
@@ -142,7 +127,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
     },
     ndcg_at_10: {
       description: "NDCG@10 score",
-      scorerFunc: makeNdcgAtK({ k: 10, matchFunc: ndcgMatchFunc }),
+      scorerFunc: makeNdcgAtK({ k: 10 }),
     },
   },
   description: "Natural language to Atlas Search code generation",

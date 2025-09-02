@@ -31,8 +31,8 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
-    req.ip = baseReq.ip;
+    (req.headers as any) = baseReq.headers;
+    (req.ip as any) = baseReq.ip;
 
     await middleware(req, res, next);
 
@@ -51,11 +51,11 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
       origin: "http://localhost:5173",
     });
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     await middleware(req, res, next);
 
@@ -71,11 +71,11 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
       "X-Request-Origin": "http://localhost:5173/foo/bar",
     });
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     await middleware(req, res, next);
 
@@ -93,12 +93,12 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = {
+    (req.headers as any) = {
       ...baseReq.headers,
       origin: "http://localhost:5173",
       "x-request-origin": "http://localhost:5173/foo/bar",
     };
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     await middleware(req, res, next);
 

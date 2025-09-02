@@ -45,7 +45,7 @@ describe("prettyPrintMongoDbDocument", () => {
       _id: new ObjectId("507f1f77bcf86cd799439011"),
       date: date,
       decimal: new BSON.Decimal128("123.456"),
-      binary: new BSON.Binary(Buffer.from("test")),
+      binary: new BSON.Binary(new Uint8Array(Buffer.from("test"))),
     };
 
     // Act

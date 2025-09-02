@@ -77,6 +77,10 @@ export interface ModelConfig {
 
   1. The hyperscalers are authorized (AWS, GCP, Azure)
   2. Assume all other model providers are unauthorized unless you explicitly know otherwise.
+
+  Available models can be found at https://www.braintrust.dev/docs/guides/proxy#list-of-supported-models-and-providers
+  Select Azure, Vertex, Amazon Bedrock, Anthropic. Choose Amazon Bedrock over Anthropic when possible.
+
  */
 const allModels = [
   {
@@ -168,17 +172,34 @@ const allModels = [
     generation: "gpt-4.1",
   },
   {
-    label: "gpt-35-turbo-16k",
-    deployment: "gpt-35-turbo-16k",
+    label: "gpt-5",
+    deployment: "gpt-5",
     developer: "OpenAI",
-    maxConcurrency: 1,
     provider: "braintrust",
-    metadata: {
-      rateLimitTpm: 70000,
-      modelVersion: "0613",
-    },
-    sleepBeforeMs: 5000,
     authorized: true,
+    maxConcurrency: 20,
+    parent: "gpt-4.1",
+    generation: "gpt-5",
+  },
+  {
+    label: "gpt-5-mini",
+    deployment: "gpt-5-mini",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 25,
+    parent: "gpt-4.1-mini",
+    generation: "gpt-5",
+  },
+  {
+    label: "gpt-5-nano",
+    deployment: "gpt-5-nano",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 25,
+    parent: "gpt-4.1-nano",
+    generation: "gpt-5",
   },
   {
     label: "claude-3-sonnet",
@@ -245,6 +266,8 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
+    generation: "claude-4",
+    parent: "claude-37-sonnet",
   },
   {
     label: "claude-opus-4",
@@ -253,6 +276,17 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
+    generation: "claude-4",
+  },
+  {
+    label: "anthropic/claude-opus-4.1",
+    deployment: "claude-opus-4-1-20250805",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    authorized: true,
+    parent: "claude-opus-4",
+    generation: "claude-4",
   },
   {
     label: "anthropic/claude-sonnet-4",
@@ -261,6 +295,8 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
+    parent: "claude-37-sonnet",
+    generation: "claude-4",
   },
   {
     label: "anthropic/claude-opus-4",
@@ -269,6 +305,7 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
+    generation: "claude-4",
   },
   {
     label: "llama-3-70b",
@@ -354,28 +391,7 @@ const allModels = [
     parent: "gemini-1.5-flash-002",
     generation: "gemini-2",
   },
-  {
-    label: "gemini-2.5-flash-preview-04-17",
-    deployment: "publishers/google/models/gemini-2.5-flash-preview-04-17",
-    developer: "Google",
-    maxConcurrency: 10,
-    provider: "braintrust",
-    authorized: true,
-    parent: "gemini-2-flash",
-    generation: "gemini-2",
-    reasoning: true,
-  },
-  {
-    label: "gemini-2.5-flash-preview-05-20",
-    deployment: "publishers/google/models/gemini-2.5-flash-preview-05-20",
-    developer: "Google",
-    maxConcurrency: 10,
-    provider: "braintrust",
-    authorized: true,
-    parent: "gemini-2-flash",
-    generation: "gemini-2",
-    reasoning: true,
-  },
+
   {
     label: "gemini-2.0-flash-lite-001",
     deployment: "publishers/google/models/gemini-2.0-flash-lite-001",
@@ -385,28 +401,7 @@ const allModels = [
     authorized: true,
     generation: "gemini-2",
   },
-  {
-    label: "gemini-2.5-pro-preview-03-25",
-    deployment: "publishers/google/models/gemini-2.5-pro-preview-03-25",
-    developer: "Google",
-    maxConcurrency: 5,
-    provider: "braintrust",
-    authorized: true,
-    parent: "gemini-1.5-pro-002",
-    generation: "gemini-2",
-    reasoning: true,
-  },
-  {
-    label: "gemini-2.5-pro-preview-05-06",
-    deployment: "publishers/google/models/gemini-2.5-pro-preview-05-06",
-    developer: "Google",
-    maxConcurrency: 5,
-    provider: "braintrust",
-    authorized: true,
-    parent: "gemini-1.5-pro-002",
-    generation: "gemini-2",
-    reasoning: true,
-  },
+
   {
     label: "gemini-2.5-pro",
     deployment: "publishers/google/models/gemini-2.5-pro",
@@ -430,45 +425,15 @@ const allModels = [
     reasoning: true,
   },
   {
-    label: "gemini-2.5-flash-lite-preview-06-17",
-    deployment: "publishers/google/models/gemini-2.5-flash-lite-preview-06-17",
+    label: "gemini-2.5-flash-lite",
+    deployment: "publishers/google/models/gemini-2.5-flash-lite",
     developer: "Google",
-    maxConcurrency: 10,
+    maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
+    parent: "gemini-2.0-flash-lite-001",
     generation: "gemini-2",
     reasoning: true,
-  },
-  {
-    label: "deepseek-r1",
-    deployment: "us.deepseek.r1-v1:0",
-    developer: "DeepSeek",
-    provider: "braintrust",
-    authorized: true,
-    maxConcurrency: 5,
-    reasoning: true,
-  },
-  {
-    label: "mistral-small-3-instruct",
-    deployment: "accounts/fireworks/models/mistral-small-24b-instruct-2501",
-    developer: "Mistral",
-    provider: "braintrust",
-    authorized: false,
-    maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
-  },
-  {
-    label: "qwen-2.5-72b-instruct",
-    deployment: "accounts/fireworks/models/qwen2p5-72b-instruct",
-    developer: "Alibaba Cloud",
-    provider: "braintrust",
-    authorized: false,
-    maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
   },
 ] as const satisfies ModelConfig[];
 

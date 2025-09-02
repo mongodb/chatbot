@@ -31,6 +31,18 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             describe:
               "Tasks to run per benchmark. Defaults to first provided task for type.",
           })
+          .option("sampleSize", {
+            type: "number",
+            describe:
+              "Number of samples to run per task. Defaults to all samples.",
+            default: undefined,
+          })
+          .option("sampleType", {
+            type: "string",
+            choices: ["firstN", "random"] as const,
+            describe: "Sampling strategy. Defaults to first N elements.",
+            default: undefined,
+          })
           .option("taskConcurrency", {
             type: "number",
             describe:
@@ -68,6 +80,21 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               }
             }
 
+            // Validate models exist
+            const attemptedModels = argv.model ?? [];
+            // Resolve models
+            const modelsToRun = config.models.filter((m) =>
+              attemptedModels.includes(m.label)
+            );
+
+            if (modelsToRun.length === 0) {
+              throw new Error(
+                `Unknown model(s). Model(s) provided: ${attemptedModels.join(
+                  ", "
+                )}. Use 'benchmark models list' to see available models.`
+              );
+            }
+
             // Validate taskConcurrency
             if (
               argv.taskConcurrency !== undefined &&
@@ -85,6 +112,19 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               argv.modelConcurrency > 5
             ) {
               errors.push("modelConcurrency must be integer between 1 and 5");
+            }
+
+            // Validate sampling
+            if (argv.sampleType && argv.sampleSize === undefined) {
+              errors.push(
+                "sampleSize is required when sampleType is provided."
+              );
+            }
+            if (
+              argv.sampleSize !== undefined &&
+              (!Number.isInteger(argv.sampleSize) || argv.sampleSize <= 0)
+            ) {
+              errors.push("sampleSize must be a positive integer");
             }
 
             if (errors.length > 0) {
@@ -110,7 +150,10 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             task: argv.task ?? tasks[0],
             models: config.models.filter((m) => models.includes(m.label)),
             datasets,
+            taskConcurrency: argv.taskConcurrency,
             modelConcurrency: argv.modelConcurrency,
+            sampleSize: argv.sampleSize,
+            sampleType: argv.sampleType,
           };
           await runBenchmark(config, args);
         } catch (error) {

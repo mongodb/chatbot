@@ -39,7 +39,6 @@ import {
 } from "../tools/fetchPage";
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
-import { systemPrompt } from "../systemPrompt";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 const latestMessageText = "Hello";
@@ -397,34 +396,6 @@ describe("generateResponseWithTools", () => {
       ) as UserMessage;
       expect(userMessage.customData).toMatchObject(searchToolMockArgs);
     });
-    it("should not generate until guardrail has resolved (reject)", async () => {
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        inputGuardrail: async () => {
-          // sleep for 2 seconds
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          return mockGuardrailRejectResult;
-        },
-      });
-
-      const result = await generateResponse(generateResponseBaseArgs);
-
-      expectGuardrailRejectResult(result);
-    });
-    it("should not generate until guardrail has resolved (pass)", async () => {
-      const generateResponse = makeGenerateResponseWithTools({
-        ...makeGenerateResponseWithToolsArgs(),
-        inputGuardrail: async () => {
-          // sleep for 2 seconds
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          return mockGuardrailPassResult;
-        },
-      });
-
-      const result = await generateResponse(generateResponseBaseArgs);
-
-      expectSuccessfulResult(result);
-    });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
         const generateResponse = makeGenerateResponseWithTools(
@@ -474,30 +445,26 @@ describe("generateResponseWithTools", () => {
     });
 
     describe("streaming mode", () => {
-      const makeMockDataStreamer = () => {
-        const mockConnect = jest.fn();
-        const mockDisconnect = jest.fn();
-        const mockStreamData = jest.fn();
-        const mockStreamResponses = jest.fn();
-        const mockStream = jest.fn().mockImplementation(async () => {
+      const mockDataStreamerConfig = {
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        streamData: jest.fn(),
+        streamResponses: jest.fn(),
+        stream: jest.fn().mockImplementation(async () => {
           // Process the stream and return a string result
           return "Hello";
-        });
-
-        const dataStreamer = {
-          connected: true,
-          connect: mockConnect,
-          disconnect: mockDisconnect,
-          streamData: mockStreamData,
-          streamResponses: mockStreamResponses,
-          stream: mockStream,
-        } as DataStreamer;
-
-        return dataStreamer;
+        }),
       };
+      const mockDataStreamer = {
+        connected: true,
+        ...mockDataStreamerConfig,
+      } as DataStreamer;
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
 
       test("should handle successful streaming", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools(
           makeGenerateResponseWithToolsArgs()
         );
@@ -524,10 +491,13 @@ describe("generateResponseWithTools", () => {
       });
 
       test("should handle successful generation with guardrail", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
-          inputGuardrail: makeMockGuardrail(true),
+          inputGuardrail: async () => {
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return mockGuardrailPassResult;
+          },
         });
 
         const result = await generateResponse({
@@ -552,10 +522,13 @@ describe("generateResponseWithTools", () => {
       });
 
       test("should handle streaming with guardrail rejection", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
-          inputGuardrail: makeMockGuardrail(false),
+          inputGuardrail: async () => {
+            // sleep for 1 seconds, so guardrail finishes after LLM streaming
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return mockGuardrailRejectResult;
+          },
         });
 
         const result = await generateResponse({
@@ -564,16 +537,25 @@ describe("generateResponseWithTools", () => {
           dataStreamer: mockDataStreamer,
         });
 
+        // Ensure the streamed data only contains the guardrail result
+        expect(mockStreamConfig.onTextDelta).toHaveBeenCalledTimes(0);
+        expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledTimes(1);
         expect(mockStreamConfig.onLlmRefusal).toHaveBeenCalledWith({
           dataStreamer: mockDataStreamer,
           refusalMessage: mockLlmRefusalMessage,
+        });
+        expect(mockDataStreamerConfig.streamData).toHaveBeenCalledTimes(1);
+        expect(
+          mockDataStreamerConfig.streamData.mock.calls[0][0]
+        ).toStrictEqual({
+          type: "delta",
+          data: mockLlmRefusalMessage,
         });
 
         expectGuardrailRejectResult(result);
       });
 
       test("should handle error in language model", async () => {
-        const mockDataStreamer = makeMockDataStreamer();
         const generateResponse = makeGenerateResponseWithTools({
           ...makeGenerateResponseWithToolsArgs(),
           languageModel: mockThrowingLanguageModel,
@@ -690,6 +672,51 @@ describe("generateResponseWithTools", () => {
       });
     });
   });
+
+  describe("parallel tool calls", () => {
+    // Two fetch page toolcalls to different URLs.
+    const mockFetchPageToolCallsStream = simulateReadableStream({
+      chunks: [
+        {
+          type: "tool-call" as const,
+          toolCallId: "fetch001",
+          toolName: FETCH_PAGE_TOOL_NAME,
+          input: JSON.stringify(fetchPageToolMockArgs),
+        },
+        {
+          type: "tool-call" as const,
+          toolCallId: "fetch002",
+          toolName: FETCH_PAGE_TOOL_NAME,
+          input: JSON.stringify({
+            ...fetchPageToolMockArgs,
+            pageUrl: "https://example2.com/",
+          }),
+        },
+        mockFinishChunk,
+      ] satisfies LanguageModelV2StreamPart[],
+      chunkDelayInMs: 100,
+      initialDelayInMs: 100,
+    });
+
+    const mockLanguageModel = makeMockLanguageModel([
+      () => mockFetchPageToolCallsStream,
+      () => makeFinalAnswerStream(),
+    ]);
+
+    const generateResponseParallelToolCalls = makeGenerateResponseWithTools({
+      ...makeGenerateResponseWithToolsArgs(),
+      languageModel: mockLanguageModel,
+      inputGuardrail: makeMockGuardrail(true),
+    });
+
+    test("should handle parallel tool call successful generation", async () => {
+      const result = await generateResponseParallelToolCalls(
+        generateResponseBaseArgs
+      );
+
+      expectSuccessfulParallelToolCallResult(result);
+    });
+  });
 });
 
 function expectGuardrailRejectResult(result: GenerateResponseReturnValue) {
@@ -730,12 +757,14 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[1] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject(fetchPageToolMockArgs);
+  const toolCall = (result.messages[1] as AssistantMessage)?.toolCall;
+  assert(toolCall);
+  if (toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall.function.arguments as string)).toMatchObject(
+    fetchPageToolMockArgs
+  );
 
   const fetchPageToolResponseMessage = result.messages[2];
   assert(fetchPageToolResponseMessage);
@@ -756,12 +785,14 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[3] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject(searchToolMockArgs);
+  const toolCall2 = (result.messages[3] as AssistantMessage)?.toolCall;
+  assert(toolCall2);
+  if (toolCall2.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall2.function.arguments as string)).toMatchObject(
+    searchToolMockArgs
+  );
 
   const searchToolResponseMessage = result.messages[4];
   assert(searchToolResponseMessage);
@@ -804,4 +835,97 @@ function expectSuccessfulResultCustomTool(
       function: functionMessage,
     },
   });
+}
+
+function expectSuccessfulParallelToolCallResult(
+  result: GenerateResponseReturnValue
+) {
+  expect(result).toHaveProperty("messages");
+  // User -> Assistant (fetch_page tool call) -> Assistant (fetch_page tool call) ->
+  // fetch_page tool result -> fetch_page tool result -> Assistant msg (final answer)
+  expect(result.messages).toHaveLength(6);
+
+  expect(result.messages[0]).toMatchObject({
+    role: "user",
+    content: latestMessageText,
+  });
+
+  expect(result.messages[1]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "fetch001",
+      function: {
+        name: FETCH_PAGE_TOOL_NAME,
+      },
+      type: "function",
+    },
+    content: "",
+  });
+  const toolCall = (result.messages[1] as AssistantMessage)?.toolCall;
+  assert(toolCall);
+  if (toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall.function.arguments as string)).toMatchObject(
+    fetchPageToolMockArgs
+  );
+
+  expect(result.messages[2]).toMatchObject({
+    role: "assistant",
+    toolCall: {
+      id: "fetch002",
+      function: {
+        name: FETCH_PAGE_TOOL_NAME,
+      },
+      type: "function",
+    },
+    content: "",
+  });
+  const toolCall2 = (result.messages[2] as AssistantMessage)?.toolCall;
+  assert(toolCall2);
+  if (toolCall2.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall2.function.arguments)).toMatchObject({
+    ...fetchPageToolMockArgs,
+    pageUrl: "https://example2.com/",
+  });
+
+  assert(result.messages[3]);
+  expect(result.messages[3]).toMatchObject({
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: "Example page body",
+  });
+
+  assert(result.messages[4]);
+  expect(result.messages[4]).toMatchObject({
+    role: "tool",
+    name: FETCH_PAGE_TOOL_NAME,
+    content: "Example page body",
+  });
+
+  expect(result.messages[5]).toMatchObject({
+    role: "assistant",
+    content: finalAnswer,
+  });
+  // Verify references are 2 fetchPage mock references
+  expect((result.messages[5] as AssistantMessage).references).toEqual([
+    {
+      url: `https://${mockPageContent.url}/`,
+      title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
+      metadata: {
+        tags: [],
+        sourceName: mockPageContent.sourceName,
+      },
+    },
+    {
+      url: `https://${mockPageContent.url}/`,
+      title: mockPageContent.title ?? `https://${mockPageContent.url}/`,
+      metadata: {
+        tags: [],
+        sourceName: mockPageContent.sourceName,
+      },
+    },
+  ]);
 }

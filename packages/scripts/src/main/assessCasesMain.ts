@@ -1,121 +1,116 @@
-import { AzureOpenAI } from "mongodb-rag-core/openai";
-import {
-  assertEnvVars,
-  BRAINTRUST_ENV_VARS,
-  makeOpenAiEmbedder,
-} from "mongodb-rag-core";
-import { MongoClient } from "mongodb";
-import { Case } from "../Case";
-import { makeSimpleTextGenerator } from "../SimpleTextGenerator";
 import "dotenv/config";
-import { assessRelevance, makeShortName } from "../assessRelevance";
-import { makeGenerateRating } from "../generateRating";
-import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { getEnv } from "mongodb-rag-core";
+import { MongoClient } from "mongodb";
+import { createOpenAI, wrapLanguageModel, azure } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
+import z from "zod";
+import {
+  makeAnalyzeCases,
+  promptResponseRatingSchema,
+  relevanceSchema,
+} from "mercury-case-analysis";
+
+export const caseSchema = z.object({
+  type: z.string(),
+  tags: z.string().array(),
+  name: z.string(),
+  prompt: z
+    .object({
+      content: z.string(),
+      role: z.string(),
+    })
+    .array(),
+  expected: z.string(),
+
+  // Fields to add
+  prompt_relevance: relevanceSchema.optional(),
+  prompt_quality: promptResponseRatingSchema.optional(),
+});
+
+export type Case = z.infer<typeof caseSchema>;
 
 const assessRelevanceMain = async () => {
   const {
-    FROM_CONNECTION_URI,
-    FROM_DATABASE_NAME,
-    OPENAI_API_KEY,
-    OPENAI_ENDPOINT,
-    OPENAI_API_VERSION,
+    MERCURY_CONNECTION_URI,
+    MERCURY_DATABASE_NAME,
+    MERCURY_CASES_COLLECTION_NAME,
+    MERCURY_GENERATOR_MODEL_NAME,
+    MERCURY_JUDGEMENT_MODEL_NAME,
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-    CASE_COLLECTION_NAME,
     BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-  } = assertEnvVars({
-    FROM_CONNECTION_URI: "",
-    FROM_DATABASE_NAME: "",
-    OPENAI_API_KEY: "",
-    OPENAI_ENDPOINT: "",
-    OPENAI_API_VERSION: "",
-    OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "",
-    CASE_COLLECTION_NAME: "",
-    ...BRAINTRUST_ENV_VARS,
+    BRAINTRUST_PROXY_ENDPOINT,
+  } = getEnv({
+    required: [
+      "MERCURY_CONNECTION_URI",
+      "MERCURY_DATABASE_NAME",
+      "MERCURY_CASES_COLLECTION_NAME",
+      "MERCURY_GENERATOR_MODEL_NAME",
+      "MERCURY_JUDGEMENT_MODEL_NAME",
+      "OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT",
+      "BRAINTRUST_API_KEY",
+      "BRAINTRUST_PROXY_ENDPOINT",
+    ],
   });
 
-  const openAiClient = new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  });
-
-  const embedders = [
-    makeOpenAiEmbedder({
-      openAiClient,
-      deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-      backoffOptions: {
-        numOfAttempts: 25,
-        startingDelay: 1000,
-      },
-    }),
-  ];
-
-  const generate = makeSimpleTextGenerator({
-    model: wrapLanguageModel({
+  const model = createOpenAI({
+    apiKey: BRAINTRUST_API_KEY,
+    baseURL: BRAINTRUST_PROXY_ENDPOINT,
+  }).textEmbeddingModel(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
+  const analyzeCases = makeAnalyzeCases({
+    embeddingModels: [
+      createOpenAI({
+        apiKey: BRAINTRUST_API_KEY,
+        baseURL: BRAINTRUST_PROXY_ENDPOINT,
+      }).textEmbeddingModel(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT),
+    ],
+    generatorModel: wrapLanguageModel({
       model: createOpenAI({
         apiKey: BRAINTRUST_API_KEY,
-        baseURL: BRAINTRUST_ENDPOINT,
-      }).chat("gpt-4.1"),
+        baseURL: BRAINTRUST_PROXY_ENDPOINT,
+      }).chat(MERCURY_GENERATOR_MODEL_NAME),
+      middleware: [BraintrustMiddleware({ debug: true })],
+    }),
+    judgementModel: wrapLanguageModel({
+      model: createOpenAI({
+        apiKey: BRAINTRUST_API_KEY,
+        baseURL: BRAINTRUST_PROXY_ENDPOINT,
+      }).chat(MERCURY_JUDGEMENT_MODEL_NAME),
       middleware: [BraintrustMiddleware({ debug: true })],
     }),
   });
 
-  const judgmentModel = wrapLanguageModel({
-    model: createOpenAI({
-      apiKey: BRAINTRUST_API_KEY,
-      baseURL: BRAINTRUST_ENDPOINT,
-    }).chat("o3"),
-    middleware: [BraintrustMiddleware({ debug: true })],
-  });
-  const generateRating = makeGenerateRating({ model: judgmentModel });
-
-  const client = await MongoClient.connect(FROM_CONNECTION_URI);
+  const client = await MongoClient.connect(MERCURY_CONNECTION_URI);
   try {
     console.log(
-      `Fetching cases ${FROM_DATABASE_NAME}.${CASE_COLLECTION_NAME}...`
+      `Assessing Cases from ${MERCURY_DATABASE_NAME}.${MERCURY_CASES_COLLECTION_NAME}...`
     );
-    const db = client.db(FROM_DATABASE_NAME);
-    const collection = db.collection<Case>(CASE_COLLECTION_NAME);
+    const db = client.db(MERCURY_DATABASE_NAME);
+    const collection = db.collection<Case>(MERCURY_CASES_COLLECTION_NAME);
     const cases = await collection.find().toArray();
-    const relevancePromises = cases.map(
-      async ({ _id, name: prompt, expected: expectedResponse }) => {
-        const shortName = makeShortName(prompt);
 
-        const relevance = await assessRelevance({
-          prompt,
-          expectedResponse,
-          embedders,
-          generate,
-        });
+    console.log(`# cases`, cases.length);
 
-        const prompt_response_rating = await generateRating({
-          prompt,
-          expectedResponse,
-        });
-        console.log(`Updating '${shortName}'...`);
-        const updateResult = await collection.updateOne(
-          {
-            _id,
+    const results = await analyzeCases({
+      cases: cases.map((c) => ({
+        prompt: c.name,
+        response: c.expected,
+      })),
+    });
+    console.log(results);
+
+    const bulkUpdates = results.map((r, idx) => ({
+      updateOne: {
+        filter: { _id: cases[idx]._id },
+        update: {
+          $set: {
+            prompt_relevance: r.relevance,
+            prompt_quality: r.quality,
           },
-          {
-            $set: {
-              relevance,
-              prompt_response_rating,
-            },
-          }
-        );
+        },
+      },
+    }));
 
-        if (updateResult.modifiedCount === 1) {
-          console.log(`Updated '${shortName}'.`);
-        } else {
-          console.warn(`Failed to update '${shortName}' (${_id})`);
-        }
-      }
-    );
-
-    await Promise.allSettled(relevancePromises);
+    await collection.bulkWrite(bulkUpdates);
   } finally {
     await client.close();
   }

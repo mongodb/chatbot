@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   DatabaseExecutionResult,
   DatabaseInfo,
-  executeMongoshQuery,
+  makeExecuteMongoshQuery,
   LlmOptions,
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
@@ -52,6 +52,12 @@ export function makeGenerateMongoshCodeSimpleTask({
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
       let latestExecution: DatabaseExecutionResult | null = null;
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
+
+      const executeMongoshQuery = makeExecuteMongoshQuery({
+        uri,
+        execOptions: {},
+      });
+
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
@@ -77,7 +83,6 @@ export function makeGenerateMongoshCodeSimpleTask({
               const execution = await executeMongoshQuery({
                 databaseName: databaseName,
                 query: args[CODE_FIELD],
-                uri,
               });
               latestExecution = execution;
               latestCode = args[CODE_FIELD];
@@ -142,6 +147,11 @@ export function makeGenerateMongoshCodeSimpleCotTask({
   schemaStrategy = "annotated",
   fewShot,
 }: MakeGenerateMongoshCodeSimpleParams): TextToDriverEvalTask {
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri,
+    execOptions: {},
+  });
+
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
       let latestExecution: DatabaseExecutionResult | null = null;
@@ -172,7 +182,6 @@ export function makeGenerateMongoshCodeSimpleCotTask({
               const execution = await executeMongoshQuery({
                 databaseName: databaseName,
                 query: args[CODE_FIELD],
-                uri,
               });
               latestExecution = execution;
               latestCode = args[CODE_FIELD];

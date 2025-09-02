@@ -5,12 +5,13 @@ import {
   Reference,
   logger,
 } from "mongodb-rag-core";
-import { Tool, tool, ToolResultUnion } from "mongodb-rag-core/aiSdk";
+import { Tool, tool, TypedToolResult } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "mongodb-rag-core/mongoDbMetadata";
+import { makeMarkdownNumberedList } from "mongodb-rag-core/dataSources";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MakeReferenceLinksFunc } from "mongodb-chatbot-server";
 
@@ -47,7 +48,7 @@ export type SearchToolReturnValue = {
 
 export type SearchTool = Tool<MongoDbSearchToolArgs, SearchToolReturnValue>;
 
-export type SearchToolResult = ToolResultUnion<{
+export type SearchToolResult = TypedToolResult<{
   [SEARCH_TOOL_NAME]: SearchTool;
 }>;
 
@@ -56,16 +57,25 @@ export interface MakeSearchToolParams {
   makeReferences: MakeReferenceLinksFunc;
 }
 
+const searchContentToolNotes = [
+  "Search all of the available MongoDB reference documents for a given user input.",
+  "You must generate an appropriate search query for a given user input.",
+  "You are doing this for MongoDB, and all queries relate to MongoDB products.",
+  `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
+];
+
 export function makeSearchTool({
   findContent,
   makeReferences,
 }: MakeSearchToolParams): SearchTool {
   const searchTool: SearchTool = tool({
     inputSchema: MongoDbSearchToolArgsSchema,
-    description: "Search MongoDB content",
+    description: `Search MongoDB content. Use the ${SEARCH_TOOL_NAME} tool as follows:
 
-    // TODO: I get type errors when I try to implement this..Unclear why
-    // This shows only the URL and text of the result, not the metadata (needed for references) to the model.
+${makeMarkdownNumberedList(searchContentToolNotes)}
+    
+When you search, include metadata about the relevant MongoDB programming language and product.`,
+
     toModelOutput(result) {
       return {
         type: "content",

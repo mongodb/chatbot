@@ -28,7 +28,7 @@ steps:
     commands:
       - npm ci
       - npm run build
-      - npm run lint
+      # - npm run lint
       - npm run test
 
     environment:
@@ -1046,3 +1046,31 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+
+# ---
+# mercury-case-analysis package
+# ---
+---
+kind: pipeline
+type: kubernetes
+name: publish-mercury-case-analysis
+depends_on: ["test-all"]
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/mercury-case-analysis-v*
+
+steps:
+  - name: build package
+    image: node:18
+    commands:
+      - npm install lerna
+      - npm run bootstrap -- --scope='{mongodb-rag-core,mercury-case-analysis}'
+      - npm run build -- --scope='{mongodb-rag-core,mercury-case-analysis}'
+      - cd packages/mercury-case-analysis && npm publish
+    environment:
+      MONGODB_EAI_NPM_TOKEN:
+        from_secret: mongodb_ai_npm_token

@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import PromisePool from "@supercharge/promise-pool";
-import { executeMongoshQuery } from "mongodb-rag-core/executeCode";
+import { makeExecuteMongoshQuery } from "mongodb-rag-core/executeCode";
 import { z } from "zod";
 import { assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
@@ -48,6 +48,11 @@ async function main() {
     JSON.parse(fileContent)
   );
 
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
+    execOptions: {},
+  });
+
   await PromisePool.for(dataset)
     .withConcurrency(1)
     .process(async (entry) => {
@@ -66,7 +71,6 @@ async function main() {
         const executionResult = await executeMongoshQuery({
           databaseName,
           query: dbQuery,
-          uri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
         });
 
         executionResults.push(executionResult);

@@ -1,15 +1,15 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
-  executeMongoshQuery,
   isReasonableResult,
+  makeExecuteMongoshQuery,
 } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfoNode";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
 import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
@@ -110,6 +110,11 @@ async function generateMongoshDataset({
   );
 
   const nodeStore = makeMongoDbNodeStore(persistence);
+
+  const executeMongoshQuery = makeExecuteMongoshQuery({
+    uri: dataset.connectionUri,
+    execOptions: {},
+  });
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
   const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({

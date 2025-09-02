@@ -27,6 +27,8 @@ import {
   stepCountIs,
   jsonSchema,
   JSONSchema7,
+  StaticToolCall,
+  StaticToolResult,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
 
@@ -47,6 +49,7 @@ import {
 } from "../tools/search";
 import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
+import { logRequest } from "../utils";
 
 /**
   Hidden tools are internal to the MongoDB Responses API.
@@ -160,6 +163,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -167,6 +171,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -206,6 +211,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -213,6 +219,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -264,6 +271,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
   },
   onTextDone({ dataStreamer, text, references, textPartId, chunkId }) {
@@ -273,6 +281,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -425,13 +434,14 @@ export function makeGenerateResponseWithTools({
       let guardrailRejected = false;
 
       // Start guardrail check immediately and monitor it
-      const guardrailMonitor = inputGuardrailPromise?.then((result) => {
-        if (result?.rejected) {
-          guardrailRejected = true;
-          generationController.abort();
-        }
-        return result;
-      });
+      const guardrailMonitor =
+        inputGuardrailPromise?.then((result) => {
+          if (result?.rejected) {
+            guardrailRejected = true;
+            generationController.abort();
+          }
+          return result;
+        }) ?? Promise.resolve(undefined);
 
       // Start generation immediately (in parallel with guardrail)
       const generationPromise = (async () => {
@@ -460,24 +470,36 @@ export function makeGenerateResponseWithTools({
 
             // Appends references when a reference-returning tool is called
             onStepFinish: async ({ toolResults, toolCalls }) => {
-              toolCalls?.forEach((toolCall) => {
+              for (const toolCall of toolCalls) {
+                if (toolCall.dynamic) {
+                  continue;
+                }
                 if (toolCall.toolName === SEARCH_TOOL_NAME) {
                   userMessageCustomData = {
                     ...userMessageCustomData,
                     ...toolCall.input,
                   };
                 }
-              });
-              toolResults?.forEach((toolResult) => {
+              }
+              for (const toolResult of toolResults) {
+                if (toolResult.dynamic) {
+                  continue;
+                }
                 if (
                   toolResult.type === "tool-result" &&
-                  toolResult.output?.references
+                  toolResult.output.references
                 ) {
                   references.push(...toolResult.output.references);
                 }
-              });
+              }
             },
           });
+
+          // Wait for guardrail so we don't get streaming overlap (addresses race condition)
+          const guardrailResult = await guardrailMonitor;
+          if (guardrailResult?.rejected) {
+            throw new Error("Guardrail rejected (just exit this block)");
+          }
 
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end
@@ -637,6 +659,7 @@ export function makeGenerateResponseWithTools({
               content: llmRefusalMessage,
             },
           ],
+          reqId,
           userMessageCustomData,
         });
       }
@@ -659,6 +682,7 @@ export function makeGenerateResponseWithTools({
           guardrailResult,
           messages,
           references,
+          reqId,
           userMessageCustomData,
         });
       } else {
@@ -672,6 +696,7 @@ export function makeGenerateResponseWithTools({
               content: llmNotWorkingMessage,
             },
           ],
+          reqId,
           references,
           userMessageCustomData,
         });
@@ -707,12 +732,14 @@ function handleReturnGeneration({
   guardrailResult,
   messages,
   references,
+  reqId,
   userMessageCustomData,
 }: {
   userMessage: UserMessage;
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
+  reqId: string;
   userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
@@ -724,6 +751,7 @@ function handleReturnGeneration({
 
   const formattedMessages = formatMessageForReturnGeneration(
     messages,
+    reqId,
     references ?? []
   );
 
@@ -732,83 +760,92 @@ function handleReturnGeneration({
   } satisfies GenerateResponseReturnValue;
 }
 
-function makeAssitantMessage(m: ResponseMessage): AssistantMessage {
+function makeAssitantMessage(
+  reqId: string,
+  m: AssistantModelMessage
+): AssistantMessage[] {
   const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
     role: "assistant",
   };
   if (typeof m.content === "string") {
-    baseMessage.content = m.content;
-  } else {
-    m.content.forEach((c) => {
-      if (c.type === "text") {
-        baseMessage.content = c.text;
-      }
-      if (c.type === "tool-call") {
-        baseMessage.toolCall = {
+    return [
+      {
+        ...baseMessage,
+        content: m.content ?? "",
+      },
+    ];
+  }
+  const result: AssistantMessage[] = [];
+  m.content.forEach((c) => {
+    if (c.type === "text") {
+      result.push({
+        ...baseMessage,
+        content: c.text,
+      } satisfies AssistantMessage);
+    } else if (c.type === "tool-call") {
+      result.push({
+        ...baseMessage,
+        content: "",
+        toolCall: {
+          type: "function",
           id: c.toolCallId,
           function: {
             name: c.toolName,
             arguments: JSON.stringify(c.input),
           },
-          type: "function",
-        };
-      }
-    });
-  }
-
-  return {
-    ...baseMessage,
-    content: baseMessage.content ?? "",
-  } satisfies AssistantMessage;
+        },
+      } satisfies AssistantMessage);
+    } else {
+      logRequest({
+        reqId,
+        message: `Unknown content type in assistant message: ${c.type}`,
+        type: "error",
+      });
+    }
+  });
+  return result;
 }
-function makeToolMessage(m: ResponseMessage): ToolMessage {
-  const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
-    role: "tool",
-  };
-  if (typeof m.content === "string") {
-    baseMessage.content = m.content;
-  } else {
-    m.content.forEach((c) => {
-      if (c.type === "tool-result") {
-        baseMessage.name = c.toolName;
-        if (c.output.type === "content" && c.output.value[0].type === "text") {
-          baseMessage.content = c.output.value[0].text;
-        } else if (
-          c.output &&
-          typeof c.output === "object" &&
-          "value" in c.output
-        ) {
-          baseMessage.content =
-            typeof c.output.value === "string"
-              ? c.output.value
-              : JSON.stringify(c.output.value);
-        } else {
-          baseMessage.content =
-            typeof c.output === "string" ? c.output : JSON.stringify(c.output);
-        }
-      }
-    });
-  }
-  return {
-    ...baseMessage,
-    name: baseMessage.name ?? "",
-    content: baseMessage.content ?? "",
-  } satisfies ToolMessage;
+
+function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
+  return m.content.map((c) => {
+    const newToolMessage: ToolMessage = {
+      role: "tool",
+      content: "",
+      name: c.toolName,
+    };
+    if (c.output.type === "content" && c.output.value[0].type === "text") {
+      // This is one of our tools (fetch_page or search), with result content.
+      newToolMessage.content = c.output.value[0].text;
+    } else if (
+      c.output &&
+      typeof c.output === "object" &&
+      "value" in c.output
+    ) {
+      newToolMessage.content =
+        typeof c.output.value === "string"
+          ? c.output.value
+          : JSON.stringify(c.output.value);
+    } else {
+      newToolMessage.content =
+        typeof c.output === "string" ? c.output : JSON.stringify(c.output);
+    }
+    return newToolMessage;
+  });
 }
 
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
+  reqId: string,
   references: References
 ): [...SomeMessage[], AssistantMessage] {
-  const messagesOut = messages
-    .map((m) => {
-      if (m.role === "assistant") {
-        return makeAssitantMessage(m);
-      } else if (m.role === "tool") {
-        return makeToolMessage(m);
-      }
-    })
-    .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
+  const messagesOut: Array<SomeMessage | AssistantMessage> = [];
+  messages.forEach((m) => {
+    if (m.role === "assistant") {
+      messagesOut.push(...makeAssitantMessage(reqId, m));
+    } else if (m.role === "tool") {
+      messagesOut.push(...makeToolMessage(m));
+    }
+  });
 
   // Make sure we have at least one assistant message
   if (messagesOut.length === 0 || messagesOut.at(-1)?.role !== "assistant") {
@@ -825,7 +862,7 @@ function formatMessageForReturnGeneration(
 function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
   if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
-    if (message.toolCall) {
+    if (message.toolCall && message.toolCall.type === "function") {
       // This is a tool call message
       return {
         role: "assistant",

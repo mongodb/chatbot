@@ -246,12 +246,39 @@ paths:
   #         $ref: "#/components/responses/InternalServerError"
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
+      deprecated: true
       operationId: rateMessage
       tags:
         - Conversations
       summary: Rate message
+      description: |
+        Rate a message.
+
+        This endpoint is deprecated. Use the [rateStandaloneMessage](#operation/rateStandaloneMessage) endpoint instead.
       parameters:
         - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRating"
+      responses:
+        204:
+          description: Rating Saved
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/messages/{messageId}/rating:
+    post:
+      operationId: rateStandaloneMessage
+      tags:
+        - Conversations
+      summary: Rate message
+      parameters:
         - $ref: "#/components/parameters/messageId"
       requestBody:
         content:
@@ -270,6 +297,7 @@ paths:
 
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
+      deprecated: true
       operationId: commentMessage
       tags:
         - Conversations
@@ -280,6 +308,32 @@ paths:
         You can only rate an an assistant message that has a thumbs up/down rating. You can only rate a message once. The server returns a `400` error response if the message is not from the assistant, is not rated, or has already been rated.
       parameters:
         - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageComment"
+      responses:
+        204:
+          description: Comment Saved
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/messages/{messageId}/comment:
+    post:
+      operationId: commentStandaloneMessage
+      tags:
+        - Conversations
+      summary: Add comment to assistant message
+      description: |
+        Add a comment to an assistant message that clarifies a thumbs up/down rating.
+
+        You can only rate an an assistant message that has a thumbs up/down rating. You can only rate a message once. The server returns a `400` error response if the message is not from the assistant, is not rated, or has already been rated.
+      parameters:
         - $ref: "#/components/parameters/messageId"
       requestBody:
         content:
@@ -357,16 +411,31 @@ paths:
 components:
   securitySchemes:
     CustomHeaderAuth:
-      type: apiKey
-      in: header
-      name: ORIGIN
-      description: |
-        Can provide any value. Used to track where requests to the server
-        are coming from.
-        Alternatively, can provide `X-Request-Origin` header.
+      - type: apiKey
+        in: header
+        name: User-Agent
+        description: |
+          Used to track where requests to the server are coming from.
+          The server's firewall has allow-list rules based on the `User-Agent` header.
+          If you would like to get access to the server, please [contact the Education AI team](../contact).
+      - type: apiKey
+        in: header
+        name: Origin
+        description: |
+          Used to track where requests to the server are coming from. Can be any value.  
+          The server's firewall has additional rules based on the `User-Agent` header.
+          If you would like to get access to the server, please [contact the Education AI team](../contact).
 
-        The server's firewall has additional rules based on the `User-Agent` header.
-        If you would like to get access to the server, please [contact the Education AI team](../contact).
+          Note that `Origin` and `X-Request-Origin` are mutually exclusive.
+      - type: apiKey
+        in: header
+        name: X-Request-Origin
+        description: |
+          Used to track where requests to the server are coming from. Can be any value.  
+          The server's firewall has additional rules based on the `User-Agent` header.
+          If you would like to get access to the server, please [contact the Education AI team](../contact).
+
+          Note that `Origin` and `X-Request-Origin` are mutually exclusive.
   responses:
     BadRequest:
       description: Bad Request

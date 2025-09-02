@@ -5,7 +5,7 @@ import {
   MongoClient,
 } from "mongodb-rag-core/mongodb";
 import { getSimplifiedSchema } from "mongodb-schema";
-import { extractDeterministicSampleOfDocuments } from "./extractDeterministicSampleOfDocuments";
+import { extractDeterministicSampleOfDocuments } from "mongodb-rag-core/executeCode";
 import { truncateDbOperationOutputForLlm } from "./truncateDbOperationOutputForLlm";
 
 export interface GetDatabaseMetadataParams {

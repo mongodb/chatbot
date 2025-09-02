@@ -43,7 +43,6 @@
     "@types/unist": "^3.0.2",
     "csv": "^6.3.9",
     "lang-map": "^0.4.0",
-    "llamaindex": "^0.2.9",
     "lodash.samplesize": "^4.2.0",
     "mongodb-rag-core": "*",
     "remark-gfm": "^4.0.0",

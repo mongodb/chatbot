@@ -386,11 +386,14 @@ const MessageOrderCorrect: ConversationEvalScorer = (args) => {
         return 0;
       }
 
+      const toolCall = (outputMessage as AssistantMessage).toolCall;
+      if (!toolCall || toolCall.type !== "function") {
+        throw new Error("No function call in response from OpenAI");
+      }
       // Also validate the correct tool was called (by name)
       const hasExpectedToolCall =
         outputMessage.role === "assistant"
-          ? outputMessage.toolCall?.function.name ===
-            expectedMessage.toolCallName
+          ? toolCall.function.name === expectedMessage.toolCallName
           : true;
 
       const messageScore: number = sameRole && hasExpectedToolCall ? 1 : 0;
@@ -440,9 +443,11 @@ const ToolArgumentsCorrect: ConversationEvalScorer = (args) => {
 
     // Check the correct args were passed to the tool
     if (hasExpectedToolCallAndArgs) {
-      const outputArguments = JSON.parse(
-        (outputMessage as AssistantMessage).toolCall?.function.arguments ?? "{}"
-      );
+      const toolCall = (outputMessage as AssistantMessage).toolCall;
+      if (!toolCall || toolCall.type !== "function") {
+        throw new Error("No function call in response from OpenAI");
+      }
+      const outputArguments = JSON.parse(toolCall.function.arguments ?? "{}");
       for (const [key, value] of Object.entries(
         expectedMessage.toolCallArgs as Record<string, string>
       )) {

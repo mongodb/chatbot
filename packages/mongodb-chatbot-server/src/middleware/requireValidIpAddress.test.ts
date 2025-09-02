@@ -23,8 +23,8 @@ describe("requireValidIpAddress", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
-    req.ip = undefined;
+    (req.headers as any) = baseReq.headers;
+    (req.ip as any) = undefined;
 
     await middleware(req, res, next);
 
@@ -44,8 +44,8 @@ describe("requireValidIpAddress", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
-    req.ip = invalidIpAddress;
+    (req.headers as any) = baseReq.headers;
+    (req.ip as any) = invalidIpAddress;
 
     await middleware(req, res, next);
 
@@ -64,8 +64,8 @@ describe("requireValidIpAddress", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
-    req.ip = baseReq.ip;
+    (req.headers as any) = baseReq.headers;
+    (req.ip as any) = baseReq.ip;
 
     await middleware(req, res, next);
 

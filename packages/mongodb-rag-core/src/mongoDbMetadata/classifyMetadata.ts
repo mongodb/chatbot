@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
+import { generateObject, LanguageModel } from "../aiSdk";
 import { MongoDbProductId, mongoDbProducts } from "./products";
 import {
   MongoDbProgrammingLanguageId,

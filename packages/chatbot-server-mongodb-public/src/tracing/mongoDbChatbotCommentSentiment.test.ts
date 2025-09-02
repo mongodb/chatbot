@@ -17,6 +17,7 @@ function makeMockOpenAi(sentiment: Sentiment["sentiment"]) {
               message: {
                 tool_calls: [
                   {
+                    type: "function",
                     function: {
                       arguments: JSON.stringify({
                         sentiment,

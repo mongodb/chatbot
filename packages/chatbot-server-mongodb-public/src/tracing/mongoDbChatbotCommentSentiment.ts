@@ -21,7 +21,7 @@ const Sentiment = z.object({
 
 export type Sentiment = z.infer<typeof Sentiment>;
 
-const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
+const commentSentimentToolDefinition = {
   type: "function",
   function: {
     name: "comment_sentiment",
@@ -30,7 +30,7 @@ const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
       $refStrategy: "none",
     }),
   },
-};
+} satisfies OpenAI.ChatCompletionTool;
 
 const systemMessage = {
   role: "system",
@@ -93,11 +93,11 @@ async function getSentiment(
       type: "function",
     },
   });
-  return Sentiment.parse(
-    JSON.parse(
-      modelRes.choices?.[0].message.tool_calls?.[0].function.arguments ?? "{}"
-    )
-  );
+  const toolCall = modelRes.choices?.[0].message.tool_calls?.[0];
+  if (!toolCall || toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  return Sentiment.parse(JSON.parse(toolCall.function.arguments ?? "{}"));
 }
 
 function makeUserMessage(

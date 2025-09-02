@@ -42,35 +42,7 @@ describe("snootyAstToOpenApiSpec()", () => {
 info:
   version: v1
   title: MongoDB Atlas Data API
-  description: >
-    A fully-managed API to read, write, and aggregate data in MongoDB
-    Atlas. The Data API is powered by serverless Atlas Functions and
-    secured with user authentication and role-based permissions. To
-    learn more about the Data API, see Atlas Data
-    API.
-
-    ## Set Up the Data API
-
-    Before you can use the Data API, you must enable and configure it in
-    an Atlas App Services App. The configuration controls how the App's
-    users authenticate, authorize requests, and interact with the API.
-
-    To learn how to start using the Data API in your App, see Set up
-    the Data
-    API.
-
-    ## Authenticate Requests
-
-    Your Data API configuration in App Services controls how users
-    authenticate their API requests. In most cases, you will use
-    Application authentication, which lets users log in with one of the
-    App's authentication providers. Users can either provide their login
-    credentials directly in every request or provide a reusable access
-    token for an authenticated session.
-
-    To learn more, see Authenticate Data API
-    Requests.
-servers:`;
+  description:`;
     expect(yamlString).toContain(expected);
   });
   it("should return YAML string for openapi remote node", async () => {

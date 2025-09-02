@@ -132,9 +132,12 @@ export function getContextsFromMessages(
         const assistantToolCallMessage = messages[
           idx - 1
         ] as DbMessage<AssistantMessage>;
-        const url = assistantToolCallMessage?.toolCall?.function.arguments
-          ? JSON.parse(assistantToolCallMessage.toolCall.function.arguments)
-              .pageUrl
+        const toolCall = assistantToolCallMessage?.toolCall;
+        if (!toolCall || toolCall.type !== "function") {
+          throw new Error("No function call in response from OpenAI");
+        }
+        const url = toolCall.function.arguments
+          ? JSON.parse(toolCall.function.arguments).pageUrl
           : undefined;
         if (
           url === undefined ||

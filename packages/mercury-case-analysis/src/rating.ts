@@ -3,14 +3,18 @@ import { extractZodSchemaDescriptions } from "./utils";
 import z from "zod";
 import { stripIndent } from "common-tags";
 import YAML from "yaml";
+import { ZodObject } from "zod/v3";
 
 const ratingSchema = z
-  .int()
+  .number()
   .min(1)
   .max(5)
   .describe(
     "A Likert scale rating from 1 (Strongly Disagree) to 5 (Strongly Agree)."
-  );
+  )
+  .refine((n) => Number.isInteger(n), {
+    message: "Rating must be an integer.",
+  });
 
 const makeRationaleSchema = (name: string) =>
   z
@@ -159,7 +163,7 @@ export function makeGenerateRating({
       ],
       temperature: 0,
       model,
-      schema: promptResponseRatingSchema,
+      schema: promptResponseRatingSchema as any,
       schemaName,
       schemaDescription:
         "Ratings, rationale, and guidance for a given prompt response pair.",

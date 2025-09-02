@@ -27,11 +27,11 @@ describe("useSegmentIds", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
       [SEGMENT_USER_ID_HEADER]: "test-user-id",
     });
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     middleware(req, res, next);
 
@@ -50,7 +50,7 @@ describe("useSegmentIds", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
     });
 
@@ -69,11 +69,11 @@ describe("useSegmentIds", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
       [SEGMENT_ANONYMOUS_ID_HEADER]: "test-user-id",
     });
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     middleware(req, res, next);
 
@@ -92,7 +92,7 @@ describe("useSegmentIds", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
     });
 
@@ -111,12 +111,12 @@ describe("useSegmentIds", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = caseInsensitiveHeaders({
+    (req.headers as any) = caseInsensitiveHeaders({
       ...baseReq.headers,
       [SEGMENT_USER_ID_HEADER]: "test-user-id",
       [SEGMENT_ANONYMOUS_ID_HEADER]: "test-anonymous-id",
     });
-    req.ip = baseReq.ip;
+    (req.ip as any) = baseReq.ip;
 
     middleware(req, res, next);
 

@@ -1,4 +1,4 @@
-import { GithubRepoLoaderParams } from "@langchain/community/document_loaders/web/github";
+import { GithubRepoLoaderParams } from "./GitDataSource";
 import {
   getAcquitTestsFromGithubRepo,
   makeAcquitRequireMdOnGithubDataSource,

@@ -69,6 +69,7 @@ export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponsePa
         content_index: 0,
         output_index: 0,
         item_id: itemId,
+        logprobs: [],
       } satisfies ResponseStreamOutputTextDelta);
 
       verifiedAnswer.references.forEach(({ title, url }, annotation_index) => {
@@ -110,6 +111,7 @@ export const responsesVerifiedAnswerStream: MakeVerifiedAnswerGenerateResponsePa
         content_index: 0,
         output_index: 0,
         item_id: itemId,
+        logprobs: [],
       } satisfies ResponseStreamOutputTextDone);
     },
   };

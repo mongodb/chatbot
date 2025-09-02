@@ -1,4 +1,3 @@
-import { GithubRepoLoaderParams } from "@langchain/community/document_loaders/web/github";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
@@ -9,6 +8,7 @@ import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 import { logger } from "../logger";
 import { PageMetadata, Page } from "../contentStore";
+import { GithubRepoLoaderParams } from "./GitDataSource";
 
 /**
   Loads an MD/Acquit docs site from a GitHub repo.

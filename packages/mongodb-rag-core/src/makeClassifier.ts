@@ -165,7 +165,11 @@ export function makeClassifier({
       throw new Error("No function call in response from OpenAI");
     }
     const classification = Classification.parse(
-      JSON.parse(response.tool_calls[0].function.arguments)
+      JSON.parse(
+        response.tool_calls[0].type === "function"
+          ? response.tool_calls[0].function.arguments
+          : response.tool_calls[0].custom.input
+      )
     );
 
     return { classification, inputMessages: messages };

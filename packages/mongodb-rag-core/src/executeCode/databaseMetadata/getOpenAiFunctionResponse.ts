@@ -53,7 +53,11 @@ function parseObjectFromOpenAiResponse<Schema extends ZodSchema>(
   schema: Schema
 ): z.infer<Schema> {
   const toolCall = response.choices[0].message.tool_calls?.[0];
-  if (!toolCall || toolCall.function.name !== functionName) {
+  if (
+    !toolCall ||
+    !(toolCall.type === "function") ||
+    toolCall.function.name !== functionName
+  ) {
     throw new Error("Unexpected response format from OpenAI");
   }
   const descriptions = JSON.parse(toolCall.function.arguments);

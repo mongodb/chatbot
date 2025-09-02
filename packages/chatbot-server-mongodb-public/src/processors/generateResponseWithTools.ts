@@ -472,10 +472,12 @@ export function makeGenerateResponseWithTools({
             },
           });
 
-          // Wait for guardrail so we don't get streaming overlap (addresses race condition)
+          // Wait for guardrail before streaming content (addresses race condition)
           const guardrailResult = await guardrailMonitor;
           if (guardrailResult?.rejected) {
-            throw new Error("Guardrail rejected (just exit this block)");
+            throw new Error(
+              "Guardrail rejected. Aborting generation (you shouldn't see this)"
+            );
           }
 
           let fullStreamText = "";

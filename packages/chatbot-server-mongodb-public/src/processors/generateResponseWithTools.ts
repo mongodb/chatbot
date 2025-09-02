@@ -39,8 +39,16 @@ import {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
-import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
-import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
+import {
+  SEARCH_TOOL_NAME,
+  SearchTool,
+  MongoDbSearchToolArgs,
+} from "../tools/search";
+import {
+  FETCH_PAGE_TOOL_NAME,
+  FetchPageTool,
+  MongoDbFetchPageToolArgs,
+} from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
@@ -790,6 +798,11 @@ function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
   });
 }
 
+interface ToolCallCustomData {
+  [SEARCH_TOOL_NAME]?: MongoDbSearchToolArgs;
+  [FETCH_PAGE_TOOL_NAME]?: MongoDbFetchPageToolArgs[];
+}
+
 function collectToolCallData({
   toolName,
   toolArgs,
@@ -797,17 +810,16 @@ function collectToolCallData({
 }: {
   toolName: string;
   toolArgs: unknown;
-  customData: Record<string, unknown>;
+  customData: ToolCallCustomData;
 }) {
   if (toolName === FETCH_PAGE_TOOL_NAME) {
-    // Store fetch_page tool calls as an array
-    if (!(toolName in customData)) {
-      customData[toolName] = [];
+    if (!customData[FETCH_PAGE_TOOL_NAME]) {
+      customData[FETCH_PAGE_TOOL_NAME] = [];
     }
-    (customData[toolName] as unknown[]).push(toolArgs);
+    customData[FETCH_PAGE_TOOL_NAME].push(toolArgs as MongoDbFetchPageToolArgs);
   } else if (toolName === SEARCH_TOOL_NAME) {
     // search_content stored as single object (last call wins if multiple)
-    customData[toolName] = toolArgs;
+    customData[SEARCH_TOOL_NAME] = toolArgs as MongoDbSearchToolArgs;
   }
 }
 
@@ -817,10 +829,10 @@ function formatMessageForReturnGeneration(
   references: References
 ): {
   formattedMessages: [...SomeMessage[], AssistantMessage];
-  toolCallCustomData: Record<string, unknown>;
+  toolCallCustomData: ToolCallCustomData;
 } {
   const messagesOut: Array<SomeMessage | AssistantMessage> = [];
-  const toolCallCustomData: Record<string, unknown> = {};
+  const toolCallCustomData: ToolCallCustomData = {};
   messages.forEach((m) => {
     if (m.role === "assistant") {
       const newAssistantMessages = makeAssitantMessage(reqId, m);

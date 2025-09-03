@@ -24,14 +24,18 @@ import {
   MercuryPrompt,
   MercuryReport,
 } from "../mercury/database";
-import { ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoBulkWriteError, ObjectId } from "mongodb-rag-core/mongodb";
 import {
+  countNumFailed,
   formatDate,
+  getNHoursFromIsoDate,
   getTodayIsoDate,
   getYesterdayIsoDate,
+  makeDedupeKey,
   validateDatestring,
 } from "./utils";
 import { MongoWriteError, ScoringFailedError } from "../mercury/errors";
+import util from "util";
 
 const env = getEnv({
   required: [
@@ -203,16 +207,26 @@ export const main = async (
   );
   try {
     await db.connect();
-    const existingDocs = await db.answersCollection
-      .find({
-        platformId: { $in: Array.from(platformIdsSet) },
-        prompt: { $in: Array.from(promptsSet) },
-        date: { $gte: new Date(start), $lt: new Date(end) },
-      })
-      .toArray();
+    const query = {
+      platformId: { $in: Array.from(platformIdsSet) },
+      prompt: { $in: Array.from(promptsSet) },
+      date: { $gte: new Date(start + "Z"), $lt: new Date(end + "Z") }, // TODO - I think there may be a timezone issue here
+      // date: {
+      //   $gte: new Date(getNHoursFromIsoDate(new Date(start + "Z"), 4)),
+      //   $lt: new Date(getNHoursFromIsoDate(new Date(end + "Z"), 4)),
+      // },
+    };
+    // console.log("query", util.inspect(query, { depth: null }));
+    const existingDocs = await db.answersCollection.find(query).toArray();
 
     const alreadyScored = new Set<string>(
-      existingDocs.map((doc) => doc.profoundRunId)
+      existingDocs.map((doc) => {
+        return makeDedupeKey({
+          reportDate: doc.reportDate,
+          profoundPromptId: doc.profoundPromptId,
+          platformId: doc.platformId,
+        });
+      })
     );
 
     const allSkipped: string[] = [];
@@ -221,7 +235,11 @@ export const main = async (
     ];
 
     const answersToProcess = answers.filter((answer) => {
-      const dedupeKey = answer.run_id;
+      const dedupeKey = makeDedupeKey({
+        reportDate: formatDate(new Date(answer.created_at + "Z")),
+        profoundPromptId: answer.prompt_id,
+        platformId: mapProfoundPlatformNameToId(answer.model),
+      });
       const skipAlreadyScored = alreadyScored.has(dedupeKey);
       const skipRegex = skipPatterns.some((pattern) =>
         pattern.test(answer.prompt)
@@ -264,7 +282,7 @@ export const main = async (
     );
 
     const allErrors: Error[] = [];
-    const allRecords: any[] = [];
+    const allSuccesses: any[] = [];
     const promptsWithNoAssociatedCase = new Set<string>();
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -382,14 +400,36 @@ export const main = async (
           } to MongoDB`
         );
         try {
-          const result = await db.answersCollection.insertMany(validResults);
+          // const result = await db.answersCollection.insertMany(validResults);
+          const result = await db.answersCollection.bulkWrite(
+            validResults.map((a) => {
+              return {
+                insertOne: {
+                  document: a,
+                },
+              };
+            }),
+            { ordered: false }
+          );
           console.log(
             `Batch ${batchIndex + 1} save completed: ${
               result.insertedCount
             } inserted`
           );
         } catch (error) {
-          console.error(`‼️ Batch ${batchIndex + 1} save failed`);
+          if (!(error instanceof MongoBulkWriteError)) {
+            batchErrors.push(
+              error instanceof Error ? error : new Error(String(error))
+            );
+            continue;
+          }
+          const numErrors = error.result.getWriteErrorCount();
+          const numSuccesses = error.result.insertedCount;
+          console.error(
+            `‼️ Batch ${
+              batchIndex + 1
+            } save failed: ${numErrors} errors, ${numSuccesses} inserted`
+          );
           batchErrors.push(
             new MongoWriteError({
               error,
@@ -399,45 +439,43 @@ export const main = async (
               },
               metadata: {
                 batchIndex,
-                numDocs: validResults.length,
+                numDocs: numErrors,
               },
             })
           );
-          validResults.length = 0; // invalidate validResults
+          if (numSuccesses === 0) {
+            validResults.length = 0;
+          } else {
+            const insertedIds = Object.keys(error.result.insertedIds);
+            const newValidResults = validResults.filter((a) =>
+              insertedIds.includes(a._id.toHexString())
+            );
+            validResults.length = 0;
+            validResults.push(...newValidResults);
+          }
         }
       }
 
       // Add to cumulative totals
       allErrors.push(...batchErrors);
-      allRecords.push(...validResults);
-
-      function countNumFailed(errors: Error[]) {
-        return errors.reduce((acc, error) => {
-          if (error instanceof MongoWriteError) {
-            return acc + (error.metadata.numDocs as number);
-          } else {
-            return acc + 1;
-          }
-        }, 0);
-      }
-
+      allSuccesses.push(...validResults);
       // Log batch completion
       console.log(`Batch ${batchIndex + 1} completed:`);
-      console.log(`  - Success processed: ${validResults.length} answers`);
+      console.log(`  - Successfully processed: ${validResults.length} answers`);
       console.log(
         `  - Failed to process: ${countNumFailed(batchErrors)} answers`
       );
       console.log(
         `  - Cumulative total: ${
-          allRecords.length
+          allSuccesses.length
         } successful, ${countNumFailed(allErrors)} failed`
       );
     }
 
     // Final summary
     console.log(`\n=== Final Summary ===`);
-    console.log(`Successfully processed ${allRecords.length} answers`);
-    console.log(`Failed to process ${allErrors.length} answers`);
+    console.log(`Successfully processed ${allSuccesses.length} answers`);
+    console.log(`Failed to process ${countNumFailed(allErrors)} answers`);
     console.log(`Skipped ${allSkipped.length} answers`);
     if (promptsWithNoAssociatedCase.size > 0) {
       console.log(
@@ -452,7 +490,7 @@ export const main = async (
       const { errorsFile, resultsFile, skippedFile } = createOutputs({
         outputDir: args.outputDir,
         errors: allErrors,
-        results: allRecords,
+        results: allSuccesses,
         skipped: allSkipped,
       });
       console.log("Skipped written to", skippedFile);

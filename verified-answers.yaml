@@ -879,7 +879,7 @@
     - how to import data
   references:
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
-      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
+      title: "Learning Byte: Importing CSV Data into MongoDB"
     - url: https://www.mongodb.com/developer/products/mongodb/mongoimport-guide
       title: How to Import Data into MongoDB with mongoimport
     - url: https://mongodb.com/docs/guides/crud/insert/
@@ -1568,7 +1568,7 @@
         "MongoDB Database Administrator Tools - Lesson 5: Data Import Tools -
         Learn"
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
-      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
+      title: "Learning Byte: Importing CSV Data into MongoDB"
 - answer: |
     The best place to start learning about MongoDB is the MongoDB University [Introduction to MongoDB course](https://learn.mongodb.com/learning-paths/introduction-to-mongodb). If you are interested in completing a certification, you can take Introduction to MongoDB as part of a developer learning path with the programming language of your choice. This will prepare you for the [MongoDB Associate Developer](https://learn.mongodb.com/pages/mongodb-associate-developer-exam) certification.
   author_email: emily.pope@mongodb.com
@@ -2202,7 +2202,7 @@
     - url: https://www.mongodb.com/products/tools/compass
       title: MongoDB Compass
     - url: https://learn.mongodb.com/courses/mongodb-compass
-      title: Learning Byte: MongoDB Compass
+      title: "Learning Byte: MongoDB Compass"
     - url: https://www.mongodb.com/library/compass/mongodb-has-schemas?lb-mode=overlay
       title: MongoDB Has Schemas!?!
 - author_email: jessica.roberts@mongodb.com

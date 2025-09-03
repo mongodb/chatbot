@@ -2162,3 +2162,60 @@
   references:
     - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
       title: Atlas Vector Search Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How does MongoDB Compass help me with visualizing and understanding my data model?
+  answer: |
+    MongoDB Compass provides a graphical interface where you can:
+
+    - Analyze your document schema to understand the structure of your data, including field types, value ranges, and data patterns.
+    - Visualize, validate, and analyze your schema, making it easier to see how your data is organized.
+    - Receive performance insights and suggestions for improving your schema and data modeling practices.
+    - Use tools like the aggregation pipeline builder and visual explain plans to further explore and optimize your data model.
+    - Leverage natural language to generate queries and build aggregations by submitting prompts in plain English and receiving executable MongoDB Query API syntax.
+
+    Compass makes it easy to explore, refine, and optimize your data directly from an intuitive interface, helping you gain deeper insights into your MongoDB collections.
+  references:
+    - url: https://www.mongodb.com/docs/compass/
+      title: MongoDB Compass Documentation
+    - url: https://www.mongodb.com/docs/compass/schema/
+      title: Analyze Your Data Schema
+    - url: https://www.mongodb.com/docs/compass/performance/
+      title: View Real-Time Performance
+    - url: https://www.mongodb.com/docs/compass/create-agg-pipeline/
+      title: Create an Aggregation Pipeline
+    - url: https://www.mongodb.com/docs/compass/query-with-natural-language/
+      title: Query with Natural Language
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I get started with MongoDB Compass?
+  answer: |
+    To start using MongoDB Compass, download the desktop application. Compass is free to use, source available, and can be run on macOS, Windows, and Linux.
+
+    Our documentation on MongoDB Compass includes instructions on downloading, installing, and connecting Compass to your MongoDB deployments. You can also refer to our documentation to learn how to visually explore your data with Compass.
+  references:
+    - url: https://www.mongodb.com/try/download/compass
+      title: MongoDB Compass Download (GUI)
+    - url: https://www.mongodb.com/docs/compass/
+      title: MongoDB Compass Documentation
+    - url: https://www.mongodb.com/products/tools/compass
+      title: MongoDB Compass
+    - url: https://learn.mongodb.com/courses/mongodb-compass
+      title: Learning Byte: MongoDB Compass
+    - url: https://www.mongodb.com/library/compass/mongodb-has-schemas?lb-mode=overlay
+      title: MongoDB Has Schemas!?!
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Is MongoDB Compass available in the Atlas UI?
+  answer: |
+    Compass is a desktop application. However, MongoDB has a new data management experience that brings the familiarity and power of MongoDB Compass to the Atlas UI.
+
+    This new Data Explorer experience empowers developers to view and understand their data, as well as test and optimize queries directly within the browser, streamlining application development and enriching data management processes.
+  references:
+    - url: https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer
+      title: Atlas Data Explorer
+    - url: https://www.mongodb.com/blog/post/product-release-announcements/new-data-management-experience-in-atlas-ui
+      title: New Data Management Experience in the Atlas UI
+    - url: https://youtube.com/shorts/3MK5fZYlwtw
+      title: NEW MongoDB Atlas Data Explorer | Unified Data Exploration!

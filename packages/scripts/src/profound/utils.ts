@@ -51,15 +51,9 @@ export function getNDaysAgoIsoDate(n: number, timeZone: string = "UTC") {
   return `${targetYear}-${targetMonth}-${targetDay}`;
 }
 
-export function getNHoursAgoIsoDate(n: number, timeZone: string = "UTC") {
-  const now = new Date();
-  const targetDateUTC = new Date(now.getTime() - n * 60 * 60 * 1000);
-  return targetDateUTC.toISOString();
-}
-
-export function getNHoursFromIsoDate(isoDate: string | Date, n: number) {
+export function getNHoursAfterIsoDate(isoDate: string | Date, n: number) {
   const date = new Date(isoDate);
-  const targetDateUTC = new Date(date.getTime() - n * 60 * 60 * 1000);
+  const targetDateUTC = new Date(date.getTime() + n * 60 * 60 * 1000);
   return targetDateUTC.toISOString();
 }
 

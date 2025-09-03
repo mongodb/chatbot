@@ -28,7 +28,7 @@ import { MongoBulkWriteError, ObjectId } from "mongodb-rag-core/mongodb";
 import {
   countNumFailed,
   formatDate,
-  getNHoursFromIsoDate,
+  getNHoursAfterIsoDate,
   getTodayIsoDate,
   getYesterdayIsoDate,
   makeDedupeKey,
@@ -108,6 +108,18 @@ export async function getAnswers({
     categoryId: env.PROFOUND_CATALOG_ID_EDU,
   });
   console.log(`Retrieved ${response.data.length} answers from Profound API`);
+  const [earliestDate, latestDate] = response.data.reduce(
+    ([earliest, latest], answer) => {
+      const date = new Date(answer.created_at + "Z");
+      return [date < earliest ? date : earliest, date > latest ? date : latest];
+    },
+    [
+      new Date(response.data[0].created_at + "Z"),
+      new Date(response.data[0].created_at + "Z"),
+    ]
+  );
+  console.log(`Earliest date: ${earliestDate.toISOString()}`);
+  console.log(`Latest date: ${latestDate.toISOString()}`);
   return response.data;
 }
 
@@ -210,11 +222,11 @@ export const main = async (
     const query = {
       platformId: { $in: Array.from(platformIdsSet) },
       prompt: { $in: Array.from(promptsSet) },
-      date: { $gte: new Date(start + "Z"), $lt: new Date(end + "Z") }, // TODO - I think there may be a timezone issue here
-      // date: {
-      //   $gte: new Date(getNHoursFromIsoDate(new Date(start + "Z"), 4)),
-      //   $lt: new Date(getNHoursFromIsoDate(new Date(end + "Z"), 4)),
-      // },
+      // date: { $gte: new Date(start + "Z"), $lt: new Date(end + "Z") }, // TODO - I think there may be a timezone issue here
+      date: {
+        $gte: new Date(getNHoursAfterIsoDate(new Date(start + "Z"), 4)),
+        $lt: new Date(getNHoursAfterIsoDate(new Date(end + "Z"), 4)),
+      },
     };
     // console.log("query", util.inspect(query, { depth: null }));
     const existingDocs = await db.answersCollection.find(query).toArray();

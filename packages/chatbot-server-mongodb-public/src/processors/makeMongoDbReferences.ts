@@ -88,6 +88,10 @@ export function mongodbReferenceType(
     }
   }
 
+  // Third-party sites
+  if (/youtube\.com/.test(ref.url)) return "Video";
+
+  // MongoDB sites
   if (/learn\.mongodb\.com/.test(ref.url)) return "Learn";
   if (/docs/.test(ref.url)) return "Docs";
   if (/blog/.test(ref.url)) return "Blog";

@@ -95,7 +95,6 @@ export class ProfoundApi {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      console.log(`Requesting the next ${limit} records, offset by ${offset}`);
       const paginatedBody = {
         ...body,
         pagination: { limit, offset },

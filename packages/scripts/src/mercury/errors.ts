@@ -7,19 +7,24 @@ import {
   NlPromptResponseTaskOutput,
 } from "../../../benchmarks/build/nlPromptResponse/NlQuestionAnswerEval";
 
+function handleUnknownError(error: unknown): string {
+  const e = error instanceof Error ? error : new Error(String(error));
+  return util.inspect(e);
+}
+
 export class GenerationFailedError extends Error {
   public readonly prompt;
   public readonly model;
-  public readonly error;
+  public readonly error: string;
 
-  constructor(args: { prompt: MercuryPrompt; model: string; error: Error }) {
+  constructor(args: { prompt: MercuryPrompt; model: string; error: unknown }) {
     super(
       `Generation failed for prompt ${args.prompt._id} and model ${args.model}`
     );
     this.name = "GenerationFailedError";
     this.prompt = args.prompt;
     this.model = args.model;
-    this.error = args.error;
+    this.error = handleUnknownError(args.error);
   }
 }
 
@@ -43,7 +48,7 @@ export class ScoringFailedError extends Error {
       expected: NlPromptResponseTaskExpected;
       metadata: NlPromptResponseMetadata;
     };
-    error: Error;
+    error: unknown;
   }) {
     super(
       `Scoring failed for prompt ${args.prompt._id} and model ${args.model}`
@@ -52,6 +57,24 @@ export class ScoringFailedError extends Error {
     this.prompt = args.prompt;
     this.model = args.model;
     this.scorer = args.scorer;
-    this.error = util.inspect(args.error);
+    this.error = handleUnknownError(args.error);
+  }
+}
+
+export class MongoWriteError extends Error {
+  public readonly error;
+  public readonly ns;
+  public readonly metadata: Record<string, unknown>;
+
+  constructor(args: {
+    error: unknown;
+    ns: { db: string; collection: string };
+    metadata?: Record<string, unknown>;
+  }) {
+    super(`MongoDB write error`);
+    this.name = "MongoWriteError";
+    this.error = handleUnknownError(args.error);
+    this.ns = args.ns;
+    this.metadata = args.metadata ?? {};
   }
 }

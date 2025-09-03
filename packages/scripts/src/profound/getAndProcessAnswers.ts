@@ -31,7 +31,7 @@ import {
   getYesterdayIsoDate,
   validateDatestring,
 } from "./utils";
-import { ScoringFailedError } from "../mercury/errors";
+import { MongoWriteError, ScoringFailedError } from "../mercury/errors";
 
 const env = getEnv({
   required: [
@@ -72,6 +72,9 @@ export async function getAnswers({
   caseContent,
   platformId,
 }: GetAnswersArgs): Promise<ProfoundAnswer[]> {
+  console.log(
+    `Getting answers from Profound API for period ${startDate} to ${endDate}`
+  );
   const filters: ProfoundAnswerRequestBody["filters"] = [];
   if (caseContent) {
     filters.push({
@@ -161,18 +164,6 @@ const MAX_BATCHES = parseInt(env.MAX_BATCHES) || undefined;
 console.log(`Batch size: ${BATCH_SIZE}`);
 console.log(`Max batches: ${MAX_BATCHES}`);
 
-function makeDedupeKey(args: {
-  day: string;
-  prompt: string;
-  platformId: string | undefined;
-}) {
-  return JSON.stringify({
-    day: args.day,
-    platformId: args.platformId ?? "",
-    prompt: args.prompt,
-  });
-}
-
 export const main = async (
   args: { startDate?: string; endDate?: string; outputDir?: string } = {}
 ) => {
@@ -204,7 +195,6 @@ export const main = async (
     `Processing ${answers.length} answers generated between ${start} and ${end}`
   );
 
-  // Precompute dedupe set from existing records: YYYY-MM-DD (NY) + prompt + platformId
   const promptsSet = new Set<string>(answers.map((a) => a.prompt));
   const platformIdsSet = new Set<string>(
     answers
@@ -221,33 +211,29 @@ export const main = async (
       })
       .toArray();
 
-    console.log(
-      `Debug: Prefetched ${existingDocs.length} existing documents from database`
+    const alreadyScored = new Set<string>(
+      existingDocs.map((doc) => doc.profoundRunId)
     );
 
-    const alreadyScored = new Set<string>(
-      existingDocs.map(
-        (doc) => doc.profoundRunId
-        // makeDedupeKey({
-        //   day: formatDate(new Date(doc.date)),
-        //   prompt: doc.prompt,
-        //   platformId: doc.platformId,
-        // })
-      )
-    );
+    const allSkipped: string[] = [];
+    const skipPatterns = [
+      /Evaluate the MongoDB - Docs \/ Education company MongoDB/,
+    ];
 
     const answersToProcess = answers.filter((answer) => {
-      // const dedupeKey = makeDedupeKey({
-      //   prompt: answer.prompt,
-      //   platformId: mapProfoundPlatformNameToId(answer.model),
-      //   day: formatDate(new Date(answer.created_at + "Z")), // TODO - Find out what timezone this is returned in because it's not UTC
-      // });
       const dedupeKey = answer.run_id;
-      return !alreadyScored.has(dedupeKey);
+      const skipAlreadyScored = alreadyScored.has(dedupeKey);
+      const skipRegex = skipPatterns.some((pattern) =>
+        pattern.test(answer.prompt)
+      );
+      if (skipRegex) {
+        allSkipped.push(answer.prompt);
+      }
+      return !skipAlreadyScored && !skipRegex;
     });
 
     console.log(
-      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nTo process: ${answersToProcess.length}`
+      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nSkipped: ${allSkipped.length}\nTo process: ${answersToProcess.length}`
     );
 
     if (answersToProcess.length === 0) {
@@ -278,7 +264,6 @@ export const main = async (
     );
 
     const allErrors: Error[] = [];
-    const allSkipped: string[] = [];
     const allRecords: any[] = [];
     const promptsWithNoAssociatedCase = new Set<string>();
 
@@ -291,19 +276,12 @@ export const main = async (
       );
 
       const batchErrors: Error[] = [];
-      const batchSkipped: string[] = [];
       const { results: batchResults } = await PromisePool.for(batch)
         .withConcurrency(10)
         .handleError((error) => {
           batchErrors.push(error);
         })
         .process(async (currentAnswer) => {
-          const skipRegex =
-            /Evaluate the MongoDB - Docs \/ Education company MongoDB/;
-          if (skipRegex.test(currentAnswer.prompt)) {
-            batchSkipped.push(currentAnswer.prompt);
-            return null;
-          }
           // Find the corresponding llm_cases document (to get expected response & tags)
           const currentCase =
             profoundPromptIdToPromptMap[currentAnswer.prompt_id];
@@ -337,6 +315,7 @@ export const main = async (
           };
           try {
             const score = await scoreReferenceAlignment(scorerArgs);
+            const date = new Date(currentAnswer.created_at + "Z");
             const answer = {
               _id: new ObjectId(),
               createdAt: new Date(),
@@ -345,7 +324,8 @@ export const main = async (
               promptId: currentCase._id,
               platformName: currentAnswer.model,
               platformId,
-              date: new Date(currentAnswer.created_at),
+              date,
+              reportDate: formatDate(date),
               prompt: currentAnswer.prompt,
               region: currentAnswer.region,
               response: currentAnswer.response,
@@ -379,12 +359,14 @@ export const main = async (
             } satisfies MercuryAnswer;
             return answer;
           } catch (error) {
-            console.error(error);
+            console.error(
+              `‼️ Scoring failed for profoundRunId: ${currentAnswer.run_id}`
+            );
             throw new ScoringFailedError({
               prompt: currentCase,
               model: currentAnswer.model,
               scorer: scorerArgs,
-              error: error instanceof Error ? error : new Error(String(error)),
+              error,
             });
           }
         });
@@ -406,23 +388,49 @@ export const main = async (
               result.insertedCount
             } inserted`
           );
-        } catch (err) {
-          console.error(`Batch ${batchIndex + 1} save failed:`, err);
+        } catch (error) {
+          console.error(`‼️ Batch ${batchIndex + 1} save failed`);
+          batchErrors.push(
+            new MongoWriteError({
+              error,
+              ns: {
+                db: db.answersCollection.dbName,
+                collection: db.answersCollection.collectionName,
+              },
+              metadata: {
+                batchIndex,
+                numDocs: validResults.length,
+              },
+            })
+          );
+          validResults.length = 0; // invalidate validResults
         }
       }
 
       // Add to cumulative totals
       allErrors.push(...batchErrors);
-      allSkipped.push(...batchSkipped);
       allRecords.push(...validResults);
+
+      function countNumFailed(errors: Error[]) {
+        return errors.reduce((acc, error) => {
+          if (error instanceof MongoWriteError) {
+            return acc + (error.metadata.numDocs as number);
+          } else {
+            return acc + 1;
+          }
+        }, 0);
+      }
 
       // Log batch completion
       console.log(`Batch ${batchIndex + 1} completed:`);
-      console.log(`  - Successfully processed: ${validResults.length} answers`);
-      console.log(`  - Failed: ${batchErrors.length} answers`);
-      console.log(`  - Skipped: ${batch.length - validResults.length} answers`);
+      console.log(`  - Success processed: ${validResults.length} answers`);
       console.log(
-        `  - Cumulative total: ${allRecords.length} successful, ${allErrors.length} failed`
+        `  - Failed to process: ${countNumFailed(batchErrors)} answers`
+      );
+      console.log(
+        `  - Cumulative total: ${
+          allRecords.length
+        } successful, ${countNumFailed(allErrors)} failed`
       );
     }
 
@@ -431,9 +439,14 @@ export const main = async (
     console.log(`Successfully processed ${allRecords.length} answers`);
     console.log(`Failed to process ${allErrors.length} answers`);
     console.log(`Skipped ${allSkipped.length} answers`);
-    console.log(
-      `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
-    );
+    if (promptsWithNoAssociatedCase.size > 0) {
+      console.log(
+        `Found ${promptsWithNoAssociatedCase.size} prompts with no associated case:`
+      );
+      promptsWithNoAssociatedCase.forEach((prompt) => {
+        console.log(`  - ${prompt}`);
+      });
+    }
 
     if (args.outputDir) {
       const { errorsFile, resultsFile, skippedFile } = createOutputs({

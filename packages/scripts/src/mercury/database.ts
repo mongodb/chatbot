@@ -72,6 +72,7 @@ export type MercuryAnswer = {
   };
   createdAt: Date;
   date: Date;
+  reportDate: string;
   expectedResponse: string;
   metrics: Record<
     string,

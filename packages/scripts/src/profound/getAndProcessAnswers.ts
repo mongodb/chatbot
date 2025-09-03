@@ -9,6 +9,7 @@ import {
 import { makeReferenceAlignment } from "benchmarks";
 import { getModel } from "../mercury/models";
 import {
+  createBatches,
   createOutputs,
   mapReferenceAlignmentScoreToTag,
 } from "../mercury/utils";
@@ -52,19 +53,11 @@ const env = getEnv({
   ],
   optional: {
     BATCH_SIZE: "50",
+    MAX_BATCHES: "",
   },
 });
 
 const profoundAPI = new ProfoundApi({ apiKey: env.PROFOUND_API_KEY });
-
-// Helper function to split an array into batches
-function createBatches<T>(array: T[], batchSize: number): T[][] {
-  const batches: T[][] = [];
-  for (let i = 0; i < array.length; i += batchSize) {
-    batches.push(array.slice(i, i + batchSize));
-  }
-  return batches;
-}
 
 export interface GetAnswersArgs {
   startDate: string;
@@ -107,6 +100,7 @@ export async function getAnswers({
     body,
     categoryId: env.PROFOUND_CATALOG_ID_EDU,
   });
+  console.log(`Retrieved ${response.data.length} answers from Profound API`);
   return response.data;
 }
 
@@ -162,6 +156,10 @@ function makeMapAnswerToDataset(
 const judgementModelConfig = getModel("gpt-4.1");
 
 const BATCH_SIZE = parseInt(env.BATCH_SIZE);
+const MAX_BATCHES = parseInt(env.MAX_BATCHES) || undefined;
+
+console.log(`Batch size: ${BATCH_SIZE}`);
+console.log(`Max batches: ${MAX_BATCHES}`);
 
 function makeDedupeKey(args: {
   day: string;
@@ -192,8 +190,6 @@ export const main = async (
   const start = validateDatestring(args.startDate ?? getYesterdayIsoDate());
   const end = validateDatestring(args.endDate ?? getTodayIsoDate());
 
-  const answersCollection = db.answersCollection;
-
   const reports = await db.reportsCollection.find({}).toArray();
   const prompts = await db.promptsCollection.find({}).toArray();
   const profoundPromptIdToPromptMap = groupByProfoundPromptId(prompts);
@@ -221,6 +217,7 @@ export const main = async (
       .find({
         platformId: { $in: Array.from(platformIdsSet) },
         prompt: { $in: Array.from(promptsSet) },
+        date: { $gte: new Date(start), $lt: new Date(end) },
       })
       .toArray();
 
@@ -229,21 +226,23 @@ export const main = async (
     );
 
     const alreadyScored = new Set<string>(
-      existingDocs.map((doc) =>
-        makeDedupeKey({
-          day: formatDate(new Date(doc.date)),
-          prompt: doc.prompt,
-          platformId: doc.platformId,
-        })
+      existingDocs.map(
+        (doc) => doc.profoundRunId
+        // makeDedupeKey({
+        //   day: formatDate(new Date(doc.date)),
+        //   prompt: doc.prompt,
+        //   platformId: doc.platformId,
+        // })
       )
     );
 
     const answersToProcess = answers.filter((answer) => {
-      const dedupeKey = makeDedupeKey({
-        prompt: answer.prompt,
-        platformId: mapProfoundPlatformNameToId(answer.model),
-        day: formatDate(new Date(answer.created_at + "Z")), // TODO - Find out what timezone this is returned in because it's not UTC
-      });
+      // const dedupeKey = makeDedupeKey({
+      //   prompt: answer.prompt,
+      //   platformId: mapProfoundPlatformNameToId(answer.model),
+      //   day: formatDate(new Date(answer.created_at + "Z")), // TODO - Find out what timezone this is returned in because it's not UTC
+      // });
+      const dedupeKey = answer.run_id;
       return !alreadyScored.has(dedupeKey);
     });
 
@@ -269,7 +268,11 @@ export const main = async (
     );
 
     // Process answers in batches
-    const batches = createBatches(answersToProcess, BATCH_SIZE);
+    const batches = createBatches({
+      array: answersToProcess,
+      batchSize: BATCH_SIZE,
+      maxBatches: MAX_BATCHES,
+    });
     console.log(
       `Processing ${answersToProcess.length} answers in ${batches.length} batches of size ${BATCH_SIZE}`
     );

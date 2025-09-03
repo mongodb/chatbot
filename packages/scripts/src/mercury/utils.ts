@@ -60,3 +60,25 @@ export function createOutputs(args: {
     skippedFile,
   };
 }
+
+// Helper function to split an array into batches
+export function createBatches<T>(args: {
+  array: T[];
+  batchSize: number;
+  maxBatches?: number;
+}): T[][] {
+  if (Number.isNaN(args.batchSize)) {
+    throw new Error("Batch size must be a number - got NaN");
+  }
+  if (Number.isNaN(args.maxBatches)) {
+    throw new Error("Max batches must be a number - got NaN");
+  }
+  const batches: T[][] = [];
+  for (let i = 0; i < args.array.length; i += args.batchSize) {
+    if (args.maxBatches && batches.length >= args.maxBatches) {
+      break;
+    }
+    batches.push(args.array.slice(i, i + args.batchSize));
+  }
+  return batches;
+}

@@ -1,4 +1,5 @@
 import { type MercuryPrompt } from "./database";
+import util from "util";
 import {
   NlPromptResponseEvalCaseInput,
   NlPromptResponseMetadata,
@@ -31,7 +32,7 @@ export class ScoringFailedError extends Error {
     expected: NlPromptResponseTaskExpected;
     metadata: NlPromptResponseMetadata;
   };
-  public readonly error;
+  public readonly error: string;
 
   constructor(args: {
     prompt: MercuryPrompt;
@@ -51,6 +52,6 @@ export class ScoringFailedError extends Error {
     this.prompt = args.prompt;
     this.model = args.model;
     this.scorer = args.scorer;
-    this.error = args.error;
+    this.error = util.inspect(args.error);
   }
 }

@@ -5,7 +5,12 @@ import { getEnv } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationFailedError, ScoringFailedError } from "./errors";
 import { getModel, mercuryModelConfigs } from "./models";
-import { createOutputs, diffLists, truncateString } from "./utils";
+import {
+  createBatches,
+  createOutputs,
+  diffLists,
+  truncateString,
+} from "./utils";
 import {
   makeMercuryDatabase,
   MercuryDatabase,
@@ -35,15 +40,6 @@ const env = getEnv({
 });
 
 const judgementModelConfig = getModel("gpt-4.1");
-
-// Helper function to split an array into batches
-function createBatches<T>(array: T[], batchSize: number): T[][] {
-  const batches: T[][] = [];
-  for (let i = 0; i < array.length; i += batchSize) {
-    batches.push(array.slice(i, i + batchSize));
-  }
-  return batches;
-}
 
 async function main(args: { outputDir: string }) {
   const db = makeMercuryDatabase({
@@ -113,7 +109,10 @@ async function main(args: { outputDir: string }) {
 
     // Process evaluation tasks in batches
     const batchSize = parseInt(env.BATCH_SIZE);
-    const batches = createBatches(evaluationTasks, batchSize);
+    const batches = createBatches({
+      array: evaluationTasks,
+      batchSize: batchSize,
+    });
 
     console.log(
       `Processing ${evaluationTasks.length} prompt-model pairs in ${batches.length} batches of size ${batchSize}`

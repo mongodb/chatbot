@@ -39,6 +39,10 @@ export function extractTracingData(
     previousUserMessageIdx
   ] as DbMessage<UserMessage>;
 
+  const firstToolMetadata = getFirstToolMetadata(
+    messages.slice(previousUserMessageIdx + 1, evalAssistantMessageIdx)
+  );
+
   const tags = [];
 
   const rejectQuery = previousUserMessage.rejectQuery;
@@ -88,7 +92,6 @@ export function extractTracingData(
     typeof maybeRejectionReason === "string"
       ? maybeRejectionReason
       : "Unknown rejection reason";
-
   return {
     conversationId: conversationId,
     tags,
@@ -98,6 +101,7 @@ export function extractTracingData(
     llmDoesNotKnow,
     numRetrievedChunks,
     contextContent,
+    firstToolMetadata,
     userMessage: previousUserMessage,
     userMessageIndex: previousUserMessageIdx,
     assistantMessage: evalAssistantMessage,
@@ -162,3 +166,25 @@ export function getContextsFromMessages(
 
   return contexts;
 }
+
+export const getFirstToolMetadata = (
+  messages: Message[]
+): { name: string; [key: string]: string } | null => {
+  for (const message of messages) {
+    if (message.role === "assistant" && message.toolCall !== undefined) {
+      const toolCallMessage = message as DbMessage<AssistantMessage>;
+      try {
+        const toolCallArgs = toolCallMessage.toolCall?.function.arguments
+          ? JSON.parse(toolCallMessage.toolCall?.function.arguments)
+          : {};
+        return {
+          name: toolCallMessage.toolCall?.function.name,
+          ...toolCallArgs,
+        };
+      } catch (e) {
+        return { name: toolCallMessage.toolCall?.function.name ?? "unknown" };
+      }
+    }
+  }
+  return null;
+};

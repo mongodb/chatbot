@@ -39,16 +39,8 @@ import {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
-import {
-  SEARCH_TOOL_NAME,
-  SearchTool,
-  MongoDbSearchToolArgs,
-} from "../tools/search";
-import {
-  FETCH_PAGE_TOOL_NAME,
-  FetchPageTool,
-  MongoDbFetchPageToolArgs,
-} from "../tools/fetchPage";
+import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
+import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
@@ -710,15 +702,16 @@ function handleReturnGeneration({
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
   userMessage.metadata = userMessage.metadata ?? {};
-
-  const { formattedMessages, toolCallCustomData } =
-    formatMessageForReturnGeneration(messages, reqId, references ?? []);
-
   userMessage.customData = {
     ...userMessage.customData,
-    ...toolCallCustomData,
     ...guardrailResult,
   };
+
+  const formattedMessages = formatMessageForReturnGeneration(
+    messages,
+    reqId,
+    references ?? []
+  );
 
   return {
     messages: [userMessage, ...formattedMessages],
@@ -798,55 +791,15 @@ function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
   });
 }
 
-interface ToolCallCustomData {
-  [SEARCH_TOOL_NAME]?: MongoDbSearchToolArgs;
-  [FETCH_PAGE_TOOL_NAME]?: MongoDbFetchPageToolArgs[];
-}
-
-function collectToolCallData({
-  toolName,
-  toolArgs,
-  customData,
-}: {
-  toolName: string;
-  toolArgs: unknown;
-  customData: ToolCallCustomData;
-}) {
-  if (toolName === FETCH_PAGE_TOOL_NAME) {
-    if (!customData[FETCH_PAGE_TOOL_NAME]) {
-      customData[FETCH_PAGE_TOOL_NAME] = [];
-    }
-    customData[FETCH_PAGE_TOOL_NAME].push(toolArgs as MongoDbFetchPageToolArgs);
-  } else if (toolName === SEARCH_TOOL_NAME) {
-    // search_content stored as single object (last call wins if multiple)
-    customData[SEARCH_TOOL_NAME] = toolArgs as MongoDbSearchToolArgs;
-  }
-}
-
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   reqId: string,
   references: References
-): {
-  formattedMessages: [...SomeMessage[], AssistantMessage];
-  toolCallCustomData: ToolCallCustomData;
-} {
+): [...SomeMessage[], AssistantMessage] {
   const messagesOut: Array<SomeMessage | AssistantMessage> = [];
-  const toolCallCustomData: ToolCallCustomData = {};
   messages.forEach((m) => {
     if (m.role === "assistant") {
-      const newAssistantMessages = makeAssitantMessage(reqId, m);
-      newAssistantMessages.forEach((assistantMsg) => {
-        messagesOut.push(assistantMsg);
-
-        if (assistantMsg.toolCall) {
-          collectToolCallData({
-            toolName: assistantMsg.toolCall.function.name,
-            toolArgs: JSON.parse(assistantMsg.toolCall.function.arguments),
-            customData: toolCallCustomData,
-          });
-        }
-      });
+      messagesOut.push(...makeAssitantMessage(reqId, m));
     } else if (m.role === "tool") {
       messagesOut.push(...makeToolMessage(m));
     }
@@ -861,10 +814,7 @@ function formatMessageForReturnGeneration(
   }
   const latestMessage = messagesOut.at(-1) as AssistantMessage;
   latestMessage.references = references;
-  return {
-    formattedMessages: messagesOut as [...SomeMessage[], AssistantMessage],
-    toolCallCustomData,
-  };
+  return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
 function formatMessageForAiSdk(message: SomeMessage): ModelMessage {

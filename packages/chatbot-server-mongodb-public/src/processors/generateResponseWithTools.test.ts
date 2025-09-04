@@ -387,19 +387,17 @@ describe("generateResponseWithTools", () => {
     });
 
     it("should add custom data to the user message", async () => {
-      const generateResponse = makeGenerateResponseWithTools(
-        makeGenerateResponseWithToolsArgs()
-      );
+      const generateResponse = makeGenerateResponseWithTools({
+        ...makeGenerateResponseWithToolsArgs(),
+        inputGuardrail: makeMockGuardrail(true),
+      });
 
       const result = await generateResponse(generateResponseBaseArgs);
 
       const userMessage = result.messages.find(
         (message) => message.role === "user"
       ) as UserMessage;
-      expect(userMessage.customData).toMatchObject({
-        search_content: searchToolMockArgs,
-        fetch_page: [fetchPageToolMockArgs],
-      });
+      expect(userMessage.customData).toMatchObject(mockGuardrailPassResult);
     });
     describe("non-streaming", () => {
       test("should handle successful generation non-streaming", async () => {
@@ -748,7 +746,6 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
   expect(result.messages[0]).toMatchObject({
     role: "user",
     content: latestMessageText,
-    customData: expect.objectContaining({ search_content: searchToolMockArgs }),
   });
 
   expect(result.messages[1]).toMatchObject({
@@ -850,10 +847,6 @@ function expectSuccessfulParallelToolCallResult(
     role: "user",
     content: latestMessageText,
   });
-  expect(result.messages[0].customData?.fetch_page).toEqual([
-    fetchPageToolMockArgs,
-    { query: fetchPageToolMockArgs.query, pageUrl: "https://example2.com/" },
-  ]);
 
   expect(result.messages[1]).toMatchObject({
     role: "assistant",

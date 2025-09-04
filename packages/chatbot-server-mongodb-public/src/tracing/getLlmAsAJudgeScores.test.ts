@@ -49,6 +49,7 @@ describe("getLlmAsAJudgeScores", () => {
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
     contextContent: [],
+    firstToolMetadata: { name: "test_tool", testParam: "value" },
     rejectQuery: false,
     rating: undefined,
     comment: undefined,
@@ -60,8 +61,12 @@ describe("getLlmAsAJudgeScores", () => {
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {
-    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
+    const mockTracingDataVerifiedAnswer = {
       ...willJudge,
+      firstToolMetadata: null,
+    };
+    const scores = await getLlmAsAJudgeScores(fakeBaseConfig, {
+      ...mockTracingDataVerifiedAnswer,
       isVerifiedAnswer: true,
     });
     expect(scores).toEqual(undefined);

@@ -56,7 +56,10 @@ export async function makeScrubbedMessagesFromTracingData({
     createdAt: userMessage.createdAt,
     customData: userMessage.customData,
     pii: userMessagePii?.length ? true : undefined,
-    metadata: userMessage.metadata,
+    metadata: {
+      ...userMessage.metadata,
+      ...(storedMessageContent ? tracingData.firstToolMetadata : {}),
+    },
     response: {
       isVerifiedAnswer: tracingData?.isVerifiedAnswer ? true : false,
     },

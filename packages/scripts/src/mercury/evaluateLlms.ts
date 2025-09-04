@@ -36,6 +36,7 @@ const env = getEnv({
     MERCURY_RESULTS_COLLECTION: "llm_results",
     MERCURY_ANSWERS_COLLECTION: "llm_answers",
     BATCH_SIZE: "50",
+    MAX_BATCHES: "",
   },
 });
 
@@ -109,9 +110,15 @@ async function main(args: { outputDir: string }) {
 
     // Process evaluation tasks in batches
     const batchSize = parseInt(env.BATCH_SIZE);
+    const maxBatches = parseInt(env.MAX_BATCHES) || undefined;
+
+    console.log(`Batch size: ${batchSize}`);
+    console.log(`Max batches: ${maxBatches}`);
+
     const batches = createBatches({
       array: evaluationTasks,
       batchSize: batchSize,
+      maxBatches: maxBatches,
     });
 
     console.log(

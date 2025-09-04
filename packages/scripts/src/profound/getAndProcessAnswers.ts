@@ -211,22 +211,29 @@ export const main = async (
     `Processing ${answers.length} answers generated between ${start} and ${end}`
   );
 
-  const promptsSet = new Set<string>(answers.map((a) => a.prompt));
+  // const promptsSet = new Set<string>(answers.map((a) => a.prompt));
   const platformIdsSet = new Set<string>(
     answers
       .map((answer) => mapProfoundPlatformNameToId(answer.model))
       .filter((pid) => typeof pid === "string")
   );
+  const profoundPromptIdsSet = new Set<string>(answers.map((a) => a.prompt_id));
+  const reportDatesSet = new Set<string>(
+    answers.map((a) => formatDate(new Date(a.created_at + "Z")))
+  );
   try {
     await db.connect();
     const query = {
       platformId: { $in: Array.from(platformIdsSet) },
-      prompt: { $in: Array.from(promptsSet) },
-      // date: { $gte: new Date(start + "Z"), $lt: new Date(end + "Z") }, // TODO - I think there may be a timezone issue here
-      date: {
-        $gte: new Date(getNHoursAfterIsoDate(new Date(start + "Z"), 4)),
-        $lt: new Date(getNHoursAfterIsoDate(new Date(end + "Z"), 4)),
-      },
+      profoundPromptId: { $in: Array.from(profoundPromptIdsSet) },
+      reportDate: { $in: Array.from(reportDatesSet) },
+      // platformId: { $in: Array.from(platformIdsSet) },
+      // prompt: { $in: Array.from(promptsSet) },
+      // // date: { $gte: new Date(start + "Z"), $lt: new Date(end + "Z") }, // TODO - I think there may be a timezone issue here
+      // date: {
+      //   $gte: new Date(getNHoursAfterIsoDate(new Date(start + "Z"), 4)),
+      //   $lt: new Date(getNHoursAfterIsoDate(new Date(end + "Z"), 4)),
+      // },
     };
     // console.log("query", util.inspect(query, { depth: null }));
     const existingDocs = await db.answersCollection.find(query).toArray();
@@ -246,6 +253,7 @@ export const main = async (
       /Evaluate the MongoDB - Docs \/ Education company MongoDB/,
     ];
 
+    const seenThisRun = new Set<string>();
     const answersToProcess = answers.filter((answer) => {
       const dedupeKey = makeDedupeKey({
         reportDate: formatDate(new Date(answer.created_at + "Z")),
@@ -253,17 +261,25 @@ export const main = async (
         platformId: mapProfoundPlatformNameToId(answer.model),
       });
       const skipAlreadyScored = alreadyScored.has(dedupeKey);
+      const skipDuplicateInRun = seenThisRun.has(dedupeKey);
       const skipRegex = skipPatterns.some((pattern) =>
         pattern.test(answer.prompt)
       );
       if (skipRegex) {
         allSkipped.push(answer.prompt);
       }
-      return !skipAlreadyScored && !skipRegex;
+      if (!skipAlreadyScored && !skipRegex && !skipDuplicateInRun) {
+        seenThisRun.add(dedupeKey);
+        return true;
+      }
+      if (skipDuplicateInRun) {
+        allSkipped.push(answer.prompt);
+      }
+      return false;
     });
 
     console.log(
-      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nSkipped: ${allSkipped.length}\nTo process: ${answersToProcess.length}`
+      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nAlread seen this run: ${seenThisRun.size}\nSkipped: ${allSkipped.length}\nTo process: ${answersToProcess.length}`
     );
 
     if (answersToProcess.length === 0) {
@@ -458,9 +474,11 @@ export const main = async (
           if (numSuccesses === 0) {
             validResults.length = 0;
           } else {
-            const insertedIds = Object.keys(error.result.insertedIds);
+            const insertedIdValues = Object.values(
+              error.result.insertedIds
+            ).map((v) => v.toHexString());
             const newValidResults = validResults.filter((a) =>
-              insertedIds.includes(a._id.toHexString())
+              insertedIdValues.includes(a._id.toHexString())
             );
             validResults.length = 0;
             validResults.push(...newValidResults);

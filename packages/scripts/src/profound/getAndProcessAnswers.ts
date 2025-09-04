@@ -254,6 +254,11 @@ export const main = async (
     ];
 
     const seenThisRun = new Set<string>();
+    const counters = {
+      eliminatedExisting: 0,
+      skippedRegex: 0,
+      duplicateInRun: 0,
+    };
     const answersToProcess = answers.filter((answer) => {
       const dedupeKey = makeDedupeKey({
         reportDate: formatDate(new Date(answer.created_at + "Z")),
@@ -261,26 +266,53 @@ export const main = async (
         platformId: mapProfoundPlatformNameToId(answer.model),
       });
       const skipAlreadyScored = alreadyScored.has(dedupeKey);
-      const skipDuplicateInRun = seenThisRun.has(dedupeKey);
+      if (skipAlreadyScored) {
+        counters.eliminatedExisting++;
+        return false;
+      }
+
       const skipRegex = skipPatterns.some((pattern) =>
         pattern.test(answer.prompt)
       );
       if (skipRegex) {
+        counters.skippedRegex++;
         allSkipped.push(answer.prompt);
+        return false;
       }
-      if (!skipAlreadyScored && !skipRegex && !skipDuplicateInRun) {
-        seenThisRun.add(dedupeKey);
-        return true;
-      }
+
+      const skipDuplicateInRun = seenThisRun.has(dedupeKey);
       if (skipDuplicateInRun) {
+        counters.duplicateInRun++;
         allSkipped.push(answer.prompt);
+        return false;
       }
-      return false;
+
+      seenThisRun.add(dedupeKey);
+      return true;
     });
 
+    const reconciled =
+      answers.length -
+      counters.eliminatedExisting -
+      counters.duplicateInRun -
+      counters.skippedRegex -
+      answersToProcess.length;
     console.log(
-      `Total answers for period: ${answers.length}\nAlready scored: ${alreadyScored.size}\nAlread seen this run: ${seenThisRun.size}\nSkipped: ${allSkipped.length}\nTo process: ${answersToProcess.length}`
+      `Total answers for period: ${answers.length}\n` +
+        `Already scored answers (in DB): ${counters.eliminatedExisting}\n` +
+        `Duplicates within this run: ${counters.duplicateInRun}\n` +
+        `Skipped by regex: ${counters.skippedRegex}\n` +
+        `Unique new keys to process: ${seenThisRun.size}\n` +
+        `To process (records): ${answersToProcess.length}`
     );
+
+    // Debug count
+    if (reconciled !== 0) {
+      console.log(
+        `Warning: totals do not reconcile by ${reconciled}. ` +
+          `Check filtering logic or counters.`
+      );
+    }
 
     if (answersToProcess.length === 0) {
       console.log("No answers need processing. Exiting.");
@@ -357,7 +389,11 @@ export const main = async (
               reference: currentCase?.expected ?? "",
               links: [], // TODO: update with links from currentCase if defined
             },
-            metadata: {},
+            metadata: {
+              reportDate: formatDate(new Date(currentAnswer.created_at + "Z")),
+              platformName: currentAnswer.model,
+              profoundPromptId: currentAnswer.prompt_id,
+            },
           };
           try {
             const score = await scoreReferenceAlignment(scorerArgs);

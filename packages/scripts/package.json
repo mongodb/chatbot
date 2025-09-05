@@ -29,6 +29,10 @@
     "materializeScrubbedMessagesStats:all": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --all",
     "materializeScrubbedMessagesStats:latest": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js",
     "materializeScrubbedMessagesStats:since": "npm run build && node ./build/main/materializeScrubbedMessagesStats.js --since",
+    "mercury:createFuzzyPrompts": "npm run build && node ./build/mercury/createFuzzyPrompts.js",
+    "mercury:evaluateLlms": "npm run build && node ./build/mercury/evaluateLlms.js",
+    "mercury:mapProfoundPromptIds": "npm run build && node ./build/profound/mapProfoundPromptIds.js",
+    "mercury:getLLMAnswers": "npm run getLLMAnswers",
     "release": "release-it",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",
@@ -43,6 +47,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^3.0.16",
     "@cdxoo/dbscan": "^1.1.1",
     "@release-it/bumper": "^5.1.0",
     "@slack/web-api": "^7.8.0",
@@ -51,8 +56,9 @@
     "chatbot-server-mongodb-public": "*",
     "csv": "^6.4.1",
     "dotenv": "^16.3.1",
-    "mercury-case-analysis": "*",
     "googleapis": "^150.0.1",
+    "mercury-case-analysis": "*",
+    "mingo": "^6.6.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "yaml": "^2.3.4",
@@ -75,6 +81,6 @@
     "prettier": "^2",
     "release-it": "^16",
     "ts-jest": "^29.1.0",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }

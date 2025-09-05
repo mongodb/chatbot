@@ -23,7 +23,7 @@ describe("redactConnectionUri", () => {
     };
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
+    (req.headers as any) = baseReq.headers;
 
     await middleware(req, res, next);
 
@@ -44,7 +44,7 @@ describe("redactConnectionUri", () => {
     req.body = { message: messageWithUri };
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
+    (req.headers as any) = baseReq.headers;
 
     await middleware(req, res, next);
 
@@ -71,7 +71,7 @@ describe("redactConnectionUri", () => {
     req.body = { message: messageWithUris };
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
+    (req.headers as any) = baseReq.headers;
 
     await middleware(req, res, next);
 
@@ -96,7 +96,7 @@ describe("redactConnectionUri", () => {
     req.body = undefined;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
+    (req.headers as any) = baseReq.headers;
 
     await middleware(req, res, next);
 
@@ -112,7 +112,7 @@ describe("redactConnectionUri", () => {
     req.body = { someOtherField: "value" };
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = baseReq.headers;
+    (req.headers as any) = baseReq.headers;
 
     await middleware(req, res, next);
 

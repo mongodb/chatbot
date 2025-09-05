@@ -50,6 +50,9 @@ describe("extractTracingData", () => {
   };
   const fetchPageToolCallMessage = { ...baseFetchPageToolCallMessage };
   assert(fetchPageToolCallMessage.toolCall);
+  if (fetchPageToolCallMessage.toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
   const fetchPageArgs = {
     pageUrl: "https://mongodb.com/docs/page",
     query: "rephrased user query",

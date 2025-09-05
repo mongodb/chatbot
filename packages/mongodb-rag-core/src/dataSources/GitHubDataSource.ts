@@ -1,8 +1,11 @@
 import { Document } from "langchain/document";
-import { GithubRepoLoaderParams } from "@langchain/community/document_loaders/web/github";
 import { Page } from "../contentStore";
 import { DataSource } from "./DataSource";
-import { MakeGitDataSourceParams, makeGitDataSource } from "./GitDataSource";
+import {
+  GithubRepoLoaderParams,
+  MakeGitDataSourceParams,
+  makeGitDataSource,
+} from "./GitDataSource";
 
 export type MakeGitHubDataSourceArgs<SourceType extends string = string> = {
   /**

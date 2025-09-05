@@ -159,6 +159,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -166,6 +167,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -205,6 +207,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
     dataStreamer?.streamResponses({
       type: "response.output_text.done",
@@ -212,6 +215,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: itemId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -263,6 +267,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDelta);
   },
   onTextDone({ dataStreamer, text, references, textPartId, chunkId }) {
@@ -272,6 +277,7 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
       content_index: 0,
       output_index: 0,
       item_id: textPartId,
+      logprobs: [],
     } satisfies ResponseStreamOutputTextDone);
     dataStreamer?.streamResponses({
       type: "response.output_item.done",
@@ -820,7 +826,7 @@ function formatMessageForReturnGeneration(
 function formatMessageForAiSdk(message: SomeMessage): ModelMessage {
   if (message.role === "assistant") {
     // Convert assistant messages with object content to proper format
-    if (message.toolCall) {
+    if (message.toolCall && message.toolCall.type === "function") {
       // This is a tool call message
       return {
         role: "assistant",

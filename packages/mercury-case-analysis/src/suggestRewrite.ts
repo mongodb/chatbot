@@ -29,7 +29,7 @@ export const suggestRewrite = async ({
   }
   const { object: rewrite } = await generateObject({
     model: generatorModel,
-    schema: rewriteSchema,
+    schema: rewriteSchema as any,
     schemaName: "Rewrite",
     schemaDescription: "A rewrite of the prompt and/or the expected response.",
     prompt: [

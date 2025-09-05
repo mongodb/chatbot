@@ -2,8 +2,8 @@ import { strict as assert } from "assert";
 import {
   DataSource,
   MakeGitHubDataSourceArgs,
-  makeGitHubDataSource,
   MakeMdOnGithubDataSourceParams,
+  makeGitHubDataSource,
   makeMdOnGithubDataSource,
   makeMarkdownUrlDataSource,
   removeMarkdownFileExtension,

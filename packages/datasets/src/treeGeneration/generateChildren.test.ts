@@ -62,6 +62,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
           message: {
             tool_calls: [
               {
+                type: "function",
                 function: {
                   arguments: JSON.stringify({
                     items: [{ value: 42 }, { value: 100 }],
@@ -160,6 +161,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
           message: {
             tool_calls: [
               {
+                type: "function",
                 function: {
                   arguments: JSON.stringify({
                     items: [],
@@ -199,6 +201,7 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
           message: {
             tool_calls: [
               {
+                type: "function",
                 function: {
                   arguments: JSON.stringify({
                     value: 10,
@@ -212,6 +215,7 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
           message: {
             tool_calls: [
               {
+                type: "function",
                 function: {
                   arguments: JSON.stringify({
                     value: 20,

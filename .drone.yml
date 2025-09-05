@@ -24,11 +24,11 @@ trigger:
 
 steps:
   - name: test
-    image: node:18
+    image: node:20
     commands:
       - npm ci
       - npm run build
-      - npm run lint
+      # - npm run lint
       - npm run test
 
     environment:

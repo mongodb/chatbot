@@ -759,12 +759,14 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[1] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject(fetchPageToolMockArgs);
+  const toolCall = (result.messages[1] as AssistantMessage)?.toolCall;
+  assert(toolCall);
+  if (toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall.function.arguments as string)).toMatchObject(
+    fetchPageToolMockArgs
+  );
 
   const fetchPageToolResponseMessage = result.messages[2];
   assert(fetchPageToolResponseMessage);
@@ -785,12 +787,14 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[3] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject(searchToolMockArgs);
+  const toolCall2 = (result.messages[3] as AssistantMessage)?.toolCall;
+  assert(toolCall2);
+  if (toolCall2.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall2.function.arguments as string)).toMatchObject(
+    searchToolMockArgs
+  );
 
   const searchToolResponseMessage = result.messages[4];
   assert(searchToolResponseMessage);
@@ -859,12 +863,14 @@ function expectSuccessfulParallelToolCallResult(
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[1] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject(fetchPageToolMockArgs);
+  const toolCall = (result.messages[1] as AssistantMessage)?.toolCall;
+  assert(toolCall);
+  if (toolCall.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall.function.arguments as string)).toMatchObject(
+    fetchPageToolMockArgs
+  );
 
   expect(result.messages[2]).toMatchObject({
     role: "assistant",
@@ -877,12 +883,12 @@ function expectSuccessfulParallelToolCallResult(
     },
     content: "",
   });
-  expect(
-    JSON.parse(
-      (result.messages[2] as AssistantMessage)?.toolCall?.function
-        .arguments as string
-    )
-  ).toMatchObject({
+  const toolCall2 = (result.messages[2] as AssistantMessage)?.toolCall;
+  assert(toolCall2);
+  if (toolCall2.type !== "function") {
+    throw new Error("No function call in response from OpenAI");
+  }
+  expect(JSON.parse(toolCall2.function.arguments)).toMatchObject({
     ...fetchPageToolMockArgs,
     pageUrl: "https://example2.com/",
   });

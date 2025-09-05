@@ -235,6 +235,7 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
         content_index: 0,
         output_index: 0,
         item_id: expect.any(String),
+        logprobs: [],
       });
 
       // Check that streamResponses was called for URL citations (one per reference)
@@ -268,17 +269,18 @@ describe("makeVerifiedAnswerGenerateResponse", () => {
         item_id: expect.any(String),
       });
 
-      // Check that streamResponses was called for text done
+      // Check that streamResponses was called for output_text.done
       expect(mockDataStreamer.streamResponses).toHaveBeenCalledWith({
         type: "response.output_text.done",
         text: verifiedAnswerContent,
         content_index: 0,
         output_index: 0,
         item_id: expect.any(String),
+        logprobs: [],
       });
 
       // Verify total number of streamResponses calls
-      expect(mockDataStreamer.streamResponses).toHaveBeenCalledTimes(4); // 1 text delta + 1 URL citation + 1 file citation + 1 text done
+      expect(mockDataStreamer.streamResponses).toHaveBeenCalledTimes(4); // 1 text delta + 2 annotations + 1 unknown call
     });
 
     it("doesn't stream data when shouldStream is false", async () => {

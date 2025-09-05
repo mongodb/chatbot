@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 import { makeExecuteMongoshQuery } from "./executeMongoshQuery";
 

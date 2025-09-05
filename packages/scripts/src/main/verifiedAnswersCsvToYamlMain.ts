@@ -27,9 +27,12 @@ async function main() {
   }
 
   const source = await fs.readFile(csvPath, "utf8");
-  const csvEntries = (await csv
-    .parse(source, { columns: true })
-    .toArray()) as CsvEntry[];
+  const csvEntries = await new Promise<CsvEntry[]>((resolve, reject) => {
+    csv.parse(source, { columns: true }, (err, records: CsvEntry[]) => {
+      if (err) reject(err);
+      else resolve(records);
+    });
+  });
 
   const yamlEntries = csvEntries.map(
     ({ answer, author_email, questions, references }): YamlEntry => ({

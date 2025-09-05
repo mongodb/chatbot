@@ -12,7 +12,7 @@ import { mapReferenceAlignmentScoreToTag } from "./utils";
 import type { MercuryPrompt, MercuryResult } from "./database";
 
 export interface EvaluationConfig {
-  generatorClients: Record<ModelProvider, ProviderV2>;
+  generatorClients: Partial<Record<ModelProvider, ProviderV2>>;
   judgementClient: OpenAI; // Need to use OpenAI instead of ProviderV2 due to legacy code
   judgementModel: ModelConfig;
 }
@@ -182,7 +182,7 @@ export async function evaluatePromptModelPairs(
  Creates an evaluation configuration from environment-like settings
  */
 export function createEvaluationConfig(settings: {
-  generatorClients: Record<ModelProvider, ProviderV2>;
+  generatorClients: Partial<Record<ModelProvider, ProviderV2>>;
   judgementClient: OpenAI;
   judgementModel: ModelConfig;
 }): EvaluationConfig {

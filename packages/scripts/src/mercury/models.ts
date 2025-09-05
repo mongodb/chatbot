@@ -53,6 +53,8 @@ export const mercuryModelConfigs = getModels([
   "llama-3.1-70b",
   "llama-3.2-90b",
   "llama-3.3-70b",
+  "llama-4-scout-17b",
+  "llama-4-maverick-17b",
   // Google
   "gemini-2.0-flash-lite-001",
   "gemini-2-flash",

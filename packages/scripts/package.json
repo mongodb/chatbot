@@ -47,6 +47,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^3.0.16",
     "@cdxoo/dbscan": "^1.1.1",
     "@release-it/bumper": "^5.1.0",
     "@slack/web-api": "^7.8.0",
@@ -55,8 +56,8 @@
     "chatbot-server-mongodb-public": "*",
     "csv": "^6.4.1",
     "dotenv": "^16.3.1",
-    "mercury-case-analysis": "*",
     "googleapis": "^150.0.1",
+    "mercury-case-analysis": "*",
     "mingo": "^6.6.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",

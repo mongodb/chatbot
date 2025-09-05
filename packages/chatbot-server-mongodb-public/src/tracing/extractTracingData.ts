@@ -174,18 +174,21 @@ export const getFirstToolMetadata = (
   messages: Message[]
 ): { name: string; [key: string]: string } | null => {
   for (const message of messages) {
-    if (message.role === "assistant" && message.toolCall !== undefined) {
-      const toolCallMessage = message as DbMessage<AssistantMessage>;
+    if (
+      message.role === "assistant" &&
+      message.toolCall &&
+      message.toolCall.type === "function"
+    ) {
       try {
-        const toolCallArgs = toolCallMessage.toolCall?.function.arguments
-          ? JSON.parse(toolCallMessage.toolCall?.function.arguments)
+        const toolCallArgs = message.toolCall?.function.arguments
+          ? JSON.parse(message.toolCall?.function.arguments)
           : {};
         return {
-          name: toolCallMessage.toolCall?.function.name,
+          name: message.toolCall?.function.name,
           ...toolCallArgs,
         };
       } catch (e) {
-        return { name: toolCallMessage.toolCall?.function.name ?? "unknown" };
+        return { name: "unknown" };
       }
     }
   }

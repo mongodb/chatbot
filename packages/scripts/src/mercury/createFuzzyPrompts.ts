@@ -19,6 +19,7 @@ import {
   createEvaluationConfig,
   EvaluationTask,
 } from "./evaluationCore";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 // 🔧 CONFIGURATION: Edit these prompt IDs to select specific prompts
 // Leave empty array to use random prompts
@@ -160,7 +161,6 @@ function calculateEvaluationSummary(
 }
 
 const generatorModelConfig = getModel("gpt-4.1");
-const judgementModelConfig = getModel("gpt-4.1");
 
 /**
  Generates variations of a prompt using GPT-4.1 at different quality levels
@@ -525,9 +525,17 @@ async function main() {
     // Step 4: Run evaluations
     console.log("\n🧪 Step 4: Running evaluations...");
     const evaluationConfig = createEvaluationConfig({
-      braintrustProxyEndpoint: env.BRAINTRUST_PROXY_ENDPOINT,
-      braintrustApiKey: env.BRAINTRUST_API_KEY,
-      judgmentModel: judgementModelConfig,
+      generatorClients: {
+        braintrust: createOpenAI({
+          baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+          apiKey: env.BRAINTRUST_API_KEY,
+        }),
+      },
+      judgementClient: new OpenAI({
+        baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+        apiKey: env.BRAINTRUST_API_KEY,
+      }),
+      judgementModel: getModel("gpt-4.1"),
     });
 
     let completedEvaluations = 0;

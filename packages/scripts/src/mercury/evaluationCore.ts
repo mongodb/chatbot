@@ -1,24 +1,20 @@
-import { createOpenAI, generateText } from "mongodb-rag-core/aiSdk";
+import {
+  createOpenAI,
+  generateText,
+  type ProviderV2,
+} from "mongodb-rag-core/aiSdk";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeReferenceAlignment } from "benchmarks";
-import { ModelConfig } from "mongodb-rag-core/models";
+import { ModelConfig, ModelProvider } from "mongodb-rag-core/models";
 import { GenerationFailedError, ScoringFailedError } from "./errors";
 import { mapReferenceAlignmentScoreToTag } from "./utils";
 import type { MercuryPrompt, MercuryResult } from "./database";
 
 export interface EvaluationConfig {
-  /** OpenAI client for model inference */
-  inferenceClient: OpenAI;
-  /** OpenAI client for scoring/judgment */
-  scoringClient: OpenAI;
-  /** Model configuration for the judgment model */
-  judgmentModel: ModelConfig;
-  /** Braintrust settings for creating clients */
-  braintrust: {
-    endpoint: string;
-    apiKey: string;
-  };
+  generatorClients: Record<ModelProvider, ProviderV2>;
+  judgementClient: OpenAI; // Need to use OpenAI instead of ProviderV2 due to legacy code
+  judgementModel: ModelConfig;
 }
 
 export interface EvaluationTask {
@@ -48,16 +44,17 @@ export async function evaluatePromptWithModel(
   config: EvaluationConfig
 ): Promise<EvaluationOutcome> {
   const { prompt, model } = task;
-  const { inferenceClient, scoringClient, judgmentModel } = config;
+  const { generatorClients, judgementClient, judgementModel } = config;
+  const generatorClient = generatorClients[model.provider];
+  if (!generatorClient) {
+    throw new Error(`Client for ${model.provider} is not defined`);
+  }
 
   // Step 1: Generate response using the model
   let generatedResponse: Awaited<ReturnType<typeof generateText>>;
   try {
     generatedResponse = await generateText({
-      model: createOpenAI({
-        baseURL: config.braintrust.endpoint,
-        apiKey: config.braintrust.apiKey,
-      }).chat(model.deployment),
+      model: generatorClient.languageModel(model.deployment),
       messages: prompt.prompt,
     });
   } catch (error) {
@@ -73,12 +70,12 @@ export async function evaluatePromptWithModel(
 
   // Step 2: Score the response using reference alignment
   const scoreReferenceAlignment = makeReferenceAlignment(
-    scoringClient,
+    judgementClient,
     {
-      model: judgmentModel.deployment,
+      model: judgementModel.deployment,
       temperature: 0,
     },
-    judgmentModel.label
+    judgementModel.label
   );
 
   const scorerArgs = {
@@ -110,7 +107,7 @@ export async function evaluatePromptWithModel(
           label: mapReferenceAlignmentScoreToTag(score.score) ?? undefined,
           rationale:
             (score.metadata?.rationale as string | undefined) ?? undefined,
-          judgementModel: judgmentModel.label,
+          judgementModel: judgementModel.label,
         },
       },
     };
@@ -185,22 +182,13 @@ export async function evaluatePromptModelPairs(
  Creates an evaluation configuration from environment-like settings
  */
 export function createEvaluationConfig(settings: {
-  braintrustProxyEndpoint: string;
-  braintrustApiKey: string;
-  judgmentModel: ModelConfig;
+  generatorClients: Record<ModelProvider, ProviderV2>;
+  judgementClient: OpenAI;
+  judgementModel: ModelConfig;
 }): EvaluationConfig {
-  const openAIClient = new OpenAI({
-    baseURL: settings.braintrustProxyEndpoint,
-    apiKey: settings.braintrustApiKey,
-  });
-
   return {
-    inferenceClient: openAIClient,
-    scoringClient: openAIClient,
-    judgmentModel: settings.judgmentModel,
-    braintrust: {
-      endpoint: settings.braintrustProxyEndpoint,
-      apiKey: settings.braintrustApiKey,
-    },
+    generatorClients: settings.generatorClients,
+    judgementClient: settings.judgementClient,
+    judgementModel: settings.judgementModel,
   };
 }

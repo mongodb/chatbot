@@ -22,6 +22,8 @@ import {
   createEvaluationConfig,
   EvaluationTask,
 } from "./evaluationCore";
+import { OpenAI } from "mongodb-rag-core/openai";
+import { createOpenAI } from "mongodb-rag-core/aiSdk";
 
 const env = getEnv({
   required: [
@@ -39,8 +41,6 @@ const env = getEnv({
     MAX_BATCHES: "",
   },
 });
-
-const judgementModelConfig = getModel("gpt-4.1");
 
 async function main(args: { outputDir: string }) {
   const db = makeMercuryDatabase({
@@ -102,10 +102,19 @@ async function main(args: { outputDir: string }) {
       }
     );
     // Create evaluation configuration
+
     const evaluationConfig = createEvaluationConfig({
-      braintrustProxyEndpoint: env.BRAINTRUST_PROXY_ENDPOINT,
-      braintrustApiKey: env.BRAINTRUST_API_KEY,
-      judgmentModel: judgementModelConfig,
+      generatorClients: {
+        braintrust: createOpenAI({
+          baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+          apiKey: env.BRAINTRUST_API_KEY,
+        }),
+      },
+      judgementClient: new OpenAI({
+        baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+        apiKey: env.BRAINTRUST_API_KEY,
+      }),
+      judgementModel: getModel("gpt-4.1"),
     });
 
     // Process evaluation tasks in batches

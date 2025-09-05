@@ -16,7 +16,11 @@ The core evaluation logic is now contained in `evaluationCore.ts`, which provide
 - **Flexible configuration** system
 - **Error handling** with structured error types
 
-#### Key Functions
+### LLM Evaluation: `evaluateLlms.ts`
+
+To evaluate base models from a provider, configure the list of models you want to run in `models.ts` and then run `evaluateLlms.ts`.
+
+<!-- #### Key Functions
 
 ```typescript
 // Evaluate a single prompt-model pair
@@ -189,4 +193,4 @@ The refactored architecture makes it easy to add:
 - **Caching mechanisms** (wrap the core functions)
 - **Parallel processing** (already built-in with concurrency control)
 
-This refactoring provides a solid foundation for building more evaluation tools while maintaining the existing functionality of the original script.
+This refactoring provides a solid foundation for building more evaluation tools while maintaining the existing functionality of the original script. -->

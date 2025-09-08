@@ -1,6 +1,7 @@
 import {
   createOpenAI,
   generateText,
+  OpenAIProvider,
   type ProviderV2,
 } from "mongodb-rag-core/aiSdk";
 import { OpenAI } from "mongodb-rag-core/openai";
@@ -12,7 +13,7 @@ import { mapReferenceAlignmentScoreToTag } from "./utils";
 import type { MercuryPrompt, MercuryResult } from "./database";
 
 export interface EvaluationConfig {
-  generatorClients: Partial<Record<ModelProvider, ProviderV2>>;
+  generatorClientFactories: Partial<Record<ModelProvider, () => ProviderV2>>;
   judgementClient: OpenAI; // Need to use OpenAI instead of ProviderV2 due to legacy code
   judgementModel: ModelConfig;
 }
@@ -34,6 +35,19 @@ export interface EvaluationError {
 
 export type EvaluationOutcome = EvaluationResult | EvaluationError;
 
+function mapModelProviderToGeneratorMethod(
+  generatorClient: ProviderV2,
+  provider: ModelProvider
+) {
+  switch (provider) {
+    case "braintrust":
+      return (generatorClient as OpenAIProvider).chat;
+    case "aws-bedrock":
+    default:
+      return generatorClient.languageModel;
+  }
+}
+
 /**
  Core evaluation function that takes a single prompt-model pair and returns either
  a successful result or an error. This is the pure business logic without any
@@ -44,8 +58,15 @@ export async function evaluatePromptWithModel(
   config: EvaluationConfig
 ): Promise<EvaluationOutcome> {
   const { prompt, model } = task;
-  const { generatorClients, judgementClient, judgementModel } = config;
-  const generatorClient = generatorClients[model.provider];
+  const { generatorClientFactories, judgementClient, judgementModel } = config;
+  const generatorClient = generatorClientFactories[model.provider]?.();
+  if (!generatorClient) {
+    throw new Error(`Client for ${model.provider} is not defined`);
+  }
+  const generator = mapModelProviderToGeneratorMethod(
+    generatorClient,
+    model.provider
+  );
   if (!generatorClient) {
     throw new Error(`Client for ${model.provider} is not defined`);
   }
@@ -54,8 +75,9 @@ export async function evaluatePromptWithModel(
   let generatedResponse: Awaited<ReturnType<typeof generateText>>;
   try {
     generatedResponse = await generateText({
-      model: generatorClient.languageModel(model.deployment),
-      messages: prompt.prompt,
+      model: generator(model.deployment),
+      // messages: prompt.prompt,
+      prompt: prompt.prompt[0].content as string,
     });
   } catch (error) {
     return {
@@ -182,12 +204,12 @@ export async function evaluatePromptModelPairs(
  Creates an evaluation configuration from environment-like settings
  */
 export function createEvaluationConfig(settings: {
-  generatorClients: Partial<Record<ModelProvider, ProviderV2>>;
+  generatorClientFactories: Partial<Record<ModelProvider, () => ProviderV2>>;
   judgementClient: OpenAI;
   judgementModel: ModelConfig;
 }): EvaluationConfig {
   return {
-    generatorClients: settings.generatorClients,
+    generatorClientFactories: settings.generatorClientFactories,
     judgementClient: settings.judgementClient,
     judgementModel: settings.judgementModel,
   };

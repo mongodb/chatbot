@@ -31,8 +31,6 @@ const env = getEnv({
     "MERCURY_CONNECTION_URI",
     "BRAINTRUST_PROXY_ENDPOINT",
     "BRAINTRUST_API_KEY",
-    "AWS_BEDROCK_ACCESS_KEY_ID",
-    "AWS_BEDROCK_SECRET_ACCESS_KEY",
   ],
   optional: {
     MERCURY_DATABASE_NAME: "docs-chatbot-dev",
@@ -40,6 +38,8 @@ const env = getEnv({
     MERCURY_REPORTS_COLLECTION: "llm_reports",
     MERCURY_RESULTS_COLLECTION: "llm_results",
     MERCURY_ANSWERS_COLLECTION: "llm_answers",
+    AWS_BEDROCK_ACCESS_KEY_ID: "",
+    AWS_BEDROCK_SECRET_ACCESS_KEY: "",
     AWS_BEDROCK_REGION: "us-east-1",
     BATCH_SIZE: "50",
     MAX_BATCHES: "",
@@ -108,16 +108,18 @@ async function main(args: { outputDir: string }) {
     // Create evaluation configuration
 
     const evaluationConfig = createEvaluationConfig({
-      generatorClients: {
-        braintrust: createOpenAI({
-          baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
-          apiKey: env.BRAINTRUST_API_KEY,
-        }),
-        "aws-bedrock": createAmazonBedrock({
-          region: env.AWS_BEDROCK_REGION,
-          accessKeyId: env.AWS_BEDROCK_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_BEDROCK_SECRET_ACCESS_KEY,
-        }),
+      generatorClientFactories: {
+        braintrust: () =>
+          createOpenAI({
+            baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+            apiKey: env.BRAINTRUST_API_KEY,
+          }),
+        "aws-bedrock": () =>
+          createAmazonBedrock({
+            region: env.AWS_BEDROCK_REGION,
+            accessKeyId: env.AWS_BEDROCK_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_BEDROCK_SECRET_ACCESS_KEY,
+          }),
       },
       judgementClient: new OpenAI({
         baseURL: env.BRAINTRUST_PROXY_ENDPOINT,

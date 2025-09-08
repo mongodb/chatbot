@@ -26,6 +26,10 @@ export type MercuryPrompt = {
   metadata: {
     category: string;
     profoundPromptId: string;
+    dataset?: {
+      name: string;
+      slug: string;
+    };
     promptId?: string;
     reviewer?: string;
   };

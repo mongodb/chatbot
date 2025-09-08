@@ -525,11 +525,12 @@ async function main() {
     // Step 4: Run evaluations
     console.log("\n🧪 Step 4: Running evaluations...");
     const evaluationConfig = createEvaluationConfig({
-      generatorClients: {
-        braintrust: createOpenAI({
-          baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
-          apiKey: env.BRAINTRUST_API_KEY,
-        }),
+      generatorClientFactories: {
+        braintrust: () =>
+          createOpenAI({
+            baseURL: env.BRAINTRUST_PROXY_ENDPOINT,
+            apiKey: env.BRAINTRUST_API_KEY,
+          }),
       },
       judgementClient: new OpenAI({
         baseURL: env.BRAINTRUST_PROXY_ENDPOINT,

@@ -53,8 +53,11 @@ describe("extractTracingData", () => {
   if (fetchPageToolCallMessage.toolCall.type !== "function") {
     throw new Error("No function call in response from OpenAI");
   }
-  fetchPageToolCallMessage.toolCall.function.arguments =
-    '{"pageUrl":"https://mongodb.com/docs/page","query":"rephrased user query"}';
+  const fetchPageArgs = {
+    pageUrl: "https://mongodb.com/docs/page",
+    query: "rephrased user query",
+  };
+  fetchPageToolCallMessage.toolCall.function.arguments = `{"pageUrl":"${fetchPageArgs.pageUrl}","query":"${fetchPageArgs.query}"}`;
 
   const baseAssistantResponseMessage: Message = {
     role: "assistant",
@@ -111,7 +114,7 @@ describe("extractTracingData", () => {
     expect(tracingData.rejectQuery).toBe(true);
     expect(tracingData.tags.includes("rejected_query")).toBe(true);
   });
-  test("should get number of retrieved chunks in search tool", () => {
+  test("should get num. chunks, tool metadata after using search tool", () => {
     const messagesNoContext: Message[] = [
       {
         ...baseUserMessage,
@@ -145,8 +148,11 @@ describe("extractTracingData", () => {
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
       false
     );
+    expect(tracingDataWithContext.firstToolMetadata).toEqual({
+      name: SEARCH_TOOL_NAME,
+    });
   });
-  test("should get number of retrieved chunks in fetch_page tool", () => {
+  test("should get 1 chunks, tool metadata after using fetch_page tool", () => {
     const messagesNoContext: Message[] = [
       baseUserMessage,
       baseFetchPageToolCallMessage,
@@ -179,8 +185,12 @@ describe("extractTracingData", () => {
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
       false
     );
+    expect(tracingDataWithContext.firstToolMetadata).toEqual({
+      name: FETCH_PAGE_TOOL_NAME,
+      ...fetchPageArgs,
+    });
   });
-  test("should get number of retrieved chunks in search+fetch_page tool", () => {
+  test("should get multiple chunks, tool metadata after using fetch_page+search tools", () => {
     // Neither tool finds context
     const messagesNoContext: Message[] = [
       baseUserMessage,
@@ -218,6 +228,11 @@ describe("extractTracingData", () => {
     expect(
       tracingDataFallbackHasContext.tags.includes("no_retrieved_content")
     ).toBe(false);
+    // first tool call was still fetch_page
+    expect(tracingDataWithoutContext.firstToolMetadata).toEqual({
+      name: FETCH_PAGE_TOOL_NAME,
+      ...fetchPageArgs,
+    });
   });
   test("should capture verified answer", () => {
     const messagesNoContext: Message[] = [

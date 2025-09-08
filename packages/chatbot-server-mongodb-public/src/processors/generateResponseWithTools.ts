@@ -27,11 +27,8 @@ import {
   stepCountIs,
   jsonSchema,
   JSONSchema7,
-  StaticToolCall,
-  StaticToolResult,
 } from "mongodb-rag-core/aiSdk";
 import { strict as assert } from "assert";
-
 import {
   InputGuardrail,
   FilterPreviousMessages,
@@ -42,21 +39,17 @@ import {
   GenerateResponseParams,
 } from "mongodb-chatbot-server";
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
-import {
-  MongoDbSearchToolArgs,
-  SEARCH_TOOL_NAME,
-  SearchTool,
-} from "../tools/search";
-import { FetchPageTool, FETCH_PAGE_TOOL_NAME } from "../tools/fetchPage";
+import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
+import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 
 /**
-  Hidden tools are internal to the MongoDB Responses API.
+  Tools that are internal to the MongoDB Responses API.
   The model may choose to call them under the hood,
   but their usage should not be exposed to the client through streaming.
  */
-const HIDDEN_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
+const INTERNAL_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
 
 export interface GenerateResponseWithToolsParams {
   languageModel: LanguageModel;
@@ -70,8 +63,11 @@ export interface GenerateResponseWithToolsParams {
    */
   additionalTools?: ToolSet;
   maxSteps: number;
-  searchTool: SearchTool;
-  fetchPageTool: FetchPageTool;
+  internalTools: {
+    [SEARCH_TOOL_NAME]: SearchTool;
+    [FETCH_PAGE_TOOL_NAME]: FetchPageTool;
+    [name: string]: Tool;
+  };
   stream?: {
     onLlmNotWorking: StreamFunction<{ notWorkingMessage: string }>;
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
@@ -357,10 +353,9 @@ export function makeGenerateResponseWithTools({
   inputGuardrail,
   makeSystemPrompt,
   filterPreviousMessages,
+  internalTools,
   additionalTools,
   maxSteps,
-  searchTool,
-  fetchPageTool,
   stream,
 }: GenerateResponseWithToolsParams): GenerateResponse {
   return async function generateResponseWithTools({
@@ -396,9 +391,8 @@ export function makeGenerateResponseWithTools({
           )
         : [];
 
-      const toolSet = {
-        [SEARCH_TOOL_NAME]: searchTool,
-        [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+      const defaultToolSet = {
+        ...internalTools,
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
@@ -409,7 +403,7 @@ export function makeGenerateResponseWithTools({
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies ModelMessage[],
-        tools: toolSet,
+        tools: defaultToolSet,
         toolChoice,
         maxSteps,
       };
@@ -427,7 +421,6 @@ export function makeGenerateResponseWithTools({
         : undefined;
 
       const references: References = [];
-      let userMessageCustomData: Partial<MongoDbSearchToolArgs> = {};
 
       // Create an AbortController for the generation
       const generationController = new AbortController();
@@ -448,8 +441,7 @@ export function makeGenerateResponseWithTools({
         try {
           // Create the complete tool set with proper typing
           const allTools = {
-            [SEARCH_TOOL_NAME]: searchTool,
-            [FETCH_PAGE_TOOL_NAME]: fetchPageTool,
+            ...defaultToolSet,
             ...formatToolDefinitionsForAiSdk(toolDefinitions),
           } as const;
 
@@ -469,18 +461,7 @@ export function makeGenerateResponseWithTools({
             ],
 
             // Appends references when a reference-returning tool is called
-            onStepFinish: async ({ toolResults, toolCalls }) => {
-              for (const toolCall of toolCalls) {
-                if (toolCall.dynamic) {
-                  continue;
-                }
-                if (toolCall.toolName === SEARCH_TOOL_NAME) {
-                  userMessageCustomData = {
-                    ...userMessageCustomData,
-                    ...toolCall.input,
-                  };
-                }
-              }
+            onStepFinish: async ({ toolResults }) => {
               for (const toolResult of toolResults) {
                 if (toolResult.dynamic) {
                   continue;
@@ -495,16 +476,18 @@ export function makeGenerateResponseWithTools({
             },
           });
 
-          // Wait for guardrail so we don't get streaming overlap (addresses race condition)
+          // Wait for guardrail before streaming content (addresses race condition)
           const guardrailResult = await guardrailMonitor;
           if (guardrailResult?.rejected) {
-            throw new Error("Guardrail rejected (just exit this block)");
+            throw new Error(
+              "Guardrail rejected. Aborting generation (you shouldn't see this)"
+            );
           }
 
           let fullStreamText = "";
           let textPartId = ""; // Shared between text-start and text-end
           let toolCallId = "";
-          let hiddenToolActivated = false;
+          let internalToolActivated = false;
           // Process the stream
           for await (const chunk of result.fullStream) {
             // Check if we should abort due to guardrail rejection
@@ -551,9 +534,9 @@ export function makeGenerateResponseWithTools({
                 if (streamingModeActive) {
                   const { id, toolName } = chunk;
                   toolCallId = id;
-                  hiddenToolActivated = HIDDEN_TOOLS.includes(toolName);
+                  internalToolActivated = INTERNAL_TOOLS.includes(toolName);
 
-                  if (hiddenToolActivated) break;
+                  if (internalToolActivated) break;
 
                   stream.onFunctionCallStart?.({
                     dataStreamer,
@@ -577,7 +560,7 @@ export function makeGenerateResponseWithTools({
               case "tool-input-end":
                 break;
               case "tool-call":
-                if (streamingModeActive && !hiddenToolActivated) {
+                if (streamingModeActive && !internalToolActivated) {
                   const { input, toolCallId, toolName } = chunk;
                   stream.onFunctionCallDone?.({
                     dataStreamer,
@@ -587,7 +570,7 @@ export function makeGenerateResponseWithTools({
                     chunkId: "",
                   });
                 } else {
-                  hiddenToolActivated = false;
+                  internalToolActivated = false;
                 }
                 break;
               case "finish":
@@ -636,14 +619,6 @@ export function makeGenerateResponseWithTools({
       // return the LLM refusal message
       if (guardrailResult?.rejected) {
         userMessage.rejectQuery = guardrailResult.rejected;
-        userMessage.metadata = {
-          ...userMessage.metadata,
-        };
-        userMessage.customData = {
-          ...userMessage.customData,
-          ...userMessageCustomData,
-          ...guardrailResult,
-        };
         if (streamingModeActive) {
           stream.onLlmRefusal({
             dataStreamer,
@@ -660,7 +635,6 @@ export function makeGenerateResponseWithTools({
             },
           ],
           reqId,
-          userMessageCustomData,
         });
       }
 
@@ -668,12 +642,6 @@ export function makeGenerateResponseWithTools({
       assert(result, "result is required");
       const llmResponse = await result?.response;
       const messages = llmResponse?.messages || [];
-
-      // Add metadata to user message
-      userMessage.metadata = {
-        ...userMessage.metadata,
-        ...userMessageCustomData,
-      };
 
       // If we received messages from the LLM, use them, otherwise handle error case
       if (messages && messages.length > 0) {
@@ -683,7 +651,6 @@ export function makeGenerateResponseWithTools({
           messages,
           references,
           reqId,
-          userMessageCustomData,
         });
       } else {
         // Fallback in case no messages were returned
@@ -698,7 +665,6 @@ export function makeGenerateResponseWithTools({
           ],
           reqId,
           references,
-          userMessageCustomData,
         });
       }
     } catch (error: unknown) {
@@ -733,19 +699,17 @@ function handleReturnGeneration({
   messages,
   references,
   reqId,
-  userMessageCustomData,
 }: {
   userMessage: UserMessage;
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
   reqId: string;
-  userMessageCustomData: Record<string, unknown> | undefined;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
+  userMessage.metadata = userMessage.metadata ?? {};
   userMessage.customData = {
     ...userMessage.customData,
-    ...userMessageCustomData,
     ...guardrailResult,
   };
 

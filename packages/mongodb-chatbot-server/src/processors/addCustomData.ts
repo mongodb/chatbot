@@ -98,10 +98,26 @@ export const addDefaultCustomData: AddDefinedCustomDataFunc = async (
   req,
   res
 ) => {
+  console.log("XYZ - 0.01", res);
+  console.log(
+    "XYZ - 0.1",
+    res.locals === null,
+    res.locals === undefined,
+    Object.keys(res.locals),
+    JSON.stringify(res.locals)
+  );
+  const ipCustomData = await addIpToCustomData(req, res);
+  console.log("XYZ - 0.2", ipCustomData);
+  const originCustomData = await addOriginToCustomData(req, res);
+  console.log("XYZ - 0.3", originCustomData);
+  const originCodeCustomData = await addOriginCodeToCustomData(req, res);
+  console.log("XYZ - 0.4", originCodeCustomData);
+  const userAgentCustomData = await addUserAgentToCustomData(req, res);
+  console.log("XYZ - 0.5", userAgentCustomData);
   return {
-    ...(await addIpToCustomData(req, res)),
-    ...(await addOriginToCustomData(req, res)),
-    ...(await addOriginCodeToCustomData(req, res)),
-    ...(await addUserAgentToCustomData(req, res)),
+    ...ipCustomData,
+    ...originCustomData,
+    ...originCodeCustomData,
+    ...userAgentCustomData,
   };
 };

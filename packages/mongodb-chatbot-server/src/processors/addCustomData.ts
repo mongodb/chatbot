@@ -98,10 +98,15 @@ export const addDefaultCustomData: AddDefinedCustomDataFunc = async (
   req,
   res
 ) => {
+  const ipCustomData = await addIpToCustomData(req, res);
+  const originCustomData = await addOriginToCustomData(req, res);
+  const originCodeCustomData = await addOriginCodeToCustomData(req, res);
+  const userAgentCustomData = await addUserAgentToCustomData(req, res);
+
   return {
-    ...(await addIpToCustomData(req, res)),
-    ...(await addOriginToCustomData(req, res)),
-    ...(await addOriginCodeToCustomData(req, res)),
-    ...(await addUserAgentToCustomData(req, res)),
+    ...ipCustomData,
+    ...originCustomData,
+    ...originCodeCustomData,
+    ...userAgentCustomData,
   };
 };

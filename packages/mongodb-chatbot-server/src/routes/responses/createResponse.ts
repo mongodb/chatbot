@@ -13,10 +13,11 @@ import {
   type ResponseStreamError,
   makeDataStreamer,
   Message,
+  ConversationCustomData,
 } from "mongodb-rag-core";
 import { SomeExpressRequest } from "../../middleware";
 import { getRequestId, makeTraceConversation } from "../../utils";
-import type { GenerateResponse } from "../../processors";
+import type { AddCustomDataFunc, GenerateResponse } from "../../processors";
 import {
   makeBadRequestError,
   makeInternalServerError,
@@ -30,6 +31,7 @@ import {
   UpdateTraceFunc,
   updateTraceIfExists,
 } from "../../processors/UpdateTraceFunc";
+import { ResponsesRouterLocals } from "./responsesRouter";
 
 export const MIN_INSTRUCTIONS_LENGTH = 1;
 export const MAX_INSTRUCTIONS_LENGTH = 50000; // ~10,000 tokens
@@ -150,6 +152,9 @@ const FunctionCallOutputSchema = z.object({
   status: z.enum(["in_progress", "completed", "incomplete"]).optional(),
 });
 
+type FunctionCallMessage = z.infer<typeof FunctionCallSchema>;
+type FunctionCallOutputMessage = z.infer<typeof FunctionCallOutputSchema>;
+
 const CreateResponseRequestBodySchema = z.object({
   model: z.string(),
   instructions: z
@@ -263,6 +268,7 @@ export interface CreateResponseRouteParams {
   supportedModels: string[];
   maxOutputTokens: number;
   maxUserMessagesInConversation: number;
+  createResponseCustomData?: AddCustomDataFunc;
   /** These metadata keys will persist in conversations and messages even if `Conversation.store: false`.
    * Otherwise, keys will have their values set to an empty string `""` if `Conversation.store: false`. */
   alwaysAllowedMetadataKeys: string[];
@@ -275,10 +281,14 @@ export function makeCreateResponseRoute({
   supportedModels,
   maxOutputTokens,
   maxUserMessagesInConversation,
+  createResponseCustomData,
   alwaysAllowedMetadataKeys,
   updateTrace,
 }: CreateResponseRouteParams) {
-  return async (req: ExpressRequest, res: ExpressResponse) => {
+  return async (
+    req: ExpressRequest,
+    res: ExpressResponse<any, ResponsesRouterLocals>
+  ) => {
     const reqId = getRequestId(req);
     const headers = req.headers as Record<string, string>;
     const dataStreamer = makeDataStreamer();
@@ -340,6 +350,13 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // --- CUSTOM DATA ---
+      const customData = await getCustomData({
+        req,
+        res,
+        createResponseCustomData,
+      });
+
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -349,7 +366,24 @@ export function makeCreateResponseRoute({
         userId: user,
         storeMessageContent: store,
         alwaysAllowedMetadataKeys,
+        conversationCustomData: customData,
       });
+
+      if (Array.isArray(input) && input.length > 0) {
+        const lastInputMessage = input.at(-1);
+        if (
+          !isUserMessage(lastInputMessage) &&
+          !isFunctionCallMessage(lastInputMessage) &&
+          !isFunctionCallOutputMessage(lastInputMessage)
+        ) {
+          throw makeBadRequestError({
+            error: new Error(
+              `Invalid final message role: ${lastInputMessage?.role} (must be one of: user, function_call, function_call_output)`
+            ),
+            headers,
+          });
+        }
+      }
 
       // When input is a list length>1, we need to temporarily add the
       // input messages to the conversation, since they're not stored yet.
@@ -454,6 +488,7 @@ export function makeCreateResponseRoute({
         toolDefinitions: tools,
         toolChoice: tool_choice,
         conversation: makeTraceConversation(conversation),
+        customData,
         dataStreamer,
         reqId,
       });
@@ -462,6 +497,7 @@ export function makeCreateResponseRoute({
       await saveMessagesToConversation({
         conversations,
         conversation,
+        customData,
         store,
         metadata,
         input,
@@ -528,6 +564,7 @@ interface LoadConversationByMessageIdParams {
   userId?: string;
   storeMessageContent: boolean;
   alwaysAllowedMetadataKeys: string[];
+  conversationCustomData?: ConversationCustomData;
 }
 
 export const creationInterface = "responses-api";
@@ -540,6 +577,7 @@ const loadConversationByMessageId = async ({
   userId,
   storeMessageContent,
   alwaysAllowedMetadataKeys,
+  conversationCustomData,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     const formattedMetadata = formatMetadata({
@@ -550,7 +588,10 @@ const loadConversationByMessageId = async ({
 
     return await conversations.create({
       userId,
-      customData: { metadata: formattedMetadata },
+      customData: {
+        ...(conversationCustomData ?? {}),
+        metadata: formattedMetadata,
+      },
       creationInterface,
       storeMessageContent,
     });
@@ -628,6 +669,7 @@ type MessagesParam = Parameters<
 interface AddMessagesToConversationParams {
   conversations: ConversationsService;
   conversation: Conversation;
+  customData: ConversationCustomData;
   store: boolean;
   metadata?: Record<string, string>;
   input: CreateResponseRequest["body"]["input"];
@@ -639,6 +681,7 @@ interface AddMessagesToConversationParams {
 const saveMessagesToConversation = async ({
   conversations,
   conversation,
+  customData,
   store,
   metadata,
   input,
@@ -646,17 +689,25 @@ const saveMessagesToConversation = async ({
   responseId,
   alwaysAllowedMetadataKeys,
 }: AddMessagesToConversationParams) => {
-  const messagesToAdd = [
-    ...convertInputToDBMessages(
-      input,
+  const inputToDbMessagesData = convertInputToDBMessages(
+    input,
+    store,
+    alwaysAllowedMetadataKeys,
+    metadata,
+    customData
+  );
+  const inputMessageHistory = inputToDbMessagesData.slice(0, -1); // remove the latest message - only keep the history
+  console.log("inputMessageHistory", inputMessageHistory);
+  const mappedFormattedMessages = messages.map((message) =>
+    formatMessage(
+      { ...message, customData },
       store,
       alwaysAllowedMetadataKeys,
       metadata
-    ),
-    ...messages.map((message) =>
-      formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
-    ),
-  ];
+    )
+  );
+  console.log("mamappedFormattedMessages", mappedFormattedMessages);
+  const messagesToAdd = [...inputMessageHistory, ...mappedFormattedMessages];
   // handle setting the response id for the last message
   // this corresponds to the response id in the response stream
   if (messagesToAdd.length > 0) {
@@ -673,12 +724,13 @@ const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
   alwaysAllowedMetadataKeys: string[],
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  customData?: ConversationCustomData
 ): MessagesParam => {
   if (typeof input === "string") {
     return [
       formatMessage(
-        { role: "user", content: input },
+        { role: "user", content: input, customData },
         store,
         alwaysAllowedMetadataKeys,
         metadata
@@ -691,7 +743,7 @@ const convertInputToDBMessages = (
       const role = message.role;
       const content = formatUserMessageContent(message.content);
       return formatMessage(
-        { role, content },
+        { role, content, customData },
         store,
         alwaysAllowedMetadataKeys,
         metadata
@@ -824,7 +876,38 @@ const isInputMessage = (message: unknown): message is InputMessage =>
 const isUserMessage = (message: unknown): message is UserMessage =>
   UserMessageSchema.safeParse(message).success;
 
+const isFunctionCallMessage = (
+  message: unknown
+): message is FunctionCallMessage =>
+  FunctionCallSchema.safeParse(message).success;
+
+const isFunctionCallOutputMessage = (
+  message: unknown
+): message is FunctionCallOutputMessage =>
+  FunctionCallOutputSchema.safeParse(message).success;
+
 const formatUserMessageContent = (content: InputMessage["content"]): string => {
   if (typeof content === "string") return content;
   return content[0].text;
 };
+
+async function getCustomData({
+  req,
+  res,
+  createResponseCustomData,
+}: {
+  req: ExpressRequest;
+  res: ExpressResponse<any, ResponsesRouterLocals>;
+  createResponseCustomData?: AddCustomDataFunc;
+}) {
+  try {
+    return createResponseCustomData
+      ? await createResponseCustomData(req, res)
+      : undefined;
+  } catch (_err) {
+    throw makeBadRequestError({
+      error: new Error("Unable to process custom data"),
+      headers: req.headers as Record<string, string>,
+    });
+  }
+}

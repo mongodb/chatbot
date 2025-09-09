@@ -24,6 +24,7 @@ import {
   addMessageToConversationVerifiedAnswerStream,
   responsesVerifiedAnswerStream,
   type MakeVerifiedAnswerGenerateResponseParams,
+  ResponsesRouterLocals,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -349,6 +350,20 @@ export async function closeDbConnections() {
 
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
+const addCustomData: AddCustomDataFunc = async (req, res) => {
+  const defaultCustomData = await addDefaultCustomData(req, res);
+  const customData = {
+    ...defaultCustomData,
+  };
+  if (res.locals.customData.segmentUserId) {
+    customData.segmentUserId = res.locals.customData.segmentUserId;
+  }
+  if (res.locals.customData.segmentAnonymousId) {
+    customData.segmentAnonymousId = res.locals.customData.segmentAnonymousId;
+  }
+  return customData;
+};
+
 const addMessageToConversationUpdateTrace =
   makeAddMessageToConversationUpdateTrace({
     k: retrievalConfig.findNearestNeighborsOptions.k,
@@ -391,20 +406,7 @@ export const config: AppConfig = {
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
       : undefined,
-    addMessageToConversationCustomData: async (req, res) => {
-      const defaultCustomData = await addDefaultCustomData(req, res);
-      const customData = {
-        ...defaultCustomData,
-      };
-      if (res.locals.customData.segmentUserId) {
-        customData.segmentUserId = res.locals.customData.segmentUserId;
-      }
-      if (res.locals.customData.segmentAnonymousId) {
-        customData.segmentAnonymousId =
-          res.locals.customData.segmentAnonymousId;
-      }
-      return customData;
-    },
+    addMessageToConversationCustomData: addCustomData,
     addMessageToConversationUpdateTrace,
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
@@ -445,12 +447,20 @@ export const config: AppConfig = {
     braintrustLogger,
   },
   responsesRouterConfig: {
+    middleware: [
+      requireValidIpAddress<ResponsesRouterLocals>(),
+      requireRequestOrigin<ResponsesRouterLocals>(),
+      // useSegmentIds(),
+      // redactConnectionUri(),
+      cookieParser(),
+    ],
     createResponse: {
       conversations,
       generateResponse: makeGenerateResponse({
         responseWithSearchToolStream: responsesApiStream,
         verifiedAnswerStream: responsesVerifiedAnswerStream,
       }),
+      createResponseCustomData: addCustomData,
       supportedModels: ["mongodb-chat-latest"],
       maxOutputTokens: 4000,
       maxUserMessagesInConversation: 50,

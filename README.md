@@ -1,14 +1,14 @@
-# MongoDB Knowledge Service
+# MongoDB AI Benchmarks
 
-This repo contains the work of the MongoDB Education AI team. 
+This repository contains tools for benchmarking and evaluating AI models on MongoDB-related tasks.
 
-## MongoDB Knowledge Service
+## Overview
 
-The MongoDB Knowledge Service lets you learn about MongoDB using generative AI. To learn more about it, refer to the [MongoDB Knowledge Service documentation](https://mongodb.github.io/chatbot)
+The repository is organized with three main packages:
 
-## MongoDB Chatbot Framework (deprecated)
-
-The team building the MongoDB Knowledge Service previously developed the MongoDB Chatbot Framework. To learn more about the framework, why it was deprecated, and alternatives, refer to [this documentation](https://mongodb.github.io/chatbot/framework/).
+- **benchmarks/**: Benchmarking suite for evaluating AI models on MongoDB tasks (text-to-driver code generation, natural language queries, etc.)
+- **datasets/**: Utilities for importing, processing, and managing datasets used for training and evaluation
+- **mongodb-rag-core/**: Core shared utilities, types, and functions used by other packages
 
 ## Contributing
 

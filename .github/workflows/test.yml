@@ -1,0 +1,103 @@
+name: Test Suite
+
+on:
+  # Run on push to main branch and pull requests
+  # Only when relevant files are changed
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "package*.json"
+      - ".github/workflows/test.yml"
+  pull_request:
+    paths:
+      - "packages/**"
+      - "package*.json"
+      - ".github/workflows/test.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: test-ci
+    env:
+      NODE_OPTIONS: "--max-old-space-size=4096"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: node-modules-cache
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Install dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Verify node_modules
+        if: steps.node-modules-cache.outputs.cache-hit == 'true'
+        run: echo "Using cached node_modules, skipping npm ci"
+
+      - name: Cache build outputs
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: |
+            packages/*/build
+            packages/*/dist
+            packages/*/.tsbuildinfo
+            packages/*/tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json', 'packages/**/src/**', 'packages/**/tsconfig*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Build packages
+        if: steps.build-cache.outputs.cache-hit != 'true'
+        run: npm run build
+
+      # Build outputs are cached and reused when source files haven't changed
+
+      # - name: Run linter
+      #   run: npm run lint
+
+      - name: Cache Jest Transform Cache
+        uses: actions/cache@v4
+        id: jest-transform-cache
+        with:
+          path: |
+            /tmp/jest_*
+            .jest-cache
+            packages/*/.jest-cache
+            node_modules/.cache/ts-jest
+            packages/*/node_modules/.cache/ts-jest
+          key: ${{ runner.os }}-jest-transform-${{ hashFiles('**/package-lock.json', 'packages/**/tsconfig*.json', 'jest.config.*', '**/jest.config.*') }}
+          restore-keys: |
+            ${{ runner.os }}-jest-transform-
+
+      - name: Run all tests
+        run: |
+          # Run tests with TypeScript build caching
+          # Jest will cache the transpiled TypeScript files
+          # npm run test -- --cacheDirectory=.jest-cache --maxWorkers=2
+          npm run test
+        env:
+          OPENAI_API_VERSION: "2024-06-01"
+          BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
+          # BRAINTRUST_ENDPOINT: "<placeholder>"
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1

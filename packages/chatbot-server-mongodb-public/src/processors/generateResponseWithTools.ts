@@ -45,7 +45,7 @@ import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 import { wrapLanguageModel, LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
-import { classifySkill } from "../middleware/classifySkill";
+import { classifySkill } from "./classifySkill";
 
 /**
   Tools that are internal to the MongoDB Responses API.

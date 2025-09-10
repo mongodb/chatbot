@@ -1,5 +1,5 @@
 import { Document } from "mongodb";
-import { EJSON } from "bson";
+import { BSON } from "mongodb";
 import { strict as assert } from "assert";
 
 type MongoDbOutput = Document | number | Document[];
@@ -45,8 +45,8 @@ export function fuzzyMatchExecutionResults({
   isAggregation = false,
   allowedNumberDifference = 0.01,
 }: FuzzyMatchExecutionResultsParams): boolean | null {
-  const outputEjson = EJSON.serialize(mongoDbOutput, { relaxed: true });
-  const expectedEjson = EJSON.serialize(expected, { relaxed: true });
+  const outputEjson = BSON.EJSON.serialize(mongoDbOutput, { relaxed: true });
+  const expectedEjson = BSON.EJSON.serialize(expected, { relaxed: true });
 
   const outputIsArray = Array.isArray(outputEjson);
   const expectedIsArray = Array.isArray(expectedEjson);

@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./build",
-    "lib": ["ES2023"]
-  },
-  "include": ["./src/**/*.ts"]
-}

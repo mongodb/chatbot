@@ -1,8 +1,0 @@
-.env*
-!.env.example
-.secrets*
-build/
-node_modules/
-
-static/**/*
-!static/.gitinclude

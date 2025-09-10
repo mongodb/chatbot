@@ -3,6 +3,9 @@ import { classifySkill } from './classifySkill';
 
 export const promotionMiddleware: LanguageModelV2Middleware = {
   wrapStream: async ({ doStream, params }) => {
+    console.log('doStream called');
+    console.log(`params: ${JSON.stringify(params, null, 2)}`)
+    
     let userMessageText = "";
     params.prompt.forEach((part) => {
       if (part.role === "user" && part.content[0].type === "text") {

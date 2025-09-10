@@ -45,7 +45,7 @@ import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 import { wrapLanguageModel, LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
-import { promotionMiddleware } from "../middleware/promotionMiddleware";
+import { classifySkill } from "../middleware/classifySkill";
 
 /**
   Tools that are internal to the MongoDB Responses API.
@@ -419,13 +419,8 @@ export function makeGenerateResponseWithTools({
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
-      const wrappedLanguageModel = wrapLanguageModel({
-        model: languageModel,
-        middleware: promotionMiddleware,
-      });
-
       const generationArgs = {
-        model: wrappedLanguageModel,
+        model: languageModel,
         messages: [
           makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
@@ -436,6 +431,7 @@ export function makeGenerateResponseWithTools({
         maxSteps,
       };
 
+      // Start the async promises now, before generation
       const inputGuardrailPromise = inputGuardrail
         ? inputGuardrail({
             conversation,
@@ -447,6 +443,7 @@ export function makeGenerateResponseWithTools({
             dataStreamer,
           })
         : undefined;
+      const skillPromotionPromise = classifySkill(latestMessageText);
 
       const references: References = [];
 
@@ -617,7 +614,7 @@ export function makeGenerateResponseWithTools({
           }
 
           // Stream the chosen skill, if any
-          const skillPromotion: Promotion = await (result as any).skillPromotionPromise;
+          const skillPromotion = await skillPromotionPromise;
           if (skillPromotion && !generationController.signal.aborted) {
             if (streamingModeActive) {
               stream.onPromotionLink({

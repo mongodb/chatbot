@@ -15,7 +15,7 @@ let consecutiveFailures = 0
 let topicToSkillMap: TopicsToSkills;
 
 const azureOpenAi = createAzure({
-  // apiKey: OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
   resourceName: process.env.OPENAI_RESOURCE_NAME,
 });
 const model = azureOpenAi("gpt-4.1-mini")
@@ -86,10 +86,10 @@ ${topicToSkillMap}`;
     console.log("No skill identified.")
     return null;
   }
-  console.log("Selected skill promotion: ", object.skill);
+  console.log("Selected skill promotion: ", JSON.stringify(object));
 
   // Promotion reference links should also be formatted with the tck="mongodb_ai_chatbot" query parameter for tracking.
-  const skillDetail = topicToSkillMap?.[object.topic].find((arrItem) => arrItem.name === object.skill)   // TODO - consider making Skills[] an object.
+  const skillDetail = topicToSkillMap[object.topic].find((arrItem) => arrItem.name === object.skill)   // TODO - consider making Skills[] an object.
   const rawUrl = skillDetail?.url ?? "";
   const url = rawUrl
     ? `${rawUrl}${rawUrl.includes("?") ? "&" : "?"}tck=mongodb_ai_chatbot`

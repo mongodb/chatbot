@@ -1,7 +1,6 @@
 import puppeteer from "puppeteer";
 
 const SKILL_HOMEPAGE_URL = "https://learn.mongodb.com/skills";
-const EXPECTED_ELEMENT_ID = "vite-plugin-ssr_pageContext";
 const EXPECTED_JSON_PATH = "pageContext.pageProps.storefrontData.topics";
 
 export type Skill = {
@@ -35,9 +34,9 @@ export async function getCurrentSkills() {
 
     // Extract JSON from the vite-plugin-ssr_pageContext element
     const skillsData = await page.evaluate(() => {
-      const element = document.getElementById(EXPECTED_ELEMENT_ID);
+      const element = document.getElementById('vite-plugin-ssr_pageContext');
       if (!element) {
-        throw new Error(`Element with ID "${EXPECTED_ELEMENT_ID}" not found`);
+        throw new Error('Element with ID "vite-plugin-ssr_pageContext" not found');
       }
 
       try {
@@ -88,10 +87,10 @@ function extractTopicToSkillsFromPageData(pageData: any): TopicsToSkills {
 
       const skills: Skill[] = [];
       for (const skill of topic.skills) {
-        if (skill.name && skill.description && skill.url) {
+        if (skill.title && skill.url) {
           skills.push({
             name: skill.title,
-            description: skill.description,
+            description: skill?.description,
             url: skill.url,
           });
         }

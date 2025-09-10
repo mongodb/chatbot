@@ -94,10 +94,6 @@ jobs:
           # npm run test -- --cacheDirectory=.jest-cache --maxWorkers=2
           npm run test
         env:
-          OPENAI_API_VERSION: "2024-06-01"
           BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
           # BRAINTRUST_ENDPOINT: "<placeholder>"
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1

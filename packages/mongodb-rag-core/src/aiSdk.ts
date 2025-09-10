@@ -7,3 +7,4 @@ export {
   MockLanguageModelV2,
   MockEmbeddingModelV2,
 } from "ai/test";
+export { LanguageModelV2Middleware, LanguageModelV2 } from '@ai-sdk/provider';

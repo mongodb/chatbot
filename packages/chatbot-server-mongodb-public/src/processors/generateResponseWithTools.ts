@@ -11,6 +11,7 @@ import {
   type ResponseStreamFunctionCallArgumentsDone,
   ResponseStreamOutputItemAdded,
   ResponseStreamOutputItemDone,
+  Promotion,
 } from "mongodb-rag-core";
 import {
   AssistantModelMessage,
@@ -43,6 +44,8 @@ import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
 import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
+import { wrapLanguageModel, LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
+import { promotionMiddleware } from "../middleware/promotionMiddleware";
 
 /**
   Tools that are internal to the MongoDB Responses API.
@@ -52,7 +55,7 @@ import { logRequest } from "../utils";
 const INTERNAL_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
 
 export interface GenerateResponseWithToolsParams {
-  languageModel: LanguageModel;
+  languageModel: LanguageModelV2;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
@@ -73,6 +76,10 @@ export interface GenerateResponseWithToolsParams {
     onLlmRefusal: StreamFunction<{ refusalMessage: string }>;
     onReferenceLinks: StreamFunction<{
       references: References;
+      textPartId: string;
+    }>;
+    onPromotionLink: StreamFunction<{
+      promotion: Promotion;
       textPartId: string;
     }>;
     onTextStart?: StreamFunction<{
@@ -122,6 +129,12 @@ export const addMessageToConversationStream: GenerateResponseWithToolsParams["st
       dataStreamer?.streamData({
         type: "delta",
         data: refusalMessage,
+      });
+    },
+    onPromotionLink({ dataStreamer, promotion }) {
+      dataStreamer?.streamData({
+        type: "promotion",
+        data: promotion,
       });
     },
     onReferenceLinks({ dataStreamer, references }) {
@@ -245,6 +258,16 @@ export const responsesApiStream: GenerateResponseWithToolsParams["stream"] = {
         output_index: 0,
         item_id: textPartId,
       } satisfies ResponseStreamOutputTextAnnotationAdded);
+    });
+  },
+  onPromotionLink({ dataStreamer, promotion, textPartId }) {
+    dataStreamer?.streamResponses({
+      type: "response.output_text.annotation.added",
+      annotation: convertPromotionToFileAnnotation(promotion),
+      annotation_index: 0,
+      content_index: 0,
+      output_index: 0,
+      item_id: textPartId,
     });
   },
   onTextStart({ dataStreamer, textPartId }) {
@@ -396,8 +419,13 @@ export function makeGenerateResponseWithTools({
         ...(additionalTools ?? {}),
       } satisfies ToolSet;
 
-      const generationArgs = {
+      const wrappedLanguageModel = wrapLanguageModel({
         model: languageModel,
+        middleware: promotionMiddleware,
+      });
+
+      const generationArgs = {
+        model: wrappedLanguageModel,
         messages: [
           makeSystemPrompt(customSystemPrompt),
           ...filteredPreviousMessages,
@@ -585,6 +613,18 @@ export function makeGenerateResponseWithTools({
                 );
               default:
                 break;
+            }
+          }
+
+          // Stream the chosen skill, if any
+          const skillPromotion: Promotion = await (result as any).skillPromotionPromise;
+          if (skillPromotion && !generationController.signal.aborted) {
+            if (streamingModeActive) {
+              stream.onPromotionLink({
+                dataStreamer,
+                promotion: skillPromotion,
+                textPartId,
+              });
             }
           }
 
@@ -915,4 +955,17 @@ function convertReferencesToAnnotations(
     start_index: 0,
     end_index: 0,
   }));
+}
+
+function convertPromotionToFileAnnotation(
+  promotion: Promotion
+): ResponseStreamOutputTextAnnotationAdded["annotation"] {
+  const file_id = promotion.topic ? `${promotion.topic}/${promotion.title}` : promotion.title ;
+  const query = encodeURI(`type=${promotion.type}&text=${promotion.description}`);
+  return {
+    type: "file_citation",
+    file_id,
+    filename: `promotion://${file_id}?${query}`,
+    index: 0,
+  };
 }

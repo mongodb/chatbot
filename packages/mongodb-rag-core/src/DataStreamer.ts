@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { References } from "./References";
+import { Promotion } from "./Promotions";
 import { logger } from "./logger";
 import OpenAI from "openai";
 
@@ -148,6 +149,14 @@ export type ReferencesStreamEvent = StreamEvent & {
 };
 
 /**
+  Event when server streams single {@link Promotion} object to the client.
+ */
+export type PromotionStreamEvent = StreamEvent & {
+  type: "promotion";
+  data: Promotion;
+};
+
+/**
   Event when server streams a metadata object to the client.
  */
 export type MetadataStreamEvent = StreamEvent & {
@@ -179,6 +188,7 @@ export type SomeStreamEvent =
   | MetadataStreamEvent
   | ProcessingStreamEvent
   | ReferencesStreamEvent
+  | PromotionStreamEvent
   | FinishedStreamEvent
   | ConversationIdStreamEvent;
 
@@ -189,8 +199,14 @@ export interface DataStreamer {
   connected: boolean;
   connect(res: Response): void;
   disconnect(): void;
+  /**
+   * Used for Conversations API.
+   */
   streamData(data: SomeStreamEvent): void;
   stream(params: StreamParams): Promise<string>;
+  /**
+   * Used for Responses API.
+   */
   streamResponses(data: ResponsesStreamParams): void;
 }
 

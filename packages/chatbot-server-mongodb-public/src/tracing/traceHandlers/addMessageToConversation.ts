@@ -65,13 +65,6 @@ export function makeAddMessageToConversationUpdateTrace({
       ObjectId.createFromHexString(traceId),
       conversation._id
     );
-    logRequest({
-      reqId,
-      message: `Tracing data for conversation ${
-        conversation._id
-      } (reqId: ${reqId}): ${JSON.stringify(tracingData)}`,
-      type: "info",
-    });
 
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&

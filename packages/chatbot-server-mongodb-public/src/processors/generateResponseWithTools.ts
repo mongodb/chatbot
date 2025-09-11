@@ -42,10 +42,10 @@ import {
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
 import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
+import { SkillClassiferFunction } from "./classifySkill";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
-import { wrapLanguageModel, LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
-import { classifySkill } from "./classifySkill";
+import { LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
 
 /**
   Tools that are internal to the MongoDB Responses API.
@@ -59,6 +59,7 @@ export interface GenerateResponseWithToolsParams {
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;
+  classifySkill: SkillClassiferFunction;
   makeSystemPrompt: MakeSystemPrompt;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
@@ -374,6 +375,7 @@ export function makeGenerateResponseWithTools({
   llmNotWorkingMessage,
   llmRefusalMessage,
   inputGuardrail,
+  classifySkill,
   makeSystemPrompt,
   filterPreviousMessages,
   internalTools,

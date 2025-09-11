@@ -74,6 +74,7 @@ import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWith
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { FETCH_PAGE_TOOL_NAME, makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
+import { makeClassifySkill } from "./processors/classifySkill";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -240,6 +241,18 @@ const inputGuardrail = wrapTraced(
   }
 );
 
+// TODO - Setup new environment variables for this fxn
+const skillClassifierLanguageModel = wrapLanguageModel({
+  model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),  
+  middleware: [BraintrustMiddleware({ debug: true })], // Unclear if this traces generateObject
+});
+const classifySkill = wrapTraced(
+  makeClassifySkill(skillClassifierLanguageModel),
+  {
+    name: "SkillPromotionClassifier"
+  }
+)
+
 export const filterPreviousMessages: FilterPreviousMessages = async (
   conversation
 ) => {
@@ -277,6 +290,7 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           languageModel,
           makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
           inputGuardrail,
+          classifySkill,
           llmRefusalMessage:
             conversations.conversationConstants.NO_RELEVANT_CONTENT,
           filterPreviousMessages,

@@ -321,6 +321,15 @@ export function makeCreateResponseRoute({
         },
       } = data;
 
+      // Only honor tool_choice if the client explicitly provided it in the request body.
+      // The schema defaults tool_choice to "auto", which would otherwise suppress
+      // verified answers. We want verified answers when the client didn't opt into tools.
+      const toolChoiceProvided = Object.prototype.hasOwnProperty.call(
+        (req as any).body ?? {},
+        "tool_choice"
+      );
+      const effectiveToolChoice = toolChoiceProvided ? tool_choice : undefined;
+
       // --- MODEL CHECK ---
       if (!supportedModels.includes(model)) {
         throw makeBadRequestError({
@@ -486,7 +495,7 @@ export function makeCreateResponseRoute({
         latestMessageText,
         customSystemPrompt: instructions,
         toolDefinitions: tools,
-        toolChoice: tool_choice,
+        toolChoice: effectiveToolChoice,
         conversation: makeTraceConversation(conversation),
         customData,
         dataStreamer,
@@ -771,11 +780,17 @@ const formatMessage = (
 ): MessagesParam[number] => {
   // store a placeholder string if we're not storing message data
   const formattedContent = store ? message.content : "";
+  // Combine request-level metadata with message-level metadata, allowing
+  // message-level fields to augment/override the request metadata.
+  const combinedMetadata = {
+    ...(metadata ?? {}),
+    ...(message as { metadata?: Record<string, unknown> }).metadata,
+  } as Record<string, unknown> | undefined;
   // handle cleaning metadata fields if we're not storing message data
   const formattedMetadata = formatMetadata({
     shouldStore: store,
     alwaysAllowedMetadataKeys,
-    metadata,
+    metadata: combinedMetadata,
   });
   const formattedCustomData = formatMetadata({
     shouldStore: store,

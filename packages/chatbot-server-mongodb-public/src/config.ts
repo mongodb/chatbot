@@ -351,20 +351,16 @@ export async function closeDbConnections() {
 logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
 
 const addCustomData: AddCustomDataFunc = async (req, res) => {
-  console.log("XYZ - 0", "addCustomData");
   const defaultCustomData = await addDefaultCustomData(req, res);
   const customData = {
     ...defaultCustomData,
   };
-  console.log("XYZ - 1", customData);
   if (res.locals.customData.segmentUserId) {
     customData.segmentUserId = res.locals.customData.segmentUserId;
   }
-  console.log("XYZ - 2", customData);
   if (res.locals.customData.segmentAnonymousId) {
     customData.segmentAnonymousId = res.locals.customData.segmentAnonymousId;
   }
-  console.log("XYZ - 3", customData);
   return customData;
 };
 

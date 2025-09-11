@@ -350,6 +350,13 @@ export function makeCreateResponseRoute({
         });
       }
 
+      // --- CUSTOM DATA ---
+      const customData = await getCustomData({
+        req,
+        res,
+        createResponseCustomData,
+      });
+
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversationByMessageId({
         messageId: previous_response_id,
@@ -359,6 +366,7 @@ export function makeCreateResponseRoute({
         userId: user,
         storeMessageContent: store,
         alwaysAllowedMetadataKeys,
+        conversationCustomData: customData,
       });
 
       if (Array.isArray(input) && input.length > 0) {
@@ -466,12 +474,6 @@ export function makeCreateResponseRoute({
         },
       };
 
-      const customData = await getCustomData({
-        req,
-        res,
-        createResponseCustomData,
-      });
-
       // Create a wrapper trace. This always creates a top-level trace.
       // It only traces the contents of the generateResponse function
       // if `store` is true.
@@ -562,6 +564,7 @@ interface LoadConversationByMessageIdParams {
   userId?: string;
   storeMessageContent: boolean;
   alwaysAllowedMetadataKeys: string[];
+  conversationCustomData?: ConversationCustomData;
 }
 
 export const creationInterface = "responses-api";
@@ -574,6 +577,7 @@ const loadConversationByMessageId = async ({
   userId,
   storeMessageContent,
   alwaysAllowedMetadataKeys,
+  conversationCustomData,
 }: LoadConversationByMessageIdParams): Promise<Conversation> => {
   if (!messageId) {
     const formattedMetadata = formatMetadata({
@@ -584,7 +588,10 @@ const loadConversationByMessageId = async ({
 
     return await conversations.create({
       userId,
-      customData: { metadata: formattedMetadata },
+      customData: {
+        ...(conversationCustomData ?? {}),
+        metadata: formattedMetadata,
+      },
       creationInterface,
       storeMessageContent,
     });
@@ -686,14 +693,21 @@ const saveMessagesToConversation = async ({
     input,
     store,
     alwaysAllowedMetadataKeys,
-    metadata
+    metadata,
+    customData
   );
+  const inputMessageHistory = inputToDbMessagesData.slice(0, -1); // remove the latest message - only keep the history
+  console.log("inputMessageHistory", inputMessageHistory);
   const mappedFormattedMessages = messages.map((message) =>
-    formatMessage(message, store, alwaysAllowedMetadataKeys, metadata)
+    formatMessage(
+      { ...message, customData },
+      store,
+      alwaysAllowedMetadataKeys,
+      metadata
+    )
   );
-  const messagesToAdd = [...inputToDbMessagesData, ...mappedFormattedMessages];
-  console.log("XXX", customData);
-  // console.log("inputToDbMessagesData", inputToDbMessagesData);
+  console.log("mamappedFormattedMessages", mappedFormattedMessages);
+  const messagesToAdd = [...inputMessageHistory, ...mappedFormattedMessages];
   // handle setting the response id for the last message
   // this corresponds to the response id in the response stream
   if (messagesToAdd.length > 0) {
@@ -710,12 +724,13 @@ const convertInputToDBMessages = (
   input: CreateResponseRequest["body"]["input"],
   store: boolean,
   alwaysAllowedMetadataKeys: string[],
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  customData?: ConversationCustomData
 ): MessagesParam => {
   if (typeof input === "string") {
     return [
       formatMessage(
-        { role: "user", content: input },
+        { role: "user", content: input, customData },
         store,
         alwaysAllowedMetadataKeys,
         metadata
@@ -728,7 +743,7 @@ const convertInputToDBMessages = (
       const role = message.role;
       const content = formatUserMessageContent(message.content);
       return formatMessage(
-        { role, content },
+        { role, content, customData },
         store,
         alwaysAllowedMetadataKeys,
         metadata

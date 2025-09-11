@@ -24,6 +24,7 @@ import {
   addMessageToConversationVerifiedAnswerStream,
   responsesVerifiedAnswerStream,
   type MakeVerifiedAnswerGenerateResponseParams,
+  ResponsesRouterLocals,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -450,10 +451,13 @@ export const config: AppConfig = {
     braintrustLogger,
   },
   responsesRouterConfig: {
-    // middleware: [
-    //   requireValidIpAddress<ResponsesRouterLocals>(),
-    //   requireRequestOrigin<ResponsesRouterLocals>(),
-    // ],
+    middleware: [
+      requireValidIpAddress<ResponsesRouterLocals>(),
+      requireRequestOrigin<ResponsesRouterLocals>(),
+      // useSegmentIds(),
+      // redactConnectionUri(),
+      cookieParser(),
+    ],
     createResponse: {
       conversations,
       generateResponse: makeGenerateResponse({

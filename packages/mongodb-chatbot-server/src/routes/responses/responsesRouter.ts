@@ -1,4 +1,5 @@
 import Router from "express-promise-router";
+import { Response, NextFunction } from "express";
 import { makeCreateResponseRoute } from "./createResponse";
 import { getRequestId } from "../../utils";
 import {
@@ -58,6 +59,15 @@ export function makeResponsesRouter({
   ],
 }: ResponsesRouterParams) {
   const responsesRouter = Router();
+
+  // Set the customData on the response locals for use in subsequent middleware.
+  responsesRouter.use(((_, res: Response, next: NextFunction) => {
+    res.locals.customData = {};
+    next();
+  }) satisfies RequestHandler);
+
+  // Add middleware to the responsesRouter.
+  middleware?.forEach((mw) => responsesRouter.use(mw));
 
   /*
     Global rate limit the requests to the responsesRouter.

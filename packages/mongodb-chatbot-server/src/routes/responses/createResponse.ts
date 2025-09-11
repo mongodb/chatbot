@@ -693,9 +693,7 @@ const saveMessagesToConversation = async ({
   );
   const messagesToAdd = [...inputToDbMessagesData, ...mappedFormattedMessages];
   console.log("XXX", customData);
-  console.log("inputToDbMessagesData", inputToDbMessagesData);
-  console.log("mappedFormattedMessages", mappedFormattedMessages);
-  console.log("messagesToAdd", messagesToAdd);
+  // console.log("inputToDbMessagesData", inputToDbMessagesData);
   // handle setting the response id for the last message
   // this corresponds to the response id in the response stream
   if (messagesToAdd.length > 0) {

@@ -1,4 +1,7 @@
-import { ConversationsMiddleware } from "mongodb-chatbot-server";
+import {
+  ConversationsMiddleware,
+  ResponsesMiddleware,
+} from "mongodb-chatbot-server";
 
 export const SEGMENT_USER_ID_HEADER = "X-Segment-User-Id";
 export const SEGMENT_ANONYMOUS_ID_HEADER = "X-Segment-Anonymous-Id";

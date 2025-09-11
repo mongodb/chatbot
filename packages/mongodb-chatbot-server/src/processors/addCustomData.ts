@@ -98,7 +98,6 @@ export const addDefaultCustomData: AddDefinedCustomDataFunc = async (
   req,
   res
 ) => {
-  console.log("XYZ - 0.01", res);
   console.log(
     "XYZ - 0.1",
     res.locals === null,

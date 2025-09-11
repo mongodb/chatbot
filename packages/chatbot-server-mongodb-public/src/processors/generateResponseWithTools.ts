@@ -445,9 +445,10 @@ export function makeGenerateResponseWithTools({
             dataStreamer,
           })
         : undefined;
-      const skillPromotionPromise = classifySkill(latestMessageText);
+      const promotionPromises = [classifySkill(latestMessageText)];
 
       const references: References = [];
+      const promotions: Promotion[] = [];
 
       // Create an AbortController for the generation
       const generationController = new AbortController();
@@ -615,14 +616,20 @@ export function makeGenerateResponseWithTools({
             }
           }
 
-          // Stream the chosen skill, if any
-          const skillPromotion = await skillPromotionPromise;
-          if (skillPromotion && !generationController.signal.aborted) {
+          // Stream the chosen promotion, if any
+          const promotions: Promotion[] = (
+            await Promise.allSettled(promotionPromises)
+          )
+            .map((r) => (r.status === "fulfilled" ? r.value : null))
+            .filter((promo) => promo !== null);
+          if (promotions.length > 0 && !generationController.signal.aborted) {
             if (streamingModeActive) {
-              stream.onPromotionLink({
-                dataStreamer,
-                promotion: skillPromotion,
-                textPartId,
+              promotions.forEach((promotion) => {
+                stream.onPromotionLink({
+                  dataStreamer,
+                  promotion,
+                  textPartId,
+                });
               });
             }
           }
@@ -689,6 +696,7 @@ export function makeGenerateResponseWithTools({
           guardrailResult,
           messages,
           references,
+          promotions,
           reqId,
         });
       } else {
@@ -696,6 +704,7 @@ export function makeGenerateResponseWithTools({
         return handleReturnGeneration({
           userMessage,
           guardrailResult,
+          promotions,
           messages: [
             {
               role: "assistant",
@@ -736,6 +745,7 @@ function handleReturnGeneration({
   userMessage,
   guardrailResult,
   messages,
+  promotions,
   references,
   reqId,
 }: {
@@ -743,6 +753,7 @@ function handleReturnGeneration({
   guardrailResult: InputGuardrailResult | undefined;
   messages: ResponseMessage[];
   references?: References;
+  promotions?: Promotion[];
   reqId: string;
 }): GenerateResponseReturnValue {
   userMessage.rejectQuery = guardrailResult?.rejected;
@@ -750,12 +761,14 @@ function handleReturnGeneration({
   userMessage.customData = {
     ...userMessage.customData,
     ...guardrailResult,
+    promotion: promotions && promotions.length > 0 ? true : false,
   };
 
   const formattedMessages = formatMessageForReturnGeneration(
     messages,
     reqId,
-    references ?? []
+    references ?? [],
+    promotions ?? []
   );
 
   return {
@@ -839,7 +852,8 @@ function makeToolMessage(m: ToolModelMessage): ToolMessage[] {
 function formatMessageForReturnGeneration(
   messages: ResponseMessage[],
   reqId: string,
-  references: References
+  references: References,
+  promotions: Promotion[]
 ): [...SomeMessage[], AssistantMessage] {
   const messagesOut: Array<SomeMessage | AssistantMessage> = [];
   messages.forEach((m) => {
@@ -859,6 +873,7 @@ function formatMessageForReturnGeneration(
   }
   const latestMessage = messagesOut.at(-1) as AssistantMessage;
   latestMessage.references = references;
+  latestMessage.promotions = promotions;
   return messagesOut as [...SomeMessage[], AssistantMessage];
 }
 
@@ -959,8 +974,12 @@ function convertReferencesToAnnotations(
 function convertPromotionToFileAnnotation(
   promotion: Promotion
 ): ResponseStreamOutputTextAnnotationAdded["annotation"] {
-  const file_id = promotion.topic ? `${promotion.topic}/${promotion.title}` : promotion.title ;
-  const query = encodeURI(`type=${promotion.type}&text=${promotion.description}`);
+  const file_id = promotion.topic
+    ? `${promotion.topic}/${promotion.title}`
+    : promotion.title;
+  const query = encodeURI(
+    `type=${promotion.type}&text=${promotion.description}`
+  );
   return {
     type: "file_citation",
     file_id,

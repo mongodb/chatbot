@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { EmbeddedContent } from "../contentStore";
 import { References } from "../References";
+import { Promotion } from "../Promotions";
 import { WithScore } from "../VectorStore";
 import { VerifiedAnswer } from "../verifiedAnswers";
 import { OpenAI } from "openai";
@@ -53,6 +54,11 @@ export type AssistantMessage = MessageBase & {
     Further reading links for the message.
    */
   references?: References;
+
+  /**
+    Promoted content linked on the response.
+   */
+  promotions?: Promotion[];
 
   toolCall?: OpenAI.ChatCompletionMessageToolCall;
 

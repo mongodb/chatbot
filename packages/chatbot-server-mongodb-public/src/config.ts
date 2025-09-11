@@ -51,6 +51,7 @@ import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   AZURE_OPENAI_ENV_VARS,
+  PROMOTIONS_ENV_VARS,
   PREPROCESSOR_ENV_VARS,
   TRACING_ENV_VARS,
 } from "./EnvVars";
@@ -89,6 +90,7 @@ export const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_CLASSIFIER_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
@@ -97,6 +99,7 @@ export const {
   ...PREPROCESSOR_ENV_VARS,
   ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
+  ...PROMOTIONS_ENV_VARS,
 });
 
 // Optional env vars
@@ -241,17 +244,16 @@ const inputGuardrail = wrapTraced(
   }
 );
 
-// TODO - Setup new environment variables for this fxn
 const skillClassifierLanguageModel = wrapLanguageModel({
-  model: azureOpenAi(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT),  
-  middleware: [BraintrustMiddleware({ debug: true })], // Unclear if this traces generateObject
+  model: azureOpenAi(OPENAI_CLASSIFIER_CHAT_COMPLETION_DEPLOYMENT),
+  middleware: [BraintrustMiddleware({ debug: true })],
 });
 const classifySkill = wrapTraced(
   makeClassifySkill(skillClassifierLanguageModel),
   {
-    name: "SkillPromotionClassifier"
+    name: "SkillPromotionClassifier",
   }
-)
+);
 
 export const filterPreviousMessages: FilterPreviousMessages = async (
   conversation

@@ -81,6 +81,11 @@ export function extractTracingData(
     tags.push("llm_does_not_know");
   }
 
+  const promotionData = evalAssistantMessage.metadata?.promotions ?? undefined;
+  if (promotionData) {
+    tags.push("did_promotion");
+  }
+
   const rating = evalAssistantMessage.rating;
   const comment = evalAssistantMessage.userComment;
 

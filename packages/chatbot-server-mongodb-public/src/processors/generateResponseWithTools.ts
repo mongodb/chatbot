@@ -433,7 +433,6 @@ export function makeGenerateResponseWithTools({
         maxSteps,
       };
 
-      // Start the async promises now, before generation
       const inputGuardrailPromise = inputGuardrail
         ? inputGuardrail({
             conversation,
@@ -445,10 +444,17 @@ export function makeGenerateResponseWithTools({
             dataStreamer,
           })
         : undefined;
-      const promotionPromises = [classifySkill(latestMessageText)];
 
       const references: References = [];
-      const promotions: Promotion[] = [];
+
+      // Start the promotions async. Use 'then' so we can await the result twice w/o rerun
+      const promotionPromises = Promise.allSettled([
+        classifySkill(latestMessageText),
+      ]).then((settledResult) => {
+        return settledResult
+          .map((r) => (r.status === "fulfilled" ? r.value : null))
+          .filter((promo) => promo !== null) satisfies Promotion[];
+      });
 
       // Create an AbortController for the generation
       const generationController = new AbortController();
@@ -617,11 +623,7 @@ export function makeGenerateResponseWithTools({
           }
 
           // Stream the chosen promotion, if any
-          const promotions: Promotion[] = (
-            await Promise.allSettled(promotionPromises)
-          )
-            .map((r) => (r.status === "fulfilled" ? r.value : null))
-            .filter((promo) => promo !== null);
+          const promotions: Promotion[] = await promotionPromises;
           if (promotions.length > 0 && !generationController.signal.aborted) {
             if (streamingModeActive) {
               promotions.forEach((promotion) => {
@@ -660,6 +662,7 @@ export function makeGenerateResponseWithTools({
         guardrailMonitor ?? Promise.resolve(undefined),
         generationPromise,
       ]);
+      const promotions: Promotion[] = await promotionPromises;
 
       // If the guardrail rejected the query,
       // return the LLM refusal message

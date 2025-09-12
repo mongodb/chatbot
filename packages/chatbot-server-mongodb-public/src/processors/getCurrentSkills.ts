@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 
 const SKILL_HOMEPAGE_URL = "https://learn.mongodb.com/skills";
+const SKILL_JSON_ELEMENT_ID = "vite-plugin-ssr_pageContext";
 const EXPECTED_JSON_PATH = "pageContext.pageProps.storefrontData.topics";
 
 export type Skill = {
@@ -13,7 +14,7 @@ export type Skill = {
 };
 
 export type TopicsToSkills = {
-  [topic: string]: Skill[]; // TODO - consider making this an object.
+  [topic: string]: Skill[];
 };
 
 export async function getCurrentSkills() {
@@ -33,10 +34,10 @@ export async function getCurrentSkills() {
     });
 
     // Extract JSON from the vite-plugin-ssr_pageContext element
-    const skillsData = await page.evaluate(() => {
-      const element = document.getElementById('vite-plugin-ssr_pageContext');
+    const skillsData = await page.evaluate((elementId: string) => {
+      const element = document.getElementById(elementId);
       if (!element) {
-        throw new Error('Element with ID "vite-plugin-ssr_pageContext" not found');
+        throw new Error(`Element with ID "${elementId}" not found`);
       }
 
       try {
@@ -47,7 +48,7 @@ export async function getCurrentSkills() {
           "Failed to parse JSON from page context element: " + parseError
         );
       }
-    });
+    }, SKILL_JSON_ELEMENT_ID);
 
     return extractTopicToSkillsFromPageData(skillsData);
   } catch (error) {

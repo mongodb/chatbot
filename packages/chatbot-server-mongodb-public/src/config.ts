@@ -248,11 +248,8 @@ const skillClassifierLanguageModel = wrapLanguageModel({
   model: azureOpenAi(OPENAI_CLASSIFIER_CHAT_COMPLETION_DEPLOYMENT),
   middleware: [BraintrustMiddleware({ debug: true })],
 });
-const classifySkill = wrapTraced(
-  makeClassifySkill(skillClassifierLanguageModel),
-  {
-    name: "SkillPromotionClassifier",
-  }
+const { classifySkill, cleanupSkillClassifier } = makeClassifySkill(
+  skillClassifierLanguageModel
 );
 
 export const filterPreviousMessages: FilterPreviousMessages = async (
@@ -292,7 +289,9 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           languageModel,
           makeSystemPrompt: makeMongoDbAssistantSystemPrompt,
           inputGuardrail,
-          classifySkill,
+          classifySkill: wrapTraced(classifySkill, {
+            name: "SkillPromotionClassifier",
+          }),
           llmRefusalMessage:
             conversations.conversationConstants.NO_RELEVANT_CONTENT,
           filterPreviousMessages,
@@ -357,6 +356,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
   : undefined;
 
 export async function closeDbConnections() {
+  cleanupSkillClassifier();
   await mongodb.close();
   await pageStore.close();
   await verifiedAnswerStore.close();

@@ -1,72 +1,39 @@
 import { z } from "zod";
 import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
-import { getCurrentSkills, TopicsToSkills } from "./getCurrentSkills";
 import { makeMarkdownNumberedList } from "mongodb-rag-core/dataSources";
 import { Promotion, removeFrontMatter } from "mongodb-rag-core";
-
-const SKILL_REFRESH_DELAY = 86400000; // millisec in one day
-const INITIAL_BACKOFF_DELAY = 60000; // 1 minute
-const MAX_BACKOFF_DELAY = 3600000; // 1 hour
-const BACKOFF_MULTIPLIER = 2;
+import { createSkillRefreshManager } from "./skillRefreshManager";
 
 export type SkillClassiferFunction = (
   userMessageText: string
 ) => Promise<Promotion | null>;
 
-export function makeClassifySkill(
-  model: LanguageModel
-): SkillClassiferFunction {
-  let lastResetDatetime = new Date(2000, 0, 1).getMilliseconds();
-  let lastFailureTime = 0;
-  let currentBackoffDelay = INITIAL_BACKOFF_DELAY;
-  let consecutiveFailures = 0;
-  let topicToSkillMap: TopicsToSkills;
-  return async (userMessageText) => {
-    // Refresh the skill detail with exponential backoff
-    const now = Date.now();
-    const shouldRefresh = now > lastResetDatetime + SKILL_REFRESH_DELAY;
-    const canRetryAfterBackoff = now > lastFailureTime + currentBackoffDelay;
+export function makeClassifySkill(model: LanguageModel): {
+  classifySkill: SkillClassiferFunction;
+  cleanupSkillClassifier: () => void;
+} {
+  const refreshManager = createSkillRefreshManager();
 
-    if (shouldRefresh && (consecutiveFailures === 0 || canRetryAfterBackoff)) {
-      console.log("TopicToSkillMap is old - attempting to refresh it.");
-      try {
-        topicToSkillMap = await getCurrentSkills();
-        // Reset backoff on successful refresh
-        lastResetDatetime = now;
-        consecutiveFailures = 0;
-        currentBackoffDelay = INITIAL_BACKOFF_DELAY;
-        lastFailureTime = 0;
-      } catch (error) {
-        console.error(
-          `Skill refresh failed (attempt ${consecutiveFailures + 1}):`,
-          error
-        );
-        consecutiveFailures++;
-        lastFailureTime = now;
-        currentBackoffDelay = Math.min(
-          currentBackoffDelay * BACKOFF_MULTIPLIER,
-          MAX_BACKOFF_DELAY
-        );
-        console.log(
-          `Next retry attempt in ${currentBackoffDelay / 1000} seconds`
-        );
-      }
+  const baseInstructions = [
+    `Skills are organized into groups called Topics.`,
+    `Identify which MongoDB Topic the message belongs to before selecting a Skill.`,
+    `If there is no relevant Topic or no relevant Skill, return null for the "topic" and "skill" fields.`,
+    `ONLY use Topics and Skills from the provided list, even if you think others  exist.`,
+  ];
+
+  const classifySkill = async (userMessageText: string) => {
+    const topicToSkillMap = refreshManager.getTopicsToSkillsMap();
+    if (topicToSkillMap === undefined) {
+      return null;
     }
-
-    const instructions = [
-      `Skills are organized into groups called Topics.`,
-      `Identify which MongoDB Topic the message belongs to before selecting a Skill.`,
-      `If there is no relevant Topic or no relevant Skill, return null for the "topic" and "skill" fields.`,
-      `ONLY use Topics and Skills from the provided list, even if you think others  exist.`,
-    ];
 
     const systemPromptMessage = `Your job is to select the most relevant MongoDB Skill course to suggest to users based on their message. Use the following instructions to guide you: 
 
-  ${makeMarkdownNumberedList(instructions)}
+${makeMarkdownNumberedList(baseInstructions)}
 
-  The list of available Topics and Skills is below:
+The list of available Topics and Skills is below:
 
-  ${JSON.stringify(topicToSkillMap)}`;
+${JSON.stringify(topicToSkillMap)}`;
 
     console.log("Classifying skill promotion for text: " + userMessageText);
     const { object } = await generateObject({
@@ -110,5 +77,10 @@ export function makeClassifySkill(
           description: `Want to learn more? Take the [${object.skill}](${url}) skill!`,
         }
       : null;
+  };
+
+  return {
+    classifySkill,
+    cleanupSkillClassifier: refreshManager.cleanup,
   };
 }

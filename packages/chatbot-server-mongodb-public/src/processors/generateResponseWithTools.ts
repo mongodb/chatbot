@@ -45,7 +45,6 @@ import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
 import { SkillClassiferFunction } from "./classifySkill";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
-import { LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
 
 /**
   Tools that are internal to the MongoDB Responses API.
@@ -55,7 +54,7 @@ import { LanguageModelV2 } from 'mongodb-rag-core/aiSdk';
 const INTERNAL_TOOLS = [SEARCH_TOOL_NAME, FETCH_PAGE_TOOL_NAME];
 
 export interface GenerateResponseWithToolsParams {
-  languageModel: LanguageModelV2;
+  languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   llmRefusalMessage: string;
   inputGuardrail?: InputGuardrail;

@@ -6,9 +6,7 @@ export const PromotionSchema = z.object({
   title: z.string(),
   description: z.string(), 
   url: z.string(),
-  metadata: z
-    .object({})
-    .passthrough()
+  metadata: z.record(z.string(), z.any())
     .optional(),
 });
 

@@ -40,7 +40,7 @@ import {
 import { MongoDbPageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { SkillClassiferFunction } from "./classifySkill";
+import { SkillClassiferFunction } from "./makeClassifySkill";
 
 const latestMessageText = "Hello";
 

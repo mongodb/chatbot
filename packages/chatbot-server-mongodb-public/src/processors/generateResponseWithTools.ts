@@ -42,7 +42,7 @@ import {
 import { formatUserMessageForGeneration } from "../processors/formatUserMessageForGeneration";
 import { SEARCH_TOOL_NAME, SearchTool } from "../tools/search";
 import { FETCH_PAGE_TOOL_NAME, FetchPageTool } from "../tools/fetchPage";
-import { SkillClassiferFunction } from "./classifySkill";
+import { SkillClassiferFunction } from "./makeClassifySkill";
 import { MakeSystemPrompt } from "../systemPrompt";
 import { logRequest } from "../utils";
 

@@ -75,7 +75,7 @@ import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWith
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
 import { FETCH_PAGE_TOOL_NAME, makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
-import { makeClassifySkill } from "./processors/classifySkill";
+import { makeClassifySkill } from "./processors/makeClassifySkill";
 
 export const {
   MONGODB_CONNECTION_URI,

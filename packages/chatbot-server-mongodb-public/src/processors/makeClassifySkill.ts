@@ -8,6 +8,16 @@ export type SkillClassiferFunction = (
   userMessageText: string
 ) => Promise<Promotion | null>;
 
+const SkillGenerationSchema = z.object({
+  reasoning: z
+    .string()
+    .describe("Your reasoning for the most relevant topic and skill chosen."),
+  topic: z.string().nullable().describe("The topic the message belongs to."),
+  skill: z.string().nullable().describe("The skill to suggest to the user"),
+});
+
+export type SkillGenerationObject = z.infer<typeof SkillGenerationSchema>;
+
 export function makeClassifySkill(model: LanguageModel): {
   classifySkill: SkillClassiferFunction;
   cleanupSkillClassifier: () => void;
@@ -23,7 +33,7 @@ export function makeClassifySkill(model: LanguageModel): {
 
   const classifySkill = async (userMessageText: string) => {
     const topicToSkillMap = refreshManager.getTopicsToSkillsMap();
-    if (topicToSkillMap === undefined) {
+    if (!topicToSkillMap || Object.keys(topicToSkillMap).length === 0) {
       return null;
     }
 
@@ -42,23 +52,17 @@ ${JSON.stringify(topicToSkillMap)}`;
         { role: "system", content: systemPromptMessage },
         { role: "user", content: removeFrontMatter(userMessageText) },
       ],
-      schema: z.object({
-        reasoning: z
-          .string()
-          .describe(
-            "Your reasoning for the most relevant topic and skill chosen."
-          ),
-        topic: z.string().describe("The topic the message belongs to."),
-        skill: z.string().describe("The skill to suggest to the user"),
-      }),
+      schema: SkillGenerationSchema,
     });
 
-    // Return the skill information
-    if (!object.topic || !object.skill) {
+    if (
+      SkillGenerationSchema.safeParse(object).success === false ||
+      !object.topic ||
+      !object.skill
+    ) {
       console.log("No skill identified.");
       return null;
     }
-    console.log("Selected skill promotion: ", JSON.stringify(object));
     // Promotion reference links should also be formatted with the tck="mongodb_ai_chatbot" query parameter for tracking.
     const skillDetail = topicToSkillMap?.[object.topic].find(
       (arrItem) => arrItem.name === object.skill

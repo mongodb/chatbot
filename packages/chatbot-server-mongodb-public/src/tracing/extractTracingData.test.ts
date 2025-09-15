@@ -329,6 +329,72 @@ describe("extractTracingData", () => {
     );
     expect(tracingData.origin).toBeUndefined();
   });
+  test("should capture promotions", () => {
+    const messagesDidPromotion: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          promotion: true,
+        },
+      },
+      {
+        ...baseAssistantResponseMessage,
+        promotions: [
+          {
+            url: "https://learn.mongodb.com/skills",
+            title: "Skill Name",
+            type: "skill",
+            description: "Description with url",
+          },
+        ],
+      },
+    ];
+    const tracingData = extractTracingData(
+      messagesDidPromotion,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.tags.includes("did_promotion")).toBe(true);
+  });
+  test("should not tag missing promotions", () => {
+    const messagesNoPromotion: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          promotion: true,
+        },
+      },
+      {
+        ...baseAssistantResponseMessage,
+        promotions: undefined,
+      },
+    ];
+    const tracingData = extractTracingData(
+      messagesNoPromotion,
+      msgId,
+      conversationId
+    );
+    expect(tracingData.tags.includes("did_promotion")).toBe(false);
+
+    const messagesEmptyPromotion: Message[] = [
+      {
+        ...baseUserMessage,
+        customData: {
+          promotion: true,
+        },
+      },
+      {
+        ...baseAssistantResponseMessage,
+        promotions: [],
+      },
+    ];
+    const emptyPromoTracingData = extractTracingData(
+      messagesEmptyPromotion,
+      msgId,
+      conversationId
+    );
+    expect(emptyPromoTracingData.tags.includes("did_promotion")).toBe(false);
+  });
 
   test("should extract rejectionReason from customData", () => {
     const messagesWithRejection: Message[] = [

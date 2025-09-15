@@ -1,3 +1,7 @@
+/**
+ Get Topic and Skills descriptions from the Skills homepage.
+ The University Platform team manages this data w/ the ContentStack CMS.
+ */
 import puppeteer from "puppeteer";
 
 const SKILL_HOMEPAGE_URL = "https://learn.mongodb.com/skills";

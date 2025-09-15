@@ -115,6 +115,30 @@ function createCsvHeaders(data: CsvData[]): CsvHeader[] {
   }));
 }
 
+/**
+Extracts model name from experiment name.
+The model name appears between "&model=" and "&datasets".
+
+@param experimentName The experiment name to extract model from.
+@returns The extracted model name.
+*/
+function extractModelName(experimentName: string): string {
+  const modelMatch = experimentName.match(/&model=([^&]+)&datasets/);
+  return modelMatch ? modelMatch[1] : 'unknown';
+}
+
+/**
+Type definition for detailed quiz results CSV data.
+*/
+type DetailedQuizResult = {
+  title: string;
+  questionText: string;
+  answers: string;
+  expected: string;
+  "Correct Count": number;
+  [key: string]: string | number; // Dynamic model columns and Correct Count
+};
+
 async function main() {
   const outputDir = path.join(basePathOut, "csv", "badge");
   ensureOutputDirectory(outputDir);
@@ -150,6 +174,7 @@ async function main() {
   } & Partial<Record<QuizTitle, number>>;
 
   const experimentAggregates: ExperimentAggregate[] = [];
+  const detailedResults: DetailedQuizResult[] = [];
 
   // Process each experiment
   for (const { experimentName, model } of experiments) {
@@ -164,6 +189,39 @@ async function main() {
       experimentName: experimentName,
       projectName,
       apiKey: BRAINTRUST_API_KEY,
+    });
+
+    // Extract model name from experiment name
+    const extractedModelName = extractModelName(experimentName);
+
+    // Process detailed results for the new CSV
+    results.forEach((result) => {
+      // Find existing detailed result or create new one
+      let detailedResult = detailedResults.find(
+        (dr) => 
+          dr.questionText === result.input.questionText &&
+          dr.expected === result.expected
+      );
+
+      if (!detailedResult) {
+        // Create new detailed result
+        detailedResult = {
+          title: result.metadata?.title || '',
+          questionText: result.input.questionText,
+          answers: JSON.stringify(result.input.answers),
+          expected: result.expected,
+          "Correct Count": 0,
+        };
+        detailedResults.push(detailedResult);
+      }
+
+      // Add the model's output to the detailed result
+      detailedResult[extractedModelName] = result.output || '';
+      
+      // Add to correct count if this result is correct
+      if (result.scores?.CorrectQuizAnswer === 1) {
+        detailedResult["Correct Count"] += 1;
+      }
     });
 
     // Add the quiz name as a tag if metadata.title is defined
@@ -226,6 +284,13 @@ async function main() {
     experimentAggregates,
     createCsvHeaders(experimentAggregates),
     path.join(outputDir, "badge_quiz_question_experiment_aggregates.csv")
+  );
+
+  // Write detailed quiz results to CSV
+  await writeDataToCsv(
+    detailedResults,
+    createCsvHeaders(detailedResults),
+    path.join(outputDir, "detailed_quiz_question_results.csv")
   );
 }
 

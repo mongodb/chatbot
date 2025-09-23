@@ -4,12 +4,12 @@ import { strict as assert } from "assert";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 
-export const makeReferenceAlignment: (
+export const makeReferenceAlignment = (
   openAiClient: OpenAI,
   llmOptions: LlmOptions,
   name_postfix?: string
-) => NlPromptResponseEvalScorer = (openAiClient, llmOptions, name_postfix) =>
-  async function ({ input, output, expected }) {
+) =>
+  async function ({ input, output, expected }): Promise<Score> {
     const { response } = output;
     const { reference } = expected;
     const name = `ReferenceAlignment${name_postfix ? `_${name_postfix}` : ""}`;
@@ -41,7 +41,7 @@ export const makeReferenceAlignment: (
       name,
       score: inflateFactualityScore(factuality.score),
     };
-  };
+  } satisfies NlPromptResponseEvalScorer;
 
 /**
   Inflate the factuality score by a fixed amount to account for the fact that

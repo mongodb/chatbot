@@ -8,7 +8,7 @@ export type ModelDeveloper =
   | "DeepSeek"
   | "Alibaba Cloud";
 
-export type ModelProvider = "braintrust";
+export type ModelProvider = "braintrust" | "aws-bedrock";
 
 export interface ModelConfig {
   /**
@@ -353,6 +353,24 @@ const allModels = [
     authorized: true,
     parent: "llama-3.2-90b",
     generation: "llama-3",
+  },
+  {
+    label: "llama-4-scout-17b",
+    deployment: "us.meta.llama4-scout-17b-instruct-v1:0",
+    developer: "Meta",
+    provider: "braintrust",
+    maxConcurrency: 5,
+    authorized: true,
+    generation: "llama-4",
+  },
+  {
+    label: "llama-4-maverick-17b",
+    deployment: "us.meta.llama4-maverick-17b-instruct-v1:0",
+    developer: "Meta",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    generation: "llama-4",
   },
   {
     label: "nova-lite-v1:0",

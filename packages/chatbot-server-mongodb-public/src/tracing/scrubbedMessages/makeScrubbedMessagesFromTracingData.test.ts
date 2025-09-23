@@ -53,6 +53,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       customData: { someData: "value" },
       metadata: { source: "test" },
     },
+    firstToolMetadata: { name: "test_tool", testParam: "value" },
     contextContent: [],
     assistantMessageIndex: 1,
     rejectionReason: "no rejection",
@@ -81,7 +82,10 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       createdAt: mockTracingData.userMessage?.createdAt,
       customData: mockTracingData.userMessage?.customData,
       pii: undefined,
-      metadata: mockTracingData.userMessage?.metadata,
+      metadata: {
+        ...mockTracingData.userMessage?.metadata,
+        ...mockTracingData.firstToolMetadata,
+      },
       embedding: mockTracingData.userMessage?.embedding,
       embeddingModelName: "test-embedding-model",
       messagePii: undefined,
@@ -142,7 +146,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     });
   });
 
-  it("should not perform message analysis when storedMessageContent is false", async () => {
+  it("should not perform message analysis OR store first tool metadata when storedMessageContent is false", async () => {
     const result = await makeScrubbedMessagesFromTracingData({
       tracingData: mockTracingData,
       analysis: {
@@ -160,5 +164,8 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     expect(result).toHaveLength(2);
     expect(result[0].analysis).toBeUndefined();
     expect(result[1].analysis).toBeUndefined();
+
+    // Verify result userMessage.metadata does not include firstToolMetadata
+    expect(result[0].metadata).toEqual(mockTracingData.userMessage?.metadata);
   });
 });

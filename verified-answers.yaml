@@ -50,179 +50,6 @@
       title: Migrators, Tools, and Connectors
     - url: https://www.mongodb.com/docs/atlas/synthetic-data/
       title: Generate Synthetic Data
-
-- answer: |
-    To install MongoDB on Windows, you can follow these steps:
-
-    1. Download the MongoDB Community Edition `.msi` installer from the MongoDB
-      Download Center. Make sure to select the appropriate version, platform, and
-      package type.
-
-    2. Once the installer is downloaded, navigate to the directory where you
-      saved the `.msi` file and double-click on it to run the installer.
-
-    3. Follow the instructions in the MongoDB Installer wizard to complete the
-      installation. This will install both the MongoDB binaries and the default
-      configuration file.
-
-    Please note that these instructions are specific to MongoDB 7.0 Community Edition on Windows. If you are using a different version or edition, please refer to the MongoDB documentation for the appropriate installation instructions.
-
-    Let me know if you need any further assistance!
-  author_email: ian.fogelman@mongodb.com
-  questions:
-    - How do I install MongoDB on Windows?
-  references:
-    - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows-unattended/
-      title: Install MongoDB Community on Windows using msiexec.exe
-    - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows/
-      title: Install MongoDB Community Edition on Windows
-    - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-enterprise-on-windows/
-      title: Install MongoDB Enterprise Edition on Windows
-    - url: https://mongodb.com/docs/manual/installation/
-      title: Install MongoDB
-- answer: |
-    To insert data into MongoDB, you can follow these steps:
-
-    1. Install the MongoDB driver: Make sure you have the MongoDB driver
-      installed in your project. If you're using Node.js, you can install it by
-      running the following command in your terminal:
-
-
-      ```sh
-
-      npm install mongodb
-
-      ```
-
-
-    2. Import the MongoDB driver: In your Node.js script, import the MongoClient
-      module using the `require` statement:
-
-
-      ```js
-
-      const { MongoClient } = require("mongodb");
-
-      ```
-
-
-    3. Connect to MongoDB: Create a new MongoClient instance and pass the
-      connection string as an argument. Replace `<connection string>` with your
-      MongoDB deployment's connection string:
-
-
-      ```js
-
-      const uri = "<connection string>";
-
-      const client = new MongoClient(uri);
-
-      await client.connect();
-
-      ```
-
-
-    4. Access the database and collection: Use the `client.db()` method to
-      access a specific database, and the `db.collection()` method to access a
-      collection within that database:
-
-
-      ```js
-
-      const db = client.db("myDatabase");
-
-      const collection = db.collection("myCollection");
-
-      ```
-
-
-    5. Insert documents: Use the `collection.insertOne()` or
-      `collection.insertMany()` method to insert one or multiple documents into
-      the collection. Pass the document(s) as an argument to the method:
-
-
-      ```js
-
-      const doc = { name: "John Doe", age: 30 };
-
-      const result = await collection.insertOne(doc);
-
-      ```
-
-
-    6. Handle the result: the `insertOne()` and `insertMany()` methods return a
-      result object that contains information about the operation. You can access
-      the inserted document's ID using `result.insertedId`.
-
-      Here's an example of inserting multiple documents into a collection:
-
-
-      ```js
-
-      const docs = [
-        { name: "Alice", age: 25 },
-        { name: "Bob", age: 35 },
-        { name: "Charlie", age: 40 }
-      ];
-
-      const result = await collection.insertMany(docs);
-
-      console.log(result.insertedIds);
-
-      ```
-
-
-    Please note that the provided instructions are based on version 6.5 of the MongoDB Node.js driver. If you are using a different version, please refer to the documentation specific to your version.
-
-    Let me know if you need any further assistance!
-  author_email: ian.fogelman@mongodb.com
-  questions:
-    - How do I insert data into MongoDB?
-  references:
-    - url: https://mongodb.com/docs/guides/crud/insert/
-      title: Insert Data into MongoDB
-    - url: https://mongodb.com/docs/atlas/tutorial/insert-data-into-your-cluster/
-      title: Insert and View a Document
-    - url: https://mongodb.com/docs/drivers/node/current/usage-examples/insertOne/
-      title: Insert a Document
-    - url: https://mongodb.com/docs/mongodb-vscode/databases-collections/
-      title: Navigate Your Data
-- answer: |
-    To create a new collection in MongoDB, you can use the
-    `db.createCollection()` method. Here is the syntax for creating a
-    collection:
-
-
-    ```js
-
-    db.createCollection("<collectionName>")
-
-    ```
-
-
-    Replace `<collectionName>` with the desired name for your collection. For example, to create a collection named "myCollection", you would run the following command:
-
-
-    ```js
-
-    db.createCollection("myCollection")
-
-    ```
-
-
-    Please note that if you insert data into a collection that does not exist, MongoDB will automatically create the collection for you. The `db.createCollection()` method is only necessary if you want to specify additional options for the collection, such as setting a maximum size or defining validation rules.
-
-    Let me know if you need any further assistance!
-  author_email: ian.fogelman@mongodb.com
-  questions:
-    - command to create new collection
-  references:
-    - url: https://mongodb.com/docs/manual/reference/method/db.createCollection/
-      title: db.createCollection() - MongoDB Manual
-    - url: https://mongodb.com/docs/manual/core/databases-and-collections/
-      title: Databases and Collections - MongoDB Manual
-    - url: https://mongodb.com/docs/mongodb-vscode/playground-databases/
-      title: Create Databases and Collections - MongoDB for VS Code
 - answer: MongoDB is a document database designed for ease of application
     development and scaling. You can store hierarchical structured data in
     documents, which are similar to JSON objects. MongoDB is available in
@@ -879,15 +706,13 @@
     - how to import data
   references:
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
-      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
+      title: "Learning Byte: Importing CSV Data into MongoDB"
     - url: https://www.mongodb.com/developer/products/mongodb/mongoimport-guide
       title: How to Import Data into MongoDB with mongoimport
     - url: https://mongodb.com/docs/guides/crud/insert/
       title: Insert Data into MongoDB
 - answer: |
-    MongoDB provides various operators that can be used in update operations,
-    query operations, projection operations, and aggregation operations. These
-    operators allow you to perform specific actions on your data.
+    MongoDB provides various operators that can be used in update operations, query operations, projection operations, and aggregation operations. These operators allow you to perform specific actions on your data.
 
     For update operations, you can use update operators such as `$set`, `$unset`, `$inc`, `$push`, `$pull`, and many more. These operators are used with methods like `db.collection.updateMany()` and `db.collection.findAndModify()`.
 
@@ -1518,57 +1343,6 @@
       title: Why Use MongoDB and When to Use It?
     - url: https://www.mongodb.com/developer/products/mongodb/top-4-reasons-to-use-mongodb
       title: The Top 4 Reasons Why You Should Use MongoDB
-- answer: >
-    To import or migrate data into MongoDB, you can use the `mongoimport`
-    command-line tool. `mongoimport` allows you to import data from JSON, CSV,
-    and TSV files into MongoDB collections. Here are the general steps to import
-    data using `mongoimport`:
-
-    1. Install `mongoimport` if you haven't already. You can follow the
-      instructions on the MongoDB website to install it.
-
-    2. Prepare your data file in the desired format (JSON, CSV, or TSV).
-
-    3. Open a terminal or command prompt and navigate to the directory where
-      `mongoimport` is installed.
-
-    4. Use the `mongoimport` command with the appropriate options to specify the
-      target database, collection, and data file. For example, to import a JSON
-      file into a collection named "myCollection" in a database named
-      "myDatabase", you can use the following command:
-
-
-      ```sh
-
-      mongoimport --db myDatabase --collection myCollection --file data.json
-
-      ```
-
-
-      Replace `data.json` with the path to your data file.
-
-      You can also specify other options such as `--type` to specify the input
-      format (JSON, CSV, or TSV), `--headerline` if your CSV or TSV file has a
-      header line, and `--jsonArray` if your JSON file contains an array of
-      documents.
-
-      For more information on the available options and usage examples, you can
-      refer to the MongoDB documentation on how to import data into MongoDB with
-      mongoimport.
-
-    Please note that `mongoimport` is just one of the ways to import data into MongoDB. There are other methods available depending on your specific use case, such as using MongoDB Compass or writing a custom script using a programming language driver.
-  author_email: ian.fogelman@mongodb.com
-  questions:
-    - How do I import or migrate data into MongoDB?
-  references:
-    - url: https://www.mongodb.com/developer/products/mongodb/mongoimport-guide
-      title: How to Import Data into MongoDB with mongoimport
-    - url: https://learn.mongodb.com/learn/course/mongodb-database-administrator-tools/lesson-5-data-import-tools/learn
-      title:
-        "MongoDB Database Administrator Tools - Lesson 5: Data Import Tools -
-        Learn"
-    - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
-      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
 - answer: |
     The best place to start learning about MongoDB is the MongoDB University [Introduction to MongoDB course](https://learn.mongodb.com/learning-paths/introduction-to-mongodb). If you are interested in completing a certification, you can take Introduction to MongoDB as part of a developer learning path with the programming language of your choice. This will prepare you for the [MongoDB Associate Developer](https://learn.mongodb.com/pages/mongodb-associate-developer-exam) certification.
   author_email: emily.pope@mongodb.com
@@ -1961,13 +1735,17 @@
 
     2. Choose a connection method, including any of the following:
        - **MongoDB Drivers:** Programmatically connect using a driver for your preferred language (e.g., Node.js, Python, Java, C#, Go, Rust, and more).
-       - **MongoDB Shell (mongosh):** An interactive command-line shell for MongoDB.
        - **MongoDB Compass:** A GUI for querying, analyzing, and visualizing data.
-       - **MongoDB Atlas CLI:** Script and manage Atlas resources from a terminal.
-       - **MongoDB Kubernetes Operator:** Automate deployments in Kubernetes.
-       - **MongoDB Atlas Terraform Provider:** Manage infrastructure with code.
+       - **MongoDB Shell (mongosh):** An interactive command-line shell for MongoDB.
+       - **Model Context Protocol (MCP) Server:** Manage deployments and provide database context for AI code generation directly within Cursor, Claude, VS Code, or Windsurf.
 
     3. Follow the connection instructions, which primarily involve copying a connection string and using it in a tool or app.
+
+    For command-line, Infrastructure as Code, and automated orchestration:
+
+    - [MongoDB Atlas CLI](https://www.mongodb.com/docs/atlas/cli/current/?tck=mongodb_ai_chatbot): Script and manage Atlas resources from a terminal.  
+    - [MongoDB Atlas Terraform Provider](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs?tck=mongodb_ai_chatbot): Manage infrastructure with code.  
+    - [MongoDB Kubernetes Operator](https://www.mongodb.com/docs/atlas/operator/current/?tck=mongodb_ai_chatbot): Automate deployments in Kubernetes.
 
     ## Common Connection Errors & Fixes
 
@@ -2162,3 +1940,345 @@
   references:
     - url: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
       title: Atlas Vector Search Overview
+
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How does MongoDB Compass help me with visualizing and understanding my data model?
+  answer: |
+    MongoDB Compass provides a graphical interface where you can:
+
+    - Analyze your document schema to understand the structure of your data, including field types, value ranges, and data patterns.
+    - Visualize, validate, and analyze your schema, making it easier to see how your data is organized.
+    - Receive performance insights and suggestions for improving your schema and data modeling practices.
+    - Use tools like the aggregation pipeline builder and visual explain plans to further explore and optimize your data model.
+    - Leverage natural language to generate queries and build aggregations by submitting prompts in plain English and receiving executable MongoDB Query API syntax.
+
+    Compass makes it easy to explore, refine, and optimize your data directly from an intuitive interface, helping you gain deeper insights into your MongoDB collections.
+  references:
+    - url: https://www.mongodb.com/docs/compass/
+      title: MongoDB Compass Documentation
+    - url: https://www.mongodb.com/docs/compass/schema/
+      title: Analyze Your Data Schema
+    - url: https://www.mongodb.com/docs/compass/performance/
+      title: View Real-Time Performance
+    - url: https://www.mongodb.com/docs/compass/create-agg-pipeline/
+      title: Create an Aggregation Pipeline
+    - url: https://www.mongodb.com/docs/compass/query-with-natural-language/
+      title: Query with Natural Language
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - How do I get started with MongoDB Compass?
+  answer: |
+    To start using MongoDB Compass, download the desktop application. Compass is free to use, source available, and can be run on macOS, Windows, and Linux.
+
+    Our documentation on MongoDB Compass includes instructions on downloading, installing, and connecting Compass to your MongoDB deployments. You can also refer to our documentation to learn how to visually explore your data with Compass.
+  references:
+    - url: https://www.mongodb.com/try/download/compass
+      title: MongoDB Compass Download (GUI)
+    - url: https://www.mongodb.com/docs/compass/
+      title: MongoDB Compass Documentation
+    - url: https://www.mongodb.com/products/tools/compass
+      title: MongoDB Compass
+    - url: https://learn.mongodb.com/courses/mongodb-compass
+      title: "Learning Byte: MongoDB Compass"
+    - url: https://www.mongodb.com/library/compass/mongodb-has-schemas?lb-mode=overlay
+      title: MongoDB Has Schemas!?!
+- author_email: jessica.roberts@mongodb.com
+  questions:
+    - Is MongoDB Compass available in the Atlas UI?
+  answer: |
+    Compass is a desktop application. However, MongoDB has a new data management experience that brings the familiarity and power of MongoDB Compass to the Atlas UI.
+
+    This new Data Explorer experience empowers developers to view and understand their data, as well as test and optimize queries directly within the browser, streamlining application development and enriching data management processes.
+  references:
+    - url: https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer
+      title: Atlas Data Explorer
+    - url: https://www.mongodb.com/blog/post/product-release-announcements/new-data-management-experience-in-atlas-ui
+      title: New Data Management Experience in the Atlas UI
+    - url: https://youtube.com/shorts/3MK5fZYlwtw
+      title: NEW MongoDB Atlas Data Explorer | Unified Data Exploration!
+- questions:
+    - How do I load my own data into MongoDB Atlas?
+  answer: |
+    There are several ways to load data into MongoDB Atlas, depending on specific needs:
+
+    - **Migrate from an existing MongoDB deployment:** Use the Live Migration Service in the Atlas UI for a guided, zero-downtime process. You can also use the mongorestore or mongosync utilities for self-managed migrations.
+    - **Migrate from a SQL database:** Use the MongoDB Relational Migrator to automate the schema design and migration process from databases like Oracle, SQL Server, MySQL, and PostgreSQL.
+    - **Migrate from files or other non-relational databases:** Use the command-line utility mongoimport to load data from standard file formats like JSON, CSV, and TSV. For other databases, you can export the data to a supported file format first, then import it.
+    - **Generate mock or synthetic data:** Perfect for testing or prototyping, Atlas supports generating realistic data sets.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/docs/tools-and-connectors/
+      title: MongoDB Migrators, Tools, and Connectors
+    - url: https://www.mongodb.com/docs/atlas/import/
+      title: Migrate or Import Data
+    - url: https://www.mongodb.com/docs/database-tools/mongoimport/
+      title: mongoimport
+    - url: https://www.mongodb.com/docs/mongosync/current/reference/mongosync/
+      title: mongosync
+    - url: https://www.mongodb.com/docs/database-tools/mongorestore/
+      title: mongorestore
+    - url: https://www.mongodb.com/docs/atlas/synthetic-data/
+      title: Generate Synthetic Data
+    - url: https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2FaddData%2FCluster0%2Fcreate
+      title: Add Data in Atlas
+    - url: https://www.mongodb.com/docs/atlas/import/c2c-pull-live-migration/
+      title: Live Migrate (Pull) a Cluster into Atlas
+    - url: https://www.mongodb.com/docs/relational-migrator/
+      title: What is Relational Migrator
+- questions:
+    - How can I configure user roles and database users to manage user access?
+  answer: |
+    MongoDB Atlas uses a role-based access control system. A **role** is a set of privileges that grants a user permission to perform specific actions on certain resources. For example, the `readWrite` role allows a user to read from and write to any collection in a database, while the `dbAdmin` role grants administrative privileges for a specific database. You can also create custom roles to define more granular permissions.
+
+    To manage user access in MongoDB Atlas, you need to configure **database users** and assign them **roles** based on the **principle of least privilege**. This means granting users only the permissions they need to do their jobs, minimizing potential security risks.
+
+    **Adding a Database User**
+
+    1. Navigate to the **Database Access** tab in your Atlas project.
+    2. Click **Add New Database User**.
+    3. Choose an authentication method:
+       - **Password:** A simple username and password.
+       - **Certificate:** Recommended for secure, automated connections.
+       - **LDAP:** For integration with corporate directories.
+    4. Specify the user's **Username**.
+    5. Assign **Built-In Roles** or create a **Custom Role** to grant specific privileges. For instance, a user who only needs to read data should be assigned the read role for a particular database.
+    6. Click **Add User**.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/docs/atlas/security-add-mongodb-users/#std-label-mongodb-users
+      title: Configure Database Users
+    - url: https://www.mongodb.com/docs/atlas/mongodb-users-roles-and-privileges/
+      title: MongoDB Atlas Built-In Roles and Privileges
+- questions:
+    - What security and backup settings should I configure for my new MongoDB Atlas cluster?
+  answer: |
+    It's important to set up your security options during the initial configuration of your MongoDB environment to ensure protection from the start. These security settings are off by default and need to be configured.
+
+    **Configure Security Settings**
+
+    1. Log in to your Atlas account.
+    2. In the top navigation bar, select your organization from the **Organizations** menu.
+    3. Click the **Organization Settings** gear icon next to the Organizations menu.
+    4. Configure your security settings, including Multi-Factor Authentication, Federated Authentication, and more.
+
+    Regularly review and update these settings to adapt to evolving security threats and compliance requirements.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/#std-label-atlas-enable-mfa
+      title: Manage Multi-Factor Authentication Options
+    - url: https://www.mongodb.com/docs/atlas/security/federated-authentication/#std-label-atlas-federated-authentication
+      title: Configure Federated Authentication
+    - url: https://www.mongodb.com/docs/manual/security/
+      title: MongoDB Security Database Manual
+- questions:
+    - Why should I choose MongoDB for AI?
+  answer: |
+    MongoDB helps organizations accelerate AI adoption by unifying data for operational and AI workloads in a single platform. Its document model seamlessly integrates structured and unstructured data, providing consistency that enhances AI-powered application performance. MongoDB's search, vector, hybrid search, and state-of-the-art embedding models from Voyage AI empower businesses to perform efficient semantic searches, enabling high-quality retrieval-augmented generation (RAG), personalization features, and other cutting-edge AI capabilities directly within their applications. This eliminates the need for complex multi-database architectures and reduces time-to-market for AI-powered services.
+
+    MongoDB also ensures enterprise-grade security, scalability, and compliance certifications (GDPR, HIPAA, SOC 2, ISO, etc.), so businesses can confidently implement AI solutions in regulated industries.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-vector-search
+      title: Atlas Vector Search
+    - url: https://www.mongodb.com/products/platform/ai-search-and-retrieval
+      title: MongoDB and Voyage AI
+- questions:
+    - How can MongoDB help us innovate faster?
+  answer: |
+    MongoDB’s flexible schema enables faster application development and iteration. Designed to handle changes in application requirements, the document model organizes structured and unstructured data according to how the application accesses it, not the other way around. This means teams can quickly adapt to new requirements without lengthy schema migrations, helping accelerate time-to-market.
+
+    MongoDB also supports modern workloads such as AI, real-time analytics, and personalization, empowering businesses to experiment and innovate continuously.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/resources/services/innovation-accelerator
+      title: MongoDB Innovation Accelerator for Business Agility
+    - url: https://www.mongodb.com/resources/solutions/use-cases/developer-autonomy-document-model
+      title: Developer Autonomy and the Document Model
+    - url: https://www.mongodb.com/solutions/use-cases
+      title: MongoDB Use Cases
+- questions:
+    - Can MongoDB modernize our legacy systems?
+  answer: |
+    Yes, MongoDB enables organizations to modernize legacy systems with speed, scalability, and agility. By replacing rigid relational databases with MongoDB's flexible document model, businesses can overcome the limitations of outdated IT infrastructure, reduce latency, and accelerate workflows by up to 10× faster. The transition process, including MongoDB Relational Migrator, minimizes disruption while helping teams unlock advanced capabilities such as real-time analytics and integrated vector search for AI workloads.
+
+    - MongoDB Relational Migrator simplifies moving data and workloads from RDBMS into MongoDB, helping teams modernize without disruption.
+    - The MongoDB Application Modernization Platform uses AI to transform legacy applications into modern, scalable services up to 10x faster than traditional approaches.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/solutions/use-cases/modernize
+      title: Modernize without friction
+    - url: https://www.mongodb.com/products/tools/relational-migrator
+      title: MongoDB Relational Migrator
+- questions:
+    - How does MongoDB keep our business secure?
+  answer: |
+    MongoDB provides enterprise-grade security (encryption, role-based access, auditing), automated backups, and global availability to protect mission-critical data. Its multi-cloud and disaster recovery capabilities help ensure business continuity, while Atlas offers governance controls and compliance certifications (ISO, SOC 2, GDPR, HIPAA, and more). This makes MongoDB a reliable foundation for regulated and high-growth industries.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/security
+      title: Addressing Security Vulnerabilities
+    - url: https://www.mongodb.com/products/platform/atlas-database
+      title: Atlas Database
+- questions:
+    - How does MongoDB scale for enterprise growth?
+  answer: |
+    MongoDB scales dynamically to support enterprise growth by leveraging horizontal scaling via native sharding and vertical scaling to adjust compute and storage resources as needed. MongoDB’s architecture efficiently manages terabytes to petabytes of data and thousands of queries per second, ensuring high performance, uptime resilience, and cost efficiency. Atlas provides auto-scaling capabilities, enabling businesses to grow seamlessly without downtime—whether for global apps, real-time analytics, or AI workloads.
+
+    MongoDB’s native replica set clusters ensure redundancy for continuous access and quick recovery during disruptions, making it ideal for enterprises experiencing rapid data growth. By aligning with modern workloads, MongoDB offers scalability designed to maintain high availability and efficient performance as business demands evolve.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/resources/compare/advantages-of-mongodb
+      title: Advantages of MongoDB
+    - url: https://www.mongodb.com/products/platform
+      title: MongoDB Atlas. The modern multi-cloud database.
+    - url: https://www.mongodb.com/resources/basics/horizontal-vs-vertical-scaling
+      title: A Guide to Horizontal vs Vertical Scaling
+- questions:
+    - How can we optimize costs with MongoDB?
+  answer: |
+    MongoDB helps businesses reduce costs by eliminating the need for rigid schema migrations, reducing developer overhead, and consolidating workloads into a single platform instead of relying on multiple point solutions. With Atlas, you can take advantage of auto-scaling clusters, pay-as-you-go pricing, and multi-cloud deployment flexibility to optimize spend without compromising performance. Organizations often see reduced infrastructure and licensing costs compared to legacy relational databases.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/pricing
+      title: MongoDB Pricing
+    - url: https://www.mongodb.com/docs/atlas/architecture/current/cost-saving-config/
+      title: Recommendations for Atlas Cost-Saving Configurations
+    - url: https://www.mongodb.com/company/blog/product-release-announcements/mongodb-atlas-introduces-enhanced-cost-optimization-tools
+      title: MongoDB Atlas Introduces Enhanced Cost Optimization Tools
+- questions:
+    - Does MongoDB meet compliance and governance requirements?
+  answer: |
+    Yes, MongoDB supports enterprise-grade compliance and governance requirements, including encryption at rest and in transit, role-based access control (RBAC), auditing, and disaster recovery capabilities. MongoDB’s security features integrate with established protocols, ensuring data integrity and safeguarding mission-critical workloads.
+
+    MongoDB Atlas proactively aids compliance with certifications like GDPR, SOC 2, HIPAA, and ISO standards. For industries such as finance and healthcare, MongoDB enables organizations to confidently address regulatory demands. For instance, MongoDB empowers financial institutions to process sensitive data securely while reducing breaches and responding efficiently to audits and reporting requirements.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-database
+      title: Atlas Database
+    - url: https://www.mongodb.com/security
+      title: Addressing Security Vulnerabilities
+    - url: https://www.mongodb.com/products/self-managed/enterprise-advanced
+      title: Enterprise Advanced
+- questions:
+    - What advantages does MongoDB offer over relational databases?
+  answer: |
+    MongoDB offers greater flexibility and speed compared to traditional relational databases. Instead of being confined to rigid, pre-defined schemas, MongoDB’s document model lets teams get started quickly and adapt as requirements evolve. You can introduce schema validation up front or enforce it as your application matures—without losing the flexibility to change later when business needs shift. This reduces costly schema migrations and accelerates development.
+
+    MongoDB also simplifies queries by eliminating many complex joins, supports a wide variety of modern workloads (from mobile to AI/ML), and scales horizontally with ease. This makes it easier for businesses to deliver new features faster, reduce operational overhead, and future-proof applications as data requirements change.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/resources/compare/advantages-of-mongodb
+      title: Advantages of MongoDB
+- questions:
+    - How can MongoDB power enterprise AI at scale?
+  answer: |
+    MongoDB enables enterprises to operationalize AI at scale by combining transactional, unstructured, and vector data in one platform. With Atlas Vector Search and support for Voyage AI embeddings, businesses can build production-ready generative AI and semantic search applications without needing separate systems for data and AI workloads. This unified approach accelerates time-to-market, reduces cost and complexity, and helps companies deliver differentiated customer experiences powered by AI.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/products/platform/atlas-vector-search
+      title: Atlas Vector Search
+    - url: https://www.mongodb.com/products/platform/ai-search-and-retrieval
+      title: MongoDB and Voyage AI
+- questions:
+    - How does MongoDB compare to Postgres?
+  answer: |
+    MongoDB and PostgreSQL both offer robust capabilities for a wide range of use cases, but they differ significantly in their approach to data storage, querying, and scalability.
+
+    - **Data Model:** MongoDB uses a flexible document data model, storing data in JSON-like documents, which allows for dynamic and multi-structured data management. PostgreSQL, on the other hand, uses a traditional relational model with tables, rows, and columns, based on SQL.
+    - **Scalability:** MongoDB excels in horizontal scalability with its scale-out architecture, which efficiently handles sharding across data centers and cloud regions. This makes it ideal for applications requiring global reach and low-latency access. PostgreSQL can face challenges with horizontal scaling due to its architecture.
+    - **Developer Productivity:** MongoDB offers more flexibility in data modeling and is often seen as more developer-friendly, especially for applications that require rapid iteration and handling of diverse data types.
+    - **Deployment Options:** MongoDB is available as a database-as-a-service through MongoDB Atlas on major cloud platforms, as well as in Community and Enterprise Advanced editions for self-managed deployments. PostgreSQL can be deployed as a self-managed database or as a service through various cloud providers, though each implementation may differ from the core PostgreSQL.
+
+    Overall, MongoDB is often chosen for its flexibility, scalability, and ability to handle high volumes of diverse data types, making it a strong choice for modern, globally distributed applications.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/resources/compare/mongodb-postgresql
+      title: Comparing MongoDB vs PostgreSQL
+- questions:
+    - Is Elasticsearch like MongoDB?
+  answer: |
+    Both have different use cases. When it comes to application search scenarios, Elasticsearch is generally used as a 'bolt-on' search engine, while MongoDB is a developer data platform that allows three systems to be compressed into a single solution.
+
+    By integrating a database, search engine and sync mechanism into a single unified and fully managed platform, Atlas Search is the fastest and easiest way to build relevance-based search directly into your applications.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/resources/compare/mongodb-atlas-search-vs-elastic-elasticsearch
+      title: Elasticsearch vs MongoDB Atlas Search
+- questions:
+    - Does MongoDB offer support for developing AI applications?
+  answer: |
+    Yes, MongoDB offers extensive support for developing AI applications. The MongoDB AI Applications Program (MAAP) is specifically designed to help organizations rapidly build and deploy AI-enriched applications at an enterprise scale. It provides resources such as reference architectures, vetted AI models, hosting solutions, and technical support. Additionally, MongoDB offers professional services to assist with AI strategy and acceleration, helping customers identify high-impact AI opportunities and execute solutions from design through prototyping.
+
+    MongoDB also integrates with leading AI frameworks and services, such as Microsoft Azure OpenAI, Amazon Bedrock, Google Cloud Vertex AI, and LangChain, to simplify the development and deployment of generative AI applications. These integrations, along with MongoDB's flexible data model and distributed architecture, provide a robust platform for building scalable, secure, and high-performing AI applications.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/services/consulting/ai-accelerator
+      title: AI Accelerator
+- questions:
+    - How secure is MongoDB Atlas?
+  answer: |
+    MongoDB Atlas delivers enterprise-grade security out of the box, ensuring sensitive data is protected at every stage:
+
+    - **Access Control**: Flexible role-based access controls and streamlined authentication ensure that only authorized users and applications can access data.
+    - **Encryption**: Data is encrypted at rest, in transit, and in use to prevent unauthorized access, with no cryptography expertise required.
+    - **Automatic Patches**: Security patches are applied automatically, protecting deployments without operational disruption.
+    - **Auditing**: Granular auditing provides visibility into database activity to meet compliance and detect security issues.
+    - **Regulatory Compliance**: Atlas supports multi-region clusters and is certified with 15+ compliance standards, helping meet data residency and privacy regulations for the most stringent compliance requirements.
+
+    These features make Atlas a reliable choice for enterprises with stringent security and compliance needs.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/products/platform/trust
+      title: MongoDB Trust Center
+- questions:
+    - What are some of the reasons Bendigo and Adelaide chose MongoDB?
+  answer: |
+    Bendigo and Adelaide Bank chose MongoDB for several reasons as part of their digital transformation and modernization efforts:
+
+    - **Simplification and Consolidation**: MongoDB helped the bank reduce complexity by simplifying and consolidating their tech stack, which had become sprawling due to years of mergers and acquisitions.
+    - **Multi-Cloud Support**: MongoDB Atlas supports the three major cloud providers (Google Cloud, AWS, Azure), which facilitated the bank's move to a multi-cloud environment and provided portability.
+    - **Developer Empowerment**: MongoDB's document model aligns with how developers think and code, enabling faster application development. The bank wanted to empower developers to innovate and reduce development time.
+    - **Cost Efficiency**: Migrating to MongoDB Atlas was achieved at a fraction of the cost compared to traditional legacy-to-cloud migrations.
+    - **AI Integration**: MongoDB's tools allowed the bank to automate repetitive tasks with AI, significantly reducing development time and enhancing innovation.
+    - **Security and Reliability**: MongoDB Atlas provided high levels of security and reliability, crucial for managing the bank's real-time operational data.
+
+    These factors combined to make MongoDB a strategic choice for Bendigo and Adelaide Bank as they modernized their core banking technology and improved their digital infrastructure.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/solutions/customer-case-studies/bendigo-and-adelaide-bank
+      title: Bendigo and Adelaide Bank modernize core banking technology with Gen AI
+- questions:
+    - Are there any case studies demonstrating MongoDB’s effectiveness?
+  answer: |
+    Yes, there are several case studies demonstrating MongoDB’s effectiveness:
+
+    - **Predictive Maintenance in Manufacturing:** Organizations that adopted MongoDB Atlas for asset maintenance achieved operational improvements including a 15–20% reduction in downtime, 5–20% increase in labor productivity, and 30–60% reduction in maintenance costs. MongoDB Atlas enabled real-time monitoring, AI-powered analysis, and automated maintenance workflows.
+    - **AI-Powered Healthcare:** MongoDB Atlas and Microsoft delivered AI solutions for breast cancer care, integrating AI-driven diagnostics, predictive modeling, and advanced analytics through unified data management. This led to streamlined diagnostic processes, automated documentation, and improved data-driven decision-making in healthcare.
+    - **Insurance Claim Adjustment:** MongoDB has been used to build AI-powered semantic search solutions for auto insurance claim adjustment, enhancing operational efficiency and improving the ability to handle large volumes of unstructured data.
+
+    These examples illustrate MongoDB's effectiveness across various industries, enabling real-time insights, unified data management, AI integration, and significant cost and efficiency improvements.
+
+    For more case studies, see [Customer Success Stories](https://www.mongodb.com/solutions/customer-case-studies?tck=mongodb_ai_chatbot).
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/solutions/customer-case-studies
+      title: Customer Success Stories
+    - url: https://www.mongodb.com/resources/products/fundamentals/why-use-mongodb
+      title: Why Use MongoDB and When to Use It?
+- questions:
+    - Who are the top companies using MongoDB Atlas?
+  answer: |
+    Several prominent companies leverage MongoDB Atlas to enhance their operations and services. Here are a few notable examples:
+
+    - **Autodesk**: Autodesk uses MongoDB Atlas to power its Product Insights platform, increasing insights delivered by 300% on its analytics platform.
+    - **Delivery Hero**: This global leader in online food delivery uses MongoDB Atlas to optimize operations and improve performance, managing over 100 million products without latency issues.
+    - **Coinbase**: As a major cryptocurrency exchange, Coinbase relies on MongoDB Atlas to handle extensive data workloads and has developed predictive scaling solutions to manage traffic surges effectively.
+    - **Toyota Connected**: Toyota Connected migrated to Atlas and AWS to enhance reliability for its safety platform.
+    - **Wells Fargo**: This multinational bank uses MongoDB to modernize its card payments platform, handling over 7 million transactions.
+
+    These companies demonstrate the versatility and scalability of MongoDB Atlas across various industries, including software, food delivery, finance, and automotive safety.
+  author_email: jessica.roberts@mongodb.com
+  references:
+    - url: https://www.mongodb.com/solutions/customer-case-studies
+      title: Customer Success Stories

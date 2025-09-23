@@ -60,7 +60,7 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/traceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
-import { makeSearchTool } from "./tools/search";
+import { makeSearchTool, SEARCH_TOOL_NAME } from "./tools/search";
 import { makeMongoDbInputGuardrail } from "./processors/mongoDbInputGuardrail";
 import {
   makeGenerateResponseWithTools,
@@ -72,7 +72,7 @@ import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/Mong
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { makeFindContentWithMongoDbMetadata } from "./processors/findContentWithMongoDbMetadata";
 import { makeMongoDbAssistantSystemPrompt } from "./systemPrompt";
-import { makeFetchPageTool } from "./tools/fetchPage";
+import { FETCH_PAGE_TOOL_NAME, makeFetchPageTool } from "./tools/fetchPage";
 import { makeCorsOptions } from "./corsOptions";
 
 export const {
@@ -282,15 +282,17 @@ export const makeGenerateResponse = (args?: MakeGenerateResponseParams) =>
           filterPreviousMessages,
           llmNotWorkingMessage:
             conversations.conversationConstants.LLM_NOT_WORKING,
-          searchTool: makeSearchTool({
-            findContent,
-            makeReferences: makeMongoDbReferences,
-          }),
-          fetchPageTool: makeFetchPageTool({
-            loadPage,
-            findContent,
-            makeReferences: makeMongoDbReferences,
-          }),
+          internalTools: {
+            [SEARCH_TOOL_NAME]: makeSearchTool({
+              findContent,
+              makeReferences: makeMongoDbReferences,
+            }),
+            [FETCH_PAGE_TOOL_NAME]: makeFetchPageTool({
+              loadPage,
+              findContent,
+              makeReferences: makeMongoDbReferences,
+            }),
+          },
           maxSteps,
           stream: args?.responseWithSearchToolStream,
         }),

@@ -139,7 +139,7 @@ export function runQuizQuestionEval({
     reasoning_enabled: modelId.includes("gemini-2.5") ? true : undefined,
     reasoning_budget: modelId.includes("gemini-2.5") ? 1024 : undefined,
   };
-
+  console.log("reasoningOptions", reasoningOptions);
   llmOptions = {
     ...reasoningOptions,
     ...(llmOptions ?? {}),

@@ -19,56 +19,44 @@ const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);
 const projectName = "mongodb-multiple-choice";
 const experiments = [
   {
-    model: "GPT-4o",
-    experimentName: "gpt-4o-badge-631d3a9b",
+    model: "GPT 5",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-5&datasets=mdbu_quiz_badge-0bf72a0a",
   },
   {
-    model: "Claude 3.5 Sonnet v2",
-    experimentName: "claude-35-sonnet-v2-badge-cb743d9f",
+    model: "GPT 5 Mini",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-5-mini&datasets=mdbu_quiz_badge-7ed6151c",
   },
   {
-    model: "Claude 3.5 Sonnet",
-    experimentName: "claude-35-sonnet-badge-f3427e16",
-  },
-  { model: "Gemini 2 Flash", experimentName: "gemini-2-flash-badge-76fea4f5" },
-  {
-    model: "Claude 3.5 Haiku",
-    experimentName: "claude-35-haiku-badge-4f4d32bb",
-  },
-  { model: "Nova Pro v1", experimentName: "nova-pro-v1:0-badge-e76a0833" },
-  { model: "Llama 3.1 70B", experimentName: "llama-3.1-70b-badge-f2e28e86" },
-  { model: "Llama 3.2 90B", experimentName: "llama-3.2-90b-badge-81111f12" },
-  {
-    model: "Claude 3.5 Haiku",
-    experimentName: "claude-35-haiku-badge-4f4d32bb",
+    model: "GPT 4o",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-4o&datasets=mdbu_quiz_badge-3de142aa",
   },
   {
-    model: "Gemini 1.5 Flash",
-    experimentName: "gemini-1.5-flash-002-badge-e0141bec",
-  },
-  { model: "Nova Lite v1", experimentName: "nova-lite-v1:0-badge-c896c5f3" },
-  { model: "Llama 3 70B", experimentName: "llama-3-70b-badge-54545f72" },
-  { model: "GPT-4o Mini", experimentName: "gpt-4o-mini-badge" },
-  {
-    model: "Gemini 1.5 Pro",
-    experimentName: "gemini-1.5-pro-002-badge-fc8268f2",
+    model: "GPT 4o Mini",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-4o-mini&datasets=mdbu_quiz_badge-470f00b2",
   },
   {
-    model: "GPT-35 Turbo 16k",
-    experimentName: "gpt-35-turbo-16k-badge-6282561d",
+    model: "Gemini 2.5 Pro",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gemini-2.5-pro&datasets=mdbu_quiz_badge-9be5ad74",
   },
   {
-    model: "Gemini 1.0 Pro",
-    experimentName: "gemini-1.0-pro-002-badge-62c646b1",
+    model: "Gemini 2.5 Flash",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gemini-2.5-flash&datasets=mdbu_quiz_badge-1cc693a9",
   },
-  { model: "Nova Micro v1", experimentName: "nova-micro-v1:0-badge-e415a9d7" },
+  {
+    model: "Claude 4.1 Opus",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-opus-4.1&datasets=mdbu_quiz_badge-6308714f",
+  },
+  {
+    model: "Claude 4 Sonnet",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-sonnet-4&datasets=mdbu_quiz_badge-98f0f3af",
+  },
+  {
+    model: "Claude 3.7 Sonnet",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-37-sonnet&datasets=mdbu_quiz_badge-d9c09975",
+  },
   {
     model: "Mistral Large 2",
-    experimentName: "mistral-large-2-badge-2526d48b",
-  },
-  {
-    model: "Claude 3 Sonnet",
-    experimentName: "claude-3-sonnet-badge-a8791d43",
+    experimentName: "multiple_choice?experimentType=answer_question&model=mistral-large-2&datasets=mdbu_quiz_badge-5aad3637",
   },
 ];
 
@@ -127,15 +115,53 @@ function createCsvHeaders(data: CsvData[]): CsvHeader[] {
   }));
 }
 
+/**
+Extracts model name from experiment name.
+The model name appears between "&model=" and "&datasets".
+
+@param experimentName The experiment name to extract model from.
+@returns The extracted model name.
+*/
+function extractModelName(experimentName: string): string {
+  const modelMatch = experimentName.match(/&model=([^&]+)&datasets/);
+  return modelMatch ? modelMatch[1] : 'unknown';
+}
+
+/**
+Type definition for detailed quiz results CSV data.
+*/
+type DetailedQuizResult = {
+  title: string;
+  questionText: string;
+  answers: string;
+  expected: string;
+  "Correct Count": number;
+  [key: string]: string | number; // Dynamic model columns and Correct Count
+};
+
 async function main() {
   const outputDir = path.join(basePathOut, "csv", "badge");
   ensureOutputDirectory(outputDir);
 
   const titleTags = [
-    "Relational to Document Model",
-    "Schema Patterns and Antipatterns",
-    "Schema Design Optimization",
-    "Advanced Schema Patterns and Antipatterns",
+    "MongoDB Aggregation Fundamentals",
+    "MongoDB Query Optimization Techniques",
+    "From Relational Model (SQL) to MongoDB's Document Model",
+    "MongoDB Schema Design Patterns and Antipatterns",
+    "MongoDB Advanced Schema Design Patterns and Antipatterns",
+    "MongoDB Schema Design Optimization",
+    "Building AI Agents with MongoDB",
+    "Building AI-Powered Search with MongoDB Vector Search",
+    "Building RAG Apps Using MongoDB",
+    "MongoDB Indexing Design Fundamentals",
+    "Monitoring MongoDB with Built-in Tools",
+    "Optimizing MongoDB Performance with Tuning Tools",
+    "CRUD Operations in MongoDB",
+    "Search with MongoDB",
+    "Securing MongoDB Atlas: Authentication & Authorization",
+    "Securing MongoDB Self-Managed: Authentication & Authorization",
+    "MongoDB Sharding Strategies",
+    "Optimizing and Maintaining MongoDB Cluster Reliability",
   ] as const;
 
   // Define a type for the quiz titles
@@ -148,6 +174,7 @@ async function main() {
   } & Partial<Record<QuizTitle, number>>;
 
   const experimentAggregates: ExperimentAggregate[] = [];
+  const detailedResults: DetailedQuizResult[] = [];
 
   // Process each experiment
   for (const { experimentName, model } of experiments) {
@@ -162,6 +189,39 @@ async function main() {
       experimentName: experimentName,
       projectName,
       apiKey: BRAINTRUST_API_KEY,
+    });
+
+    // Extract model name from experiment name
+    const extractedModelName = extractModelName(experimentName);
+
+    // Process detailed results for the new CSV
+    results.forEach((result) => {
+      // Find existing detailed result or create new one
+      let detailedResult = detailedResults.find(
+        (dr) => 
+          dr.questionText === result.input.questionText &&
+          dr.expected === result.expected
+      );
+
+      if (!detailedResult) {
+        // Create new detailed result
+        detailedResult = {
+          title: result.metadata?.title || '',
+          questionText: result.input.questionText,
+          answers: JSON.stringify(result.input.answers),
+          expected: result.expected,
+          "Correct Count": 0,
+        };
+        detailedResults.push(detailedResult);
+      }
+
+      // Add the model's output to the detailed result
+      detailedResult[extractedModelName] = result.output || '';
+      
+      // Add to correct count if this result is correct
+      if (result.scores?.CorrectQuizAnswer === 1) {
+        detailedResult["Correct Count"] += 1;
+      }
     });
 
     // Add the quiz name as a tag if metadata.title is defined
@@ -224,6 +284,13 @@ async function main() {
     experimentAggregates,
     createCsvHeaders(experimentAggregates),
     path.join(outputDir, "badge_quiz_question_experiment_aggregates.csv")
+  );
+
+  // Write detailed quiz results to CSV
+  await writeDataToCsv(
+    detailedResults,
+    createCsvHeaders(detailedResults),
+    path.join(outputDir, "detailed_quiz_question_results.csv")
   );
 }
 

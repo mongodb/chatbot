@@ -1,5 +1,12 @@
 # MongoDB Knowledge Service
 
+> [!IMPORTANT]
+> This repo is deprecated and archived. The MongoDB Knowledge Service/AI Assistant
+> is still maintained in an internal-to-MongoDB repository [`mongodb/ai-assistant`](https://github.com/mongodb/ai-assistant/).
+> 
+> The MongoDB Education AI team is leaving this repo as a public archive,
+> given that it is Apache 2.0 licensed and linked to around the public web.
+
 This repo contains the work of the MongoDB Education AI team. 
 
 ## MongoDB Knowledge Service

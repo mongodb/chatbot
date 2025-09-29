@@ -3,6 +3,18 @@ title: Home
 description: MongoDB Knowledge Service
 ---
 
+:::important Website Deprecated & Moved
+
+This documentation site is deprecated. The MongoDB Knowledge Service/AI Assistant
+is still maintained in an internal-to-MongoDB repository [`mongodb/ai-assistant`](https://github.com/mongodb/ai-assistant/). MongoDB employees can access the current docs site at the link in the `mongodb/ai-assistant` repo.
+
+The MongoDB Education AI team is leaving this docs site up as a public archive,
+given that it is Apache 2.0 licensed and linked to around the public web.
+
+MongoDB employees can access the current docs site at the link in the `mongodb/ai-assistant` repo.
+
+:::
+
 # MongoDB Knowledge Service
 
 The MongoDB Knowledge Service lets you learn about MongoDB using generative AI.

@@ -14,12 +14,46 @@ import { aggregateExperimentScoreMean } from "../../reporting/aggregateExperimen
 const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);
 const projectName = "mongodb-multiple-choice";
 const experiments = [
-  { experimentName: "mistral-large-2", model: "Mistral Large 2" },
-  { experimentName: "gemini-2-flash", model: "Gemini 2 Flash" },
-  { experimentName: "claude-35-sonnet-v2", model: "Claude 3.5 Sonnet v2" },
-  { experimentName: "llama-3.1-70b", model: "Llama 3.1 70B" },
-  { experimentName: "nova-pro-v1:0", model: "Nova Pro v1" },
-  { experimentName: "gpt-4o", model: "GPT-4o" },
+  {
+    model: "GPT 5",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-5&datasets=mdbu_quiz_all-ad20cb9f",
+  },
+  {
+    model: "GPT 5 Mini",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-5-mini&datasets=mdbu_quiz_all-ab823151",
+  },
+  {
+    model: "GPT 4o",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-4o&datasets=mdbu_quiz_all-80e9b77e",
+  },
+  {
+    model: "GPT 4o Mini",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gpt-4o-mini&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Gemini 2.5 Pro",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gemini-2.5-pro&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Gemini 2.5 Flash",
+    experimentName: "multiple_choice?experimentType=answer_question&model=gemini-2.5-flash&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Claude 4.1 Opus",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-opus-4.1&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Claude 4 Sonnet",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-sonnet-4&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Claude 3.7 Sonnet",
+    experimentName: "multiple_choice?experimentType=answer_question&model=claude-37-sonnet&datasets=mdbu_quiz_all",
+  },
+  {
+    model: "Mistral Large 2",
+    experimentName: "multiple_choice?experimentType=answer_question&model=mistral-large-2&datasets=mdbu_quiz_all",
+  },
 ];
 
 const basePathOut = path.resolve(__dirname, "..", "..", "..", "testData");

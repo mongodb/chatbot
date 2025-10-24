@@ -1,8 +1,5 @@
-import mongoDbMetadata from "mongodb-rag-core/mongoDbMetadata";
+import { mongoDbProductNames, mongoDbTopics, mongoDbProgrammingLanguages } from "mongodb-rag-core/mongoDbMetadata";
 import { QuizQuestionData } from "../QuizQuestionData";
-
-const { mongoDbProductNames, mongoDbTopics, mongoDbProgrammingLanguages } =
-  mongoDbMetadata;
 
 const programmingLanguageTags = [
   ...mongoDbProgrammingLanguages
